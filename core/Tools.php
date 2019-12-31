@@ -104,14 +104,16 @@ class Tools{
 		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
 	}
 	static function Log($data,$tofile=false){
-	    $log = null
+
 		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.log';
-		if($log){
+		if(file_exists($log)){
 			if (time() - filemtime($log) > 5) {
 				unlink($log);
 			} 
+		}else{
+		    mkdir($_SERVER["DOCUMENT_ROOT"].'/logs', 0755, true);
+			fopen($_SERVER["DOCUMENT_ROOT"].'/logs/dev.log', "w");
 		}
-
 	    $back = debug_backtrace(2);
 		$debuginfo='';
 		if($back!= null){		
@@ -136,9 +138,14 @@ class Tools{
 	//Logs should be used to log dev data. This makes finding logs and commenting them out easier as we dont have to look at errors. 
 	static function Error($data,$tofile=false){
 		$err = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.err';
-		if (time() - filemtime($err) > 5) {
-			unlink($err);
-		} 
+		if(file_exists($err)){
+			if (time() - filemtime($err) > 5) {
+				unlink($err);
+			} 
+		}else{
+		    mkdir($_SERVER["DOCUMENT_ROOT"].'/logs', 0755, true);
+			fopen($_SERVER["DOCUMENT_ROOT"].'/logs/err.log', "w");
+		}
 	    $back = debug_backtrace(2);
 		$debuginfo='';
 		if($back!= null){		
