@@ -1,0 +1,1370 @@
+﻿[
+  {
+    "name": "getElementById",
+    "parameters": "HTML_ID",
+    "return": "HTML_ELEMENT",
+    "desc": "Get the element with the specified Id",
+    "dragImage": "icons/jsdrag/getElementById.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementbyid.asp",
+    "group": "Get"
+  },
+  {
+    "name": "getElementsByClassName",
+    "parameters": "HTML_CLASS",
+    "return": "ARRAY(HTML_ELEMENT)",
+    "desc": "Get the element with the specified Class",
+    "dragImage": "icons/tagdrag/tag_a.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbyclassname.asp",
+    "group": "Get"
+  },
+  {
+    "name": "getElementsByTagName",
+    "parameters": "HTML_ELEMENT_TYPE",
+    "return": "ARRAY(HTML_ELEMENT)",
+    "desc": "Get all the elements with the specified Element Type",
+    "dragImage": "icons/tagdrag/tag_a.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbytagname.asp",
+    "group": "Get"
+  }
+]
+
+
+
+
+
+
+
+
+/*
+
+
+
+let SIArray={	
+    constructor:{
+		type:"function",
+		desc:"The Array object constructor",
+		params:
+		[ 
+			{
+				name:"items",
+				req:false,
+				type:"object",
+				desc:"The array items",
+				repeat:true
+			}
+		],
+		returns:{
+			desc:"An Array object with the items passed in as parameters",
+			type:"array",
+			over:true
+		}
+	},
+	concat:{
+		type:"function",
+		desc:"Joins two or more arrays, and returns a copy of the joined arrays",
+		params:
+		[ 
+			{
+				name:"array2",
+				req:1,
+				type:"array",
+				desc:"The arrays to be joined",
+				repeat:true
+			}
+		],
+		returns:{
+			desc:"An Array object, representing the joined array",
+			type:"array",
+			over:false
+		}
+	},
+	copyWithin:{
+		type:"function",
+		desc:"Copies array elements within the array, to and from specified positions",
+		returns:{
+			name:"new array",
+			type:"array",
+			over:true
+		},
+		params:
+		[ 
+			{
+				name:"target",
+				req:true,
+				type:"int",
+				desc:"The index position to copy the elements to"
+			},
+			{
+				name:"start",
+				req:false,
+				type:"int",
+				desc="The index position to start copying elements from  (default is 0)"
+			},
+			{
+				name:"end",
+				req:false,
+				type:int,
+				desc:"The index position to stop copying elements from (default is array.length)"
+			}
+		]
+	},
+	entries:{
+		type:"function",
+		desc:"Returns a key/value pair Array Iteration Object",
+		params:[],
+		returns:{
+			name:"array iterator",
+			type:"array",
+			over:false
+		}
+	},
+	every:{
+		type:"function",
+		desc:"Checks if every element in an array pass a test",
+		params:[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback function to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			name:"passed test",
+			type:"boolean",
+			over:false
+		}
+	},
+	fill:{
+		type:"function",
+		desc:"Fill the elements in an array with a static value",
+		params:[ 
+			{
+				name:"value",
+				req:true,
+				type:"object",
+				desc:"The value to fill the array with"
+			},
+			{
+				name:"start",
+				req:false,
+				type:"int",
+				desc="The index to start filling the array (default is 0)"
+			},
+			{
+				name:"end",
+				req:false,
+				type:int,
+				desc:"The index to start filling the array (default is array.length)"
+			}
+		],
+		returns:{
+			name:"passed test",
+			desc:"the new array filled with the value",
+			type:"array",
+			over:true
+		}
+			
+	}
+	filter:{
+		type:"function",
+		desc:"Creates a new array with every element in an array that pass a test",
+		params:	[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			name:"filtered array",
+			desc:"An Array containing all the array elements that pass the test. If no elements pass the test it returns an empty array.",
+			type:"array",
+			over:false
+		}
+	}
+	find:{
+		type:"function",
+		desc:"Returns a key/value pair Array Iteration Object",
+		params:	[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			name:"array iterator",
+			type:"array",
+			over:false
+		}
+	},
+	findIndex:{
+		type:"function",
+		desc:"Returns a key/value pair Array Iteration Object",
+		params:	
+		[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			desc:"Returns the first array element index if any of the elements in the array pass the test, otherwise it returns -1",
+			name:"found index",
+			type:"int",
+			over:false
+		}
+	},
+	forEach:{
+		type:"function",
+		desc:"Calls a function for each array element",
+		params:	
+		[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			desc:"Returns undefined",
+			name:"undefined",
+			type:"undefined",
+			over:true
+		}
+	},
+	from:{
+		type:"function",
+		desc:"Creates an array from an object",
+		params:	
+		[ 
+			{
+				name:"object",
+				req:true,
+				type:"object",
+				desc:"The object to convert to an array"
+			},
+			{
+				name:"mapFunction",
+				req:false,
+				type:"function",
+				desc="A map function to call on each item of the array"
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc:"A value to use as this when executing the mapFunction"
+			}
+		],
+		returns:{
+			desc:"The array from the object",
+			name:"object to array",
+			type:"array",
+			over:false
+		}
+	},
+	includes:{
+		type:"function",
+		desc:"Check if an array contains the specified element",
+		params:	
+		[ 
+			{
+				name:"element",
+				req:true,
+				type:"object",
+				desc:"The element to search for"
+			},
+			{
+				name:"start",
+				req:false,
+				type:"int",
+				desc="At which position in the array to start the search"
+			},
+		],
+		returns:{
+			desc:"True if the element is found. False if not",
+			name:"found",
+			type:"boolean",
+			over:false
+		}
+	},
+	indexOf:{
+		type:"function",
+		desc:"Search the array for an element and returns its position",
+		params:	
+		[ 
+			{
+				name:"element",
+				req:true,
+				type:"object",
+				desc:"The element to search for"
+			},
+			{
+				name:"start",
+				req:false,
+				type:"int",
+				desc="Where to start the search. Negative values will start at the given position counting from the end, and search to the end."
+			},
+		],
+		returns:{
+			desc:"A Number, representing the position of the specified item, otherwise -1",
+			name:"item index",
+			type:"int",
+			over:false
+		}
+	},
+	isArray:{
+		type:"function",
+		desc:"Checks whether an object is an array",
+		opts:["ontype"],
+		params:	
+		[ 
+			{
+				name:"object",
+				req:true,
+				type:"object",
+				desc:"The object to be tested"
+			},
+		],
+		returns:{
+			desc:"A Boolean. Returns true if the object is an array, otherwise it returns false",
+			name:"is array",
+			type:"boolean",
+			over:false
+		}
+	},
+	join:{
+		type:"function",
+		desc:"Joins all elements of an array into a string",
+		params:	
+		[ 
+			{
+				name:"separator",
+				req:false,
+				type:"string",
+				desc:"The separator to be used. If omitted, the elements are separated with a comma"
+			},
+		],
+		returns:{
+			desc:"A String, representing the array values, separated by the specified separator",
+			name:"joined string",
+			type:"string",
+			over:false
+		}
+	},
+	keys:{
+		type:"function",
+		desc:"Returns a Array Iteration Object, containing the keys of the original array",
+		params:	
+		[],
+		returns:{
+			desc:"An Array Iterator object",
+			name:"array iterator",
+			type:"array",
+			over:false
+		}
+	},
+	length:{
+		type:"property",
+		desc:"Sets or returns the number of elements in an array",
+		params:	
+		[
+			{
+				name:"length",
+				req:false,
+				type:"int",
+				desc="Used to set to total number of array elements"
+			},
+		],
+		returns:{
+			desc:"A Number, representing the number of elements in the array object",
+			name:"array element count",
+			type:"int",
+			over:false
+		}
+	},
+	lastIndexOf:{
+		type:"function",
+		desc:"Search the array for an element, starting at the end, and returns its position",
+		params:	
+		[			
+			{
+				name:"item",
+				req:true,
+				type:"object",
+				desc:"The item to search for"
+			},
+			{
+				name:"start",
+				req:false,
+				type:"int",
+				desc="Where to start the search. Negative values will start at the given position counting from the end, and search to the beginning"
+			}
+		],
+		returns:{
+			desc:"A Number, representing the position of the specified item, otherwise -1",
+			name:"index",
+			type:"int",
+			over:false
+		}
+	},
+	map:{
+		type:"function",
+		desc:"Creates a new array with the result of calling a function for each array element",
+		params:	[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			desc:"An Array containing the results of calling the provided function for each element in the original array.",
+			name:"results array",
+			type:"array",
+			over:false
+		}
+	},
+	pop:{
+		type:"function",
+		desc:"Removes the last element of an array, and returns that element",
+		params:	
+		[],
+		returns:{
+			desc:"Any type*, representing the removed array item. *An array item can be a string, a number, an array, a boolean, or any other object types that are allowed in an array.",
+			name:"last element",
+			type:"object",
+			over:false
+		}
+	},
+	"prototype":{
+		type:"function",
+		desc:"	Allows you to add properties and methods to an Array object",
+		params:	
+		[			
+			{
+				name:"Property or Method",
+				req:1,
+				type:"object",
+				desc:"the property of method that will be added to the Array() object",
+				params:[
+					{
+						name:"this",
+						req:false,
+						type:"self",
+						desc:"The calling array"
+					}
+				],
+			}
+		],
+		returns:{
+			desc:"Returns function created",
+			name:"array function",
+			type:"function",
+			over:false
+		}
+	},
+	push:{
+		type:"function",
+		desc:"Adds new elements to the end of an array, and returns the new length",
+		params:	
+		[
+			{
+				name:"element to add",
+				req:1,
+				type:"object",
+				desc:"The item(s) to add to the array",
+				repeat:true
+			}
+		],
+		returns:{
+			desc:"A Number, representing the new length of the array",
+			name:"item count",
+			type:"int",
+			over:true
+		}
+	},
+	reduce:{
+		type:"function",
+		desc:"Reduce the values of an array to a single value (going left-to-right)",
+		params:	[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"total",
+						req:true,
+						type:"object",
+						desc:"The initialValue, or the previously returned value of the function"
+					},
+					{
+						name:"currentValue",
+						req:true,
+						type:"object",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"initialValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function as the initial value"
+			}
+		],
+		returns:{
+			desc:"Returns the accumulated result from the last call of the callback function",
+			name:"result",
+			type:"object",
+			over:false
+		}
+	},
+	reduceRight:{
+		type:"function",
+		desc:"Reduce the values of an array to a single value (going right-to-left)",
+		params:	[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"total",
+						req:true,
+						type:"object",
+						desc:"The initialValue, or the previously returned value of the function"
+					},
+					{
+						name:"currentValue",
+						req:true,
+						type:"object",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"initialValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function as the initial value"
+			}
+		],
+		returns:{
+			desc:"Returns the accumulated result from the last call of the callback function",
+			name:"result",
+			type:"object",
+			over:false
+		}
+	},
+	reverse:{
+		type:"function",
+		desc:"Reverses the order of the elements in an array",
+		params:	
+		[],
+		returns:{
+			desc:"An Array, representing the array after it has been reversed",
+			name:"reversed array",
+			type:"array",
+			over:true
+		}
+	},
+	shift:{
+		type:"function",
+		desc:"Removes the first element of an array, and returns that element",
+		params:[],
+		returns:{
+			desc:"Any type*, representing the removed array item. *An array item can be a string, a number, an array, a boolean, or any other object types that are allowed in an array.",
+			name:"first element",
+			type:"object",
+			over:true
+		}
+	},
+	slice:{
+		type:"function",
+		desc:"Selects a part of an array, and returns the new array",
+		params:	
+		[
+			{
+				name:"start",
+				req:false,
+				type:"int",
+				desc="An integer that specifies where to start the selection (The first element has an index of 0). Use negative numbers to select from the end of an array. If omitted, it acts like "0""
+			},
+			{
+				name:"end",
+				req:false,
+				type:int,
+				desc:"An integer that specifies where to end the selection. If omitted, all elements from the start position and to the end of the array will be selected. Use negative numbers to select from the end of an array"
+			}
+		],
+		returns:{
+			desc:"A new Array, containing the selected elements",
+			name:"selected elements",
+			type:"array",
+			over:false
+		}
+	},
+	some:{
+		type:"function",
+		desc:"Checks if any of the elements in an array pass a test",
+		params:	[ 
+			{
+				name:"callback",
+				req:true,
+				type:"function",
+				desc:"A callback to be run for each element in the array",
+				params:[
+					{
+						name:"currentValue",
+						req:true,
+						type:"int",
+						desc:"The value of the current element"
+					},
+					{
+						name:"index",
+						req:false,
+						type:"int",
+						desc="The array index of the current element"
+					},
+					{
+						name:"array",
+						req:false,
+						type:"array",
+						desc:"The array object the current element belongs to"
+					}
+				],
+			},
+			{
+				name:"thisValue",
+				req:false,
+				type:"self",
+				desc="A value to be passed to the function to be used as its 'this' value. If this parameter is empty, the value 'undefined' will be passed as its 'this' value"
+			}
+		],
+		returns:{
+			desc:"Returns true if any of the elements in the array pass the test, otherwise it returns false",
+			name:"has some",
+			type:"boolean",
+			over:false
+		}
+	},
+	sort:{
+		type:"function",
+		desc:"Sorts the elements of an array",
+		params:	
+		[
+			{
+				name:"callback",
+				req:false,
+				type:"function",
+				desc:"A callback to be run to sort each element in the array",
+				params:[
+					{
+						name:"value1",
+						req:true,
+						type:"object",
+						desc:"The first value to compare"
+					},
+					{
+						name:"value2",
+						req:true,
+						type:"object",
+						desc:"The second value to compare"
+					}
+				],
+				returns:{
+					desc:"When the sort() method compares two values, it sends the values to the compare function, and sorts the values according to the returned (negative, zero, positive) value.",
+					name:"negative, zero, positive",
+					type:"number",
+					over:false
+				}
+			},
+		],
+		returns:{
+			desc:"The Array object, with the items sorted",
+			name:"sorted array",
+			type:"array",
+			over:false
+		}
+	},
+	splice:{
+		type:"function",
+		desc:"Adds/Removes elements from an array",
+		params:
+		[ 
+			{
+				name:"index",
+				req:true,
+				type:"int",
+				desc:"An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array"
+			},
+			{
+				name:"howmany",
+				req:false,
+				type:"int",
+				desc="The number of items to be removed. If set to 0, no items will be removed"
+			},
+			{
+				name:"items",
+				req:false,
+				type:"object",
+				desc:"The new item(s) to be added to the array",
+				repeat:true
+			}
+		]
+		returns:{
+			desc:"A new Array, containing the removed items (if any)",
+			name:"removed elements",
+			type:"array",
+			over:true
+		}
+	},
+	toString:{
+		type:"function",
+		desc:"Converts an array to a string, and returns the result",
+		params:	
+		[],
+		returns:{
+			desc:"A String, representing the values of the array, separated by a comma",
+			name:"array text",
+			type:"string",
+			over:false
+		}
+	},
+	unshift:{
+		type:"function",
+		desc:"Adds new elements to the beginning of an array, and returns the new length",
+		params:	
+		[
+			{
+				name:"items",
+				req:false,
+				type:"object",
+				desc:"The new item(s) to be added to the array",
+				repeat:true
+			}
+		],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:true
+		}
+	},
+	valueOf:{
+		type:"function",
+		desc:"Returns the primitive value of an array",
+		params:	
+		[],
+		returns:{
+			desc:"The valueOf() method returns itself",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+},
+"Boolean":{
+	constructor:{
+		type:"function",
+		desc:"The Boolean object constructor",
+		params:
+		[ 
+			{
+				name:"true or false",
+				req:false,
+				type:"boolean",
+				desc:"The initial true or false state of the boolean",
+			}
+		],
+		returns:{
+			desc:"The current value of the boolean either true or false",
+			type:"boolean",
+			over:true
+		}
+	},
+	"prototype":{
+		
+		type:"function",
+		desc:"Allows you to add properties and methods to the boolean object",
+		params:	
+		[			
+			{
+				name:"Property or Method",
+				req:1,
+				type:"object",
+				desc:"the property of method that will be added to the Boolean() object",
+				params:[
+					{
+						name:"this",
+						req:false,
+						type:"self",
+						desc:"The calling bool"
+					}
+				],
+			}
+		],
+		returns:{
+			desc:"Returns function created",
+			name:"boolean function",
+			type:"function",
+			over:false
+		}
+	},
+	toString:{
+		type:"function",
+		desc:"Converts a bool to a string, and returns the result",
+		params:	
+		[],
+		returns:{
+			desc:"A String, either true or false",
+			name:"boolean text",
+			type:"string",
+			over:false
+		}
+	},
+	valueOf:{
+		type:"function",
+		desc:"Returns the primitive value of an boolean",
+		params:	
+		[],
+		returns:{
+			desc:"The valueOf() method returns itself",
+			name:"current value",
+			type:"boolean",
+			over:false
+		}
+	},	
+},
+Date:{
+	getDate:{
+		type:"function",
+		desc:"Returns the day of the month (from 1-31)",
+		opts:["onnewtype"],
+		params:	
+		[],
+		returns:{
+			desc:"A Number, from 1 to 31, representing the day of the month",
+			name:"day of the month",
+			type:"number",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+	
+}
+
+
+
+
+
+	func:{
+		type:"function",
+		desc:"",
+		params:	
+		[],
+		returns:{
+			desc:"",
+			name:"",
+			type:"array",
+			over:false
+		}
+	},
+
+
+
+
+  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      /*
+//Canvas functions
+//Colors Styles and Shadows
+//Property	Description
+fillStyle	Sets or returns the color, gradient, or pattern used to fill the drawing
+strokeStyle	Sets or returns the color, gradient, or pattern used for strokes
+shadowColor	Sets or returns the color to use for shadows
+shadowBlur	Sets or returns the blur level for shadows
+shadowOffsetX	Sets or returns the horizontal distance of the shadow from the shape
+shadowOffsetY	Sets or returns the vertical distance of the shadow from the shape
+
+//Method	Description
+createLinearGradient()	Creates a linear gradient (to use on canvas content)
+createPattern()	Repeats a specified element in the specified direction
+createRadialGradient()	Creates a radial/circular gradient (to use on canvas content)
+addColorStop()	Specifies the colors and stop positions in a gradient object
+
+//Line Styles
+//Property	Description
+lineCap	Sets or returns the style of the end caps for a line
+lineJoin	Sets or returns the type of corner created, when two lines meet
+lineWidth	Sets or returns the current line width
+miterLimit	Sets or returns the maximum miter length
+
+//Rectangles
+//Method	Description
+rect()	Creates a rectangle
+fillRect()	Draws a "filled" rectangle
+strokeRect()	Draws a rectangle (no fill)
+clearRect()	Clears the specified pixels within a given rectangle
+
+//Paths
+//Method	Description
+fill()	Fills the current drawing (path)
+stroke()	Actually draws the path you have defined
+beginPath()	Begins a path, or resets the current path
+moveTo()	Moves the path to the specified point in the canvas, without creating a line
+closePath()	Creates a path from the current point back to the starting point
+lineTo()	Adds a new point and creates a line to that point from the last specified point in the canvas
+clip()	Clips a region of any shape and size from the original canvas
+quadraticCurveTo()	Creates a quadratic B껩er curve
+bezierCurveTo()	Creates a cubic B껩er curve
+arc()	Creates an arc/curve (used to create circles, or parts of circles)
+arcTo()	Creates an arc/curve between two tangents
+isPointInPath()	Returns true if the specified point is in the current path, otherwise false
+
+//Transformations
+//Method	Description
+scale()	Scales the current drawing bigger or smaller
+rotate()	Rotates the current drawing
+translate()	Remaps the (0,0) position on the canvas
+transform()	Replaces the current transformation matrix for the drawing
+setTransform()	Resets the current transform to the identity matrix. Then runs transform()
+
+//Text
+//Property	Description
+font	Sets or returns the current font properties for text content
+textAlign	Sets or returns the current alignment for text content
+textBaseline	Sets or returns the current text baseline used when drawing text
+
+//Method	Description
+fillText()	Draws "filled" text on the canvas
+strokeText()	Draws text on the canvas (no fill)
+measureText()	Returns an object that contains the width of the specified text
+
+//Image Drawing
+//Method	Description
+drawImage()	Draws an image, canvas, or video onto the canvas
+
+//Pixel Manipulation
+//Property	Description
+width	Returns the width of an ImageData object
+height	Returns the height of an ImageData object
+data	Returns an object that contains image data of a specified ImageData object
+
+//Method	Description
+createImageData()	Creates a new, blank ImageData object
+getImageData()	Returns an ImageData object that copies the pixel data for the specified rectangle on a canvas
+putImageData()	Puts the image data (from a specified ImageData object) back onto the canvas
+
+//Compositing
+//Property	Description
+globalAlpha	Sets or returns the current alpha or transparency value of the drawing
+globalCompositeOperation	Sets or returns how a new image are drawn onto an existing image
+
+//Other
+//Method	Description
+save()	Saves the state of the current context
+restore()	Returns previously saved path state and attributes
+createEvent()
+getContext()
+toDataURL()
+*/
+
+
+
+
+
+
+

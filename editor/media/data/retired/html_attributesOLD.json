@@ -1,0 +1,1706 @@
+{
+"input": [
+    {
+      "a": "accept",
+      "dt": "MIMETYPE",
+      "d": "Specifies the types of files that the server accepts (only for type=\"file\")"
+    },
+    {
+      "a": "alt",
+      "dt": "IF(TYPE=IMAGE) TEXT",
+      "d": "Specifies an alternate text when the original element fails to display"
+    },
+    {
+      "a": "autocomplete",
+      "dt": "ON|OFF",
+      "d": "Specifies whether the <form> or the <input> element should have autocomplete enabled"
+    },
+    {
+      "a": "autofocus",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element should automatically get focus when the page loads"
+    },
+    {
+      "a": "checked",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that an <input> element should be pre-selected when the page loads (for type=\"checkbox\" or type=\"radio\")"
+    },
+    {
+      "a": "dirname",
+      "dt": "NAME.dir",
+      "d": "Specifies that the text direction will be submitted"
+    },
+    {
+      "a": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+      "a": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+      "a": "formaction",
+      "dt": "URL",
+      "d": "Specifies where to send the form-data when a form is submitted. Only for type=\"submit\""
+    },
+    {
+      "a": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element"
+    },
+    {
+      "a": "list",
+      "dt": "DATALIST_ID",
+      "d": "Refers to a <datalist> element that contains pre-defined options for an <input> element"
+    },
+    {
+      "a": "max",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum value"
+    },
+    {
+      "a": "maxlength",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum number of characters allowed in an element"
+    },
+    {
+      "a": "min",
+      "dt": "NUMBER|DATE",
+      "d": "Specifies a minimum value"
+    },
+    {
+      "a": "multiple",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that a user can enter more than one value"
+    },
+    {
+      "a": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element"
+    },
+    {
+      "a": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading"
+    },
+    {
+      "a": "onsearch",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the user writes something in a search field (for <input=\"search\">)"
+    },
+    {
+      "a": "pattern",
+      "dt": "REGEXP",
+      "d": "Specifies a regular expression that an <input> element's value is checked against"
+    },
+    {
+      "a": "placeholder",
+      "dt": "TEXT",
+      "d": "Specifies a short hint that describes the expected value of the element"
+    },
+    {
+      "a": "readonly",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element is read-only"
+    },
+    {
+      "a": "required",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element must be filled out before submitting the form"
+    },
+    {
+      "a": "size",
+      "dt": "NUMBER",
+      "d": "Specifies the width, in characters (for <input>) or specifies the number of visible options (for <select>)"
+    },
+    {
+      "a": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the media file"
+    },
+    {
+      "a": "step",
+      "dt": "NUMBER",
+      "d": "Specifies the legal number intervals for an input field"
+    },
+    {
+      "a": "type",
+      "dt": "OPTIONSET(button|checkbox|color|date|datetime|datetime-local|email|file|hidden|image|month|number|password|radio|range|reset|search|submit|tel|text|time|url|week)",
+      "d": "Specifies the type of element"
+    },
+    {
+      "a": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element"
+    },
+    {
+      "a": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element"
+    }
+  ],
+"form": [
+    {
+      "a": "accept-charset",
+      "dt": "SSV CHARSET",
+      "d": "Specifies the character encodings that are to be used for the form submission"
+    },
+    {
+      "a": "action",
+      "dt": "OPTIONSET(application/x-www-form-urlencoded|multipart/form-data|text/plain)",
+      "d": "Specifies where to send the form-data when a form is submitted"
+    },
+    {
+      "a": "autocomplete",
+      "dt": "ON|OFF",
+      "d": "Specifies whether the <form> or the <input> element should have autocomplete enabled"
+    },
+    {
+      "a": "enctype",
+      "dt": "OPTIONSET(application/x-www-form-urlencoded|multipart/form-data|text/plain)",
+      "d": "Specifies how the form-data should be encoded when submitting it to the server (only for method=\"post\")"
+    },
+    {
+      "a": "method",
+      "dt": "OPTIONSET(post|get)",
+      "d": "Specifies the HTTP method to use when sending form-data"
+    },
+    {
+      "a": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element"
+    },
+    {
+      "a": "novalidate",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the form should not be validated when submitted"
+    },
+    {
+      "a": "onreset",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a reset button in a form is clicked."
+    },
+    {
+      "a": "onsubmit",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a form is submitted"
+    },
+    {
+      "a": "target",
+      "dt": "OPTIONSET(_blank|_self|_parent|_top)",
+      "d": "Specifies the target for where to open the linked document or where to submit the form"
+    }
+  ],
+"GLOBAL": [
+    {
+      "a": "accesskey",
+      "dt": "CHAR",
+      "d": "Specifies a shortcut key to activate/focus an element"
+    },
+    {
+      "a": "class",
+      "dt": "SSV TEXT",
+      "d": "Specifies one or more classnames for an element (refers to a class in a style sheet)"
+    },
+    {
+      "a": "contenteditable",
+      "dt": "TRUE|FALSE",
+      "d": "Specifies whether the content of an element is editable or not"
+    },
+    {
+      "a": "contextmenu",
+      "dt": "ID",
+      "d": "Specifies a context menu for an element. The context menu appears when a user right-clicks on the element"
+    },
+    {
+      "a": "data-*",
+      "dt": "KEY_VALUE_PAIR",
+      "d": "Used to store custom data private to the page or application"
+    },
+    {
+      "a": "dir",
+      "dt": "OPTIONSET(ltr|rtl|auto)",
+      "d": "Specifies the text direction for the content in an element"
+    },
+    {
+      "a": "draggable",
+      "dt": "OPTIONSET(true|false|auto)",
+      "d": "Specifies whether an element is draggable or not"
+    },
+    {
+      "a": "dropzone",
+      "dt": "OPTIONSET(copy|move|link)",
+      "d": "Specifies whether the dragged data is copied, moved, or linked, when dropped"
+    },
+    {
+      "a": "hidden",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that an element is not yet, or is no longer, relevant"
+    },
+    {
+      "a": "id",
+      "dt": "UNIQUE_ID",
+      "d": "Specifies a unique id for an element"
+    },
+    {
+      "a": "innerHTML",
+      "dt": "INNERHTML",
+      "d": "Specifies all data inside the element"
+    },
+    {
+      "a": "lang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the element's content"
+    },
+    {
+      "a": "spellcheck",
+      "dt": "TRUE|FALSE",
+      "d": "Specifies whether the element is to have its spelling and grammar checked or not"
+    },
+    {
+      "a": "style",
+      "dt": "CSS",
+      "d": "Specifies an inline CSS style for an element"
+    },
+    {
+      "a": "tabindex",
+      "dt": "NUMBER",
+      "d": "Specifies the tabbing order of an element"
+    },
+    {
+      "a": "title",
+      "dt": "TEXT",
+      "d": "Specifies extra information about an element"
+    },
+    {
+      "a": "translate",
+      "dt": "OPTIONSET(yes|no)",
+      "d": "Specifies whether the content of an element should be translated or not"
+    }
+  ],
+"area": [
+    {
+      "a": "alt",
+      "dt": "TEXT",
+      "d": "Specifies an alternate text when the original element fails to display"
+    },
+    {
+      "a": "coords",
+      "dt": "COORDS(IF SHAPE = RECT(x1,y1,x2,y2)|IF SHAPE = CIRCLE(x,y,radius)|IF SHAPE = POLYGON(x1,y1,x2,y2,..,xn,yn))",
+      "d": "Specifies the coordinates of the area"
+    },
+    {
+      "a": "download",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink"
+    },
+    {
+      "a": "href",
+      "dt": "URL",
+      "d": "Specifies the URL of the page the link goes to"
+    },
+    {
+      "a": "hreflang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the linked document"
+    },
+    {
+      "a": "media",
+      "dt": "N OPTIONSETS(and|not|,)",
+      "d": "Specifies what media/device the linked document is optimized for"
+    },
+    {
+      "a": "rel",
+      "dt": "OPTIONSET(alternate|author|bookmark|help|license|next|nofollow||noreferrer|prefetch|prev|search|tag)",
+      "d": "Specifies the relationship between the current document and the linked document"
+    },
+    {
+      "a": "shape",
+      "dt": "OPTIONSET(default|rect|circle|poly)",
+      "d": "Specifies the shape of the area"
+    },
+    {
+      "a": "target",
+      "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
+      "d": "Specifies the target for where to open the linked document or where to submit the form"
+    }
+  ],
+  "img": [
+    {
+        "a": "alt",
+        "dt": "TEXT",
+        "d": "Specifies an alternate text when the original element fails to display"
+    },
+    {
+        "a": "height",
+        "dt": "PIXELS",
+        "d": "Specifies the height of the element"
+    },
+    {
+        "a": "ismap",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies an image as a server-side image-map"
+    },
+    {
+        "a": "onabort",
+        "dt": "SCRIPT",
+        "d": "Script to be run on abort"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "onload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is finished loading"
+    },
+    {
+        "a": "sizes",
+        "dt": "NUMBERxNUMBER",
+        "d": "Specifies the size of the linked resource"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "srcset",
+        "dt": "URL",
+        "d": "Specifies the URL of the image to use in different situations"
+    },
+    {
+        "a": "usemap",
+        "dt": "#NAME<MAP>",
+        "d": "Specifies an image as a client-side image-map"
+    },
+    {
+        "a": "width",
+        "dt": "PIXELS",
+        "d": "Specifies the width of the element"
+    }
+  ],
+  "script": [
+    {
+        "a": "async",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the script is executed asynchronously (only for external scripts)"
+    },
+    {
+        "a": "charset",
+        "dt": "CHARSET",
+        "d": "Specifies the character encoding"
+    },
+    {
+        "a": "defer",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the script is executed when the page has finished parsing (only for external scripts)"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "onload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is finished loading"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "type",
+        "dt": "MEDIATYPE",
+        "d": "Specifies the type of element"
+    }
+  ],
+  "button": [
+    {
+        "a": "autofocus",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the element should automatically get focus when the page loads"
+    },
+    {
+        "a": "disabled",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "formaction",
+        "dt": "URL",
+        "d": "Specifies where to send the form-data when a form is submitted. Only for type=\"submit\""
+    },
+    {
+        "a": "name",
+        "dt": "TEXT",
+        "d": "Specifies the name of the element"
+    },
+    {
+        "a": "type",
+        "dt": "OPTIONSET(button|submit|reset)",
+        "d": "Specifies the type of element"
+    },
+    {
+        "a": "value",
+        "dt": "TEXT",
+        "d": "Specifies the value of the element"
+    }
+  ],
+  "select": [
+    {
+        "a": "autofocus",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the element should automatically get focus when the page loads"
+    },
+    {
+        "a": "disabled",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "multiple",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that a user can enter more than one value"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    },
+    {
+        "a": "required",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the element must be filled out before submitting the form"
+    },
+    {
+        "a": "size",
+        "dt": "NUMBER",
+        "d": "Specifies the width, in characters (for <input>) or specifies the number of visible options (for <select>)"
+    }
+  ],
+  "textarea": [
+    {
+        "a": "autofocus",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the element should automatically get focus when the page loads"
+    },
+    {
+        "a": "cols",
+        "dt": "INT",
+        "d": "Specifies the visible width of a text area"
+    },
+    {
+        "a": "dirname",
+        "dt": "NAME.dir",
+        "d": "Specifies that the text direction will be submitted"
+    },
+    {
+        "a": "disabled",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "maxlength",
+        "dt": "NUMBER",
+        "d": "Specifies the maximum number of characters allowed in an element"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    },
+    {
+        "a": "placeholder",
+        "dt": "TEXT",
+        "d": "Specifies a short hint that describes the expected value of the element"
+    },
+    {
+        "a": "readonly",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the element is read-only"
+    },
+    {
+        "a": "required",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the element must be filled out before submitting the form"
+    },
+    {
+        "a": "rows",
+        "dt": "NUMBER",
+        "d": "Specifies the visible number of lines in a text area"
+    },
+    {
+        "a": "wrap",
+        "dt": "OPTIONSET(hard|soft)",
+        "d": "Specifies how the text in a text area is to be wrapped when submitted in a form"
+    }
+  ],
+  "audio": [
+    {
+        "a": "autoplay",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the audio/video will start playing as soon as it is ready"
+    },
+    {
+        "a": "controls",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that audio/video controls should be displayed (such as a play/pause button etc)"
+    },
+    {
+        "a": "loop",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the audio/video will start over again, every time it is finished"
+    },
+    {
+        "a": "loop",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the audio/video will start over again, every time it is finished"
+    },
+    {
+        "a": "muted",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the audio output of the video should be muted"
+    },
+    {
+        "a": "onabort",
+        "dt": "SCRIPT",
+        "d": "Script to be run on abort"
+    },
+    {
+        "a": "oncanplay",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)"
+    },
+    {
+        "a": "oncanplaythrough",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a file can be played all the way to the end without pausing for buffering"
+    },
+    {
+        "a": "ondurationchange",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the length of the media changes"
+    },
+    {
+        "a": "onemptied",
+        "dt": "SCRIPT",
+        "d": "Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)"
+    },
+    {
+        "a": "onended",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media has reach the end (a useful event for messages like \"thanks for listening\")"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "onloadeddata",
+        "dt": "SCRIPT",
+        "d": "Script to be run when media data is loaded"
+    },
+    {
+        "a": "onloadedmetadata",
+        "dt": "SCRIPT",
+        "d": "Script to be run when meta data (like dimensions and duration) are loaded"
+    },
+    {
+        "a": "onloadstart",
+        "dt": "SCRIPT",
+        "d": "Script to be run just as the file begins to load before anything is actually loaded"
+    },
+    {
+        "a": "onpause",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media is paused either by the user or programmatically"
+    },
+    {
+        "a": "onplay",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media is ready to start playing"
+    },
+    {
+        "a": "onplaying",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media actually has started playing."
+    },
+    {
+        "a": "onprogress",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser is in the process of getting the media data"
+    },
+    {
+        "a": "onratechange",
+        "dt": "SCRIPT",
+        "d": "Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode)."
+    },
+    {
+        "a": "onseeked",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the seeking attribute is set to false indicating that seeking has ended"
+    },
+    {
+        "a": "onseeking",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the seeking attribute is set to true indicating that seeking is active"
+    },
+    {
+        "a": "onstalled",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser is unable to fetch the media data for whatever reason"
+    },
+    {
+        "a": "onsuspend",
+        "dt": "SCRIPT",
+        "d": "Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason"
+    },
+    {
+        "a": "ontimeupdate",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)"
+    },
+    {
+        "a": "onvolumechange",
+        "dt": "SCRIPT",
+        "d": "Script to be run each time the volume of a video/audio has been changed"
+    },
+    {
+        "a": "onwaiting",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)"
+    },
+    {
+        "a": "preload",
+        "dt": "OPTIONSET(auto|metadata|none)",
+        "d": "Specifies if and how the author thinks the audio/video should be loaded when the page loads"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    }
+  ],
+  "video": [
+    {
+        "a": "autoplay",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the audio/video will start playing as soon as it is ready"
+    },
+    {
+        "a": "controls",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that audio/video controls should be displayed (such as a play/pause button etc)"
+    },
+    {
+        "a": "height",
+        "dt": "PIXELS",
+        "d": "Specifies the height of the element"
+    },
+    {
+        "a": "muted",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the audio output of the video should be muted"
+    },
+    {
+        "a": "onabort",
+        "dt": "SCRIPT",
+        "d": "Script to be run on abort"
+    },
+    {
+        "a": "oncanplay",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)"
+    },
+    {
+        "a": "oncanplaythrough",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a file can be played all the way to the end without pausing for buffering"
+    },
+    {
+        "a": "ondurationchange",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the length of the media changes"
+    },
+    {
+        "a": "onemptied",
+        "dt": "SCRIPT",
+        "d": "Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)"
+    },
+    {
+        "a": "onended",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media has reach the end (a useful event for messages like \"thanks for listening\")"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "onloadeddata",
+        "dt": "SCRIPT",
+        "d": "Script to be run when media data is loaded"
+    },
+    {
+        "a": "onloadedmetadata",
+        "dt": "SCRIPT",
+        "d": "Script to be run when meta data (like dimensions and duration) are loaded"
+    },
+    {
+        "a": "onloadstart",
+        "dt": "SCRIPT",
+        "d": "Script to be run just as the file begins to load before anything is actually loaded"
+    },
+    {
+        "a": "onpause",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media is paused either by the user or programmatically"
+    },
+    {
+        "a": "onplay",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media is ready to start playing"
+    },
+    {
+        "a": "onplaying",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media actually has started playing."
+    },
+    {
+        "a": "onprogress",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser is in the process of getting the media data"
+    },
+    {
+        "a": "onratechange",
+        "dt": "SCRIPT",
+        "d": "Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode)."
+    },
+    {
+        "a": "onseeked",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the seeking attribute is set to false indicating that seeking has ended"
+    },
+    {
+        "a": "onseeking",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the seeking attribute is set to true indicating that seeking is active"
+    },
+    {
+        "a": "onstalled",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser is unable to fetch the media data for whatever reason"
+    },
+    {
+        "a": "onsuspend",
+        "dt": "SCRIPT",
+        "d": "Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason"
+    },
+    {
+        "a": "ontimeupdate",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)"
+    },
+    {
+        "a": "onvolumechange",
+        "dt": "SCRIPT",
+        "d": "Script to be run each time the volume of a video/audio has been changed"
+    },
+    {
+        "a": "onwaiting",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)"
+    },
+    {
+        "a": "poster",
+        "dt": "URL",
+        "d": "Specifies an image to be shown while the video is downloading, or until the user hits the play button"
+    },
+    {
+        "a": "preload",
+        "dt": "OPTIONSET(auto|metadata|none)",
+        "d": "Specifies if and how the author thinks the audio/video should be loaded when the page loads"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "width",
+        "dt": "PIXELS",
+        "d": "Specifies the width of the element"
+    }
+  ],
+  "meta": [
+    {
+        "a": "charset",
+        "dt": "CHARSET",
+        "d": "Specifies the character encoding"
+    },
+    {
+        "a": "content",
+        "dt": "TEXT",
+        "d": "Gives the value associated with the http-equiv or name attribute"
+    },
+    {
+        "a": "http-equiv",
+        "dt": "OPTIONSET(content-type|default-style|refresh)",
+        "d": "Provides an HTTP header for the information/value of the content attribute"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    }
+  ],
+  "blockquote": [
+    {
+        "a": "cite",
+        "dt": "URL",
+        "d": "Specifies a URL which explains the quote/deleted/inserted text"
+    }
+  ],
+  "del": [
+    {
+        "a": "cite",
+        "dt": "URL",
+        "d": "Specifies a URL which explains the quote/deleted/inserted text"
+    },
+    {
+        "a": "datetime",
+        "dt": "DATETIME",
+        "d": "Specifies the date and time"
+    }
+  ],
+  "ins": [
+    {
+        "a": "cite",
+        "dt": "URL",
+        "d": "Specifies a URL which explains the quote/deleted/inserted text"
+    },
+    {
+        "a": "datetime",
+        "dt": "DATETIME",
+        "d": "Specifies the date and time"
+    }
+  ],
+  "q": [
+    {
+        "a": "cite",
+        "dt": "URL",
+        "d": "Specifies a URL which explains the quote/deleted/inserted text"
+    }
+  ],
+  "td": [
+    {
+        "a": "colspan",
+        "dt": "INT",
+        "d": "Specifies the number of columns a table cell should span"
+    },
+    {
+        "a": "headers",
+        "dt": "ID",
+        "d": "Specifies one or more headers cells a cell is related to"
+    },
+    {
+        "a": "rowspan",
+        "dt": "NUMBER",
+        "d": "Specifies the number of rows a table cell should span"
+    }
+  ],
+  "th": [
+    {
+        "a": "colspan",
+        "dt": "INT",
+        "d": "Specifies the number of columns a table cell should span"
+    },
+    {
+        "a": "headers",
+        "dt": "ID",
+        "d": "Specifies one or more headers cells a cell is related to"
+    },
+    {
+        "a": "rowspan",
+        "dt": "NUMBER",
+        "d": "Specifies the number of rows a table cell should span"
+    },
+    {
+        "a": "scope",
+        "dt": "OPTIONSET(col|row|colgroup|rowgroup)",
+        "d": "Specifies whether a header cell is a header for a column, row, or group of columns or rows"
+    }
+  ],
+  "object": [
+    {
+        "a": "data",
+        "dt": "URL",
+        "d": "Specifies the URL of the resource to be used by the object"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "height",
+        "dt": "PIXELS",
+        "d": "Specifies the height of the element"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    },
+    {
+        "a": "onabort",
+        "dt": "SCRIPT",
+        "d": "Script to be run on abort"
+    },
+    {
+        "a": "oncanplay",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "type",
+        "dt": "MEDIATYPE",
+        "d": "Specifies the type of element"
+    },
+    {
+        "a": "usemap",
+        "dt": "#NAME<MAP>",
+        "d": "Specifies an image as a client-side image-map"
+    },
+    {
+        "a": "width",
+        "dt": "PIXELS",
+        "d": "Specifies the width of the element"
+    }
+  ],
+  "time": [
+    {
+        "a": "datetime",
+        "dt": "DATETIME",
+        "d": "Specifies the date and time"
+    }
+  ],
+  "track": [
+    {
+        "a": "default",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the track is to be enabled if the user's preferences do not indicate that another track would be more appropriate"
+    },
+    {
+        "a": "kind",
+        "dt": "OPTIONSET(captions|chapters|descriptions|metadata|subtitles)",
+        "d": "Specifies the kind of text track"
+    },
+    {
+        "a": "label",
+        "dt": "TEXT",
+        "d": "Specifies the title of the text track"
+    },
+    {
+        "a": "oncuechange",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the cue changes in a <track> element"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "srclang",
+        "dt": "LANGUAGE",
+        "d": "Specifies the language of the track text data (required if kind=\"subtitles\")"
+    }
+  ],
+  "fieldset": [
+    {
+        "a": "disabled",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    }
+  ],
+  "optgroup": [
+    {
+        "a": "disabled",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+        "a": "label",
+        "dt": "TEXT",
+        "d": "Specifies the title of the text track"
+    }
+  ],
+  "option": [
+    {
+        "a": "disabled",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the specified element/group of elements should be disabled"
+    },
+    {
+        "a": "label",
+        "dt": "TEXT",
+        "d": "Specifies the title of the text track"
+    },
+    {
+        "a": "selected",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that an option should be pre-selected when the page loads"
+    },
+    {
+        "a": "value",
+        "dt": "TEXT",
+        "d": "Specifies the value of the element"
+    }
+  ],
+  "a": [
+    {
+        "a": "download",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink"
+    },
+    {
+        "a": "href",
+        "dt": "URL",
+        "d": "Specifies the URL of the page the link goes to"
+    },
+    {
+        "a": "hreflang",
+        "dt": "LANGUAGE",
+        "d": "Specifies the language of the linked document"
+    },
+    {
+        "a": "media",
+        "dt": "N OPTIONSETS(and|not|,)",
+        "d": "Specifies what media/device the linked document is optimized for"
+    },
+    {
+        "a": "rel",
+        "dt": "OPTIONSET(alternate|author|bookmark|external|help|license|next|nofollow||noreferrer|noopener|prev|search|tag)",
+        "d": "Specifies the relationship between the current document and the linked document"
+    },
+    {
+        "a": "target",
+        "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
+        "d": "Specifies the target for where to open the linked document or where to submit the form"
+    }
+  ],
+  "label": [
+    {
+        "a": "for",
+        "dt": "ID",
+        "d": "Specifies which form element(s) a label/calculation is bound to"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    }
+  ],
+  "output": [
+    {
+        "a": "for",
+        "dt": "ID",
+        "d": "Specifies which form element(s) a label/calculation is bound to"
+    },
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    }
+  ],
+  "meter": [
+    {
+        "a": "form",
+        "dt": "FORM_ID",
+        "d": "Specifies the name of the form the element belongs to"
+    },
+    {
+        "a": "high",
+        "dt": "NUMBER",
+        "d": "Specifies the range that is considered to be a high value"
+    },
+    {
+        "a": "low",
+        "dt": "NUMBER",
+        "d": "Specifies the range that is considered to be a low value"
+    },
+    {
+        "a": "max",
+        "dt": "NUMBER",
+        "d": "Specifies the maximum value"
+    },
+    {
+        "a": "min",
+        "dt": "NUMBER|DATE",
+        "d": "Specifies a minimum value"
+    },
+    {
+        "a": "optimum",
+        "dt": "NUMBER",
+        "d": "Specifies what value is the optimal value for the gauge"
+    },
+    {
+        "a": "value",
+        "dt": "TEXT",
+        "d": "Specifies the value of the element"
+    }
+  ],
+  "canvas": [
+    {
+        "a": "height",
+        "dt": "PIXELS",
+        "d": "Specifies the height of the element"
+    },
+    {
+        "a": "width",
+        "dt": "PIXELS",
+        "d": "Specifies the width of the element"
+    }
+  ],
+  "embed": [
+    {
+        "a": "height",
+        "dt": "PIXELS",
+        "d": "Specifies the height of the element"
+    },
+    {
+        "a": "onabort",
+        "dt": "SCRIPT",
+        "d": "Script to be run on abort"
+    },
+    {
+        "a": "oncanplay",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "type",
+        "dt": "MEDIATYPE",
+        "d": "Specifies the type of element"
+    },
+    {
+        "a": "width",
+        "dt": "PIXELS",
+        "d": "Specifies the width of the element"
+    }
+  ],
+  "iframe": [
+    {
+        "a": "height",
+        "dt": "PIXELS",
+        "d": "Specifies the height of the element"
+    },
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    },
+    {
+        "a": "onload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is finished loading"
+    },
+    {
+        "a": "sandbox",
+        "dt": "OPTIONSET(allow-forms|allow-pointer-lock|allow-popups|allow-same-origin|allow-scripts|allow-top-navigation)",
+        "d": "Enables an extra set of restrictions for the content in an <iframe>"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "srcdoc",
+        "dt": "HTML",
+        "d": "Specifies the HTML content of the page to show in the <iframe>"
+    },
+    {
+        "a": "width",
+        "dt": "PIXELS",
+        "d": "Specifies the width of the element"
+    }
+  ],
+  "base": [
+    {
+        "a": "href",
+        "dt": "URL",
+        "d": "Specifies the URL of the page the link goes to"
+    },
+    {
+        "a": "target",
+        "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
+        "d": "Specifies the target for where to open the linked document or where to submit the form"
+    }
+  ],
+  "link": [
+    {
+        "a": "href",
+        "dt": "URL",
+        "d": "Specifies the URL of the page the link goes to"
+    },
+    {
+        "a": "hreflang",
+        "dt": "LANGUAGE",
+        "d": "Specifies the language of the linked document"
+    },
+    {
+        "a": "media",
+        "dt": "N OPTIONSETS(and|not|,)",
+        "d": "Specifies what media/device the linked document is optimized for"
+    },
+    {
+        "a": "onload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is finished loading"
+    },
+    {
+        "a": "rel",
+        "dt": "OPTIONSET(alternate|author|dns-prefetch|help|icon|license|next|pingback|preconnect|prefetch|preload|prerender|prev|search|stylesheet)",
+        "d": "Specifies the relationship between the current document and the linked document"
+    },
+    {
+        "a": "sizes",
+        "dt": "NUMBERxNUMBER",
+        "d": "Specifies the size of the linked resource"
+    },
+    {
+        "a": "type",
+        "dt": "MEDIATYPE",
+        "d": "Specifies the type of element"
+    }
+  ],
+  "progress": [
+    {
+        "a": "max",
+        "dt": "NUMBER",
+        "d": "Specifies the maximum value"
+    },
+    {
+        "a": "value",
+        "dt": "TEXT",
+        "d": "Specifies the value of the element"
+    }
+  ],
+  "source": [
+    {
+        "a": "media",
+        "dt": "N OPTIONSETS(and|not|,)",
+        "d": "Specifies what media/device the linked document is optimized for"
+    },
+    {
+        "a": "sizes",
+        "dt": "NUMBERxNUMBER",
+        "d": "Specifies the size of the linked resource"
+    },
+    {
+        "a": "src",
+        "dt": "URL",
+        "d": "Specifies the URL of the media file"
+    },
+    {
+        "a": "srcset",
+        "dt": "URL",
+        "d": "Specifies the URL of the image to use in different situations"
+    },
+    {
+        "a": "type",
+        "dt": "MIMETYPE",
+        "d": "Specifies the type of element"
+    }
+  ],
+  "style": [
+    {
+        "a": "media",
+        "dt": "N OPTIONSETS(and|not|,)",
+        "d": "Specifies what media/device the linked document is optimized for"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "onload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is finished loading"
+    },
+    {
+        "a": "scoped",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the styles only apply to this element's parent element and that element's child elements"
+    },
+    {
+        "a": "type",
+        "dt": "text/css",
+        "d": "Specifies the type of element"
+    }
+  ],
+  "map": [
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    }
+  ],
+  "param": [
+    {
+        "a": "name",
+        "dt": "NAME",
+        "d": "Specifies the name of the element"
+    },
+    {
+        "a": "value",
+        "dt": "TEXT",
+        "d": "Specifies the value of the element"
+    }
+  ],
+  "body": [
+    {
+        "a": "onafterprint",
+        "dt": "SCRIPT",
+        "d": "Script to be run after the document is printed"
+    },
+    {
+        "a": "onbeforeprint",
+        "dt": "SCRIPT",
+        "d": "Script to be run before the document is printed"
+    },
+    {
+        "a": "onbeforeunload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the document is about to be unloaded"
+    },
+    {
+        "a": "onerror",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an error occurs"
+    },
+    {
+        "a": "onhashchange",
+        "dt": "SCRIPT",
+        "d": "Script to be run when there has been changes to the anchor part of the a URL"
+    },
+    {
+        "a": "onload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is finished loading"
+    },
+    {
+        "a": "onoffline",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser starts to work offline"
+    },
+    {
+        "a": "ononline",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser starts to work online"
+    },
+    {
+        "a": "onpagehide",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a user navigates away from a page"
+    },
+    {
+        "a": "onpageshow",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a user navigates to a page"
+    },
+    {
+        "a": "onpopstate",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the window's history changes."
+    },
+    {
+        "a": "onresize",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the browser window is being resized."
+    },
+    {
+        "a": "onstorage",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a Web Storage area is updated"
+    },
+    {
+        "a": "onunload",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a page has unloaded (or the browser window has been closed)"
+    }
+  ],
+  "EVENT": [
+    {
+        "a": "onblur",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element loses focus"
+    },
+    {
+        "a": "onchange",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the value of the element is changed"
+    },
+    {
+        "a": "onclick",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is being clicked"
+    },
+    {
+        "a": "oncontextmenu",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a context menu is triggered"
+    },
+    {
+        "a": "oncopy",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the content of the element is being copied"
+    },
+    {
+        "a": "oncut",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the content of the element is being cut"
+    },
+    {
+        "a": "ondblclick",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is being double-clicked"
+    },
+    {
+        "a": "ondrag",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is being dragged"
+    },
+    {
+        "a": "ondragend",
+        "dt": "SCRIPT",
+        "d": "Script to be run at the end of a drag operation"
+    },
+    {
+        "a": "ondragenter",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an element has been dragged to a valid drop target"
+    },
+    {
+        "a": "ondragleave",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an element leaves a valid drop target"
+    },
+    {
+        "a": "ondragover",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an element is being dragged over a valid drop target"
+    },
+    {
+        "a": "ondragstart",
+        "dt": "SCRIPT",
+        "d": "Script to be run at the start of a drag operation"
+    },
+    {
+        "a": "ondrop",
+        "dt": "SCRIPT",
+        "d": "Script to be run when dragged element is being dropped"
+    },
+    {
+        "a": "onfocus",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element gets focus"
+    },
+    {
+        "a": "oninput",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element gets user input"
+    },
+    {
+        "a": "oninvalid",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element is invalid"
+    },
+    {
+        "a": "onkeydown",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a user is pressing a key"
+    },
+    {
+        "a": "onkeypress",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a user presses a key"
+    },
+    {
+        "a": "onkeyup",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a user releases a key"
+    },
+    {
+        "a": "onmousedown",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a mouse button is pressed down on an element"
+    },
+    {
+        "a": "onmousemove",
+        "dt": "SCRIPT",
+        "d": "Script to be run as long as the  mouse pointer is moving over an element"
+    },
+    {
+        "a": "onmouseout",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a mouse pointer moves out of an element"
+    },
+    {
+        "a": "onmouseover",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a mouse pointer moves over an element"
+    },
+    {
+        "a": "onmouseup",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a mouse button is released over an element"
+    },
+    {
+        "a": "onmousewheel",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a mouse wheel is being scrolled over an element"
+    },
+    {
+        "a": "onpaste",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the user pastes some content in an element"
+    },
+    {
+        "a": "onscroll",
+        "dt": "SCRIPT",
+        "d": "Script to be run when an element's scrollbar is being scrolled"
+    },
+    {
+        "a": "onselect",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the element gets selected"
+    },
+    {
+        "a": "onwheel",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the mouse wheel rolls up or down over an element"
+    }
+  ],
+  "menu": [
+    {
+        "a": "onshow",
+        "dt": "SCRIPT",
+        "d": "Script to be run when a <menu> element is shown as a context menu"
+    },
+    {
+        "a": "type",
+        "dt": "OPTIONSET(list|toolbar|context)",
+        "d": "Specifies the type of element"
+    }
+  ],
+  "details": [
+    {
+        "a": "ontoggle",
+        "dt": "SCRIPT",
+        "d": "Script to be run when the user opens or closes the <details> element"
+    },
+    {
+        "a": "open",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the details should be visible (open) to the user"
+    }
+  ],
+  "ol": [
+    {
+        "a": "reversed",
+        "dt": "ATTRIBUTE",
+        "d": "Specifies that the list order should be descending (9,8,7...)"
+    },
+    {
+        "a": "start",
+        "dt": "NUMBER",
+        "d": "Specifies the start value of an ordered list"
+    }
+  ],
+  "col": [
+    {
+        "a": "span",
+        "dt": "NUMBER",
+        "d": "Specifies the number of columns to span"
+    }
+  ],
+  "colgroup": [
+    {
+        "a": "span",
+        "dt": "NUMBER",
+        "d": "Specifies the number of columns to span"
+    }
+  ],
+  "li": [
+    {
+        "a": "value",
+        "dt": "TEXT",
+        "d": "Specifies the value of the element"
+    }
+  ],
+  "html": [
+    {
+        "a": "xmlns",
+        "dt": "",
+        "d": ""
+    }
+  ]
+}

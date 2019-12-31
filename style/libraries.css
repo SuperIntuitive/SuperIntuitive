@@ -1,0 +1,22 @@
+<?php
+header("Content-type: text/css; charset: UTF-8");
+session_start();
+require_once '../core/Tools.php';
+Tools::DefineServer();
+if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['libraries'])) {
+    $libraryids = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['libraries'];
+    Tools:: Autoload('subroot');
+    $db = new Database();
+    $guids = "";
+    foreach($libraryids as $libid){
+            $guids.= '0x'.$libid.',';
+        }
+        $guids = rtrim($guids, ',');
+        $libs = $db ->GetLibsByIds($guids, 'css');
+
+        foreach($libs as $name=> $lib){
+            echo '/*-!'.$name."!-*/ \n";
+            echo $lib['CSS']."\n\n\n\n";
+        }
+ }
+ ?>

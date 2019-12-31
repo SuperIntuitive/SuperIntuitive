@@ -1,0 +1,34 @@
+﻿<?php
+header("Content-type: text/css; charset: UTF-8");
+session_start();
+require_once '../core/Tools.php';
+Tools::DefineServer();
+
+//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['plugins']);
+if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['plugins'])) {
+    $plugins = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['plugins'];
+    $pluginstyle = "";
+    foreach($plugins as $plugin){
+        $styles = glob($_SERVER["DOCUMENT_ROOT"]. "/plugins/installed/".$plugin."/styles/*.css");
+        if (count($styles) > 0) {
+            $pluginstyle.= "\n/*__PLUGIN=$plugin */";
+        }
+        foreach($styles as $style){
+            $name = basename($style);
+            $pluginstyle.= "\n/*__STYLEFILE=$name */ \n";
+
+            $mystyle = file_get_contents($style);
+            $mystyle = preg_replace( '/(url\(\"+)/', 'url("/plugins/installed/'. $plugin.'/',$mystyle);
+
+            $pluginstyle.= $mystyle;
+
+            $pluginstyle.= "\n/*__STYLEFILE=$name */";
+        }
+        if (count($styles) > 0) {
+            $pluginstyle.= "\n/*__ENDPLUGIN=$plugin */ \n\n";
+        }
+    }
+    echo $pluginstyle;
+}
+
+?>

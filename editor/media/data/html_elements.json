@@ -1,0 +1,1190 @@
+{
+  "Common": [
+    {
+      "n": "Div - Box",
+      "t": "<div>",
+      "tn": "div",
+      "d": "Defines a section in a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_div.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div",
+      "w3": "https://www.w3schools.com/tags/tag_div.asp",
+      "def": {
+        "innerHTML": " ",
+        "style": {
+          "border": "1px solid black",
+          "width": "100px",
+          "height": "100px",
+          "resize": "both",
+          "overflow": "hidden"
+        }
+      }
+    },
+    {
+      "n": "Input",
+      "t": "<input/>",
+      "tn": "input",
+      "d": "Defines an input control",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_input.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input",
+      "w3": "https://www.w3schools.com/tags/tag_input.asp"
+    },
+    {
+      "n": "Image",
+      "t": "<img />",
+      "tn": "img ",
+      "d": "Defines an image",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_img.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img ",
+      "w3": "https://www.w3schools.com/tags/tag_img.asp",
+      "def": {
+        "src": "/editor/media/images/DefaultImage.png",
+        "style": {
+          "border": "1px solid black",
+          "width": "200px",
+          "height": "200px"
+        }
+      }
+    },
+    {
+      "n": "Span",
+      "t": "<span>",
+      "tn": "span",
+      "d": "Defines a section in a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_span.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span",
+      "w3": "https://www.w3schools.com/tags/tag_span.asp"
+    },
+    {
+      "n": "Script",
+      "t": "<script>",
+      "tn": "script",
+      "d": "Defines a client-side script",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_script.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script",
+      "w3": "https://www.w3schools.com/tags/tag_script.asp"
+    }
+  ],
+  "Links": [
+    {
+      "n": "Anchor - Link",
+      "t": "<a>",
+      "tn": "a",
+      "d": "Defines a hyperlink",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_a.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a",
+      "w3": "https://www.w3schools.com/tags/tag_a.asp"
+    },
+    {
+      "n": "Link",
+      "t": "<link />",
+      "tn": "link ",
+      "d": "Defines the relationship between a document and an external resource (most used to link to style sheets)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_link.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link ",
+      "w3": "https://www.w3schools.com/tags/tag_link.asp"
+    },
+    {
+      "n": "Navigation Links",
+      "t": "<nav>",
+      "tn": "nav",
+      "d": "Defines navigation links",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_nav.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav",
+      "w3": "https://www.w3schools.com/tags/tag_nav.asp"
+    }
+  ],
+  "Formatting": [
+    {
+      "n": "Abbreviation",
+      "t": "<abbr>",
+      "tn": "abbr",
+      "d": "Defines an abbreviation or an acronym",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_abbr.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/abbr",
+      "w3": "https://www.w3schools.com/tags/tag_abbr.asp"
+    },
+    {
+      "n": "Address",
+      "t": "<address>",
+      "tn": "address",
+      "d": "Defines contact information for the author/owner of a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_address.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/address",
+      "w3": "https://www.w3schools.com/tags/tag_address.asp"
+    },
+    {
+      "n": "Bold",
+      "t": "<b>",
+      "tn": "b",
+      "d": "Defines bold text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_b.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/b",
+      "w3": "https://www.w3schools.com/tags/tag_b.asp"
+    },
+    {
+      "n": "Bi-Directional Isolation",
+      "t": "<bdi>",
+      "tn": "bdi",
+      "d": "Isolates a part of text that might be formatted in a different direction from other text outside it",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_bdi.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdi",
+      "w3": "https://www.w3schools.com/tags/tag_bdi.asp"
+    },
+    {
+      "n": "Bi-Directional Override",
+      "t": "<bdo>",
+      "tn": "bdo",
+      "d": "Overrides the current text direction",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_bdo.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo",
+      "w3": "https://www.w3schools.com/tags/tag_bdo.asp"
+    },
+    {
+      "n": "Block Quotes",
+      "t": "<blockquote>",
+      "tn": "blockquote",
+      "d": "Defines a section that is quoted from another source",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_blockquote.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote",
+      "w3": "https://www.w3schools.com/tags/tag_blockquote.asp"
+    },
+    {
+      "n": "Citation",
+      "t": "<cite>",
+      "tn": "cite",
+      "d": "Defines the title of a work",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_cite.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/cite",
+      "w3": "https://www.w3schools.com/tags/tag_cite.asp"
+    },
+    {
+      "n": "Code",
+      "t": "<code>",
+      "tn": "code",
+      "d": "Defines a piece of computer code",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_code.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/code",
+      "w3": "https://www.w3schools.com/tags/tag_code.asp"
+    },
+    {
+      "n": "Deleted",
+      "t": "<del>",
+      "tn": "del",
+      "d": "Defines text that has been deleted from a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_del.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/del",
+      "w3": "https://www.w3schools.com/tags/tag_del.asp"
+    },
+    {
+      "n": "Term Definition",
+      "t": "<dfn>",
+      "tn": "dfn",
+      "d": "Represents the defining instance of a term",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_dfn.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dfn",
+      "w3": "https://www.w3schools.com/tags/tag_dfn.asp"
+    },
+    {
+      "n": "Emphasize",
+      "t": "<em>",
+      "tn": "em",
+      "d": "Defines emphasized text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_em.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/em",
+      "w3": "https://www.w3schools.com/tags/tag_em.asp"
+    },
+    {
+      "n": "H1",
+      "t": "<h1>",
+      "tn": "h1",
+      "d": "Defines HTML headings",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_h1.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h1",
+      "w3": "https://www.w3schools.com/tags/tag_hn.asp"
+    },
+    {
+      "n": "H2",
+      "t": "<h2>",
+      "tn": "h2",
+      "d": "Defines HTML headings",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_h2.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h2",
+      "w3": "https://www.w3schools.com/tags/tag_hn.asp"
+    },
+    {
+      "n": "H3",
+      "t": "<h3>",
+      "tn": "h3",
+      "d": "Defines HTML headings",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_h3.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h3",
+      "w3": "https://www.w3schools.com/tags/tag_hn.asp"
+    },
+    {
+      "n": "H4",
+      "t": "<h4>",
+      "tn": "h4",
+      "d": "Defines HTML headings",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_h4.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h4",
+      "w3": "https://www.w3schools.com/tags/tag_hn.asp"
+    },
+    {
+      "n": "H5",
+      "t": "<h5>",
+      "tn": "h5",
+      "d": "Defines HTML headings",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_h5.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h5",
+      "w3": "https://www.w3schools.com/tags/tag_hn.asp"
+    },
+    {
+      "n": "H6",
+      "t": "<h6>",
+      "tn": "h6",
+      "d": "Defines HTML headings",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_h6.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h6",
+      "w3": "https://www.w3schools.com/tags/tag_hn.asp"
+    },
+    {
+      "n": "Italics",
+      "t": "<i>",
+      "tn": "i",
+      "d": "Defines a part of text in an alternate voice or mood",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_i.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/i",
+      "w3": "https://www.w3schools.com/tags/tag_i.asp"
+    },
+    {
+      "n": "Inserted Text",
+      "t": "<ins>",
+      "tn": "ins",
+      "d": "Defines a text that has been inserted into a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_ins.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ins",
+      "w3": "https://www.w3schools.com/tags/tag_ins.asp"
+    },
+    {
+      "n": "Keyboard Text",
+      "t": "<kbd>",
+      "tn": "kbd",
+      "d": "Defines keyboard input",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_kbd.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/kbd",
+      "w3": "https://www.w3schools.com/tags/tag_kbd.asp"
+    },
+    {
+      "n": "Mark",
+      "t": "<mark>",
+      "tn": "mark",
+      "d": "Defines marked/highlighted text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_mark.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/mark",
+      "w3": "https://www.w3schools.com/tags/tag_mark.asp"
+    },
+    {
+      "n": "Meter",
+      "t": "<meter>",
+      "tn": "meter",
+      "d": "Defines a scalar measurement within a known range (a gauge)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_meter.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meter",
+      "w3": "https://www.w3schools.com/tags/tag_meter.asp"
+    },
+    {
+      "n": "Preformatted Text",
+      "t": "<pre>",
+      "tn": "pre",
+      "d": "Defines preformatted text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_pre.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/pre",
+      "w3": "https://www.w3schools.com/tags/tag_pre.asp"
+    },
+    {
+      "n": "Progress",
+      "t": "<progress>",
+      "tn": "progress",
+      "d": "Represents the progress of a task",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_progress.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/progress",
+      "w3": "https://www.w3schools.com/tags/tag_progress.asp"
+    },
+    {
+      "n": "Quotation",
+      "t": "<q>",
+      "tn": "q",
+      "d": "Defines a short quotation",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_q.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/q",
+      "w3": "https://www.w3schools.com/tags/tag_q.asp"
+    },
+    {
+      "n": "Ruby Fallback Parenthesis",
+      "t": "<rp>",
+      "tn": "rp",
+      "d": "Defines what to show in browsers that do not support ruby annotations",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_rp.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rp",
+      "w3": "https://www.w3schools.com/tags/tag_rp.asp"
+    },
+    {
+      "n": "Ruby Text",
+      "t": "<rt>",
+      "tn": "rt",
+      "d": "Defines an explanation/pronunciation of characters (for East Asian typography)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_rt.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rt",
+      "w3": "https://www.w3schools.com/tags/tag_rt.asp"
+    },
+    {
+      "n": "Ruby",
+      "t": "<ruby>",
+      "tn": "ruby",
+      "d": "Defines a ruby annotation (for East Asian typography)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_ruby.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ruby",
+      "w3": "https://www.w3schools.com/tags/tag_ruby.asp"
+    },
+    {
+      "n": "Strickthrough",
+      "t": "<s>",
+      "tn": "s",
+      "d": "Defines text that is no longer correct",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_s.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/s",
+      "w3": "https://www.w3schools.com/tags/tag_s.asp"
+    },
+    {
+      "n": "Sample",
+      "t": "<samp>",
+      "tn": "samp",
+      "d": "Defines sample output from a computer program",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_samp.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/samp",
+      "w3": "https://www.w3schools.com/tags/tag_samp.asp"
+    },
+    {
+      "n": "Small",
+      "t": "<small>",
+      "tn": "small",
+      "d": "Defines smaller text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_small.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/small",
+      "w3": "https://www.w3schools.com/tags/tag_small.asp"
+    },
+    {
+      "n": "Strong",
+      "t": "<strong>",
+      "tn": "strong",
+      "d": "Defines important text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_strong.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong",
+      "w3": "https://www.w3schools.com/tags/tag_strong.asp"
+    },
+    {
+      "n": "Sub-Script",
+      "t": "<sub>",
+      "tn": "sub",
+      "d": "Defines subscripted text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_sub.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sub",
+      "w3": "https://www.w3schools.com/tags/tag_sub.asp"
+    },
+    {
+      "n": "Super-Script",
+      "t": "<sup>",
+      "tn": "sup",
+      "d": "Defines superscripted text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_sup.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sup",
+      "w3": "https://www.w3schools.com/tags/tag_sup.asp"
+    },
+    {
+      "n": "Time",
+      "t": "<time>",
+      "tn": "time",
+      "d": "Defines a date/time",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_time.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time",
+      "w3": "https://www.w3schools.com/tags/tag_time.asp"
+    },
+    {
+      "n": "Underlined",
+      "t": "<u>",
+      "tn": "u",
+      "d": "Defines text that should be stylistically different from normal text",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_u.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/u",
+      "w3": "https://www.w3schools.com/tags/tag_u.asp"
+    },
+    {
+      "n": "Variable",
+      "t": "<var>",
+      "tn": "var",
+      "d": "Defines a variable",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_var.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/var",
+      "w3": "https://www.w3schools.com/tags/tag_var.asp"
+    },
+    {
+      "n": "Possible Line Break",
+      "t": "<wbr />",
+      "tn": "wbr ",
+      "d": "Defines a possible line-break",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_wbr.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/wbr ",
+      "w3": "https://www.w3schools.com/tags/tag_wbr.asp"
+    }
+  ],
+  "Images": [
+    {
+      "n": "Area",
+      "t": "<area />",
+      "tn": "area ",
+      "d": "Defines an area inside an image-map",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_area.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area ",
+      "w3": "https://www.w3schools.com/tags/tag_area.asp"
+    },
+    {
+      "n": "Canvas",
+      "t": "<canvas>",
+      "tn": "canvas",
+      "d": "Used to draw graphics, on the fly, via scripting (usually JavaScript)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_canvas.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas",
+      "w3": "https://www.w3schools.com/tags/tag_canvas.asp",
+      "def": {
+        "innerHTML": " ",
+        "style": {
+          "backgroundColor": "ivory",
+          "width": "100px",
+          "height": "100px"
+        }
+      }
+    },
+    {
+      "n": "Figure Caption",
+      "t": "<figcaption>",
+      "tn": "figcaption",
+      "d": "Defines a caption for a <figure> element",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_figcaption.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption",
+      "w3": "https://www.w3schools.com/tags/tag_figcaption.asp"
+    },
+    {
+      "n": "Figure",
+      "t": "<figure>",
+      "tn": "figure",
+      "d": "Specifies self-contained content",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_figure.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure",
+      "w3": "https://www.w3schools.com/tags/tag_figure.asp"
+    },
+    {
+      "n": "Image",
+      "t": "<img />",
+      "tn": "img ",
+      "d": "Defines an image",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_img.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img ",
+      "w3": "https://www.w3schools.com/tags/tag_img.asp"
+    },
+    {
+      "n": "Map",
+      "t": "<map>",
+      "tn": "map",
+      "d": "Defines a client-side image-map",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_map.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map",
+      "w3": "https://www.w3schools.com/tags/tag_map.asp"
+    },
+    {
+      "n": "Picture",
+      "t": "<picture>",
+      "tn": "picture",
+      "d": "Defines a container for multiple image resources",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_picture.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture",
+      "w3": "https://www.w3schools.com/tags/tag_picture.asp"
+    }
+  ],
+  "Meta Info": [
+    {
+      "n": "Article",
+      "t": "<article>",
+      "tn": "article",
+      "d": "Defines an article",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_article.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article",
+      "w3": "https://www.w3schools.com/tags/tag_article.asp"
+    },
+    {
+      "n": "Aside",
+      "t": "<aside>",
+      "tn": "aside",
+      "d": "Defines content aside from the page content",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_aside.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/aside",
+      "w3": "https://www.w3schools.com/tags/tag_aside.asp"
+    },
+    {
+      "n": "Base",
+      "t": "<base />",
+      "tn": "base ",
+      "d": "Specifies the base URL/target for all relative URLs in a document",
+      "hb": "head",
+      "di": "icons/tagdrag/tag_base.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base ",
+      "w3": "https://www.w3schools.com/tags/tag_base.asp"
+    },
+    {
+      "n": "Details",
+      "t": "<details>",
+      "tn": "details",
+      "d": "Defines additional details that the user can view or hide",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_details.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details",
+      "w3": "https://www.w3schools.com/tags/tag_details.asp"
+    },
+    {
+      "n": "Dialog",
+      "t": "<dialog>",
+      "tn": "dialog",
+      "d": "Defines a dialog box or window",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_dialog.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog",
+      "w3": "https://www.w3schools.com/tags/tag_dialog.asp"
+    },
+    {
+      "n": "Div - Box",
+      "t": "<div>",
+      "tn": "div",
+      "d": "Defines a section in a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_div.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div",
+      "w3": "https://www.w3schools.com/tags/tag_div.asp"
+    },
+    {
+      "n": "Footer",
+      "t": "<footer>",
+      "tn": "footer",
+      "d": "Defines a footer for a document or section",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_footer.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/footer",
+      "w3": "https://www.w3schools.com/tags/tag_footer.asp"
+    },
+    {
+      "n": "Header",
+      "t": "<header>",
+      "tn": "header",
+      "d": "Defines a header for a document or section",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_header.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header",
+      "w3": "https://www.w3schools.com/tags/tag_header.asp"
+    },
+    {
+      "n": "Main",
+      "t": "<main>",
+      "tn": "main",
+      "d": "Specifies the main content of a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_main.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/main",
+      "w3": "https://www.w3schools.com/tags/tag_main.asp"
+    },
+    {
+      "n": "Meta",
+      "t": "<meta />",
+      "tn": "meta ",
+      "d": "Defines metadata about an HTML document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_meta.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta ",
+      "w3": "https://www.w3schools.com/tags/tag_meta.asp"
+    },
+    {
+      "n": "Section",
+      "t": "<section>",
+      "tn": "section",
+      "d": "Defines a section in a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_section.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section",
+      "w3": "https://www.w3schools.com/tags/tag_section.asp"
+    },
+    {
+      "n": "Span",
+      "t": "<span>",
+      "tn": "span",
+      "d": "Defines a section in a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_span.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span",
+      "w3": "https://www.w3schools.com/tags/tag_span.asp"
+    },
+    {
+      "n": "Style",
+      "t": "<style>",
+      "tn": "style",
+      "d": "Defines style information for a document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_style.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style",
+      "w3": "https://www.w3schools.com/tags/tag_style.asp"
+    },
+    {
+      "n": "Summary",
+      "t": "<summary>",
+      "tn": "summary",
+      "d": "Defines a visible heading for a <details> element",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_summary.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/summary",
+      "w3": "https://www.w3schools.com/tags/tag_summary.asp"
+    }
+  ],
+  "Audio - Video": [
+    {
+      "n": "Audio",
+      "t": "<audio>",
+      "tn": "audio",
+      "d": "Defines sound content",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_audio.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio",
+      "w3": "https://www.w3schools.com/tags/tag_audio.asp"
+    },
+    {
+      "n": "Source",
+      "t": "<source />",
+      "tn": "source ",
+      "d": "Defines multiple media resources for media elements (<video> and <audio>)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_source.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source ",
+      "w3": "https://www.w3schools.com/tags/tag_source.asp"
+    },
+    {
+      "n": "Track",
+      "t": "<track />",
+      "tn": "track ",
+      "d": "Defines text tracks for media elements (<video> and <audio>)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_track.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track ",
+      "w3": "https://www.w3schools.com/tags/tag_track.asp"
+    },
+    {
+      "n": "Video",
+      "t": "<video>",
+      "tn": "video",
+      "d": "Defines a video or movie",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_video.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video",
+      "w3": "https://www.w3schools.com/tags/tag_video.asp",
+      "def": {
+        "style": {
+          "width": "352px",
+          "height": "288px",
+          "backgroundColor":"black"
+        },
+        "append": "{'tag':'source'; type':'video/mp4','src': '/editor/media/video/test.mp4'}"
+      }
+    }
+  ],
+  "Basic HTML": [
+    {
+      "n": "Line Break",
+      "t": "<br />",
+      "tn": "br ",
+      "d": "Defines a single line break",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_br.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/br ",
+      "w3": "https://www.w3schools.com/tags/tag_br.asp"
+    },
+    {
+      "n": "Head",
+      "t": "<head>",
+      "tn": "head",
+      "d": "Defines information about the document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_head.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head",
+      "w3": "https://www.w3schools.com/tags/tag_head.asp"
+    },
+    {
+      "n": "Horizontal Line",
+      "t": "<hr />",
+      "tn": "hr ",
+      "d": "Defines a thematic change in the content",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_hr.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hr ",
+      "w3": "https://www.w3schools.com/tags/tag_hr.asp"
+    },
+    {
+      "n": "Html",
+      "t": "<html>",
+      "tn": "html",
+      "d": "Defines the root of an HTML document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_html.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html",
+      "w3": "https://www.w3schools.com/tags/tag_html.asp"
+    },
+    {
+      "n": "Paragraph",
+      "t": "<p>",
+      "tn": "p",
+      "d": "Defines a paragraph",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_p.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p",
+      "w3": "https://www.w3schools.com/tags/tag_p.asp"
+    },
+    {
+      "n": "Title",
+      "t": "<title>",
+      "tn": "title",
+      "d": "Defines a title for the document",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_title.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title",
+      "w3": "https://www.w3schools.com/tags/tag_title.asp"
+    }
+  ],
+  "Forms and Input": [
+    {
+      "n": "Button",
+      "t": "<button>",
+      "tn": "button",
+      "d": "Defines a clickable button",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_button.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button",
+      "w3": "https://www.w3schools.com/tags/tag_button.asp"
+    },
+    {
+      "n": "Datalist",
+      "t": "<datalist>",
+      "tn": "datalist",
+      "d": "Specifies a list of pre-defined options for input controls",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_datalist.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist",
+      "w3": "https://www.w3schools.com/tags/tag_datalist.asp"
+    },
+    {
+      "n": "Fieldset",
+      "t": "<fieldset>",
+      "tn": "fieldset",
+      "d": "Groups related elements in a form",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_fieldset.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/fieldset",
+      "w3": "https://www.w3schools.com/tags/tag_fieldset.asp"
+    },
+    {
+      "n": "Form",
+      "t": "<form>",
+      "tn": "form",
+      "d": "Defines an HTML form for user input",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_form.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form",
+      "w3": "https://www.w3schools.com/tags/tag_form.asp"
+    },
+    {
+      "n": "Input",
+      "t": "<input/>",
+      "tn": "input",
+      "d": "Defines an input control",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_input.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input",
+      "w3": "https://www.w3schools.com/tags/tag_input.asp"
+    },
+    {
+      "n": "Label",
+      "t": "<label>",
+      "tn": "label",
+      "d": "Defines a label for an <input> element",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_label.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label",
+      "w3": "https://www.w3schools.com/tags/tag_label.asp"
+    },
+    {
+      "n": "Legend",
+      "t": "<legend>",
+      "tn": "legend",
+      "d": "Defines a caption for a <fieldset> element",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_legend.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend",
+      "w3": "https://www.w3schools.com/tags/tag_legend.asp"
+    },
+    {
+      "n": "Option Group",
+      "t": "<optgroup>",
+      "tn": "optgroup",
+      "d": "Defines a group of related options in a drop-down list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_optgroup.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup",
+      "w3": "https://www.w3schools.com/tags/tag_optgroup.asp"
+    },
+    {
+      "n": "Option",
+      "t": "<option>",
+      "tn": "option",
+      "d": "Defines an option in a drop-down list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_option.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option",
+      "w3": "https://www.w3schools.com/tags/tag_option.asp"
+    },
+    {
+      "n": "Output",
+      "t": "<output>",
+      "tn": "output",
+      "d": "Defines the result of a calculation",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_output.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/output",
+      "w3": "https://www.w3schools.com/tags/tag_output.asp"
+    },
+    {
+      "n": "Select",
+      "t": "<select>",
+      "tn": "select",
+      "d": "Defines a drop-down list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_select.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select",
+      "w3": "https://www.w3schools.com/tags/tag_select.asp"
+    },
+    {
+      "n": "Text Area",
+      "t": "<textarea>",
+      "tn": "textarea",
+      "d": "Defines a multiline input control (text area)",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_textarea.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea",
+      "w3": "https://www.w3schools.com/tags/tag_textarea.asp"
+    }
+  ],
+  "Tables": [
+    {
+      "n": "Caption",
+      "t": "<caption>",
+      "tn": "caption",
+      "d": "Defines a table caption",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_caption.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/caption",
+      "w3": "https://www.w3schools.com/tags/tag_caption.asp"
+    },
+    {
+      "n": "Column",
+      "t": "<col />",
+      "tn": "col ",
+      "d": "Specifies column properties for each column within a <colgroup> element?",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_col.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/col ",
+      "w3": "https://www.w3schools.com/tags/tag_col.asp"
+    },
+    {
+      "n": "Column Group",
+      "t": "<colgroup>",
+      "tn": "colgroup",
+      "d": "Specifies a group of one or more columns in a table for formatting",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_colgroup.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/colgroup",
+      "w3": "https://www.w3schools.com/tags/tag_colgroup.asp"
+    },
+    {
+      "n": "Table",
+      "t": "<table>",
+      "tn": "table",
+      "d": "Defines a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_table.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table",
+      "w3": "https://www.w3schools.com/tags/tag_table.asp"
+    },
+    {
+      "n": "Table Body",
+      "t": "<tbody>",
+      "tn": "tbody",
+      "d": "Groups the body content in a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_tbody.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tbody",
+      "w3": "https://www.w3schools.com/tags/tag_tbody.asp"
+    },
+    {
+      "n": "Table Data",
+      "t": "<td>",
+      "tn": "td",
+      "d": "Defines a cell in a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_td.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/td",
+      "w3": "https://www.w3schools.com/tags/tag_td.asp"
+    },
+    {
+      "n": "Table Footer",
+      "t": "<tfoot>",
+      "tn": "tfoot",
+      "d": "Groups the footer content in a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_tfoot.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot",
+      "w3": "https://www.w3schools.com/tags/tag_tfoot.asp"
+    },
+    {
+      "n": "Table Header",
+      "t": "<th>",
+      "tn": "th",
+      "d": "Defines a header cell in a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_th.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th",
+      "w3": "https://www.w3schools.com/tags/tag_th.asp"
+    },
+    {
+      "n": "Thead",
+      "t": "<thead>",
+      "tn": "thead",
+      "d": "Groups the header content in a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_thead.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead",
+      "w3": "https://www.w3schools.com/tags/tag_thead.asp"
+    },
+    {
+      "n": "Table Row",
+      "t": "<tr>",
+      "tn": "tr",
+      "d": "Defines a row in a table",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_tr.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tr",
+      "w3": "https://www.w3schools.com/tags/tag_tr.asp"
+    }
+  ],
+  "Lists": [
+    {
+      "n": "Description Value",
+      "t": "<dd>",
+      "tn": "dd",
+      "d": "Defines a description/value of a term in a description list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_dd.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dd",
+      "w3": "https://www.w3schools.com/tags/tag_dd.asp"
+    },
+    {
+      "n": "Description List",
+      "t": "<dl>",
+      "tn": "dl",
+      "d": "Defines a description list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_dl.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dl",
+      "w3": "https://www.w3schools.com/tags/tag_dl.asp"
+    },
+    {
+      "n": "Description Name",
+      "t": "<dt>",
+      "tn": "dt",
+      "d": "Defines a term/name in a description list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_dt.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dt",
+      "w3": "https://www.w3schools.com/tags/tag_dt.asp"
+    },
+    {
+      "n": "List Item",
+      "t": "<li>",
+      "tn": "li",
+      "d": "Defines a list item",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_li.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/li",
+      "w3": "https://www.w3schools.com/tags/tag_li.asp"
+    },
+    {
+      "n": "Menu",
+      "t": "<menu>",
+      "tn": "menu",
+      "d": "Defines a list/menu of commands",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_menu.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu",
+      "w3": "https://www.w3schools.com/tags/tag_menu.asp"
+    },
+    {
+      "n": "Menuitem",
+      "t": "<menuitem />",
+      "tn": "menuitem ",
+      "d": "Defines a command/menu item that the user can invoke from a popup menu",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_menuitem.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menuitem ",
+      "w3": "https://www.w3schools.com/tags/tag_menuitem.asp"
+    },
+    {
+      "n": "Ordered List",
+      "t": "<ol>",
+      "tn": "ol",
+      "d": "Defines an ordered list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_ol.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol",
+      "w3": "https://www.w3schools.com/tags/tag_ol.asp"
+    },
+    {
+      "n": "Unordered List",
+      "t": "<ul>",
+      "tn": "ul",
+      "d": "Defines an unordered list",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_ul.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul",
+      "w3": "https://www.w3schools.com/tags/tag_ul.asp"
+    }
+  ],
+  "Programming": [
+    {
+      "n": "Embed",
+      "t": "<embed />",
+      "tn": "embed ",
+      "d": "Defines a container for an external (non-HTML) application",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_embed.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/embed ",
+      "w3": "https://www.w3schools.com/tags/tag_embed.asp"
+    },
+    {
+      "n": "Noscript",
+      "t": "<noscript>",
+      "tn": "noscript",
+      "d": "Defines an alternate content for users that do not support client-side scripts",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_noscript.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/noscript",
+      "w3": "https://www.w3schools.com/tags/tag_noscript.asp"
+    },
+    {
+      "n": "Object",
+      "t": "<object>",
+      "tn": "object",
+      "d": "Defines an embedded object",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_object.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object",
+      "w3": "https://www.w3schools.com/tags/tag_object.asp"
+    },
+    {
+      "n": "Parameter",
+      "t": "<param />",
+      "tn": "param ",
+      "d": "Defines a parameter for an object",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_param.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/param ",
+      "w3": "https://www.w3schools.com/tags/tag_param.asp"
+    },
+    {
+      "n": "Script",
+      "t": "<script>",
+      "tn": "script",
+      "d": "Defines a client-side script",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_script.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script",
+      "w3": "https://www.w3schools.com/tags/tag_script.asp"
+    }
+  ],
+  "Frames": [
+    {
+      "n": "Iframe",
+      "t": "<iframe>",
+      "tn": "iframe",
+      "d": "Defines an inline frame",
+      "hb": "body",
+      "di": "icons/tagdrag/tag_iframe.png",
+      "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe",
+      "w3": "https://www.w3schools.com/tags/tag_iframe.asp"
+    }
+  ]
+}

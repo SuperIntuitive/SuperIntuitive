@@ -1,0 +1,30 @@
+[
+  {
+    "name": "getElementById",
+    "parameters": "HTML_ID",
+    "return": "HTML_ELEMENT",
+    "desc": "Get the element with the specified Id",
+    "dragImage": "icons/jsdrag/getElementById.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementbyid.asp",
+    "group": "Get"
+  },
+  {
+    "name": "getElementsByClassName",
+    "parameters": "HTML_CLASS",
+    "return": "ARRAY(HTML_ELEMENT)",
+    "desc": "Get the element with the specified Class",
+    "dragImage": "icons/tagdrag/tag_a.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbyclassname.asp",
+    "group": "Get"
+  },
+  {
+    "name": "getElementsByTagName",
+    "parameters": "HTML_ELEMENT_TYPE",
+    "return": "ARRAY(HTML_ELEMENT)",
+    "desc": "Get all the elements with the specified Element Type",
+    "dragImage": "icons/tagdrag/tag_a.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbytagname.asp",
+    "group": "Get"
+  }
+
+]

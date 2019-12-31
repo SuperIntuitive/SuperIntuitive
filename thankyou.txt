@@ -1,0 +1,15 @@
+
+Si could in no way have been possible without so many different resources and websites.
+I would like to thank all that made making this program possible.
+I will keep this running list of thanks to the many people that made this possible. If you see your examples in the codebase please send a like to the work and I will credit you.
+
+W3 Schools w3schools.com an excellent  coding resource that has example on how to do just about everything. They have very easy to understand to the point examples. 
+Mozilla mozilla.org excellent examples on just about everything + a ton of info on new experimental and upcoming technologies. 
+StackOverflow stackoverflow.com and thousands of its users that provide excellent examples on how to do anything. I'm far behind on citing all the pages but some can be found in the code. If you recognize your code or a close variation of it send me the page number.
+DigitalOcean digitalocean.com for step by stepping me through many lamp stack installs. 
+XAMPP for building a very easy way to setup the lamp stack on windows. XAMPP was used almost exclusivly for dev build/test.
+GitHub for hosting the repos and the wiki and kanbans.  
+Microsoft for Visual Studio and Windows. SI was built in VS. php? yup, thats how it was done.
+federico-razzoli.com for the work I am about to do on migrating the 4 deployment column paradigm to one json column.
+DevelopPhp developphp.com Adam is an extremely knowledgeable coder, an amazing conveyor of knowledge and one funny guy. He has pretty much built an online academy of thousands of videos and examples on how to do just about everything including build a social network site.. IMHO watching all of them would be about the equivalency a of a degree. And their all free!  
+

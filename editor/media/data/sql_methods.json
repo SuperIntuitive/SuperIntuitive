@@ -1,0 +1,42 @@
+[
+  {
+    "name": "SELECT",
+    "parameters": "COLUMNS",
+    "desc": "Select columns for a query",
+    "dragImage": "icons/sqldrag/select.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementbyid.asp",
+    "group": "PRIMARY"
+  },
+  {
+    "name": "FROM",
+    "parameters": "TABLE",
+    "desc": "From which datatable to we use",
+    "dragImage": "icons/sqldrag/from.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbyclassname.asp",
+    "group": "SECONDARY"
+  },
+  {
+    "name": "WHERE",
+    "parameters": "COLUMN OPER VAR",
+    "desc": "Get all the elements with the specified Element Type",
+    "dragImage": "icons/sqldrag/where.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbytagname.asp",
+    "group": "SECONDARY"
+  },
+  {
+    "name": "INSERT INTO",
+    "parameters": "TABLE",
+    "desc": "Get all the elements with the specified Element Type",
+    "dragImage": "icons/sqldrag/where.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbytagname.asp",
+    "group": "PRIMARY"
+  },
+   {
+    "name": "UPDATE",
+    "parameters": "TABLE",
+    "desc": "Get all the elements with the specified Element Type",
+    "dragImage": "icons/sqldrag/where.png",
+    "w3SchoolsURL": "https://www.w3schools.com/jsref/met_document_getelementsbytagname.asp",
+    "group": "PRIMARY"
+  }
+]

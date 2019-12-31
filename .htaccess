@@ -1,0 +1,22 @@
+ErrorDocument 403 /si403.php
+
+RewriteEngine On
+RewriteBase /
+RewriteRule ^(media/images/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteRule ^(media/audio/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteRule ^(media/data/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteRule ^(media/documents/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteRule ^(media/fonts/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteRule ^(media/icons/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteRule ^(media/videos/.*) domains/%{HTTP_HOST}/$1 [L]
+
+
+RewriteRule ^index.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteRule . /index.php [L] 
+RewriteRule ^(.*)$ /index.php?path=$1 [NC,L,QSA]
+
+Options All -Indexes
+php_value  upload_max_filesize  1000M
+

@@ -1,0 +1,108 @@
+﻿
+
+
+
+
+@font-face {
+    font-family: Roboto;
+    src: url('/editor/media/fonts/Roboto/Roboto-Regular.ttf');
+}
+
+@font-face {
+    font-family: RobotoThin;
+    src: url('/editor/media/fonts/Roboto/Roboto-thin.ttf');
+}
+
+@font-face {
+    font-family: Inconsolata;
+    src: url('/editor/media/fonts/Inconsolata/Inconsolata-Regular.ttf');
+}
+
+.si-scripter-codepad:focus {
+    outline: none; /*1px dashed rgba(128,128,128,0.4);*/
+}
+
+si-jsur {
+    color: dodgerblue;
+    text-decoration: underline;
+    cursor: url;
+}
+
+si-linm {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}
+
+si-linm:hover {
+    background-color: #000080;
+    color: #F0FFFF;
+}
+
+si-jsrx {
+    color: pink;
+}
+
+si-jscom {
+    color: #8FBC8F;
+}
+
+si-jssym {
+    color: #FFD700;
+}
+
+si-jskw {
+    color: #1E90FF
+}
+
+si-jssq {
+    color: #CD5C5C
+}
+
+si-jsdq {
+    color: #F08080
+}
+
+si-jsmet {
+    color: #ADD8E6
+}
+
+si-jswin {
+    color: #20B2AA
+}
+
+si-jsnu {
+    color: #FFEFD5
+}
+
+si-jsarf {
+    color: #87CEEB
+}
+
+si-jsarp {
+    color: #9370DB
+}
+
+si-jsstf {
+    color: #87CEEB
+}
+
+si-jsstp {
+    color: #9370DB
+}
+
+si-jsdtf {
+    color: #3CB371
+}
+
+si-jsdtp {
+    color: #90EE90
+}
+
+si-jself {
+    color: #008080
+}
+
+si-jselp {
+    color: #20B2AA
+}
