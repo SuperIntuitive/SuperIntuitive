@@ -104,10 +104,14 @@ class Tools{
 		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
 	}
 	static function Log($data,$tofile=false){
+	    $log = null
 		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.log';
-		if (time() - filemtime($log) > 5) {
-			unlink($log);
-		} 
+		if($log){
+			if (time() - filemtime($log) > 5) {
+				unlink($log);
+			} 
+		}
+
 	    $back = debug_backtrace(2);
 		$debuginfo='';
 		if($back!= null){		
