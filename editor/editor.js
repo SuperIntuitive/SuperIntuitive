@@ -610,6 +610,8 @@ var Editor = {
                 if (map[46]) {//Delete Element
                     if (confirm("Delete Element: " + selected.id + "?")) {
                         Editor.Objects.Elements.Remove(selected);
+                    } else {
+                        map[e.keyCode] = false;
                     }
                 }
                 if (map[90] && e.ctrlKey) { //ctrl-z should undo
