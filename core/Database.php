@@ -52,7 +52,7 @@ class Database extends DbCreds
 		//get a list of entities from the entities table. This list is a key as to which entities belong to the sub.domain combo. 
 		//All entities are owned by a sub.domain combination. 
 		$data = $this->pdo->prepare("
-			SELECT domains.name AS domainName, domains.status AS domainStatus, domains.defaultLanguage AS defaultLanguage, HEX(domains.id) AS domainId, businessunits.name AS businessunitName, businessunits.status AS businessunitStatus, HEX(businessunits.id) AS businessunitId, entities.name AS entityName, HEX(entities.id) AS entityId
+			SELECT domains.name AS domainName, domains.status AS domainStatus, HEX(domains.id) AS domainId, businessunits.name AS businessunitName, businessunits.status AS businessunitStatus, HEX(businessunits.id) AS businessunitId, entities.name AS entityName, HEX(entities.id) AS entityId
 			FROM domains
 			INNER JOIN businessunits ON domains.id = businessunits.domain_id 
 			INNER JOIN entities ON domains.id = entities.domain_id AND businessunits.id = entities.businessunit_id
@@ -77,7 +77,7 @@ class Database extends DbCreds
 					if(!isset($pageobjects['domain']['id']) && $k ==  'domainId'){
 						$pageobjects['domain']['name'] = $row['domainName'];					   
 						$pageobjects['domain']['status'] = $row['domainStatus'];
-						$pageobjects['domain']['defaultLanguage'] = $row['defaultLanguage'];
+						//$pageobjects['domain']['defaultLanguage'] = $row['defaultLanguage'];
 						$pageobjects['domain']['id'] = '0x'.$v;
 						define("SI_DOMAIN_ID",'0x'.$v);
 
@@ -127,7 +127,7 @@ class Database extends DbCreds
 		//Add these items to the SI data array
 		if(isset($pageobjects['domain']['id'])){
 
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'] = $pageobjects['domain']['defaultLanguage'];
+			//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'] = $pageobjects['domain']['defaultLanguage'];
 
 			//Get the Users roles;
 			//Get the SecurityRoles Entity Read allowences.
@@ -141,7 +141,7 @@ class Database extends DbCreds
 			//the role is checked again on EntityAction jobs
 
 			if(Tools::UserHasRole("Guest") ){
-				$allowRead = "AND `tbl`.`table_name` IN('users','blocks','pages','relations','domains','businessunits','securityroles') "; //for now the only entity the guest user needs to have a session saved for is users for loging in.
+				$allowRead = "AND `tbl`.`table_name` IN('users','blocks','localtext','pages','relations','domains','businessunits','securityroles') "; //for now the only entity the guest user needs to have a session saved for is users for loging in.
 
 			}
 			//if its an admin give all aka = "";

@@ -168,7 +168,8 @@ if(Tools::UserHasRole('Admin')){
 					$set->Delete(null,$post);
 					break;
 
-				default: break;
+				default: 
+					break;
 			}
 		}	
 

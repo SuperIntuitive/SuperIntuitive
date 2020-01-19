@@ -1,3 +1,4 @@
+
 <?php
 Tools::Autoload();
 class Setup {
@@ -471,8 +472,23 @@ class Setup {
 		$sqlstr= str_replace('__SI_USER_NAME__',$post['adminuser'],$sqlstr);
 		//set the domain
 		$sqlstr= str_replace('__SI_DOMAIN_NAME__',$post['domain'],$sqlstr);
-		//set the domain
-		$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE__',$post['language'],$sqlstr);
+		//set the language
+		$deflang = $post['language'];
+		$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE__',$deflang ,$sqlstr);
+
+		$installedlanguages = ['ar','zh','en','fr','de','hi','it','ja','ko','es'];
+		//if the selected language is not in the default languages list, we should add it.
+		if(!in_array($post['language'],$installedlanguages)){
+		    $miscdata = new MiscData();
+		    $langname = $miscdata->languages[$deflang];
+			$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__',   ", `_$deflang` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '{\"Name\":\"$langname\"}'"  ,$sqlstr);
+			Tools::Error($sqlstr);
+		}else{
+		    //remove the token
+		    $sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__','',$sqlstr);
+		}
+		
+
 		//set the dollars
 		$sqlstr= str_replace('__SI_DEFAULT_CURRENCY__',$post['currency'],$sqlstr);
 		//set the timezone

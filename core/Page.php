@@ -7,12 +7,15 @@ class Page {
 	private $settings;
 
 	public function __construct($pageobjects = null){
-		$this->pageobjects = $pageobjects;
-	    //Tools::Log($pageobjects);
-		$db = new Database();
-		//Tools::Log($pageobjects);
-		$pageid = $pageobjects['page']['id'];
-		$this->settings = $db->GetRelatedEntities('pages',$pageid,'settings');
+		if($pageobjects != null){
+		    $this->pageobjects = $pageobjects;
+			//Tools::Log($pageobjects);
+			$db = new Database();
+			//Tools::Log($pageobjects);
+			$pageid = $pageobjects['page']['id'];
+		    $this->settings = $db->GetRelatedEntities('pages',$pageid,'settings');
+        }
+
 		//Tools::Log($this->settings);
 	}
 	public function __destruct(){
@@ -342,7 +345,7 @@ class Page {
 				return false;
 			}
 			
-			//$_SESSION['AJAXRETURN']['PAGEUPDATED'] = "true";
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGEUPDATED'] = "true";
 				return true;
 
 		}else{

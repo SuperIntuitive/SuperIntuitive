@@ -75,7 +75,7 @@ class Entity{
 			}else{
 			    $pname=$sname.'s';
 			}
-
+			Tools::Log(get_class_methods(Database) );
 			$attrsql = '';
 			Tools::Log("Logging Attrs");
 			if(!empty($post['attributes'])){
@@ -98,9 +98,9 @@ class Entity{
 						if($v['deploy'] === 'false'){
 							Tools::Log('deploy is false see:'.$v['deploy']);
 							//only make on column
-							$attrsql .= "$name $type$def,";
+							$attrsql .= "`$name` $type$def,";
 						}else{
-							$attrsql .= "$name $type$def, dev_$name $type$def, test_$name $type$def, rollback_$name $type$def,";
+							$attrsql .= "`$name` $type$def, dev_$name $type$def, test_$name $type$def, rollback_$name $type$def,";
 						}		
 				    }
 				}
@@ -109,7 +109,9 @@ class Entity{
 			
 			$entity = '';
 			$global = "true";
-			if(isset($post['global']) && $post['global']==='false'){
+			if(isset($post['global']) && $post['global'] ==="1"){
+
+			}else{
 				$global = "false";
 				$entity =  "`entity_id` binary(16) NOT NULL COMMENT 'entity:entities',";
 			}
@@ -134,14 +136,14 @@ class Entity{
 			$const = $pname."_ibfk_1";
 			$constraints = "ALTER TABLE `$pname`  ADD CONSTRAINT `$const` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;";
 
-
-			//$sql = "CREATE TABLE $pname (".$attrsql.")";
 			$db = new Database();
-			Tools::Log(get_class_methods(Database) );
+			
 			$db->Execute($createtable);
-			$db->Execute($setKeys);
+	    	$db->Execute($setKeys);
 			$db->Execute($constraints);
 			$db->Execute("COMMIT");
+
+
 		}
 	}
 
@@ -231,72 +233,3 @@ class AttributeCollection{
 	}
 }
 
-/*
-class SearchGroup{
-	public $Attributes;
-	public $SearchGroups;
-	public $Type;
-    public function __construct($type = "AND", $attribs=null, $searchGroups=null)
-	{
-		$this->Attributes = new AttributeCollection();
-		$this->SearchGroups = new  SearchGroupCollection();
-
-		if($type != null){
-			$this->Type = $type; 
-		}
-
-	    if(gettype($attribs)==='array' && count($attribs) > 0){
-			if(get_class( current($attribs) )==='Attribute')
-			{
-				$this->Attributes = $attrib;
-			}
-		}
-		else if($attribs!=null){
-		    if(get_class($attribs)==='Attribute')
-			{
-				$this->Attributes[] = $attribs;
-			}
-		}
-	}
-}
-class SearchGroupCollection{
-	public $SearchGroups;
-	public $Count=0;
-	public function __construct($searchGroups=null){
-		if($searchGroups != null){
-			$this->SearchGroups = array();
-		
-			if(gettype($searchGroups)==='array' && count($searchGroups) > 0){
-				if(get_class( current($searchGroups) )==='SearchGroup')
-				{
-					$this->SearchGroups = $searchGroups;
-				}
-			}
-			else if($searchGroups!=null){
-				if(get_class($searchGroups)==='SearchGroup')
-				{
-					$this->SearchGroups[] = $searchGroups;
-				}
-			}
-			$this->Count = count($this->SearchGroups);
-		}
-	}
-	public function Add($searchGroups)
-	{
-	    if(gettype($searchGroups)==='array'){
-			$this->SearchGroups = array_merge($this->SearchGroups, $searchGroups);
-		}
-		else if($searchGroups!=null){
-		    if(get_class($searchGroups)==='SearchGroup')
-			{
-				$this->SearchGroups[] = $searchGroups;
-			}
-		}
-		$this->Count = count($this->SearchGroups);
-	}
-	public function Get(){
-		return $this->SearchGroups;
-	}
-}
-
-*/

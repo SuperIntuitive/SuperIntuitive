@@ -214,7 +214,7 @@ NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
   //  return [...new Set(this)];
  // }
 
-//and finally Tools
+
 var Tools = {
     String: {
         RandomString: function (length) {
@@ -951,8 +951,8 @@ var Tools = {
         if (typeof obj.Url === "undefined") { this.url = '/delegate.php'; } else { this.url = obj.Url; }
         if (typeof obj.ContentType === "undefined") { this.contentType = 'application/json'; } else { this.contentType = obj.ContentType; }
         if (typeof obj.Async === "undefined") { this.async = true; } else { this.async = obj.Async; }
-
-         //debugger;
+        //debugger;
+        
         var xhr = new XMLHttpRequest();
         xhr.open(this.method, this.url, this.async);
         xhr.setRequestHeader("Content-Type", this.contentType);
@@ -970,6 +970,7 @@ var Tools = {
                 }
             }
         };
+
         var stringdata = JSON.stringify(this.data);
         xhr.send(stringdata);
     },
@@ -1300,6 +1301,7 @@ var Tools = {
 
     Api: {
         Send: function (options) {
+            //debugger;
             this.Defaults = {
                 "Data": {},
                 "Callback": Tools.Api.Returned,

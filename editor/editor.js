@@ -114,7 +114,15 @@ if (Tools::UserHasRole('Admin'))
         $langoptions.="<option value='$k' $selected >$v</option>";
     }
     $langoptions.= "'";
-    $defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'];
+
+    if(isset($settings['DefaultLanguage'])) {
+        $defaultLanguage = $settings['DefaultLanguage'];
+    }else if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])){
+        $defaultLanguage = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+    }else{
+        $defaultLanguage = 'en';
+    }
+    //$defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'];
 
     $myLangs = json_encode(explode(',',explode(';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]));
 
@@ -583,9 +591,12 @@ var Editor = {
                 var isFocused = (document.activeElement === selected);      //so-36430561
 
                 var movable = true;
-                if ( typeof selected.style.position ==='undefined' || selected.style.position === 'static' || isFocused) {
-                    movable = false;
+                if (selected) {
+                    if (typeof selected.style.position === 'undefined' || selected.style.position === 'static' || isFocused) {
+                        movable = false;
+                    }
                 }
+
 
                 e = e || event; // to deal with IE
                 map[e.keyCode] = e.type == 'keydown';
@@ -4080,7 +4091,13 @@ var Editor = {
 
 
                     data.KEY = 'PageSave';
-                    data.path = document.getElementById('si_page_directory_field').value;
+                    //debugger;
+                    let pathfield = document.getElementById('si_page_directory_field');
+                    if (pathfield.dataset.name != pathfield.value) {
+                        data.path = pathfield.value;
+                    }
+                    
+
                     let ajax = { Data: data };
                     console.log(ajax);
                    
@@ -4092,7 +4109,7 @@ var Editor = {
 
             },
             Saved: function (data) {
-                debugger;
+                //debugger;
                 //If we changed the page, then go to the page we changed it to. this page does not exist anymore
                 if (data.hasOwnProperty('CURRENTDBPAGEPATH') ) {
                     let rp = data.CURRENTDBPAGEPATH;
@@ -4112,6 +4129,9 @@ var Editor = {
                     alert("Sorry,that page already exists.\nIf you would like to redirect this page to that one, please do so in the redirect field below.");
                     namefield = document.getElementById('si_page_directory_field');
                     namefield.value = namefield.dataset.name;
+                }
+                if (data.hasOwnProperty('PAGEUPDATED')) {
+                    console.log('The page was saved');
                 }
                 //Only if the name changed do we need to redirect to the new path.
                 console.log(Tools.GetPathDirectory());
@@ -6041,7 +6061,7 @@ var Editor = {
                         attrInput.appendChild(option);
                     }
                     attrInput.onchange = function () {
-                        //debugger;
+                        debugger;
                         let ele = null;
                         if (options.Effected) {
                             ele = document.querySelector(options.Effected);
@@ -6052,11 +6072,11 @@ var Editor = {
                             var selEle = this.options[this.selectedIndex]
                             var tn = this.getAttribute('data-attr');
                             var selOpt = selEle.value;
-
-                            let da = "data-siattr_" + tn;
-                            let daf = ele.getAttribute(da);
-                            if (daf.length >0) {
-                                ele.setAttribute(da,selOpt);
+                            //debugger;
+                           // let da = "data-attr-" + tn;
+                           // let daf = ele.getAttribute(da);
+                            if (tn.length && selOpt.length ) {
+                                ele.setAttribute(tn,selOpt);
                             }
 
                             //  alert(tn);
@@ -8716,7 +8736,7 @@ var Editor = {
                         let lan = mylangs[la].toLowerCase();
                         if (typeof Editor.Objects.Language.Current[l]['_' + lan] !== 'undefined') {
                             let text = Editor.Objects.Language.Current[l]['_' + lan];
-                            if (text.length > 0) {
+                            if (text && text.length > 0) {
                                 if (text.length > 32) {
                                     text = text.substr(0, 32) + "\u2026";  //18146354
                                 }

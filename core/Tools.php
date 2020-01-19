@@ -543,21 +543,33 @@ class Tools{
 		//Tools::Log($text);
 		if (defined('SI_LANGS') && ( strpos ($text,'SI_MULTILANG_')> - 1 ) )
 		{
+		    $localtextattr = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'];
 			$langs = strtolower(SI_LANGS);
 			$lanarr = explode(',',$langs);
 			$lanarr = preg_filter('/^/', '_', $lanarr);
-			$cols = implode("`,`",$lanarr);
-		
+			$filtLanArr = array();
+			foreach($lanarr as $lan){
+				if(isset($localtextattr[$lan])){
+				   $filtLanArr[] = $lan;
+				}
+			}
+			Tools::Log($localtextattr);
+			Tools::Log($lanarr);
+			Tools::Log($filtLanArr);
+
+			$cols = implode("`,`",$filtLanArr);
+
 			preg_match_all('/SI_MULTILANG_([A-Z]){20}/', $text, $matches);
 			if(count($matches)>0){
 				$inset = str_replace('SI_MULTILANG_','',$matches[0]);
-				//Tools::Log($inset);
+				
 				//Tools::Log("sql: ".$sql);
+
 				$db = new Database();
 				$placeholders = str_repeat ('?, ',  count ($inset) - 1) . '?';
 				$pdo = $db->DBC();
 				$sql = "SELECT `$cols`,`name` FROM `localtext` WHERE `name` IN($placeholders);";
-				//Tools::Log($sql);
+				Tools::Log($sql);
 				$query = $pdo->prepare($sql);
 				if ($query->execute($inset)) {
 					$data = $query->fetchAll();

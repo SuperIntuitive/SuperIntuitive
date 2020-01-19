@@ -17,6 +17,20 @@ class User{
 
 	}
 
+	function ForgotPassword($post){
+		Tools::Log('In Forgot Password!');
+		$users = new Entity('users');
+		$users->Attributes->Add("email", post['email']);
+		$ret = $users->Retrieve("id,status,createdon,modifiedon,name,email");
+		$u = $ret[0];
+
+	    Tools::Log($ret);
+		$message ="You forgot your password dumbass! hahaha";
+		$subject = "Forgot Password";
+		mail($u->email, $subject, $message);
+		Tools::Log("email sent!!!");
+	}
+
 	function GetUsersForEditor(){
 		$users = new Entity('users');
 		$ret = $users->Retrieve("id,status,createdon,modifiedon,name,email");

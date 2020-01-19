@@ -10,9 +10,9 @@ $post = json_decode( file_get_contents("php://input"), true);
 $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'] = array();
 $_SESSION['AJAXRETURN'] = array();
 //$dbc = new Database();
-//echo '{"fred": "Bad Ass"}';
-Tools::Log("IN DELEGATE.",true);
 
+Tools::Log("IN DELEGATE.");
+Tools::Log($post);
 
 if(isset($post['KEY'])){
 	$key = $post['KEY'];
@@ -35,9 +35,11 @@ if(isset($post['KEY'])){
 				break;
 		case "UpdatePassword":
 				$user = new User();
-
-
-
+				break;
+		case "ForgotPassword":
+				$user = new User();
+				$user->ForgotPassword($post);
+				break;
 		//Setup functions for use only if not already setup
 		case "SetupDatabase":	
 				$db = new Database();
