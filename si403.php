@@ -1,4 +1,12 @@
 <?php
+/*!
+ * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
+ * @copyright Copyright (c) 2020 Robert Allen
+ * @license   Licensed under GPLv2 license
+ *            See https://github.com/disscombobilated/SuperIntuitive/blob/master/LICENSE
+ * @version   v0.8
+ */
+
 //Anyone who has the pleasure to visit the access violation 403 page (by following server path urls) shall get to sign the guest book, before being redirected to 404; 
 $maxFileSize = 1000000; //picture dr evil with his pinky at the corner of his mouth snearing out One Million Bytes while the others in the room appear bored by the unimpressive megabyte.
 //Add our friend to the guest book.
