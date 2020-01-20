@@ -262,17 +262,17 @@ class Setup {
 		
 		$domdirectory = $_SERVER["DOCUMENT_ROOT"].'/domains';
 		if (!is_dir($domdirectory)) {
-			mkdir($domdirectory, 0644);
+			mkdir($domdirectory, 0755);
 		} 
 
 		$source = $_SERVER["DOCUMENT_ROOT"].'/core/setup/';
 		$dest= $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
 		//Make the domain folder
-		mkdir($dest, 0644);
+		mkdir($dest, 0755);
 		//Copy the setup/media folder into the new domain folder
 		foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $item) {
 			if ($item->isDir()) {
-				mkdir($dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
+				mkdir($dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName(), 0755);
 			} else {
 				copy($item, $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
 			}
