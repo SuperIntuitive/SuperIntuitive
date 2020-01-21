@@ -17,6 +17,39 @@ class Setup {
 	public function __destruct(){
 	}	
 
+	static function Log($data){
+		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/setup.log';
+		if(file_exists($log)){
+			if (time() - filemtime($log) > 5000) {
+				unlink($log);
+			} 
+		}else{
+		    mkdir($_SERVER["DOCUMENT_ROOT"].'/logs', 0755, true);
+			fopen($_SERVER["DOCUMENT_ROOT"].'/logs/setup.log', "w");
+		}
+	    $back = debug_backtrace(2);
+		$debuginfo='';
+		if($back!= null){		
+			foreach($back as $i=>$bt){
+				if( $i===0){ //dont care about the tracking the Tools::Log function. 
+				}else{
+					if( isset($bt['class']) && isset($bt['function'])&& isset($back[$i-1]['line']) ){
+						$debuginfo .= "line:".$back[$i-1]['line']." ".$bt['class'].'->'.$bt['function'].'()'."\r\n";
+					}
+				}
+			}
+		}
+		if(is_array($data) || gettype($data) ==="object"){
+			$data = print_r($data, true);
+		}
+		$milliseconds = round(microtime(true) * 1000);
+		$output =  date("Y-m-d H:i:s").":$milliseconds\r\n$data \r\n$debuginfo---------------------------------\r\n";
+
+		file_put_contents($log,$output,FILE_APPEND);
+	}
+
+
+
 	public function GetHead(){
 		//	if(isset($_SESSION)){
 		//	unset($_SESSION);
@@ -495,6 +528,8 @@ class Setup {
 		$sqlstr= str_replace('__SI_DEFAULT_TIMEZONE__',$post['timezone'],$sqlstr);
 		//set the timezone
 		$sqlstr= str_replace('__SI_DEFAULT_NOTEEMAIL__',$post['noteemail'],$sqlstr);
+
+		Setup::Log($sqlstr);
 		//split again but this time by semicolons followed by newlines
 		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
 		Tools::Log($sqlfile,true);

@@ -104,7 +104,6 @@ class Tools{
 		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
 	}
 	static function Log($data,$tofile=false){
-
 		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.log';
 		if(file_exists($log)){
 			if (time() - filemtime($log) > 5) {
