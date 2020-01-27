@@ -61,16 +61,16 @@ if (Tools::UserHasRole('Admin'))
     //get the users settings here
     $openMethod = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs']['open_link_in']) ? $_SESSION['SI']['user']['prefs']['open_link_in'] : 'window';
 
-  //  $helplinks = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks']) ? _SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks'] : 'false';
+    $helplinks = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks']) ? _SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks'] : 'true';
   
-
     $showMoz = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['moz']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['moz'] : 'false';
     $showW3 = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['w3']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['w3'] : 'false';
 
- 
+    $helplinks = "['mdn','w3']";
 
-   // $showMoz = $helplinks;
-   // $showW3 = $helplinks;
+
+    $showMoz = $helplinks;
+    $showW3 = $helplinks;
 
 
 
@@ -144,10 +144,6 @@ if (Tools::UserHasRole('Admin'))
     $localtexts = json_encode($lanent->Retrieve());
      // Tools::Log($localtexts);
 
-    //foreach($localtexts as $localtext){
-    //    Tools::Log('dfghdfghdfghdfghdfghdfghdfghdfghdfghdfgh');
-
-    //}
     //getDefaultQuickMenu items
     $quickmenuitems = $miscdata->userDefaultQuickmenu;
 
@@ -445,7 +441,7 @@ var Editor = {
                 for (let i in Editor.Code.css_properties) {
                     let group = Editor.Code.css_properties[i];
                     for (let j in group) {
-                        if (group[j].s === name) {
+                        if (group[j].n === name) {
                             Editor.Code.css_properties[i][j].group = i;
                             Editor.Code.css_properties[i][j].index = j;
                             return Editor.Code.css_properties[i][j];
@@ -459,6 +455,7 @@ var Editor = {
                     let curgroup = Editor.Code.html_attributes[i];
                     if (curgroup == group || group == null) {
                         for (let j in curgroup) {
+                            debugger;
                             if (curgroup[j].s === name) {
                                 //debugger;
                                 Editor.Code.html_attributes[i][j].curgroup = i;
@@ -800,7 +797,7 @@ var Editor = {
                 var tagMenu = Ele('div', {
                     id: 'si_edit_add_menuitem',
                     style: {
-                        width : '180px',
+                        width: '200px',
                         height : '220px',
                         backgroundColor : Editor.Style.BackgroundColor,
                         position : 'absolute',
@@ -891,12 +888,11 @@ var Editor = {
 
                         for (let prop in tagGroup) {
                             if (tagGroup.hasOwnProperty(prop)) {
-                                //debugger;
-                                var ele = tagGroup[prop].tn;
+                               
+                                var ele = tagGroup[prop].n;
                                 var tg = tagGroup[prop].t;
 
-                                var mdn = tagGroup[prop].mdn;
-                                var w3 = tagGroup[prop].w3;
+
                                 if (tagGroup[prop].def) {
                                     var def = JSON.stringify(tagGroup[prop].def);
                                 } else {
@@ -905,7 +901,6 @@ var Editor = {
                                 
                                 var tagsrow = document.createElement('tr'); 
                                 var tddragger = document.createElement('td');
-
 
                                 var imDragger = Ele('div', {
                                     id: "dragger_" + ele,
@@ -942,7 +937,7 @@ var Editor = {
                                         e.stopPropagation();
                                         //debugger;
                                         if (Tools.Is.Element(Editor.Objects.Elements.DropParent) ) {
-                                            //debugger;
+                                            debugger;
                                             var tag = e.target.id.split('_')[1].trim();
                                             var isempty = Tools.Is.EmptyElement(tag);
                                             var isinline = Tools.Is.EmptyElement(tag);
@@ -1001,18 +996,12 @@ var Editor = {
                                 
                                 tddragger.appendChild(imDragger);
                                 var tddata = document.createElement('td');
-                                tddata.innerHTML = tagGroup[prop].n;
+                                tddata.innerHTML = tagGroup[prop].ln;
 
                                 tagsrow.appendChild(tddragger);
                                 tagsrow.appendChild(tddata);
 
-                                if (<?= $showMoz ?>) {
-                                    tagsrow.appendChild(IconLink({ "IconUrl": '/editor/media/icons/mozilla.png', "Link": mdn, "Type": 'td', "Title": "Look up " + ele+" on mozilla.org" }));
-                                }
- 
-                                if (<?= $showW3 ?>) {
-                                    tagsrow.appendChild(IconLink({ "IconUrl": '/editor/media/icons/w3schools.png', "Link": w3, "Type": 'td', "Title": "Look up " + ele + " at w3 schools" }));
-                                }
+                                Editor.Objects.Settings.Help.Show("tags", tagGroup[prop], tagsrow);
 
                                 tagtable.appendChild(tagsrow);
                             }
@@ -1702,7 +1691,7 @@ var Editor = {
                     ag.style.display = 'none';
                 });
                 //if the tags attribute list exists, show it
-                //debugger;
+                debugger;
                 let tag = element.tagName.toLowerCase();
                 let group = document.getElementById("si_attribute_group_" + tag);
                 if (group != null) {
@@ -4828,7 +4817,6 @@ var Editor = {
                                 "AccessClass": "si-editor-page-blockstyle-" + fixedkey,
                                 "Removable": true,
                             };
-
                             let stylebox = Editor.Objects.Style.UI(styleobj);// "Group": style.group, "Index": style.index, "Effect": 'body' });
                             document.getElementById("si_edit_page_blocks_styles_" + fixedkey).appendChild(stylebox);
                         } else {
@@ -4852,7 +4840,7 @@ var Editor = {
                         let groupset = Ele("optgroup", { label: group, appendTo: addStyleSelect });
                         let wholegroup = Editor.Code.css_properties[group];
                         for (let s in wholegroup) {
-                            let prop = wholegroup[s].s;
+                            let prop = wholegroup[s].n;
                             if (!prop.startsWith("@"))
                                 Ele("option", { value: prop, innerHTML: prop, title: wholegroup[s].d, appendTo: groupset });
                         }
@@ -5340,6 +5328,7 @@ var Editor = {
 
                     //Enter the unique classes into out data for future use.
                     let classlist = ele.className.split(' ');
+                    let classBlackList = ["si-editable-element"]
                     for (let c in classlist) {
                         if (classlist[c] != "si-editable-element" && Editor.Objects.Elements.Classes.indexOf(classlist[c]) == -1) {
                            // if (!classlist[c].startsWith("si-") && classlist[c] != "")
@@ -5517,12 +5506,13 @@ var Editor = {
                         return null;
                     }
                     else {
+                        let a;
                         if (options.Group === null) {
                             //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? 
-                            let a = Editor.Code.Tools.GetAttributeByName(options.Property);
+                            a = Editor.Code.Tools.GetAttributeByName(options.Property);
                         } else {
                             //if we dont have an index but do have a group name, guarentee the correct attr
-                            let a = Editor.Code.Tools.GetAttributeByName(options.Property, options.Group);
+                            a = Editor.Code.Tools.GetAttributeByName(options.Property, options.Group);
                         }
                         
                         options.Group = a.group;
@@ -5537,7 +5527,7 @@ var Editor = {
                 //The Attribute label
                 var attrdata = Ele('td', {
                     class: 'si-attribute-selection',
-                    innerHTML: attrobj.a,
+                    innerHTML: attrobj.n,
                     style: {
                         backgroundColor: Editor.Style.BackgroundColor,
                         borderBottom: 'solid 1px ' + Editor.Style.TextColor,
@@ -5565,9 +5555,9 @@ var Editor = {
                         
                         if (ele != null) {
                             if (this.checked) {
-                                ele.setAttribute(attrobj.a, "");
+                                ele.setAttribute(attrobj.n, "");
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
                     }
@@ -5592,15 +5582,15 @@ var Editor = {
                             var script = this.value;
                             if (script.length > 0) {
                                 //validate script, escape quotes make it so it works on the other side
-                                ele.setAttribute(attrobj.a, script);
+                                ele.setAttribute(attrobj.n, script);
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
                     }
                 }
                 else if (attrobj.dt == 'INNERHTML') {
-                    if (!Tools.Is.EmptyElement(attrobj.a)) {
+                    if (!Tools.Is.EmptyElement(attrobj.n)) {
                         attrInput = Ele('textarea', {
                             style: {
                                 width: '229px',
@@ -5626,7 +5616,7 @@ var Editor = {
                     }
                 }
                 else if (attrobj.dt == 'INNERTEXT') {
-                    if (!Tools.Is.EmptyElement(attrobj.a)) {
+                    if (!Tools.Is.EmptyElement(attrobj.n)) {
                         attrInput = Ele('textarea', {
                             style: {
                                 width: '229px',
@@ -5663,9 +5653,9 @@ var Editor = {
                         if (ele != null) {
                             var text = this.value;
                             if (text.length > 0) {
-                                ele.setAttribute(attrobj.a, text);
+                                ele.setAttribute(attrobj.n, text);
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
                     }
@@ -5682,9 +5672,9 @@ var Editor = {
                         if (ele != null) {
                             var text = this.value;
                             if (text.length > 0) {
-                                ele.setAttribute(attrobj.a, text);
+                                ele.setAttribute(attrobj.n, text);
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
                     }
@@ -5698,9 +5688,9 @@ var Editor = {
                         if (ele != null) {
                             var text = this.value;
                             if (text.length > 0) {
-                                ele.setAttribute(attrobj.a, text);
+                                ele.setAttribute(attrobj.n, text);
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
                         */
@@ -5719,9 +5709,9 @@ var Editor = {
                             var names = document.querySelectorAll(' [name]');
                             var text = this.value;
                             if (text.length > 0) {
-                                ele.setAttribute(attrobj.a, text);
+                                ele.setAttribute(attrobj.n, text);
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
 
@@ -5730,7 +5720,7 @@ var Editor = {
                 else if (attrobj.dt == 'URL') {
                     attrInput = document.createElement('input');
                     attrInput.style.color = 'darkblue';
-                    attrInput.setAttribute('data-attr', attrobj.a);
+                    attrInput.setAttribute('data-attr', attrobj.n);
                     attrInput.setAttribute('data-type', "media");
                     attrInput.setAttribute('type', "lookup");
                     attrInput.onchange = function (e) {
@@ -5761,7 +5751,7 @@ var Editor = {
                 else if (attrobj.dt == 'UNIQUE_ID') {
                     //debugger;
                     attrInput = document.createElement('input');
-                    attrInput.setAttribute('data-attr', attrobj.a);
+                    attrInput.setAttribute('data-attr', attrobj.n);
                     this.firstId = null;
                     attrInput.onchange = function (e) {
                         //debugger;
@@ -5820,9 +5810,9 @@ var Editor = {
                             }
                             if (ele != null) {
                                 if (this.value.length > 0) {
-                                    ele.setAttribute(attrobj.a, this.value);
+                                    ele.setAttribute(attrobj.n, this.value);
                                 } else {
-                                    ele.removeAttribute(attrobj.a);
+                                    ele.removeAttribute(attrobj.n);
                                 }
                             }
                         }
@@ -5840,9 +5830,9 @@ var Editor = {
                             }
                             if (ele != null) {
                                 if (this.value.length > 0) {
-                                    ele.setAttribute(attrobj.a, this.value);
+                                    ele.setAttribute(attrobj.n, this.value);
                                 } else {
-                                    ele.removeAttribute(attrobj.a);
+                                    ele.removeAttribute(attrobj.n);
                                 }
                             }
                         }
@@ -5851,7 +5841,7 @@ var Editor = {
                 else if (attrobj.dt == 'KEY_VALUE_PAIR') {
                     //debugger;
                     //This should be renamed to data. in the event of another KVP is needed copy this and modify
-                    attrobj.a = attrobj.a.replace('-*', '');
+                    attrobj.n = attrobj.n.replace('-*', '');
                     //Container
                     attrInput = Ele("div", {
                         innerText: "data-",
@@ -5859,17 +5849,17 @@ var Editor = {
                             display: 'inline-block',
                             position: 'relative',
                         },
-                        data: { attr: attrobj.a },
+                        data: { attr: attrobj.n },
                     });
 
                     var datalist = Ele('datalist', {
-                        id: "si_editor_attributes_" + attrobj.a + "_list_" + RandId,
+                        id: "si_editor_attributes_" + attrobj.n + "_list_" + RandId,
                         appendTo: attrInput,
                     });
                     //debugger;
                     let name = Ele('input', {
-                        list: "si_editor_attributes_" + attrobj.a + "_list_" + RandId,
-                        id: "si_editor_attributes_" + attrobj.a + "_name_" + RandId,
+                        list: "si_editor_attributes_" + attrobj.n + "_list_" + RandId,
+                        id: "si_editor_attributes_" + attrobj.n + "_name_" + RandId,
                         style: {
                             width: '124px',
                         },
@@ -5877,7 +5867,7 @@ var Editor = {
                     });
                     attrInput.innerHTML += "<br />&nbsp;&nbsp;&nbsp;&nbsp; = &nbsp;";
                     let value = Ele('input', {
-                        id: "si_editor_attributes_" + attrobj.a + "_value_" + RandId,
+                        id: "si_editor_attributes_" + attrobj.n + "_value_" + RandId,
                         style: {
                             width: '100px',
                         },
@@ -5892,11 +5882,11 @@ var Editor = {
                             //debugger;
                             var ele = Editor.Objects.Elements.Selected;
                             if (ele != null) {
-                                var name = document.getElementById("si_editor_attributes_" + attrobj.a + "_name_" + RandId);
-                                var val = document.getElementById("si_editor_attributes_" + attrobj.a + "_value_" + RandId);
+                                var name = document.getElementById("si_editor_attributes_" + attrobj.n + "_name_" + RandId);
+                                var val = document.getElementById("si_editor_attributes_" + attrobj.n + "_value_" + RandId);
                                 if (name.value.length > 0) {
                                     ele.setAttribute('data-' + name.value, val.value);
-                                    var dlist = document.getElementById("si_editor_attributes_" + attrobj.a + "-list-" + RandId);
+                                    var dlist = document.getElementById("si_editor_attributes_" + attrobj.n + "-list-" + RandId);
                                     var option = Ele("option", {
                                         value: name.value.replace('data-', ''),
                                         innerHTML: name.value.replace('data-', ''),
@@ -5914,7 +5904,7 @@ var Editor = {
                     let data = Tools.Class.GetAll();
 
                     attrInput = document.createElement('input');
-                    attrInput.setAttribute('data-attr', attrobj.a);
+                    attrInput.setAttribute('data-attr', attrobj.n);
                     attrInput.setAttribute('placeholder', 'Space Separated Classes');
                     attrInput.onchange = function (e) {
                         let ele = null;
@@ -5960,9 +5950,9 @@ var Editor = {
                             }
                             if (ele != null) {
                                 if (this.value.length == 1) {
-                                    ele.setAttribute(attrobj.a, this.value);
+                                    ele.setAttribute(attrobj.n, this.value);
                                 } else {
-                                    ele.removeAttribute(attrobj.a);
+                                    ele.removeAttribute(attrobj.n);
                                 }
                             }
                         }
@@ -5970,7 +5960,7 @@ var Editor = {
                 }
                 else if (attrobj.dt == 'TRUE|FALSE') {
                     attrInput = document.createElement('select');
-                    attrInput.setAttribute('data-attr', attrobj.a);
+                    attrInput.setAttribute('data-attr', attrobj.n);
                     attrInput.placeholder = 'True or False';
                     var optN = document.createElement('option');
                     optN.innerText = '';
@@ -5999,7 +5989,7 @@ var Editor = {
                 else if (attrobj.dt == 'ON|OFF') {
 
                     attrInput = document.createElement('select');
-                    attrInput.setAttribute('data-attr', attrobj.a);
+                    attrInput.setAttribute('data-attr', attrobj.n);
                     attrInput.placeholder = 'On or Off';
                     var optN = document.createElement('option');
                     optN.innerText = '';
@@ -6040,9 +6030,9 @@ var Editor = {
                             var choice = this.options[this.selectedIndex].value;
 
                             if (choice.length > 0) {
-                                ele.setAttribute(attrobj.a, choice);
+                                ele.setAttribute(attrobj.n, choice);
                             } else {
-                                ele.removeAttribute(attrobj.a);
+                                ele.removeAttribute(attrobj.n);
                             }
                         }
                     };
@@ -6051,7 +6041,7 @@ var Editor = {
                     var optionset = attrobj.dt.split('(')[1].split(')')[0];
                     var myoptions = optionset.split('|');
                     attrInput = document.createElement('select');
-                    attrInput.setAttribute('data-attr', attrobj.a);
+                    attrInput.setAttribute('data-attr', attrobj.n);
                     var blank = document.createElement('option');
                     blank.innerHTML = "";
                     attrInput.appendChild(blank);
@@ -6100,10 +6090,10 @@ var Editor = {
                 if (options.AccessClass) {
                     attrInput.classList.add(options.AccessClass);
                 }
-                //  attrInput.setAttribute('data-attr', attrobj.a);
+                //  attrInput.setAttribute('data-attr', attrobj.n);
                 attrInput.classList.add("si-edit-attribute");   //to clear all the attrs
-                attrInput.classList.add("si-edit-attribute-" + options.Group + "-" + attrobj.a); //to set the field
-                attrInput.id = "si_edit_attribute_" + options.Group + "_" + attrobj.a + "_" + RandId;
+                attrInput.classList.add("si-edit-attribute-" + options.Group + "-" + attrobj.n); //to set the field
+                attrInput.id = "si_edit_attribute_" + options.Group + "_" + attrobj.n + "_" + RandId;
 
                 //apply datalist if needed
              //   if(data != null){
@@ -6131,17 +6121,18 @@ var Editor = {
                     appendTo: attrrow,
                 });
 
-                //W3 Schools Link
+                //Help links
 
-                if (<?= $showW3 ?>) {
-                    attrrow.appendChild(IconLink({ "IconUrl": '/editor/media/icons/w3schools.png', "Link": attrobj.w3, "Type": 'td', "Title": "Lookup " + attrobj.a+" at w3 schools" }));
-                };
+                Editor.Objects.Settings.Help.Show("attributes", attrobj,  attrrow);
+
+
+
                 return attrrow;
             },
         },
         Style: {
             UI: function (options) {
-                //debugger;
+               
                 let RandId = Tools.String.RandomString(11);
                 this.Defaults = {
                     "Group": null,
@@ -6159,7 +6150,7 @@ var Editor = {
                 }; 
                 options = Tools.Object.SetDefaults(options, this.Defaults);
                 this.Value = options.InitialValue;
-
+             
                 //we need a group and an index to get the style
                 if (options.Index === null && options.Group === null) {
                     if (options.Property === null) {
@@ -6174,7 +6165,9 @@ var Editor = {
                     }
                 }
                 let styleobj = null;
+                
                 if (options.Group === null || options.Index === null) {
+                    debugger;
                     let unsupportedRow = Ele("tr", {  });
                     let unsupportedstyle = Ele("td", { innerHTML: options.Property, appendTo:unsupportedRow  });
                     let unsupportedtext = Ele("tr", { innerHTML: "is not supported yet", appendTo: unsupportedRow });
@@ -6184,7 +6177,7 @@ var Editor = {
                     styleobj = Editor.Code.css_properties[options.Group][options.Index];
                 }
 
-                if (typeof styleobj === 'undefined' || styleobj.s.startsWith('@') || styleobj.s.startsWith(':')) {
+                if (typeof styleobj === 'undefined' || styleobj.n.startsWith('@') || styleobj.n.startsWith(':')) {
                     //do not process
                     if (typeof styleobj === 'undefined') {
                         console.log("StyleObj is undefined for group:" + options.Group + " Index:" + options.Index);
@@ -6208,7 +6201,7 @@ var Editor = {
                     //add the label
                     let csslabel = Ele('td', {
                         class: "si-edit-style-propertyname",
-                        innerHTML: styleobj.s,
+                        innerHTML: styleobj.n,
                         style: {
                             borderBottom: 'solid 1px gray',
                             paddingLeft: '10px',
@@ -6227,7 +6220,7 @@ var Editor = {
                     //BUILD THE SELECTOR
                     //The first thing is the input that shows the selected value.
                     this.css_value = Ele('input', {
-                        id: "si_edit_style_" + styleobj.s + "_" + RandId,
+                        id: "si_edit_style_" + styleobj.n + "_" + RandId,
                         class: "si-edit-style-propertyvalue",
                         readOnly: true,
                         value: options.InitialValue,
@@ -6256,14 +6249,14 @@ var Editor = {
 
                     if (options.Effected == null) {
                         this.css_value.classList.add("si-edit-style");
-                        this.css_value.classList.add("si-edit-style-" + styleobj.s);
+                        this.css_value.classList.add("si-edit-style-" + styleobj.n);
                     }
                     if (options.AccessClass) {
                         this.css_value.classList.add(options.AccessClass);
                     }
 
                     this.css_value_clear = Ele('button', {
-                        id: "si_edit_style_clear_" + styleobj.s + "_" + RandId,
+                        id: "si_edit_style_clear_" + styleobj.n + "_" + RandId,
                         style: {
                             backgroundImage: "url('/editor/media/icons/eraser.png')",
                             backgroundPosition: 'center',
@@ -6279,7 +6272,7 @@ var Editor = {
                         onclick: function () {
                             DeleteStyle();
                         /*
-                            let inputid = "si_edit_style_" + styleobj.s + "_" + RandId;
+                            let inputid = "si_edit_style_" + styleobj.n + "_" + RandId;
                             console.log(inputid);
                             document.getElementById(inputid).value = "";
                             let jsStyle = Tools.Convert.CssProp2JsKey(styleobj.s);
@@ -6291,7 +6284,7 @@ var Editor = {
                         appendTo: container,
                     });
                     this.css_table = Ele('table', {
-                        id: "si_edit_style_table_" + styleobj.s + "_" + RandId,
+                        id: "si_edit_style_table_" + styleobj.n + "_" + RandId,
                         style: {
                             borderCollapse: 'collapse',
                             backgroundColor: Editor.Style.BackgroundColor,
@@ -6305,7 +6298,7 @@ var Editor = {
                         //debugger;
                         val = val.trim();
                         //sets the values of the read only input
-                        document.getElementById("si_edit_style_" + styleobj.s + "_" + RandId).value = val;
+                        document.getElementById("si_edit_style_" + styleobj.n + "_" + RandId).value = val;
                         //if we have a Effected elementis selector
                         if (options.Effected) {
                             let ele = document.querySelector(options.Effected);
@@ -6318,7 +6311,7 @@ var Editor = {
                         }
                         else if (Editor.Objects.Elements.Selected != null) {
                             //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
-                            var classes = document.getElementsByClassName("si_edit_style_" + styleobj.s);
+                            var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
                             for (var i = 0; i < classes.length; i++) {
                                 classes[i].value = val;
                             }
@@ -6331,7 +6324,7 @@ var Editor = {
                     var DeleteStyle = function () {
                         //debugger;
                         //remove the value in the input field 
-                        let topfield = document.getElementById("si_edit_style_" + styleobj.s + "_" + RandId);
+                        let topfield = document.getElementById("si_edit_style_" + styleobj.n + "_" + RandId);
                         topfield.value = "";
 
 
@@ -6360,7 +6353,7 @@ var Editor = {
                    //     }
                         else if (Editor.Objects.Elements.Selected != null) {
                             //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
-                            var classes = document.getElementsByClassName("si_edit_style_" + styleobj.s);
+                            var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
                             for (var i = 0; i < classes.length; i++) {
                                 classes[i].value = null;
                             }
@@ -6382,7 +6375,7 @@ var Editor = {
                             }
                         });
                         let input = Ele('input', {
-                            id: "si_edit_style_time_input_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_time_input_" + styleobj.n + "_" + RandId,
                             class: "si-edit-style",
                             type: 'number',
                             min: '0',
@@ -6394,7 +6387,7 @@ var Editor = {
                             appendTo: box,
                         });
                         let select = Ele('select', {
-                            id: "si_edit_style_time_select_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_time_select_" + styleobj.n + "_" + RandId,
                             class: "si_edit_style",
                             style: {
                                 height: '21px',
@@ -6419,8 +6412,8 @@ var Editor = {
                             appendTo: select,
                         });
                         input.onmouseup = input.onkeyup = select.onchange = function () {                         
-                            let sel = document.getElementById("si_edit_style_time_select_" + styleobj.s + "_" + RandId);
-                            let inp = document.getElementById("si_edit_style_time_input_" + styleobj.s + "_" + RandId);
+                            let sel = document.getElementById("si_edit_style_time_select_" + styleobj.n + "_" + RandId);
+                            let inp = document.getElementById("si_edit_style_time_input_" + styleobj.n + "_" + RandId);
                             let selected = sel.options[sel.selectedIndex].value;
                             let val = inp.value + selected;
                             AssignStyle(val);
@@ -6436,7 +6429,7 @@ var Editor = {
                         });
 
                         let input = Ele('input', {
-                            id: "si_edit_style_len_input_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_len_input_" + styleobj.n + "_" + RandId,
                             class: "si-edit-style",
                             type: 'number',
                             style: {
@@ -6447,15 +6440,15 @@ var Editor = {
                             appendTo: box,
                         });
                         let select = Ele('select', {
-                            id: "si_edit_style_len_select_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_len_select_" + styleobj.n + "_" + RandId,
                             style: {
                                 height: '21px',
                             },
                             appendTo: box,
                         });
                         input.onmouseup = input.onkeyup = select.onchange = function () {
-                            let sel = document.getElementById("si_edit_style_len_select_" + styleobj.s + "_" + RandId);
-                            let inp = document.getElementById("si_edit_style_len_input_" + styleobj.s + "_" + RandId);
+                            let sel = document.getElementById("si_edit_style_len_select_" + styleobj.n + "_" + RandId);
+                            let inp = document.getElementById("si_edit_style_len_input_" + styleobj.n + "_" + RandId);
                             let selected = sel.options[sel.selectedIndex].value;
                             if (inp.value.length > 0 && selected.length > 0) {
                                 let val = inp.value + selected;
@@ -6526,37 +6519,37 @@ var Editor = {
                             if (nowVal) {
                                 if (nowVal.indexOf("rgba(")) {
                                     let color = Tools.Color.ParseToHex(this.value);
-                                    document.getElementById("si_edit_style_color_" + styleobj.s + "_" + RandId).value = color;
+                                    document.getElementById("si_edit_style_color_" + styleobj.n + "_" + RandId).value = color;
                                     let opacity = Tools.Color.ParseOpacity(this.value);
-                                    document.getElementById("si_edit_style_color_range_" + styleobj.s + "_" + RandId).value = opacity;
+                                    document.getElementById("si_edit_style_color_range_" + styleobj.n + "_" + RandId).value = opacity;
                                 } else if (nowVal.indexOf("rgb(")) {
                                     let color = Tools.Color.ParseToHex(this.value);
-                                    document.getElementById("si_edit_style_color_" + styleobj.s + "_" + RandId).value = color;
+                                    document.getElementById("si_edit_style_color_" + styleobj.n + "_" + RandId).value = color;
                                 } else {
-                                    document.getElementById("si_edit_style_color_name_" + styleobj.s + "_" + RandId).value = color;
+                                    document.getElementById("si_edit_style_color_name_" + styleobj.n + "_" + RandId).value = color;
                                 }
                            }
                         };
 
                         var box = document.createElement('div');
                         var input = Ele("input", {
-                            id: "si_edit_style_color_" + styleobj.s + "_" + RandId,
-                            class: "si-edit-style-" + styleobj.s,
+                            id: "si_edit_style_color_" + styleobj.n + "_" + RandId,
+                            class: "si-edit-style-" + styleobj.n,
                             type: "color",
                             style: {
                                 marginRight: "10px",
                             },
                             onchange: function () {
                                 //debugger;
-                                document.getElementById("si_edit_style_color_name_" + styleobj.s + "_" + RandId).selectedIndex = "0";
+                                document.getElementById("si_edit_style_color_name_" + styleobj.n + "_" + RandId).selectedIndex = "0";
                                 var rgb = Tools.Color.HexToRgb(this.value);
-                                var opacity = document.getElementById("si_edit_style_color_range_" + styleobj.s + "_" + RandId).value;
+                                var opacity = document.getElementById("si_edit_style_color_range_" + styleobj.n + "_" + RandId).value;
                                 AssignStyle('rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')');
                             },
                             appendTo: box,
                         });
                         var range = Ele("input", {
-                            id: "si_edit_style_color_range_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_color_range_" + styleobj.n + "_" + RandId,
                             type: 'range',
                             min: 0,
                             max: 1,
@@ -6566,23 +6559,23 @@ var Editor = {
                                 width: '90px',
                             },
                             onchange: function () {
-                                var rgb = Tools.Color.HexToRgb(document.getElementById("si_edit_style_color_" + styleobj.s + "_" + RandId).value);
+                                var rgb = Tools.Color.HexToRgb(document.getElementById("si_edit_style_color_" + styleobj.n + "_" + RandId).value);
                                 var opacity = this.value;
                                 AssignStyle('rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')');
                             },
                             appendTo: box,
                         });
                         var colornames = Ele("select", {
-                            id: "si_edit_style_color_name_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_color_name_" + styleobj.n + "_" + RandId,
                             style: {
                                 width: '120px',
                             },
                             innerHTML: "<?=$coloroptions?>",
                             onchange: function () {
                                 //debugger;
-                                var colorname = document.getElementById("si_edit_style_color_name_" + styleobj.s + "_" + RandId).value;
-                                document.getElementById("si_edit_style_color_" + styleobj.s + "_" + RandId).value = '';
-                                document.getElementById("si_edit_style_color_range_" + styleobj.s + "_" + RandId).value = 1;
+                                var colorname = document.getElementById("si_edit_style_color_name_" + styleobj.n + "_" + RandId).value;
+                                document.getElementById("si_edit_style_color_" + styleobj.n + "_" + RandId).value = '';
+                                document.getElementById("si_edit_style_color_range_" + styleobj.n + "_" + RandId).value = 1;
                                 AssignStyle(this.value);
                             },
                             appendTo: box,
@@ -6595,7 +6588,7 @@ var Editor = {
                         var box = Ele('div', {});
 
                         let range = Ele('input', {
-                            id: "si_edit_style_scalar_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_scalar_" + styleobj.n + "_" + RandId,
                             type: 'range',
                             min: 0,
                             max: 1,
@@ -6615,7 +6608,7 @@ var Editor = {
                     this.URL = function () {
                         var box = Ele('div', {});
                         let url = Ele('input', {
-                            id: "si_edit_style_url_" + styleobj.s + "_" + RandId,
+                            id: "si_edit_style_url_" + styleobj.n + "_" + RandId,
                             type: 'url',
                             placeholder: 'url',
                             style: {
@@ -6803,26 +6796,19 @@ var Editor = {
                         appendTo: cssrow,
                     });
 
-                    if (<?= $showMoz ?>) {
-                        cssrow.appendChild(IconLink({ "IconUrl": '/editor/media/icons/mozilla.png', "Link": styleobj.moz, "Type": 'td',"Title":"Look up "+styleobj.s+" on mozilla.org" }));
-                    }
+                    //debugger;
 
-                    if (<?= $showW3 ?>) {
-                        cssrow.appendChild(IconLink({ "IconUrl": '/editor/media/icons/w3schools.png', "Link": styleobj.w3, "Type": 'td', "Title": "Look up "+styleobj.s+" at w3 schools" }));
-                    }
+
+                    Editor.Objects.Settings.Help.Show("styles", styleobj , cssrow);
+
 
                     if (options.ReturnTag != 'TR') {
-
-
-
                         var e = document.getElementsByTagName('span')[0];
 
                         var d = document.createElement('div');
                         d.innerHTML = e.innerHTML;
 
                         e.parentNode.replaceChild(d, e);
-
-
 
 
                         let csstable = Ele("table", {
@@ -9387,6 +9373,43 @@ var Editor = {
                         delete Editor.Objects.Settings.Current[name];
                     }
                 }
+            },
+            Help: {
+                Sites: {
+                    mdn: {
+                        types: ['tags','styles'],
+                        company: "mozilla",
+                        domain: 'https://developer.mozilla.org',
+                    },
+                    w3:{
+                        types: ['attributes', 'tags', 'styles'],
+                        company: "w3schools",
+                        domain: 'https://www.w3schools.com',
+                    },
+                    dphp: {
+                        types: [],
+                        company: "developphp",
+                        domain: 'https://www.developphp.com',
+                    },
+
+                },
+                Show: function(type, codeobj, appendTo) {
+                    let helpsites = <?= $helplinks ?>;
+                    for (let site of helpsites) {
+                        if (site in Editor.Objects.Settings.Help.Sites && site in codeobj) {
+                            let obj = Editor.Objects.Settings.Help.Sites[site];
+                            let types = obj.types;
+                            if (types.includes(type)) {
+                                let company = obj.company;
+                                let domain = obj.domain;
+                                let path = domain + codeobj[site];
+                                appendTo.appendChild(IconLink({ "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n+" on " + company }));
+                            }
+                        }
+                    }
+
+                }
+
             },
         },
         SecurityRoles: {

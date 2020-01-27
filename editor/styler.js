@@ -475,7 +475,7 @@ function Styler() {
                     let groupset = Ele("optgroup", { label: group, appendTo: addSelect });
                     let wholegroup = Editor.Code.css_properties[group];
                     for (let s in wholegroup) {
-                        let prop = wholegroup[s].s;
+                        let prop = wholegroup[s].n;
                         if (!prop.startsWith("@"))
                             Ele("option", { value: prop, innerHTML: prop, title: wholegroup[s].d, appendTo: groupset });
                     }
@@ -875,8 +875,8 @@ function Styler() {
                             //debugger;
                             let html = Editor.Code.html_elements[elegroup][ele];
                             Ele("option", {
-                                innerHTML: html.tn,
-                                value: html.tn,
+                                innerHTML: html.n,
+                                value: html.n,
                                 title: html.d,
                                 appendTo: optgroup,
                             });
@@ -896,8 +896,8 @@ function Styler() {
                             //debugger;
                             let attr = Editor.Code.html_attributes[attrgroup][ele];
                             Ele("option", {
-                                innerHTML: attr.a,
-                                value: attr.a,
+                                innerHTML: attr.n,
+                                value: attr.n,
                                 title: attr.d,
                                 appendTo: optgroup,
                             });
@@ -908,8 +908,8 @@ function Styler() {
                     for (let i in Editor.Code.css_properties["Pseudo Class"]) {
                         let pc = Editor.Code.css_properties["Pseudo Class"][i];
                         Ele("option", {
-                            innerHTML: pc.s,
-                            value: pc.s,
+                            innerHTML: pc.n,
+                            value: pc.n,
                             title: pc.d,
                             appendTo: selectorPicker,
                         });
@@ -919,8 +919,8 @@ function Styler() {
                     for (let i in Editor.Code.css_properties["Pseudo Element"]) {
                         let pe = Editor.Code.css_properties["Pseudo Element"][i];
                         Ele("option", {
-                            innerHTML: pe.s,
-                            value: pe.s,
+                            innerHTML: pe.n,
+                            value: pe.n,
                             title:pe.d,
                             appendTo: selectorPicker,
                         });

@@ -269,7 +269,7 @@ class Page {
 				$body.= $deploy->DrawControls();
 				$body = $deploy->DeployMediaPaths($body);
 			}
-			$body.="<i id='si_colorscheme'></i> </body>";
+			$body.=" <i id='si_colorscheme'></i> </body>";
 			$body = Tools::ReplaceMultilangs($body);
 
 			return $body;

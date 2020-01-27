@@ -9,7 +9,8 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         "StartWidth": { "value": "800px", "type": "LEN" },
         "StartHeight": { "value": "600px", "type": "LEN" },
         "StartTop": {"value":"0px","type":"LEN" },
-        "StartLeft": { "value": "20%", "type": "LEN" },
+        "StartLeft": { "value": "0px", "type": "LEN" },
+        "OpenPosition": { "value": "MOUSE4", "type": "ENUM", "choices": ["MOUSE4", "MOUSE8", "CENTER", "START"] },
         "BackgroundColor": { "value": "silver", "type": "COLOR" },
         "BorderColor": { "value": "rgba(96,96,96,.1)", "type": "COLOR" },
         "TitleBarColor": { "value": "#484B57", "type": "COLOR" }, //maybe sub in a variable to a default color pattern
@@ -121,16 +122,20 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         if (options.Modal) {
             Tools.Style.FadeIn('si_window_modal', fadetime);
         }
+        //Drop all windows to default z index
         var winds = document.getElementsByClassName("si-window-container");
         for (var i = 0; i < winds.length; i++) {
             winds[i].style.zIndex = options.ZLevel;
         }
+        //fade in our window
         Tools.Style.FadeIn('si_window_container_' + randId, 200);
+        
         if (options.Resizable) {
             FixResizers();
         }
 
     };
+
     this.Hide = function (fadetime) {
         if (typeof fadetime === 'undefined') {
             fadetime = 250;
@@ -143,6 +148,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             Tools.Style.FadeOut('si_window_modal', fadetime);
         }
     };
+
     this.IsVisible = function () {
         container = document.getElementById('si_window_container_' + randId);
         if (container.style.display === "none" || container.style.display === "") {
@@ -150,17 +156,21 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         }
         return true;
     };
+
     this.Dispose = function () {
         log("disposing window");
         ele = document.getElementById('si_window_content_' + randId); //this should be container
         ele.parentNode.removeChild(ele);
     };
+
     this.GetHeight = function () {
         return document.getElementById('si_window_content_' + randId).offsetHeight;
-    }
+    };
+
     this.GetWidth = function () {
         return document.getElementById('si_window_content_' + randId).offsetWidth;
     };
+
     this.Append = function (data) {
         if (typeof data === "string") {
             content.innerHTML += data;
@@ -169,6 +179,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             content.appendChild(data);
         }
     };
+
     this.Prepend = function (data) {
         if (typeof data === "string") {
             let ele = document.getElementById('si_window_content_' + randId);
@@ -177,11 +188,12 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             document.getElementById('si_window_content_' + randId).prepend(data);
         }
     };
+
     this.GetContentId = function () {
         return document.getElementById('si_window_content_' + randId);
     };
-    this.SetPosition = function (left, top) {
 
+    this.SetPosition = function (left, top) {
         top = typeof top !== 'undefined' ? top : container.style.top;
         left = typeof left !== 'undefined' ? left : container.style.left;
         if (typeof top === 'number') {
@@ -196,7 +208,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
     //me thinks this will allow the user to add a callback win.Resize(callback) or even assign over this function win.Resize = 
     this.Resize = function (callback) {
         //debugger;
-        if (typeof callback != 'undefined') {
+        if (typeof callback !== 'undefined') {
             if (typeof callback === "function") {
                 callback();
             }
@@ -235,14 +247,13 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         },
         class: "si-window-container",
     });
-
+    //add a class if desired
     if (options.ContainerClass.length > 0) {
         container.classList.add(options.ContainerClass);
     }
     //Titlebar
     let titlebar = Ele("div", {
         id : 'si_window_titlebar_' + randId,
-
         style: {
             position : 'relative',
             top : '0px',
@@ -256,34 +267,29 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             borderStyle: 'groove',
         },
         onmousedown: function (e) {
-            this;
-           
+            //debugger;
             var winds = document.getElementsByClassName("si-window-container");
             for (var i = 0; i < winds.length; i++) {
                 winds[i].style.zIndex = '980';
             }
-            
-           // let offset = Tools.Positioning.GetDocOffset(this);
             let offY = e.offsetY;
             if (this.parentElement.style.position == 'fixed') {
-                //debugger;
                 offY += this.scrollHeight;
             }
             dragOffset = [e.offsetX, offY];
-            //debugger;
             hWinDrag = this.parentElement; //The menubars parent sould always be the container.
             if (hWinDrag) {
                 hWinDrag.style.zIndex = '981';//elevate it to the top most window
             }
-            
             e.preventDefault();
         },
         appendTo:container,
     });
 
     //Icon
+    //on further review there seems to be little difference between IMG and URL
     if (options.HasIcon === "URL") {
-        let icon = Ele("img", {
+        Ele("img", {
             draggable: false,
             src: options.IconUrl,
             style: {
@@ -296,7 +302,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         });
     }
     else if (options.HasIcon === "IMG") {
-        let icon = Ele("img", {
+        Ele("img", {
             draggable: false,
             src: options.IconImg,
             style: {
@@ -309,7 +315,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         });
     }
     else if(options.HasIcon === "CHAR"){
-        let iconchar = Ele("span", {
+        Ele("span", {
             draggable: false,
             innerHTML: "&#"+options.IconChar+";", //"&#"+this.value+";";
             style: {
@@ -324,7 +330,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
     }
 
     //The title of the Window
-    let titletext = Ele("span", {
+    Ele("span", {
         id: 'si_window_titletext_' + randId,
         innerHTML:options.Title,
         style: {
@@ -375,7 +381,6 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         });
     }
     if (options.WindowControls.indexOf("MAX") !== -1) {
-
         let max = Ele("div", {
             id: 'si_window_maximize_' + randId,
             innerHTML: options.MaximizeChar,
@@ -396,10 +401,9 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
                     //if it is already maximised or minimized, change it backto its windowed state
                     windowState = 'normal';
                     Normalize(this);
-                } else 
-                    
+                }
+                else   
                     Maximize(this);
-              //  }
             },
             appendTo: statebox,
         });
@@ -462,12 +466,6 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         dragOffset = null;
         resizeSensor = null;
         startResize = null;
-        let blockers = document.querySelectorAll(".si-window-iframeblocker");
-
-        [].forEach.call(blockers, function (blocker) {
-            //debugger;
-            blocker.parentElement.removeChild(blocker);
-        });
     });
     document.addEventListener('mousemove', function (e) {
         if (hWinDrag) {     
@@ -490,15 +488,12 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             }
         } 
         if (resizeSensor) {
-            //debugger;
             var left = parseInt(startResize.left);
             var top = parseInt(startResize.top);
             var width = parseInt(startResize.width);
             var height = parseInt(startResize.height);
-
             var mouseX = e.pageX;
             var mouseY = e.pageY;
-
             switch (resizeSensor.id) {
                 case 'si_window_topLeftResize_' + randId:
                     container.style.left = mouseX  + "px";
@@ -515,22 +510,18 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
                     container.style.height = (height + top - mouseY) + "px";
                     container.style.width = (mouseX  - left) + "px";
                     break;
-
                 case 'si_window_leftResize_' + randId:
                     container.style.left = mouseX  + "px";
                     container.style.width = (width + left - mouseX ) + "px";
                     break;
-
                 case 'si_window_rightResize_' + randId:
                     container.style.width = (mouseX  - left) + "px";
-
                     break;
                 case 'si_window_bottomLeftResize_' + randId:
                     container.style.left = mouseX  + "px";
                     container.style.width = (width + left - mouseX ) + "px";
                     container.style.height = (mouseY - top) + "px";
                     break;
-
                 case 'si_window_bottomResize_' + randId:
                     container.style.height = (mouseY - top) + "px";
                     break;
@@ -540,9 +531,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
                     break;
             }
             //When we resize the window the resizers get all f-ed up. this resets them to the new size of the window
-            
             FixResizers();
-
             self.Resize();
 
         }

@@ -678,7 +678,7 @@ var Tools = {
         SetZoom: function (zoom, el) {
             let transformOrigin = [0, 0];
             el = el || instance.getContainer();
-            var p = ["webkit", "moz", "ms", "o"],
+            var p = ["webkit", "mdn", "ms", "o"],
                 s = "scale(" + zoom + ")",
                 oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
             for (var i = 0; i < p.length; i++) {

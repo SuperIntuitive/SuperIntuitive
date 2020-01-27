@@ -1,2048 +1,2048 @@
 {
   "GLOBAL": [
     {
-      "a": "id",
+      "n": "id",
       "dt": "UNIQUE_ID",
       "d": "Specifies a unique id for an element",
-      "w3": "https://www.w3schools.com/tags/att_id.asp"
+      "w3": "/tags/att_id.asp"
     },
     {
-      "a": "draggable",
+      "n": "draggable",
       "dt": "OPTIONSET(true|false|auto)",
       "d": "Specifies whether an element is draggable or not",
-      "w3": "https://www.w3schools.com/tags/att_draggable.asp"
+      "w3": "/tags/att_draggable.asp"
     },
     {
-      "a": "dropzone",
+      "n": "dropzone",
       "dt": "OPTIONSET(copy|move|link)",
       "d": "Specifies whether the dragged data is copied, moved, or linked, when dropped",
-      "w3": "https://www.w3schools.com/tags/att_dropzone.asp"
+      "w3": "/tags/att_dropzone.asp"
     },
     {
-      "a": "data-*",
+      "n": "data-*",
       "dt": "KEY_VALUE_PAIR",
       "d": "Used to store custom data private to the page or application",
-      "w3": "https://www.w3schools.com/tags/att_global_data.asp"
+      "w3": "/tags/att_global_data.asp"
     },
     {
-      "a": "accesskey",
+      "n": "accesskey",
       "dt": "CHAR",
       "d": "Specifies a shortcut key to activate/focus an element",
-      "w3": "https://www.w3schools.com/tags/att_accesskey.asp"
+      "w3": "/tags/att_accesskey.asp"
     },
     {
-      "a": "lang",
+      "n": "lang",
       "dt": "LANGUAGE",
       "d": "Specifies the language of the element's content",
-      "w3": "https://www.w3schools.com/tags/att_lang.asp"
+      "w3": "/tags/att_lang.asp"
     },
     {
-      "a": "tabindex",
+      "n": "tabindex",
       "dt": "NUMBER",
       "d": "Specifies the tabbing order of an element",
-      "w3": "https://www.w3schools.com/tags/att_tabindex.asp"
+      "w3": "/tags/att_tabindex.asp"
     },
     {
-      "a": "spellcheck",
+      "n": "spellcheck",
       "dt": "TRUE|FALSE",
       "d": "Specifies whether the element is to have its spelling and grammar checked or not",
-      "w3": "https://www.w3schools.com/tags/att_spellcheck.asp"
+      "w3": "/tags/att_spellcheck.asp"
     },
     {
-      "a": "style",
+      "n": "style",
       "dt": "CSS",
       "d": "Specifies an inline CSS style for an element",
-      "w3": "https://www.w3schools.com/tags/att_style.asp"
+      "w3": "/tags/att_style.asp"
     },
     {
-      "a": "dir",
+      "n": "dir",
       "dt": "OPTIONSET(ltr|rtl|auto)",
       "d": "Specifies the text direction for the content in an element",
-      "w3": "https://www.w3schools.com/tags/att_dir.asp"
+      "w3": "/tags/att_dir.asp"
     },
     {
-      "a": "translate",
+      "n": "translate",
       "dt": "OPTIONSET(yes|no)",
       "d": "Specifies whether the content of an element should be translated or not",
-      "w3": "https://www.w3schools.com/tags/att_translate.asp"
+      "w3": "/tags/att_translate.asp"
     },
     {
-      "a": "hidden",
+      "n": "hidden",
       "dt": "ATTRIBUTE",
       "d": "Specifies that an element is not yet, or is no longer, relevant",
-      "w3": "https://www.w3schools.com/tags/att_hidden.asp"
+      "w3": "/tags/att_hidden.asp"
     },
     {
-      "a": "title",
+      "n": "title",
       "dt": "TEXT",
       "d": "Specifies extra information about an element",
-      "w3": "https://www.w3schools.com/tags/att_title.asp"
+      "w3": "/tags/att_title.asp"
     },
     {
-      "a": "contenteditable",
+      "n": "contenteditable",
       "dt": "TRUE|FALSE",
       "d": "Specifies whether the content of an element is editable or not",
-      "w3": "https://www.w3schools.com/tags/att_contenteditable.asp"
+      "w3": "/tags/att_contenteditable.asp"
     },
     {
-      "a": "contextmenu",
+      "n": "contextmenu",
       "dt": "ID",
       "d": "Specifies a context menu for an element. The context menu appears when a user right-clicks on the element",
-      "w3": "https://www.w3schools.com/tags/att_contextmenu.asp"
+      "w3": "/tags/att_contextmenu.asp"
     },
     {
-      "a": "class",
+      "n": "class",
       "dt": "CLASS",
       "d": "Specifies one or more classnames for an element (refers to a class in a style sheet)",
-      "w3": "https://www.w3schools.com/tags/att_class.asp"
+      "w3": "/tags/att_class.asp"
     },
     {
-      "a": "tag",
+      "n": "tag",
       "dt": "TAG",
       "d": "The type of tag the element is",
-      "w3": "https://www.w3schools.com/tags/tag_html.asp"
+      "w3": "/tags/tag_html.asp"
     },
     {
-      "a": "innerHTML",
+      "n": "innerHTML",
       "dt": "INNERHTML",
       "d": "The complete contents of the element",
-      "w3": "https://www.w3schools.com/jsref/prop_html_innerhtml.asp"
+      "w3": "/jsref/prop_html_innerhtml.asp"
     },
     {
-      "a": "innerText",
+      "n": "innerText",
       "dt": "INNERHTML",
       "d": "The complete text contents of the element",
-      "w3": "https://www.w3schools.com/jsref/prop_node_innertext.asp"
+      "w3": "/jsref/prop_node_innertext.asp"
     }
   ],
-  "a": [
+  "n": [
     {
-      "a": "href",
+      "n": "href",
       "dt": "URL",
       "d": "Specifies the URL of the page the link goes to",
-      "w3": "https://www.w3schools.com/tags/att_href.asp"
+      "w3": "/tags/att_href.asp"
     },
     {
-      "a": "hreflang",
+      "n": "hreflang",
       "dt": "LANGUAGE",
       "d": "Specifies the language of the linked document",
-      "w3": "https://www.w3schools.com/tags/att_hreflang.asp"
+      "w3": "/tags/att_hreflang.asp"
     },
     {
-      "a": "rel",
+      "n": "rel",
       "dt": "OPTIONSET(alternate|author|bookmark|external|help|license|next|nofollow||noreferrer|noopener|prev|search|tag)",
       "d": "Specifies the relationship between the current document and the linked document",
-      "w3": "https://www.w3schools.com/tags/att_rel.asp"
+      "w3": "/tags/att_rel.asp"
     },
     {
-      "a": "download",
+      "n": "download",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink",
-      "w3": "https://www.w3schools.com/tags/att_download.asp"
+      "w3": "/tags/att_download.asp"
     },
     {
-      "a": "target",
+      "n": "target",
       "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
       "d": "Specifies the target for where to open the linked document or where to submit the form",
-      "w3": "https://www.w3schools.com/tags/att_target.asp"
+      "w3": "/tags/att_target.asp"
     },
     {
-      "a": "media",
+      "n": "media",
       "dt": "N OPTIONSETS(and|not|,)",
       "d": "Specifies what media/device the linked document is optimized for",
-      "w3": "https://www.w3schools.com/tags/att_media.asp"
+      "w3": "/tags/att_media.asp"
     }
   ],
   "area": [
     {
-      "a": "download",
+      "n": "download",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink",
-      "w3": "https://www.w3schools.com/tags/att_download.asp"
+      "w3": "/tags/att_download.asp"
     },
     {
-      "a": "hreflang",
+      "n": "hreflang",
       "dt": "LANGUAGE",
       "d": "Specifies the language of the linked document",
-      "w3": "https://www.w3schools.com/tags/att_hreflang.asp"
+      "w3": "/tags/att_hreflang.asp"
     },
     {
-      "a": "rel",
+      "n": "rel",
       "dt": "OPTIONSET(alternate|author|bookmark|help|license|next|nofollow||noreferrer|prefetch|prev|search|tag)",
       "d": "Specifies the relationship between the current document and the linked document",
-      "w3": "https://www.w3schools.com/tags/att_rel.asp"
+      "w3": "/tags/att_rel.asp"
     },
     {
-      "a": "href",
+      "n": "href",
       "dt": "URL",
       "d": "Specifies the URL of the page the link goes to",
-      "w3": "https://www.w3schools.com/tags/att_href.asp"
+      "w3": "/tags/att_href.asp"
     },
     {
-      "a": "alt",
+      "n": "alt",
       "dt": "TEXT",
       "d": "Specifies an alternate text when the original element fails to display",
-      "w3": "https://www.w3schools.com/tags/att_alt.asp"
+      "w3": "/tags/att_alt.asp"
     },
     {
-      "a": "target",
+      "n": "target",
       "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
       "d": "Specifies the target for where to open the linked document or where to submit the form",
-      "w3": "https://www.w3schools.com/tags/att_target.asp"
+      "w3": "/tags/att_target.asp"
     },
     {
-      "a": "shape",
+      "n": "shape",
       "dt": "OPTIONSET(default|rect|circle|poly)",
       "d": "Specifies the shape of the area",
-      "w3": "https://www.w3schools.com/tags/att_shape.asp"
+      "w3": "/tags/att_shape.asp"
     },
     {
-      "a": "media",
+      "n": "media",
       "dt": "N OPTIONSETS(and|not|,)",
       "d": "Specifies what media/device the linked document is optimized for",
-      "w3": "https://www.w3schools.com/tags/att_media.asp"
+      "w3": "/tags/att_media.asp"
     },
     {
-      "a": "coords",
+      "n": "coords",
       "dt": "COORDS(IF SHAPE = RECT(x1,y1,x2,y2)|IF SHAPE = CIRCLE(x,y,radius)|IF SHAPE = POLYGON(x1,y1,x2,y2,..,xn,yn))",
       "d": "Specifies the coordinates of the area",
-      "w3": "https://www.w3schools.com/tags/att_coords.asp"
+      "w3": "/tags/att_coords.asp"
     }
   ],
   "audio": [
     {
-      "a": "ontimeupdate",
+      "n": "ontimeupdate",
       "dt": "SCRIPT",
       "d": "Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)",
-      "w3": "https://www.w3schools.com/tags/att_ontimeupdate.asp"
+      "w3": "/tags/att_ontimeupdate.asp"
     },
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "autoplay",
+      "n": "autoplay",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the audio/video will start playing as soon as it is ready",
-      "w3": "https://www.w3schools.com/tags/att_autoplay.asp"
+      "w3": "/tags/att_autoplay.asp"
     },
     {
-      "a": "preload",
+      "n": "preload",
       "dt": "OPTIONSET(auto|metadata|none)",
       "d": "Specifies if and how the author thinks the audio/video should be loaded when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_preload.asp"
+      "w3": "/tags/att_preload.asp"
     },
     {
-      "a": "onended",
+      "n": "onended",
       "dt": "SCRIPT",
       "d": "Script to be run when the media has reach the end (a useful event for messages like \"thanks for listening\")",
-      "w3": "https://www.w3schools.com/tags/att_onended.asp"
+      "w3": "/tags/att_onended.asp"
     },
     {
-      "a": "ondurationchange",
+      "n": "ondurationchange",
       "dt": "SCRIPT",
       "d": "Script to be run when the length of the media changes",
-      "w3": "https://www.w3schools.com/tags/att_ondurationchange.asp"
+      "w3": "/tags/att_ondurationchange.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the audio file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "onpause",
+      "n": "onpause",
       "dt": "SCRIPT",
       "d": "Script to be run when the media is paused either by the user or programmatically",
-      "w3": "https://www.w3schools.com/tags/att_onpause.asp"
+      "w3": "/tags/att_onpause.asp"
     },
     {
-      "a": "onplay",
+      "n": "onplay",
       "dt": "SCRIPT",
       "d": "Script to be run when the media is ready to start playing",
-      "w3": "https://www.w3schools.com/tags/att_onplay.asp"
+      "w3": "/tags/att_onplay.asp"
     },
     {
-      "a": "oncanplaythrough",
+      "n": "oncanplaythrough",
       "dt": "SCRIPT",
       "d": "Script to be run when a file can be played all the way to the end without pausing for buffering",
-      "w3": "https://www.w3schools.com/tags/att_oncanplaythrough.asp"
+      "w3": "/tags/att_oncanplaythrough.asp"
     },
     {
-      "a": "onwaiting",
+      "n": "onwaiting",
       "dt": "SCRIPT",
       "d": "Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)",
-      "w3": "https://www.w3schools.com/tags/att_onwaiting.asp"
+      "w3": "/tags/att_onwaiting.asp"
     },
     {
-      "a": "onvolumechange",
+      "n": "onvolumechange",
       "dt": "SCRIPT",
       "d": "Script to be run each time the volume of a video/audio has been changed",
-      "w3": "https://www.w3schools.com/tags/att_onvolumechange.asp"
+      "w3": "/tags/att_onvolumechange.asp"
     },
     {
-      "a": "oncanplay",
+      "n": "oncanplay",
       "dt": "SCRIPT",
       "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
-      "w3": "https://www.w3schools.com/tags/att_oncanplay.asp"
+      "w3": "/tags/att_oncanplay.asp"
     },
     {
-      "a": "loop",
+      "n": "loop",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the audio/video will start over again, every time it is finished",
-      "w3": "https://www.w3schools.com/tags/att_loop.asp"
+      "w3": "/tags/att_loop.asp"
     },
     {
-      "a": "loop",
+      "n": "loop",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the audio/video will start over again, every time it is finished",
-      "w3": "https://www.w3schools.com/tags/att_loop.asp"
+      "w3": "/tags/att_loop.asp"
     },
     {
-      "a": "onabort",
+      "n": "onabort",
       "dt": "SCRIPT",
       "d": "Script to be run on abort",
-      "w3": "https://www.w3schools.com/tags/att_onabort.asp"
+      "w3": "/tags/att_onabort.asp"
     },
     {
-      "a": "onplaying",
+      "n": "onplaying",
       "dt": "SCRIPT",
       "d": "Script to be run when the media actually has started playing.",
-      "w3": "https://www.w3schools.com/tags/att_onplaying.asp"
+      "w3": "/tags/att_onplaying.asp"
     },
     {
-      "a": "onloadeddata",
+      "n": "onloadeddata",
       "dt": "SCRIPT",
       "d": "Script to be run when media data is loaded",
-      "w3": "https://www.w3schools.com/tags/att_onloadeddata.asp"
+      "w3": "/tags/att_onloadeddata.asp"
     },
     {
-      "a": "onsuspend",
+      "n": "onsuspend",
       "dt": "SCRIPT",
       "d": "Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason",
-      "w3": "https://www.w3schools.com/tags/att_onsuspend.asp"
+      "w3": "/tags/att_onsuspend.asp"
     },
     {
-      "a": "onemptied",
+      "n": "onemptied",
       "dt": "SCRIPT",
       "d": "Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)",
-      "w3": "https://www.w3schools.com/tags/att_onemptied.asp"
+      "w3": "/tags/att_onemptied.asp"
     },
     {
-      "a": "onloadstart",
+      "n": "onloadstart",
       "dt": "SCRIPT",
       "d": "Script to be run just as the file begins to load before anything is actually loaded",
-      "w3": "https://www.w3schools.com/tags/att_onloadstart.asp"
+      "w3": "/tags/att_onloadstart.asp"
     },
     {
-      "a": "onprogress",
+      "n": "onprogress",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser is in the process of getting the media data",
-      "w3": "https://www.w3schools.com/tags/att_onprogress.asp"
+      "w3": "/tags/att_onprogress.asp"
     },
     {
-      "a": "onratechange",
+      "n": "onratechange",
       "dt": "SCRIPT",
       "d": "Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode).",
-      "w3": "https://www.w3schools.com/tags/att_onratechange.asp"
+      "w3": "/tags/att_onratechange.asp"
     },
     {
-      "a": "onstalled",
+      "n": "onstalled",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser is unable to fetch the media data for whatever reason",
-      "w3": "https://www.w3schools.com/tags/att_onstalled.asp"
+      "w3": "/tags/att_onstalled.asp"
     },
     {
-      "a": "onloadedmetadata",
+      "n": "onloadedmetadata",
       "dt": "SCRIPT",
       "d": "Script to be run when meta data (like dimensions and duration) are loaded",
-      "w3": "https://www.w3schools.com/tags/att_onloadedmetadata.asp"
+      "w3": "/tags/att_onloadedmetadata.asp"
     },
     {
-      "a": "controls",
+      "n": "controls",
       "dt": "ATTRIBUTE",
       "d": "Specifies that audio/video controls should be displayed (such as a play/pause button etc)",
-      "w3": "https://www.w3schools.com/tags/att_controls.asp"
+      "w3": "/tags/att_controls.asp"
     },
     {
-      "a": "onseeking",
+      "n": "onseeking",
       "dt": "SCRIPT",
       "d": "Script to be run when the seeking attribute is set to true indicating that seeking is active",
-      "w3": "https://www.w3schools.com/tags/att_onseeking.asp"
+      "w3": "/tags/att_onseeking.asp"
     },
     {
-      "a": "onseeked",
+      "n": "onseeked",
       "dt": "SCRIPT",
       "d": "Script to be run when the seeking attribute is set to false indicating that seeking has ended",
-      "w3": "https://www.w3schools.com/tags/att_onseeked.asp"
+      "w3": "/tags/att_onseeked.asp"
     },
     {
-      "a": "muted",
+      "n": "muted",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the audio output of the video should be muted",
-      "w3": "https://www.w3schools.com/tags/att_muted.asp"
+      "w3": "/tags/att_muted.asp"
     }
   ],
   "base": [
     {
-      "a": "href",
+      "n": "href",
       "dt": "URL",
       "d": "Specifies the URL of the page the link goes to",
-      "w3": "https://www.w3schools.com/tags/att_href.asp"
+      "w3": "/tags/att_href.asp"
     },
     {
-      "a": "target",
+      "n": "target",
       "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
       "d": "Specifies the target for where to open the linked document or where to submit the form",
-      "w3": "https://www.w3schools.com/tags/att_target.asp"
+      "w3": "/tags/att_target.asp"
     }
   ],
   "blockquote": [
     {
-      "a": "cite",
+      "n": "cite",
       "dt": "URL",
       "d": "Specifies a URL which explains the quote/deleted/inserted text",
-      "w3": "https://www.w3schools.com/tags/att_cite.asp"
+      "w3": "/tags/att_cite.asp"
     }
   ],
   "body": [
     {
-      "a": "onstorage",
+      "n": "onstorage",
       "dt": "SCRIPT",
       "d": "Script to be run when a Web Storage area is updated",
-      "w3": "https://www.w3schools.com/tags/att_onstorage.asp"
+      "w3": "/tags/att_onstorage.asp"
     },
     {
-      "a": "onpopstate",
+      "n": "onpopstate",
       "dt": "SCRIPT",
       "d": "Script to be run when the window's history changes.",
-      "w3": "https://www.w3schools.com/tags/att_onpopstate.asp"
+      "w3": "/tags/att_onpopstate.asp"
     },
     {
-      "a": "onhashchange",
+      "n": "onhashchange",
       "dt": "SCRIPT",
       "d": "Script to be run when there has been changes to the anchor part of the a URL",
-      "w3": "https://www.w3schools.com/tags/att_onhashchange.asp"
+      "w3": "/tags/att_onhashchange.asp"
     },
     {
-      "a": "onunload",
+      "n": "onunload",
       "dt": "SCRIPT",
       "d": "Script to be run when a page has unloaded (or the browser window has been closed)",
-      "w3": "https://www.w3schools.com/tags/att_onunload.asp"
+      "w3": "/tags/att_onunload.asp"
     },
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "onoffline",
+      "n": "onoffline",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser starts to work offline",
-      "w3": "https://www.w3schools.com/tags/att_onoffline.asp"
+      "w3": "/tags/att_onoffline.asp"
     },
     {
-      "a": "onresize",
+      "n": "onresize",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser window is being resized.",
-      "w3": "https://www.w3schools.com/tags/att_onresize.asp"
+      "w3": "/tags/att_onresize.asp"
     },
     {
-      "a": "onafterprint",
+      "n": "onafterprint",
       "dt": "SCRIPT",
       "d": "Script to be run after the document is printed",
-      "w3": "https://www.w3schools.com/tags/att_onafterprint.asp"
+      "w3": "/tags/att_onafterprint.asp"
     },
     {
-      "a": "onbeforeprint",
+      "n": "onbeforeprint",
       "dt": "SCRIPT",
       "d": "Script to be run before the document is printed",
-      "w3": "https://www.w3schools.com/tags/att_onbeforeprint.asp"
+      "w3": "/tags/att_onbeforeprint.asp"
     },
     {
-      "a": "onbeforeunload",
+      "n": "onbeforeunload",
       "dt": "SCRIPT",
       "d": "Script to be run when the document is about to be unloaded",
-      "w3": "https://www.w3schools.com/tags/att_onbeforeunload.asp"
+      "w3": "/tags/att_onbeforeunload.asp"
     },
     {
-      "a": "ononline",
+      "n": "ononline",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser starts to work online",
-      "w3": "https://www.w3schools.com/tags/att_ononline.asp"
+      "w3": "/tags/att_ononline.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     },
     {
-      "a": "onpageshow",
+      "n": "onpageshow",
       "dt": "SCRIPT",
       "d": "Script to be run when a user navigates to a page",
-      "w3": "https://www.w3schools.com/tags/att_onpageshow.asp"
+      "w3": "/tags/att_onpageshow.asp"
     },
     {
-      "a": "onpagehide",
+      "n": "onpagehide",
       "dt": "SCRIPT",
       "d": "Script to be run when a user navigates away from a page",
-      "w3": "https://www.w3schools.com/tags/att_onpagehide.asp"
+      "w3": "/tags/att_onpagehide.asp"
     }
   ],
   "button": [
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     },
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     },
     {
-      "a": "formaction",
+      "n": "formaction",
       "dt": "URL",
       "d": "Specifies where to send the form-data when a form is submitted. Only for type=\"submit\"",
-      "w3": "https://www.w3schools.com/tags/att_formaction.asp"
+      "w3": "/tags/att_formaction.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "OPTIONSET(button|submit|reset)",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     },
     {
-      "a": "autofocus",
+      "n": "autofocus",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element should automatically get focus when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_autofocus.asp"
+      "w3": "/tags/att_autofocus.asp"
     },
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     }
   ],
   "canvas": [
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     }
   ],
   "col": [
     {
-      "a": "span",
+      "n": "span",
       "dt": "NUMBER",
       "d": "Specifies the number of columns to span",
-      "w3": "https://www.w3schools.com/tags/att_span.asp"
+      "w3": "/tags/att_span.asp"
     }
   ],
   "colgroup": [
     {
-      "a": "span",
+      "n": "span",
       "dt": "NUMBER",
       "d": "Specifies the number of columns to span",
-      "w3": "https://www.w3schools.com/tags/att_span.asp"
+      "w3": "/tags/att_span.asp"
     }
   ],
   "del": [
     {
-      "a": "datetime",
+      "n": "datetime",
       "dt": "DATETIME",
       "d": "Specifies the date and time",
-      "w3": "https://www.w3schools.com/tags/att_datetime.asp"
+      "w3": "/tags/att_datetime.asp"
     },
     {
-      "a": "cite",
+      "n": "cite",
       "dt": "URL",
       "d": "Specifies a URL which explains the quote/deleted/inserted text",
-      "w3": "https://www.w3schools.com/tags/att_cite.asp"
+      "w3": "/tags/att_cite.asp"
     }
   ],
   "details": [
     {
-      "a": "open",
+      "n": "open",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the details should be visible (open) to the user",
-      "w3": "https://www.w3schools.com/tags/att_open.asp"
+      "w3": "/tags/att_open.asp"
     },
     {
-      "a": "ontoggle",
+      "n": "ontoggle",
       "dt": "SCRIPT",
       "d": "Script to be run when the user opens or closes the <details> element",
-      "w3": "https://www.w3schools.com/tags/att_ontoggle.asp"
+      "w3": "/tags/att_ontoggle.asp"
     }
   ],
   "embed": [
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "onabort",
+      "n": "onabort",
       "dt": "SCRIPT",
       "d": "Script to be run on abort",
-      "w3": "https://www.w3schools.com/tags/att_onabort.asp"
+      "w3": "/tags/att_onabort.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the embed file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "oncanplay",
+      "n": "oncanplay",
       "dt": "SCRIPT",
       "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
-      "w3": "https://www.w3schools.com/tags/att_oncanplay.asp"
+      "w3": "/tags/att_oncanplay.asp"
     },
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "MEDIATYPE",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     }
   ],
   "fieldset": [
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     }
   ],
   "form": [
     {
-      "a": "novalidate",
+      "n": "novalidate",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the form should not be validated when submitted",
-      "w3": "https://www.w3schools.com/tags/att_novalidate.asp"
+      "w3": "/tags/att_novalidate.asp"
     },
     {
-      "a": "action",
+      "n": "action",
       "dt": "OPTIONSET(application/x-www-form-urlencoded|multipart/form-data|text/plain)",
       "d": "Specifies where to send the form-data when a form is submitted",
-      "w3": "https://www.w3schools.com/tags/att_action.asp"
+      "w3": "/tags/att_action.asp"
     },
     {
-      "a": "autocomplete",
+      "n": "autocomplete",
       "dt": "OPTIONSET(off|on)",
       "d": "Specifies whether the <form> or the <input> element should have autocomplete enabled",
-      "w3": "https://www.w3schools.com/tags/att_autocomplete.asp"
+      "w3": "/tags/att_autocomplete.asp"
     },
     {
-      "a": "target",
+      "n": "target",
       "dt": "OPTIONSET(_blank|_self|_parent|_top)",
       "d": "Specifies the target for where to open the linked document or where to submit the form",
-      "w3": "https://www.w3schools.com/tags/att_target.asp"
+      "w3": "/tags/att_target.asp"
     },
     {
-      "a": "enctype",
+      "n": "enctype",
       "dt": "OPTIONSET(application/x-www-form-urlencoded|multipart/form-data|text/plain)",
       "d": "Specifies how the form-data should be encoded when submitting it to the server (only for method=\"post\")",
-      "w3": "https://www.w3schools.com/tags/att_enctype.asp"
+      "w3": "/tags/att_enctype.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "method",
+      "n": "method",
       "dt": "OPTIONSET(post|get)",
       "d": "Specifies the HTTP method to use when sending form-data",
-      "w3": "https://www.w3schools.com/tags/att_method.asp"
+      "w3": "/tags/att_method.asp"
     },
     {
-      "a": "onreset",
+      "n": "onreset",
       "dt": "SCRIPT",
       "d": "Script to be run when a reset button in a form is clicked.",
-      "w3": "https://www.w3schools.com/tags/att_onreset.asp"
+      "w3": "/tags/att_onreset.asp"
     },
     {
-      "a": "onsubmit",
+      "n": "onsubmit",
       "dt": "SCRIPT",
       "d": "Script to be run when a form is submitted",
-      "w3": "https://www.w3schools.com/tags/att_onsubmit.asp"
+      "w3": "/tags/att_onsubmit.asp"
     },
     {
-      "a": "accept-charset",
+      "n": "accept-charset",
       "dt": "SSV CHARSET",
       "d": "Specifies the character encodings that are to be used for the form submission",
-      "w3": "https://www.w3schools.com/tags/att_accept-charset.asp"
+      "w3": "/tags/att_accept-charset.asp"
     }
   ],
   "html": [
     {
-      "a": "xmlns",
+      "n": "xmlns",
       "dt": "",
       "d": "",
-      "w3": "https://www.w3schools.com/tags/att_xmlns.asp"
+      "w3": "/tags/att_xmlns.asp"
     }
   ],
   "iframe": [
     {
-      "a": "srcdoc",
+      "n": "srcdoc",
       "dt": "HTML",
       "d": "Specifies the HTML content of the page to show in the <iframe>",
-      "w3": "https://www.w3schools.com/tags/att_srcdoc.asp"
+      "w3": "/tags/att_srcdoc.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     },
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     },
     {
-      "a": "sandbox",
+      "n": "sandbox",
       "dt": "OPTIONSET(allow-forms|allow-pointer-lock|allow-popups|allow-same-origin|allow-scripts|allow-top-navigation)",
       "d": "Enables an extra set of restrictions for the content in an <iframe>",
-      "w3": "https://www.w3schools.com/tags/att_sandbox.asp"
+      "w3": "/tags/att_sandbox.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the iframe file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     }
   ],
   "img": [
     {
-      "a": "srcset",
+      "n": "srcset",
       "dt": "URL",
       "d": "Specifies the URL of the image to use in different situations",
-      "w3": "https://www.w3schools.com/tags/att_srcset.asp"
+      "w3": "/tags/att_srcset.asp"
     },
     {
-      "a": "sizes",
+      "n": "sizes",
       "dt": "NUMBERxNUMBER",
       "d": "Specifies the size of the linked resource",
-      "w3": "https://www.w3schools.com/tags/att_sizes.asp"
+      "w3": "/tags/att_sizes.asp"
     },
     {
-      "a": "ismap",
+      "n": "ismap",
       "dt": "ATTRIBUTE",
       "d": "Specifies an image as a server-side image-map",
-      "w3": "https://www.w3schools.com/tags/att_ismap.asp"
+      "w3": "/tags/att_ismap.asp"
     },
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the imagea file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     },
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     },
     {
-      "a": "usemap",
+      "n": "usemap",
       "dt": "#NAME<MAP>",
       "d": "Specifies an image as a client-side image-map",
-      "w3": "https://www.w3schools.com/tags/att_usemap.asp"
+      "w3": "/tags/att_usemap.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     }
   ],
   "input": [
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "OPTIONSET(button|checkbox|color|date|datetime|datetime-local|email|file|hidden|image|lookup|month|number|password|radio|range|reset|search|submit|tel|text|time|url|week)",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     },
     {
-      "a": "size",
+      "n": "size",
       "dt": "NUMBER",
       "d": "Specifies the width, in characters (for <input>) or specifies the number of visible options (for <select>)",
-      "w3": "https://www.w3schools.com/tags/att_size.asp"
+      "w3": "/tags/att_size.asp"
     },
     {
-      "a": "alt",
+      "n": "alt",
       "dt": "IF(TYPE=IMAGE) TEXT",
       "d": "Specifies an alternate text when the original element fails to display",
-      "w3": "https://www.w3schools.com/tags/att_alt.asp"
+      "w3": "/tags/att_alt.asp"
     },
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     },
     {
-      "a": "placeholder",
+      "n": "placeholder",
       "dt": "TEXT",
       "d": "Specifies a short hint that describes the expected value of the element",
-      "w3": "https://www.w3schools.com/tags/att_placeholder.asp"
+      "w3": "/tags/att_placeholder.asp"
     },
     {
-      "a": "min",
+      "n": "min",
       "dt": "NUMBER|DATE",
       "d": "Specifies a minimum value",
-      "w3": "https://www.w3schools.com/tags/att_min.asp"
+      "w3": "/tags/att_min.asp"
     },
     {
-      "a": "pattern",
+      "n": "pattern",
       "dt": "REGEXP",
       "d": "Specifies a regular expression that an <input> element's value is checked against",
-      "w3": "https://www.w3schools.com/tags/att_pattern.asp"
+      "w3": "/tags/att_pattern.asp"
     },
     {
-      "a": "multiple",
+      "n": "multiple",
       "dt": "ATTRIBUTE",
       "d": "Specifies that a user can enter more than one value",
-      "w3": "https://www.w3schools.com/tags/att_multiple.asp"
+      "w3": "/tags/att_multiple.asp"
     },
     {
-      "a": "formaction",
+      "n": "formaction",
       "dt": "URL",
       "d": "Specifies where to send the form-data when a form is submitted. Only for type=\"submit\"",
-      "w3": "https://www.w3schools.com/tags/att_formaction.asp"
+      "w3": "/tags/att_formaction.asp"
     },
     {
-      "a": "dirname",
+      "n": "dirname",
       "dt": "NAME.dir",
       "d": "Specifies that the text direction will be submitted",
-      "w3": "https://www.w3schools.com/tags/att_dirname.asp"
+      "w3": "/tags/att_dirname.asp"
     },
     {
-      "a": "required",
+      "n": "required",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element must be filled out before submitting the form",
-      "w3": "https://www.w3schools.com/tags/att_required.asp"
+      "w3": "/tags/att_required.asp"
     },
     {
-      "a": "step",
+      "n": "step",
       "dt": "NUMBER",
       "d": "Specifies the legal number intervals for an input field",
-      "w3": "https://www.w3schools.com/tags/att_step.asp"
+      "w3": "/tags/att_step.asp"
     },
     {
-      "a": "onsearch",
+      "n": "onsearch",
       "dt": "SCRIPT",
       "d": "Script to be run when the user writes something in a search field (for <input=\"search\">)",
-      "w3": "https://www.w3schools.com/tags/att_onsearch.asp"
+      "w3": "/tags/att_onsearch.asp"
     },
     {
-      "a": "autofocus",
+      "n": "autofocus",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element should automatically get focus when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_autofocus.asp"
+      "w3": "/tags/att_autofocus.asp"
     },
     {
-      "a": "checked",
+      "n": "checked",
       "dt": "ATTRIBUTE",
       "d": "Specifies that an <input> element should be pre-selected when the page loads (for type=\"checkbox\" or type=\"radio\")",
-      "w3": "https://www.w3schools.com/tags/att_checked.asp"
+      "w3": "/tags/att_checked.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     },
     {
-      "a": "list",
+      "n": "list",
       "dt": "DATALIST_ID",
       "d": "Refers to a <datalist> element that contains pre-defined options for an <input> element",
-      "w3": "https://www.w3schools.com/tags/att_list.asp"
+      "w3": "/tags/att_list.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     },
     {
-      "a": "accept",
+      "n": "accept",
       "dt": "MIMETYPE",
       "d": "Specifies the types of files that the server accepts (only for type=\"file\")",
-      "w3": "https://www.w3schools.com/tags/att_accept.asp"
+      "w3": "/tags/att_accept.asp"
     },
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     },
     {
-      "a": "max",
+      "n": "max",
       "dt": "NUMBER",
       "d": "Specifies the maximum value",
-      "w3": "https://www.w3schools.com/tags/att_max.asp"
+      "w3": "/tags/att_max.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the input file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     },
     {
-      "a": "readonly",
+      "n": "readonly",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element is read-only",
-      "w3": "https://www.w3schools.com/tags/att_readonly.asp"
+      "w3": "/tags/att_readonly.asp"
     },
     {
-      "a": "maxlength",
+      "n": "maxlength",
       "dt": "NUMBER",
       "d": "Specifies the maximum number of characters allowed in an element",
-      "w3": "https://www.w3schools.com/tags/att_maxlength.asp"
+      "w3": "/tags/att_maxlength.asp"
     },
     {
-      "a": "autocomplete",
+      "n": "autocomplete",
       "dt": "OPTIONSET(off|on|name|honorific-prefix|given-name|additional-name|family-name|honorific-suffix|nickname|email|username|new-password|current-password|organization-title|organization|street-address|address-line1|address-line2|address-line3|address-level4|address-level3|address-level2|address-level1|country|country-name|postal-code|cc-name|cc-given-name|cc-additional-name|cc-family-name|cc-number|cc-exp|cc-exp-month|cc-exp-year|cc-csc|cc-type|transaction-currency|transaction-amount|language|bday|bday-day|bday-month|bday-year|sex|tel|tel-country-code|tel-national|tel-area-code|tel-local|tel-local-prefix|tel-local-suffix|tel-extension|url|photo)",
       "d": "Specifies whether the <form> or the <input> element should have autocomplete enabled",
-      "w3": "https://www.w3schools.com/tags/att_autocomplete.asp"
+      "w3": "/tags/att_autocomplete.asp"
     }
   ],
   "ins": [
     {
-      "a": "datetime",
+      "n": "datetime",
       "dt": "DATETIME",
       "d": "Specifies the date and time",
-      "w3": "https://www.w3schools.com/tags/att_datetime.asp"
+      "w3": "/tags/att_datetime.asp"
     },
     {
-      "a": "cite",
+      "n": "cite",
       "dt": "URL",
       "d": "Specifies a URL which explains the quote/deleted/inserted text",
-      "w3": "https://www.w3schools.com/tags/att_cite.asp"
+      "w3": "/tags/att_cite.asp"
     }
   ],
   "label": [
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     },
     {
-      "a": "for",
+      "n": "for",
       "dt": "ID",
       "d": "Specifies which form element(s) a label/calculation is bound to",
-      "w3": "https://www.w3schools.com/tags/att_for.asp"
+      "w3": "/tags/att_for.asp"
     }
   ],
   "li": [
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     }
   ],
   "link": [
     {
-      "a": "media",
+      "n": "media",
       "dt": "N OPTIONSETS(and|not|,)",
       "d": "Specifies what media/device the linked document is optimized for",
-      "w3": "https://www.w3schools.com/tags/att_media.asp"
+      "w3": "/tags/att_media.asp"
     },
     {
-      "a": "hreflang",
+      "n": "hreflang",
       "dt": "LANGUAGE",
       "d": "Specifies the language of the linked document",
-      "w3": "https://www.w3schools.com/tags/att_hreflang.asp"
+      "w3": "/tags/att_hreflang.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     },
     {
-      "a": "rel",
+      "n": "rel",
       "dt": "OPTIONSET(alternate|author|dns-prefetch|help|icon|license|next|pingback|preconnect|prefetch|preload|prerender|prev|search|stylesheet)",
       "d": "Specifies the relationship between the current document and the linked document",
-      "w3": "https://www.w3schools.com/tags/att_rel.asp"
+      "w3": "/tags/att_rel.asp"
     },
     {
-      "a": "href",
+      "n": "href",
       "dt": "URL",
       "d": "Specifies the URL of the page the link goes to",
-      "w3": "https://www.w3schools.com/tags/att_href.asp"
+      "w3": "/tags/att_href.asp"
     },
     {
-      "a": "sizes",
+      "n": "sizes",
       "dt": "NUMBERxNUMBER",
       "d": "Specifies the size of the linked resource",
-      "w3": "https://www.w3schools.com/tags/att_sizes.asp"
+      "w3": "/tags/att_sizes.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "MEDIATYPE",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     }
   ],
   "map": [
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     }
   ],
   "menu": [
     {
-      "a": "type",
+      "n": "type",
       "dt": "OPTIONSET(list|toolbar|context)",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     },
     {
-      "a": "onshow",
+      "n": "onshow",
       "dt": "SCRIPT",
       "d": "Script to be run when a <menu> element is shown as a context menu",
-      "w3": "https://www.w3schools.com/tags/att_onshow.asp"
+      "w3": "/tags/att_onshow.asp"
     }
   ],
   "meta": [
     {
-      "a": "http-equiv",
+      "n": "http-equiv",
       "dt": "OPTIONSET(content-type|default-style|refresh)",
       "d": "Provides an HTTP header for the information/value of the content attribute",
-      "w3": "https://www.w3schools.com/tags/att_http-equiv.asp"
+      "w3": "/tags/att_http-equiv.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "charset",
+      "n": "charset",
       "dt": "CHARSET",
       "d": "Specifies the character encoding",
-      "w3": "https://www.w3schools.com/tags/att_charset.asp"
+      "w3": "/tags/att_charset.asp"
     },
     {
-      "a": "content",
+      "n": "content",
       "dt": "TEXT",
       "d": "Gives the value associated with the http-equiv or name attribute",
-      "w3": "https://www.w3schools.com/tags/att_content.asp"
+      "w3": "/tags/att_content.asp"
     }
   ],
   "meter": [
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     },
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     },
     {
-      "a": "low",
+      "n": "low",
       "dt": "NUMBER",
       "d": "Specifies the range that is considered to be a low value",
-      "w3": "https://www.w3schools.com/tags/att_low.asp"
+      "w3": "/tags/att_low.asp"
     },
     {
-      "a": "min",
+      "n": "min",
       "dt": "NUMBER|DATE",
       "d": "Specifies a minimum value",
-      "w3": "https://www.w3schools.com/tags/att_min.asp"
+      "w3": "/tags/att_min.asp"
     },
     {
-      "a": "high",
+      "n": "high",
       "dt": "NUMBER",
       "d": "Specifies the range that is considered to be a high value",
-      "w3": "https://www.w3schools.com/tags/att_high.asp"
+      "w3": "/tags/att_high.asp"
     },
     {
-      "a": "optimum",
+      "n": "optimum",
       "dt": "NUMBER",
       "d": "Specifies what value is the optimal value for the gauge",
-      "w3": "https://www.w3schools.com/tags/att_optimum.asp"
+      "w3": "/tags/att_optimum.asp"
     },
     {
-      "a": "max",
+      "n": "max",
       "dt": "NUMBER",
       "d": "Specifies the maximum value",
-      "w3": "https://www.w3schools.com/tags/att_max.asp"
+      "w3": "/tags/att_max.asp"
     }
   ],
   "object": [
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "usemap",
+      "n": "usemap",
       "dt": "#NAME<MAP>",
       "d": "Specifies an image as a client-side image-map",
-      "w3": "https://www.w3schools.com/tags/att_usemap.asp"
+      "w3": "/tags/att_usemap.asp"
     },
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     },
     {
-      "a": "oncanplay",
+      "n": "oncanplay",
       "dt": "SCRIPT",
       "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
-      "w3": "https://www.w3schools.com/tags/att_oncanplay.asp"
+      "w3": "/tags/att_oncanplay.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "MEDIATYPE",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     },
     {
-      "a": "data",
+      "n": "data",
       "dt": "URL",
       "d": "Specifies the URL of the resource to be used by the object",
-      "w3": "https://www.w3schools.com/tags/att_data.asp"
+      "w3": "/tags/att_data.asp"
     },
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     },
     {
-      "a": "onabort",
+      "n": "onabort",
       "dt": "SCRIPT",
       "d": "Script to be run on abort",
-      "w3": "https://www.w3schools.com/tags/att_onabort.asp"
+      "w3": "/tags/att_onabort.asp"
     },
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     }
   ],
   "ol": [
     {
-      "a": "reversed",
+      "n": "reversed",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the list order should be descending (9,8,7...)",
-      "w3": "https://www.w3schools.com/tags/att_reversed.asp"
+      "w3": "/tags/att_reversed.asp"
     },
     {
-      "a": "start",
+      "n": "start",
       "dt": "NUMBER",
       "d": "Specifies the start value of an ordered list",
-      "w3": "https://www.w3schools.com/tags/att_start.asp"
+      "w3": "/tags/att_start.asp"
     }
   ],
   "optgroup": [
     {
-      "a": "label",
+      "n": "label",
       "dt": "TEXT",
       "d": "Specifies the title of the text track",
-      "w3": "https://www.w3schools.com/tags/att_label.asp"
+      "w3": "/tags/att_label.asp"
     },
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     }
   ],
   "option": [
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     },
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     },
     {
-      "a": "selected",
+      "n": "selected",
       "dt": "ATTRIBUTE",
       "d": "Specifies that an option should be pre-selected when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_selected.asp"
+      "w3": "/tags/att_selected.asp"
     },
     {
-      "a": "label",
+      "n": "label",
       "dt": "TEXT",
       "d": "Specifies the title of the text track",
-      "w3": "https://www.w3schools.com/tags/att_label.asp"
+      "w3": "/tags/att_label.asp"
     }
   ],
   "output": [
     {
-      "a": "for",
+      "n": "for",
       "dt": "ID",
       "d": "Specifies which form element(s) a label/calculation is bound to",
-      "w3": "https://www.w3schools.com/tags/att_for.asp"
+      "w3": "/tags/att_for.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     }
   ],
   "param": [
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     }
   ],
   "progress": [
     {
-      "a": "max",
+      "n": "max",
       "dt": "NUMBER",
       "d": "Specifies the maximum value",
-      "w3": "https://www.w3schools.com/tags/att_max.asp"
+      "w3": "/tags/att_max.asp"
     },
     {
-      "a": "value",
+      "n": "value",
       "dt": "TEXT",
       "d": "Specifies the value of the element",
-      "w3": "https://www.w3schools.com/tags/att_value.asp"
+      "w3": "/tags/att_value.asp"
     }
   ],
   "q": [
     {
-      "a": "cite",
+      "n": "cite",
       "dt": "URL",
       "d": "Specifies a URL which explains the quote/deleted/inserted text",
-      "w3": "https://www.w3schools.com/tags/att_cite.asp"
+      "w3": "/tags/att_cite.asp"
     }
   ],
   "script": [
     {
-      "a": "async",
+      "n": "async",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the script is executed asynchronously (only for external scripts)",
-      "w3": "https://www.w3schools.com/tags/att_async.asp"
+      "w3": "/tags/att_async.asp"
     },
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     },
     {
-      "a": "defer",
+      "n": "defer",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the script is executed when the page has finished parsing (only for external scripts)",
-      "w3": "https://www.w3schools.com/tags/att_defer.asp"
+      "w3": "/tags/att_defer.asp"
     },
     {
-      "a": "charset",
+      "n": "charset",
       "dt": "CHARSET",
       "d": "Specifies the character encoding",
-      "w3": "https://www.w3schools.com/tags/att_charset.asp"
+      "w3": "/tags/att_charset.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "MEDIATYPE",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the script file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     }
   ],
   "select": [
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     },
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     },
     {
-      "a": "size",
+      "n": "size",
       "dt": "NUMBER",
       "d": "Specifies the width, in characters (for <input>) or specifies the number of visible options (for <select>)",
-      "w3": "https://www.w3schools.com/tags/att_size.asp"
+      "w3": "/tags/att_size.asp"
     },
     {
-      "a": "required",
+      "n": "required",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element must be filled out before submitting the form",
-      "w3": "https://www.w3schools.com/tags/att_required.asp"
+      "w3": "/tags/att_required.asp"
     },
     {
-      "a": "multiple",
+      "n": "multiple",
       "dt": "ATTRIBUTE",
       "d": "Specifies that a user can enter more than one value",
-      "w3": "https://www.w3schools.com/tags/att_multiple.asp"
+      "w3": "/tags/att_multiple.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "autofocus",
+      "n": "autofocus",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element should automatically get focus when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_autofocus.asp"
+      "w3": "/tags/att_autofocus.asp"
     }
   ],
   "source": [
     {
-      "a": "sizes",
+      "n": "sizes",
       "dt": "NUMBERxNUMBER",
       "d": "Specifies the size of the linked resource",
-      "w3": "https://www.w3schools.com/tags/att_sizes.asp"
+      "w3": "/tags/att_sizes.asp"
     },
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the source file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "srcset",
+      "n": "srcset",
       "dt": "URL",
       "d": "Specifies the URL of the image to use in different situations",
-      "w3": "https://www.w3schools.com/tags/att_srcset.asp"
+      "w3": "/tags/att_srcset.asp"
     },
     {
-      "a": "media",
+      "n": "media",
       "dt": "N OPTIONSETS(and|not|,)",
       "d": "Specifies what media/device the linked document is optimized for",
-      "w3": "https://www.w3schools.com/tags/att_media.asp"
+      "w3": "/tags/att_media.asp"
     }
   ],
   "style": [
     {
-      "a": "scoped",
+      "n": "scoped",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the styles only apply to this element's parent element and that element's child elements",
-      "w3": "https://www.w3schools.com/tags/att_scoped.asp"
+      "w3": "/tags/att_scoped.asp"
     },
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     },
     {
-      "a": "media",
+      "n": "media",
       "dt": "N OPTIONSETS(and|not|,)",
       "d": "Specifies what media/device the linked document is optimized for",
-      "w3": "https://www.w3schools.com/tags/att_media.asp"
+      "w3": "/tags/att_media.asp"
     },
     {
-      "a": "onload",
+      "n": "onload",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is finished loading",
-      "w3": "https://www.w3schools.com/tags/att_onload.asp"
+      "w3": "/tags/att_onload.asp"
     },
     {
-      "a": "type",
+      "n": "type",
       "dt": "text/css",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     }
   ],
   "td": [
     {
-      "a": "headers",
+      "n": "headers",
       "dt": "ID",
       "d": "Specifies one or more headers cells a cell is related to",
-      "w3": "https://www.w3schools.com/tags/att_headers.asp"
+      "w3": "/tags/att_headers.asp"
     },
     {
-      "a": "rowspan",
+      "n": "rowspan",
       "dt": "NUMBER",
       "d": "Specifies the number of rows a table cell should span",
-      "w3": "https://www.w3schools.com/tags/att_rowspan.asp"
+      "w3": "/tags/att_rowspan.asp"
     },
     {
-      "a": "colspan",
+      "n": "colspan",
       "dt": "INT",
       "d": "Specifies the number of columns a table cell should span",
-      "w3": "https://www.w3schools.com/tags/att_colspan.asp"
+      "w3": "/tags/att_colspan.asp"
     }
   ],
   "textarea": [
     {
-      "a": "dirname",
+      "n": "dirname",
       "dt": "NAME.dir",
       "d": "Specifies that the text direction will be submitted",
-      "w3": "https://www.w3schools.com/tags/att_dirname.asp"
+      "w3": "/tags/att_dirname.asp"
     },
     {
-      "a": "required",
+      "n": "required",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element must be filled out before submitting the form",
-      "w3": "https://www.w3schools.com/tags/att_required.asp"
+      "w3": "/tags/att_required.asp"
     },
     {
-      "a": "autofocus",
+      "n": "autofocus",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element should automatically get focus when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_autofocus.asp"
+      "w3": "/tags/att_autofocus.asp"
     },
     {
-      "a": "rows",
+      "n": "rows",
       "dt": "NUMBER",
       "d": "Specifies the visible number of lines in a text area",
-      "w3": "https://www.w3schools.com/tags/att_rows.asp"
+      "w3": "/tags/att_rows.asp"
     },
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the text area",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "readonly",
+      "n": "readonly",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the element is read-only",
-      "w3": "https://www.w3schools.com/tags/att_readonly.asp"
+      "w3": "/tags/att_readonly.asp"
     },
     {
-      "a": "maxlength",
+      "n": "maxlength",
       "dt": "NUMBER",
       "d": "Specifies the maximum number of characters allowed in an element",
-      "w3": "https://www.w3schools.com/tags/att_maxlength.asp"
+      "w3": "/tags/att_maxlength.asp"
     },
     {
-      "a": "cols",
+      "n": "cols",
       "dt": "INT",
       "d": "Specifies the visible width of a text area",
-      "w3": "https://www.w3schools.com/tags/att_cols.asp"
+      "w3": "/tags/att_cols.asp"
     },
     {
-      "a": "wrap",
+      "n": "wrap",
       "dt": "OPTIONSET(hard|soft)",
       "d": "Specifies how the text in a text area is to be wrapped when submitted in a form",
-      "w3": "https://www.w3schools.com/tags/att_wrap.asp"
+      "w3": "/tags/att_wrap.asp"
     },
     {
-      "a": "placeholder",
+      "n": "placeholder",
       "dt": "TEXT",
       "d": "Specifies a short hint that describes the expected value of the element",
-      "w3": "https://www.w3schools.com/tags/att_placeholder.asp"
+      "w3": "/tags/att_placeholder.asp"
     },
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     },
     {
-      "a": "form",
+      "n": "form",
       "dt": "FORM_ID",
       "d": "Specifies the name of the form the element belongs to",
-      "w3": "https://www.w3schools.com/tags/att_form.asp"
+      "w3": "/tags/att_form.asp"
     }
   ],
   "th": [
     {
-      "a": "scope",
+      "n": "scope",
       "dt": "OPTIONSET(col|row|colgroup|rowgroup)",
       "d": "Specifies whether a header cell is a header for a column, row, or group of columns or rows",
-      "w3": "https://www.w3schools.com/tags/att_scope.asp"
+      "w3": "/tags/att_scope.asp"
     },
     {
-      "a": "headers",
+      "n": "headers",
       "dt": "ID",
       "d": "Specifies one or more headers cells a cell is related to",
-      "w3": "https://www.w3schools.com/tags/att_headers.asp"
+      "w3": "/tags/att_headers.asp"
     },
     {
-      "a": "colspan",
+      "n": "colspan",
       "dt": "INT",
       "d": "Specifies the number of columns a table cell should span",
-      "w3": "https://www.w3schools.com/tags/att_colspan.asp"
+      "w3": "/tags/att_colspan.asp"
     },
     {
-      "a": "rowspan",
+      "n": "rowspan",
       "dt": "NUMBER",
       "d": "Specifies the number of rows a table cell should span",
-      "w3": "https://www.w3schools.com/tags/att_rowspan.asp"
+      "w3": "/tags/att_rowspan.asp"
     }
   ],
   "time": [
     {
-      "a": "datetime",
+      "n": "datetime",
       "dt": "DATETIME",
       "d": "Specifies the date and time",
-      "w3": "https://www.w3schools.com/tags/att_datetime.asp"
+      "w3": "/tags/att_datetime.asp"
     }
   ],
   "track": [
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the media file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "oncuechange",
+      "n": "oncuechange",
       "dt": "SCRIPT",
       "d": "Script to be run when the cue changes in a <track> element",
-      "w3": "https://www.w3schools.com/tags/att_oncuechange.asp"
+      "w3": "/tags/att_oncuechange.asp"
     },
     {
-      "a": "label",
+      "n": "label",
       "dt": "TEXT",
       "d": "Specifies the title of the text track",
-      "w3": "https://www.w3schools.com/tags/att_label.asp"
+      "w3": "/tags/att_label.asp"
     },
     {
-      "a": "srclang",
+      "n": "srclang",
       "dt": "LANGUAGE",
       "d": "Specifies the language of the track text data (required if kind=\"subtitles\")",
-      "w3": "https://www.w3schools.com/tags/att_srclang.asp"
+      "w3": "/tags/att_srclang.asp"
     },
     {
-      "a": "kind",
+      "n": "kind",
       "dt": "OPTIONSET(captions|chapters|descriptions|metadata|subtitles)",
       "d": "Specifies the kind of text track",
-      "w3": "https://www.w3schools.com/tags/att_kind.asp"
+      "w3": "/tags/att_kind.asp"
     },
     {
-      "a": "default",
+      "n": "default",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the track is to be enabled if the user's preferences do not indicate that another track would be more appropriate",
-      "w3": "https://www.w3schools.com/tags/att_default.asp"
+      "w3": "/tags/att_default.asp"
     }
   ],
   "video": [
     {
-      "a": "src",
+      "n": "src",
       "dt": "URL",
       "d": "Specifies the URL of the media file",
-      "w3": "https://www.w3schools.com/tags/att_src.asp"
+      "w3": "/tags/att_src.asp"
     },
     {
-      "a": "onloadeddata",
+      "n": "onloadeddata",
       "dt": "SCRIPT",
       "d": "Script to be run when media data is loaded",
-      "w3": "https://www.w3schools.com/tags/att_onloadeddata.asp"
+      "w3": "/tags/att_onloadeddata.asp"
     },
     {
-      "a": "onemptied",
+      "n": "onemptied",
       "dt": "SCRIPT",
       "d": "Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)",
-      "w3": "https://www.w3schools.com/tags/att_onemptied.asp"
+      "w3": "/tags/att_onemptied.asp"
     },
     {
-      "a": "onloadedmetadata",
+      "n": "onloadedmetadata",
       "dt": "SCRIPT",
       "d": "Script to be run when meta data (like dimensions and duration) are loaded",
-      "w3": "https://www.w3schools.com/tags/att_onloadedmetadata.asp"
+      "w3": "/tags/att_onloadedmetadata.asp"
     },
     {
-      "a": "onwaiting",
+      "n": "onwaiting",
       "dt": "SCRIPT",
       "d": "Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)",
-      "w3": "https://www.w3schools.com/tags/att_onwaiting.asp"
+      "w3": "/tags/att_onwaiting.asp"
     },
     {
-      "a": "controls",
+      "n": "controls",
       "dt": "ATTRIBUTE",
       "d": "Specifies that audio/video controls should be displayed (such as a play/pause button etc)",
-      "w3": "https://www.w3schools.com/tags/att_controls.asp"
+      "w3": "/tags/att_controls.asp"
     },
     {
-      "a": "onvolumechange",
+      "n": "onvolumechange",
       "dt": "SCRIPT",
       "d": "Script to be run each time the volume of a video/audio has been changed",
-      "w3": "https://www.w3schools.com/tags/att_onvolumechange.asp"
+      "w3": "/tags/att_onvolumechange.asp"
     },
     {
-      "a": "height",
+      "n": "height",
       "dt": "PIXELS",
       "d": "Specifies the height of the element",
-      "w3": "https://www.w3schools.com/tags/att_height.asp"
+      "w3": "/tags/att_height.asp"
     },
     {
-      "a": "ontimeupdate",
+      "n": "ontimeupdate",
       "dt": "SCRIPT",
       "d": "Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)",
-      "w3": "https://www.w3schools.com/tags/att_ontimeupdate.asp"
+      "w3": "/tags/att_ontimeupdate.asp"
     },
     {
-      "a": "onsuspend",
+      "n": "onsuspend",
       "dt": "SCRIPT",
       "d": "Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason",
-      "w3": "https://www.w3schools.com/tags/att_onsuspend.asp"
+      "w3": "/tags/att_onsuspend.asp"
     },
     {
-      "a": "onstalled",
+      "n": "onstalled",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser is unable to fetch the media data for whatever reason",
-      "w3": "https://www.w3schools.com/tags/att_onstalled.asp"
+      "w3": "/tags/att_onstalled.asp"
     },
     {
-      "a": "onseeking",
+      "n": "onseeking",
       "dt": "SCRIPT",
       "d": "Script to be run when the seeking attribute is set to true indicating that seeking is active",
-      "w3": "https://www.w3schools.com/tags/att_onseeking.asp"
+      "w3": "/tags/att_onseeking.asp"
     },
     {
-      "a": "preload",
+      "n": "preload",
       "dt": "OPTIONSET(auto|metadata|none)",
       "d": "Specifies if and how the author thinks the audio/video should be loaded when the page loads",
-      "w3": "https://www.w3schools.com/tags/att_preload.asp"
+      "w3": "/tags/att_preload.asp"
     },
     {
-      "a": "muted",
+      "n": "muted",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the audio output of the video should be muted",
-      "w3": "https://www.w3schools.com/tags/att_muted.asp"
+      "w3": "/tags/att_muted.asp"
     },
     {
-      "a": "width",
+      "n": "width",
       "dt": "PIXELS",
       "d": "Specifies the width of the element",
-      "w3": "https://www.w3schools.com/tags/att_width.asp"
+      "w3": "/tags/att_width.asp"
     },
     {
-      "a": "onloadstart",
+      "n": "onloadstart",
       "dt": "SCRIPT",
       "d": "Script to be run just as the file begins to load before anything is actually loaded",
-      "w3": "https://www.w3schools.com/tags/att_onloadstart.asp"
+      "w3": "/tags/att_onloadstart.asp"
     },
     {
-      "a": "onratechange",
+      "n": "onratechange",
       "dt": "SCRIPT",
       "d": "Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode).",
-      "w3": "https://www.w3schools.com/tags/att_onratechange.asp"
+      "w3": "/tags/att_onratechange.asp"
     },
     {
-      "a": "onprogress",
+      "n": "onprogress",
       "dt": "SCRIPT",
       "d": "Script to be run when the browser is in the process of getting the media data",
-      "w3": "https://www.w3schools.com/tags/att_onprogress.asp"
+      "w3": "/tags/att_onprogress.asp"
     },
     {
-      "a": "onplaying",
+      "n": "onplaying",
       "dt": "SCRIPT",
       "d": "Script to be run when the media actually has started playing.",
-      "w3": "https://www.w3schools.com/tags/att_onplaying.asp"
+      "w3": "/tags/att_onplaying.asp"
     },
     {
-      "a": "onplay",
+      "n": "onplay",
       "dt": "SCRIPT",
       "d": "Script to be run when the media is ready to start playing",
-      "w3": "https://www.w3schools.com/tags/att_onplay.asp"
+      "w3": "/tags/att_onplay.asp"
     },
     {
-      "a": "onended",
+      "n": "onended",
       "dt": "SCRIPT",
       "d": "Script to be run when the media has reach the end (a useful event for messages like \"thanks for listening\")",
-      "w3": "https://www.w3schools.com/tags/att_onended.asp"
+      "w3": "/tags/att_onended.asp"
     },
     {
-      "a": "onpause",
+      "n": "onpause",
       "dt": "SCRIPT",
       "d": "Script to be run when the media is paused either by the user or programmatically",
-      "w3": "https://www.w3schools.com/tags/att_onpause.asp"
+      "w3": "/tags/att_onpause.asp"
     },
     {
-      "a": "onabort",
+      "n": "onabort",
       "dt": "SCRIPT",
       "d": "Script to be run on abort",
-      "w3": "https://www.w3schools.com/tags/att_onabort.asp"
+      "w3": "/tags/att_onabort.asp"
     },
     {
-      "a": "oncanplay",
+      "n": "oncanplay",
       "dt": "SCRIPT",
       "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
-      "w3": "https://www.w3schools.com/tags/att_oncanplay.asp"
+      "w3": "/tags/att_oncanplay.asp"
     },
     {
-      "a": "oncanplaythrough",
+      "n": "oncanplaythrough",
       "dt": "SCRIPT",
       "d": "Script to be run when a file can be played all the way to the end without pausing for buffering",
-      "w3": "https://www.w3schools.com/tags/att_oncanplaythrough.asp"
+      "w3": "/tags/att_oncanplaythrough.asp"
     },
     {
-      "a": "poster",
+      "n": "poster",
       "dt": "URL",
       "d": "Specifies an image to be shown while the video is downloading, or until the user hits the play button",
-      "w3": "https://www.w3schools.com/tags/att_poster.asp"
+      "w3": "/tags/att_poster.asp"
     },
     {
-      "a": "autoplay",
+      "n": "autoplay",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the audio/video will start playing as soon as it is ready",
-      "w3": "https://www.w3schools.com/tags/att_autoplay.asp"
+      "w3": "/tags/att_autoplay.asp"
     },
     {
-      "a": "ondurationchange",
+      "n": "ondurationchange",
       "dt": "SCRIPT",
       "d": "Script to be run when the length of the media changes",
-      "w3": "https://www.w3schools.com/tags/att_ondurationchange.asp"
+      "w3": "/tags/att_ondurationchange.asp"
     },
     {
-      "a": "onseeked",
+      "n": "onseeked",
       "dt": "SCRIPT",
       "d": "Script to be run when the seeking attribute is set to false indicating that seeking has ended",
-      "w3": "https://www.w3schools.com/tags/att_onseeked.asp"
+      "w3": "/tags/att_onseeked.asp"
     }
   ],
   " fieldset": [
     {
-      "a": "name",
+      "n": "name",
       "dt": "NAME",
       "d": "Specifies the name of the element",
-      "w3": "https://www.w3schools.com/tags/att_name.asp"
+      "w3": "/tags/att_name.asp"
     },
     {
-      "a": "disabled",
+      "n": "disabled",
       "dt": "ATTRIBUTE",
       "d": "Specifies that the specified element/group of elements should be disabled",
-      "w3": "https://www.w3schools.com/tags/att_disabled.asp"
+      "w3": "/tags/att_disabled.asp"
     }
   ],
   " img": [
     {
-      "a": "onabort",
+      "n": "onabort",
       "dt": "SCRIPT",
       "d": "Script to be run on abort",
-      "w3": "https://www.w3schools.com/tags/att_onabort.asp"
+      "w3": "/tags/att_onabort.asp"
     },
     {
-      "a": "alt",
+      "n": "alt",
       "dt": "TEXT",
       "d": "Specifies an alternate text when the original element fails to display",
-      "w3": "https://www.w3schools.com/tags/att_alt.asp"
+      "w3": "/tags/att_alt.asp"
     }
   ],
   " source": [
     {
-      "a": "type",
+      "n": "type",
       "dt": "MIMETYPE",
       "d": "Specifies the type of element",
-      "w3": "https://www.w3schools.com/tags/att_type.asp"
+      "w3": "/tags/att_type.asp"
     }
   ],
   " video": [
     {
-      "a": "onerror",
+      "n": "onerror",
       "dt": "SCRIPT",
       "d": "Script to be run when an error occurs",
-      "w3": "https://www.w3schools.com/tags/att_onerror.asp"
+      "w3": "/tags/att_onerror.asp"
     }
   ],
   "EVENT": [
     {
-      "a": "ondragstart",
+      "n": "ondragstart",
       "dt": "SCRIPT",
       "d": "Script to be run at the start of a drag operation",
-      "w3": "https://www.w3schools.com/tags/att_ondragstart.asp"
+      "w3": "/tags/att_ondragstart.asp"
     },
     {
-      "a": "onselect",
+      "n": "onselect",
       "dt": "SCRIPT",
       "d": "Script to be run when the element gets selected",
-      "w3": "https://www.w3schools.com/tags/att_onselect.asp"
+      "w3": "/tags/att_onselect.asp"
     },
     {
-      "a": "onkeypress",
+      "n": "onkeypress",
       "dt": "SCRIPT",
       "d": "Script to be run when a user presses a key",
-      "w3": "https://www.w3schools.com/tags/att_onkeypress.asp"
+      "w3": "/tags/att_onkeypress.asp"
     },
     {
-      "a": "onkeydown",
+      "n": "onkeydown",
       "dt": "SCRIPT",
       "d": "Script to be run when a user is pressing a key",
-      "w3": "https://www.w3schools.com/tags/att_onkeydown.asp"
+      "w3": "/tags/att_onkeydown.asp"
     },
     {
-      "a": "oninvalid",
+      "n": "oninvalid",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is invalid",
-      "w3": "https://www.w3schools.com/tags/att_oninvalid.asp"
+      "w3": "/tags/att_oninvalid.asp"
     },
     {
-      "a": "oninput",
+      "n": "oninput",
       "dt": "SCRIPT",
       "d": "Script to be run when the element gets user input",
-      "w3": "https://www.w3schools.com/tags/att_oninput.asp"
+      "w3": "/tags/att_oninput.asp"
     },
     {
-      "a": "onfocus",
+      "n": "onfocus",
       "dt": "SCRIPT",
       "d": "Script to be run when the element gets focus",
-      "w3": "https://www.w3schools.com/tags/att_onfocus.asp"
+      "w3": "/tags/att_onfocus.asp"
     },
     {
-      "a": "onmousedown",
+      "n": "onmousedown",
       "dt": "SCRIPT",
       "d": "Script to be run when a mouse button is pressed down on an element",
-      "w3": "https://www.w3schools.com/tags/att_onmousedown.asp"
+      "w3": "/tags/att_onmousedown.asp"
     },
     {
-      "a": "onmousemove",
+      "n": "onmousemove",
       "dt": "SCRIPT",
       "d": "Script to be run as long as the  mouse pointer is moving over an element",
-      "w3": "https://www.w3schools.com/tags/att_onmousemove.asp"
+      "w3": "/tags/att_onmousemove.asp"
     },
     {
-      "a": "onmouseout",
+      "n": "onmouseout",
       "dt": "SCRIPT",
       "d": "Script to be run when a mouse pointer moves out of an element",
-      "w3": "https://www.w3schools.com/tags/att_onmouseout.asp"
+      "w3": "/tags/att_onmouseout.asp"
     },
     {
-      "a": "onmouseover",
+      "n": "onmouseover",
       "dt": "SCRIPT",
       "d": "Script to be run when a mouse pointer moves over an element",
-      "w3": "https://www.w3schools.com/tags/att_onmouseover.asp"
+      "w3": "/tags/att_onmouseover.asp"
     },
     {
-      "a": "onmouseup",
+      "n": "onmouseup",
       "dt": "SCRIPT",
       "d": "Script to be run when a mouse button is released over an element",
-      "w3": "https://www.w3schools.com/tags/att_onmouseup.asp"
+      "w3": "/tags/att_onmouseup.asp"
     },
     {
-      "a": "onscroll",
+      "n": "onscroll",
       "dt": "SCRIPT",
       "d": "Script to be run when an element's scrollbar is being scrolled",
-      "w3": "https://www.w3schools.com/tags/att_onscroll.asp"
+      "w3": "/tags/att_onscroll.asp"
     },
     {
-      "a": "onmousewheel",
+      "n": "onmousewheel",
       "dt": "SCRIPT",
       "d": "Script to be run when a mouse wheel is being scrolled over an element",
-      "w3": "https://www.w3schools.com/tags/att_onmousewheel.asp"
+      "w3": "/tags/att_onmousewheel.asp"
     },
     {
-      "a": "ondrop",
+      "n": "ondrop",
       "dt": "SCRIPT",
       "d": "Script to be run when dragged element is being dropped",
-      "w3": "https://www.w3schools.com/tags/att_ondrop.asp"
+      "w3": "/tags/att_ondrop.asp"
     },
     {
-      "a": "onkeyup",
+      "n": "onkeyup",
       "dt": "SCRIPT",
       "d": "Script to be run when a user releases a key",
-      "w3": "https://www.w3schools.com/tags/att_onkeyup.asp"
+      "w3": "/tags/att_onkeyup.asp"
     },
     {
-      "a": "ondragover",
+      "n": "ondragover",
       "dt": "SCRIPT",
       "d": "Script to be run when an element is being dragged over a valid drop target",
-      "w3": "https://www.w3schools.com/tags/att_ondragover.asp"
+      "w3": "/tags/att_ondragover.asp"
     },
     {
-      "a": "onwheel",
+      "n": "onwheel",
       "dt": "SCRIPT",
       "d": "Script to be run when the mouse wheel rolls up or down over an element",
-      "w3": "https://www.w3schools.com/tags/att_onwheel.asp"
+      "w3": "/tags/att_onwheel.asp"
     },
     {
-      "a": "onpaste",
+      "n": "onpaste",
       "dt": "SCRIPT",
       "d": "Script to be run when the user pastes some content in an element",
-      "w3": "https://www.w3schools.com/tags/att_onpaste.asp"
+      "w3": "/tags/att_onpaste.asp"
     },
     {
-      "a": "ondragleave",
+      "n": "ondragleave",
       "dt": "SCRIPT",
       "d": "Script to be run when an element leaves a valid drop target",
-      "w3": "https://www.w3schools.com/tags/att_ondragleave.asp"
+      "w3": "/tags/att_ondragleave.asp"
     },
     {
-      "a": "ondragenter",
+      "n": "ondragenter",
       "dt": "SCRIPT",
       "d": "Script to be run when an element has been dragged to a valid drop target",
-      "w3": "https://www.w3schools.com/tags/att_ondragenter.asp"
+      "w3": "/tags/att_ondragenter.asp"
     },
     {
-      "a": "ondragend",
+      "n": "ondragend",
       "dt": "SCRIPT",
       "d": "Script to be run at the end of a drag operation",
-      "w3": "https://www.w3schools.com/tags/att_ondragend.asp"
+      "w3": "/tags/att_ondragend.asp"
     },
     {
-      "a": "ondrag",
+      "n": "ondrag",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is being dragged",
-      "w3": "https://www.w3schools.com/tags/att_ondrag.asp"
+      "w3": "/tags/att_ondrag.asp"
     },
     {
-      "a": "ondblclick",
+      "n": "ondblclick",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is being double-clicked",
-      "w3": "https://www.w3schools.com/tags/att_ondblclick.asp"
+      "w3": "/tags/att_ondblclick.asp"
     },
     {
-      "a": "oncut",
+      "n": "oncut",
       "dt": "SCRIPT",
       "d": "Script to be run when the content of the element is being cut",
-      "w3": "https://www.w3schools.com/tags/att_oncut.asp"
+      "w3": "/tags/att_oncut.asp"
     },
     {
-      "a": "oncopy",
+      "n": "oncopy",
       "dt": "SCRIPT",
       "d": "Script to be run when the content of the element is being copied",
-      "w3": "https://www.w3schools.com/tags/att_oncopy.asp"
+      "w3": "/tags/att_oncopy.asp"
     },
     {
-      "a": "oncontextmenu",
+      "n": "oncontextmenu",
       "dt": "SCRIPT",
       "d": "Script to be run when a context menu is triggered",
-      "w3": "https://www.w3schools.com/tags/att_oncontextmenu.asp"
+      "w3": "/tags/att_oncontextmenu.asp"
     },
     {
-      "a": "onclick",
+      "n": "onclick",
       "dt": "SCRIPT",
       "d": "Script to be run when the element is being clicked",
-      "w3": "https://www.w3schools.com/tags/att_onclick.asp"
+      "w3": "/tags/att_onclick.asp"
     },
     {
-      "a": "onchange",
+      "n": "onchange",
       "dt": "SCRIPT",
       "d": "Script to be run when the value of the element is changed",
-      "w3": "https://www.w3schools.com/tags/att_onchange.asp"
+      "w3": "/tags/att_onchange.asp"
     },
     {
-      "a": "onblur",
+      "n": "onblur",
       "dt": "SCRIPT",
       "d": "Script to be run when the element loses focus",
-      "w3": "https://www.w3schools.com/tags/att_onblur.asp"
+      "w3": "/tags/att_onblur.asp"
     }
   ]
 
