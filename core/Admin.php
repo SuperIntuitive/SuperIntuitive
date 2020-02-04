@@ -9,12 +9,20 @@
 Tools::Autoload();
 class Admin {
 	public function IncludeAdminFiles(){
-	    $files = "	
-	    <script src='/editor/styler.js' defer></script> 
-		<script src='/editor/scripter.js' defer></script> 
+		
+		$files = "	
 		<script src='/editor/editor.js' defer></script>	
 		<link rel='stylesheet' type='text/css'  href='/editor/editor.css'>
 		";
+		$objfiles = scandir('editor/objects');
+		foreach($objfiles as $obj){
+			if(strlen($obj) > 2){
+				$files .= "<script src='/editor/objects/$obj' defer></script>";		
+			}
+
+		}
+
+
 		//$files.=$this->AdminStyle();
 		return $files;
 	}

@@ -363,10 +363,7 @@ class Tools{
 	    if(is_array($checkroles)){
 			$roles = $checkroles;			
 		}else{
-
 		    $roles = array_map('trim', explode(',', $checkroles)); //so19347005
-
-			//$roles = explode(",",$checkroles);
 		}
 		//Tools::Log('The roles we are looking for are: '.implode(',',$roles));
 		//even if the user does not have the Guest role, we act like they all do. 
@@ -378,8 +375,6 @@ class Tools{
 		//Tools::Log($roles);
 		$usersRoles = array();
 		//This SHOULD be able to be done in one line with array_intersect but I cant get it working this second
-
-
 
 		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles']))
 		{
@@ -440,7 +435,6 @@ class Tools{
 
 		return $text;
 	}
-
 	static function GetPhpInfo(){
 		ob_start();
 		phpinfo();
@@ -535,7 +529,6 @@ class Tools{
 
 			rmdir($dir);
 	}
-
 	static function ReplaceMultilangs($text){
 		//Gets all of the multilingual tags that appear in the text,
 		$matches = array();

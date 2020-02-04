@@ -20,6 +20,11 @@ if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINE
             $mystyle = file_get_contents($style);
             $mystyle = preg_replace( '/(url\(\"+)/', 'url("/plugins/installed/'. $plugin.'/',$mystyle);
 
+            if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
+                $deploy = new Deployment();
+                $mystyle = $deploy->DeployMediaPaths($mystyle);
+            }
+
             $pluginstyle.= $mystyle;
 
             $pluginstyle.= "\n/*__STYLEFILE=$name */";

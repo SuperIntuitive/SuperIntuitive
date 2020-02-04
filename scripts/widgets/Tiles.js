@@ -1,3 +1,6 @@
+if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
+
 function Tiles(options) {
 
     this.Defaults = {
@@ -35,10 +38,10 @@ function Tiles(options) {
     this.Container = null;
     this.Title = null;
 
-    var randId = Tools.String.RandomString(11);
+    var randId = SI.Tools.String.RandomString(11);
 
     this.Init = function () {
-        options = Tools.Object.SetDefaults(options, this.Defaults);
+        options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     //    console.log(options);
         //set the size contingent with the type of element
         let height = "";
@@ -103,7 +106,7 @@ function Tiles(options) {
             onclick: function () {
                 //debugger;
                 let b = ((options.Group !== null) && options.Enabled);
-                Tools.Class.Loop(options.Group, function (ele) {
+                 SI.Tools.Class.Loop(options.Group, function (ele) {
                     if (b) {
                         ele.style.boxShadow = '';
                         ele.style.filter = "brightness(100%)";
@@ -133,7 +136,7 @@ function Tiles(options) {
         switch (options.Type) {
             case "Images":
                 thumb = Ele('img', {
-                    src: Editor.Code.Tools.GetMediaFilePath(options.Url),
+                    src:  SI.Tools.GetMediaFilePath(options.Url),
                     style: {
                         backgroundImage: "url('/editor/media/icons/transparentBackground.jpg')", //if the image has transpency to checkerboards
                         width: '90%'
@@ -147,7 +150,7 @@ function Tiles(options) {
                     style: {
                         width: '90%'
                     },
-                    append: Ele('source', { src: Editor.Code.Tools.GetMediaFilePath(options.Url), type: "audio/mpeg" }),
+                    append: Ele('source', { src:  SI.Tools.GetMediaFilePath(options.Url), type: "audio/mpeg" }),
                     appendTo: container,
                 });
 
@@ -158,14 +161,14 @@ function Tiles(options) {
                     style: {
                         width: '90%'
                     },
-                    append: Ele('source', { src: Editor.Code.Tools.GetMediaFilePath(options.Url), type: "video/mp4" }),
+                    append: Ele('source', { src:  SI.Tools.GetMediaFilePath(options.Url), type: "video/mp4" }),
                     appendTo: container,
                 });
 
                 break;
             case "Docs":
                 thumb = Ele('embed', {
-                    src: Editor.Code.Tools.GetMediaFilePath(options.Url),
+                    src:Tools.GetMediaFilePath(options.Url),
                     type: mime,
                     style: {
                         width: '90%',
@@ -239,7 +242,7 @@ function Tiles(options) {
         //if we have a parent, append to it, if not return the container element.
         if (options.ParentId.length > 0) {
             var par = document.getElementById(options.ParentId);
-            if (par != null) {
+            if (par !== null) {
                 par.appendChild(this.Container);
                 return;
             }

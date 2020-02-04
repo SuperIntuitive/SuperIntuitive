@@ -1,4 +1,5 @@
-﻿
+﻿if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
 
 
 function Field(options) {
@@ -14,9 +15,9 @@ function Field(options) {
         "OnChange": "",
         "KeepSynced": false,
     };
-    this.options = Tools.Object.SetDefaults(options, this.Defaults);
+    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     let self = this; //make available for event handelers.
-    this.rand = Tools.String.RandomString();
+    this.rand = SI.Tools.String.RandomString();
 
     if (this.options.LabelColor.length === 0){
         switch (this.options.Type) {

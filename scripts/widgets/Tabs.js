@@ -1,4 +1,7 @@
-function Tabs(options) {
+if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
+
+SI.Widgets.Tabs = function (options) {
     //Default Fields. make sure to implement these. they are used to allow UI setting
     this.Defaults = {
         "ContainerClass": "",
@@ -29,10 +32,10 @@ function Tabs(options) {
         "Selected": null,
     };
 
-    this.options = Tools.Object.SetDefaults(options, this.Defaults);
+    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     var hWin = this;
     //private members
-    let randId = Tools.String.RandomString(11);
+    let randId = SI.Tools.String.RandomString(11);
     let SelectedId = '';
     
     //public vars
@@ -173,11 +176,11 @@ function Tabs(options) {
                 },
                 onclick: function() {
                         //Hide all the tabs and contents
-                    Tools.Class.Loop("si-tabitem-" + randId, function (item) {
+                    SI.Tools.Class.Loop("si-tabitem-" + randId, function (item) {
                         item.style.backgroundColor = hWin.options.TabBackgroundColor;
                         item.style.filter = hWin.options.TabFilter;
                     });
-                    Tools.Class.Loop("si-tabcontent-" + randId, function (item) {
+                    SI.Tools.Class.Loop("si-tabcontent-" + randId, function (item) {
                         item.style.display = 'none';
                     });
 
@@ -198,11 +201,11 @@ function Tabs(options) {
 
                 }, 
                 onmouseenter: function () {
-                    if (this.id != SelectedId)
+                    if (this.id !== SelectedId)
                         this.style.filter = hWin.options.HoverTabFilter;
                 },
                 onmouseleave: function () {
-                    if (this.id != SelectedId)
+                    if (this.id !== SelectedId)
                         this.style.filter = hWin.options.TabFilter;
                 },
             });
@@ -243,10 +246,10 @@ function Tabs(options) {
                 }
             });
             //the incomming content can be a string to add to inner, or an element to append
-            if (typeof val == 'string') {
+            if (typeof val === 'string') {
                 content.innerHTML = val;
             }
-            else if (Tools.Is.Element(val)) {
+            else if (SI.Tools.Is.Element(val)) {
                 content.appendChild(val);
             }
 
@@ -264,7 +267,7 @@ function Tabs(options) {
         }
 
         var par = document.getElementById(parentId);
-        if (par != null) {
+        if (par !== null) {
             par.appendChild(container);
         } else {
             return container;

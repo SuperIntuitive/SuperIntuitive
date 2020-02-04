@@ -1,3 +1,6 @@
+if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
+
 function Uploader(options) {
     //properties that can be set in the UI
     //debugger;
@@ -21,13 +24,13 @@ function Uploader(options) {
         "ServerScript": "/filehandeler.php",
     };
 
-    options = Tools.Object.SetDefaults(options, this.Defaults);
+    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
 
     this.Container = null;
     this.Progress = null;
     //private members
-    var randId = Tools.String.RandomString(11);
+    var randId = SI.Tools.String.RandomString(11);
 
 
     //if we dont have a options object

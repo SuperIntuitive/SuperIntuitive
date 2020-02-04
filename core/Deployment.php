@@ -73,9 +73,11 @@ class Deployment {
 
 	//TODO fix this to use the new page session vars
 	public function DeployMediaPaths($htmlstring){
-		if(isset($_SESSION['SI']['page']['deployment'])){
-    		$deployment = $_SESSION['SI']['page']['deployment'];
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'])){
+    		$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
 			if($deployment != 'live'){
+			//rexex will find all but this works
+			//$rx = 'media\/(images|audio|video|data|fonts|documents)\/[^&!*'"();:@=+$,/?#[\]*]*(?=[&"'])/';
 			$categories = ['images','audio','videos','data','fonts',"documents"];
 				foreach($categories as $cats){
 					$htmlstring = str_replace("media/$cats/","media/$cats/".$deployment."_" ,$htmlstring);

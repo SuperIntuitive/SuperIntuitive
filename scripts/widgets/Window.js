@@ -1,5 +1,7 @@
-﻿
-function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "800px", Height = "600px") {
+﻿if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
+
+SI.Widgets.Window = function (options) {
     //debugger;
     this.Defaults = {
         "Name": { "value": "Window", "type": "TEXT" },
@@ -48,7 +50,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         "Modal": { "value": false, "type": "BOOL" },
     };
 
-    options = Tools.Object.SetDefaults(options, this.Defaults);
+    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
     //locals
     //Window Move /Resize
@@ -101,7 +103,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
     }
 
 
-    let randId = Tools.String.RandomString(11);
+    let randId = SI.Tools.String.RandomString(11);
     let windowState = 'normal';
     //this can be used al init time only, not in 
     let width = parseInt(options.StartWidth);
@@ -120,7 +122,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         }
         //if theres a modal close it
         if (options.Modal) {
-            Tools.Style.FadeIn('si_window_modal', fadetime);
+            SI.Tools.Style.FadeIn('si_window_modal', fadetime);
         }
         //Drop all windows to default z index
         var winds = document.getElementsByClassName("si-window-container");
@@ -128,7 +130,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             winds[i].style.zIndex = options.ZLevel;
         }
         //fade in our window
-        Tools.Style.FadeIn('si_window_container_' + randId, 200);
+        SI.Tools.Style.FadeIn('si_window_container_' + randId, 200);
         
         if (options.Resizable) {
             FixResizers();
@@ -141,11 +143,11 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
             fadetime = 250;
         }
         options.OnClose();
-        Tools.Style.FadeOut('si_window_container_' + randId, fadetime);
+        SI.Tools.Style.FadeOut('si_window_container_' + randId, fadetime);
 
         //if theres a modal close it
         if (options.Modal) {
-            Tools.Style.FadeOut('si_window_modal', fadetime);
+            SI.Tools.Style.FadeOut('si_window_modal', fadetime);
         }
     };
 
@@ -469,7 +471,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
     });
     document.addEventListener('mousemove', function (e) {
         if (hWinDrag) {     
-          //  let offset = Tools.Positioning.GetDocOffset(hWinDrag);
+          //  let offset = SI.Tools.Positioning.GetDocOffset(hWinDrag);
             if (dragOffset) {
                 var X = e.pageX - dragOffset[0];//(e.clientX) - dragOffset[0];
                 var Y = e.pageY - dragOffset[1];//(e.clientY) - dragOffset[1];
@@ -796,7 +798,7 @@ function Window(options) {//(Name, Parentid, GlobalClass, Title = "", Width = "8
         parent.appendChild(container);
     } else {
         let parent = document.getElementById(options.ParentId);
-        if (Tools.Is.Element(parent)) {
+        if (SI.Tools.Is.Element(parent)) {
             parent.appendChild(container);
         }
     }

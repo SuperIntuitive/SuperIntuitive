@@ -24,8 +24,8 @@ function Styler() {
                 width: '99%',
                 height: '24px',
                 paddingLeft: '5px',
-                backgroundColor: Editor.Style.MenuColor,
-                border: 'solid 1px ' + Editor.Style.BackgroundColor,
+                backgroundColor: SI.Editor.Style.MenuColor,
+                border: 'solid 1px ' + SI.Editor.Style.BackgroundColor,
             },
             appendTo: container,
         });
@@ -54,7 +54,7 @@ function Styler() {
             onchange: function (e) {
                 //debugger;
                 //before changing the style, put the selector menu back under the container.
-                Tools.Element.SetParent(document.getElementById('si_styler_selectormenu'), document.getElementById('si_styler_container'));
+                SI.Tools.Element.SetParent(document.getElementById('si_styler_selectormenu'), document.getElementById('si_styler_container'));
 
                 let workspace = document.getElementById("si_styler_workspace");
                 workspace.innerHTML = '';
@@ -67,10 +67,10 @@ function Styler() {
                 let type = option.getAttribute('data-sourcetype');
                 let style = null;
                 switch (type) {
-                    case "Block": style = Editor.Objects.Block.Current[stylesheet].style; break;
+                    case "Block": style = SI.Editor.Code.Objects.Blocks[stylesheet].style; break;
                     case "Plugin":
                         let parent = option.parentElement.label.trim();
-                        style = Editor.Objects.Plugins.Current[parent].styles[stylesheet];
+                        style = SI.Editor.Code.Objects.Blocks[parent].styles[stylesheet];
                         break;
                     case "Sheet": style = SI_StyleSheetsLibrary[stylesheet].style; break;
                     default: alert("No known group type. Can't get style"); return;
@@ -87,9 +87,9 @@ function Styler() {
             },
             appendTo: mainmenu,
         });
-        if (Editor.Objects.Block.Current !== 'undefined') {
+        if (SI.Editor.Code.Objects.Blocks !== 'undefined') {
            //debugger;
-            let blocks = Object.keys(Editor.Objects.Block.Current);
+            let blocks = Object.keys(SI.Editor.Code.Objects.Blocks);
             let blocksGroup = Ele("optgroup", {
                 label: "Block",
                 appendTo: styleSheetSelect
@@ -106,15 +106,15 @@ function Styler() {
             }
         }
         //add plugins to the list
-        if (Object.keys(Editor.Objects.Plugins.Current).length > 0) {
+        if (Object.keys(SI.Editor.Objects.Plugins.Current).length > 0) {
             //debugger;
             let pgroup = Ele("optgroup", {
                 label: "Plugins",
                 appendTo: styleSheetSelect,
             });
 
-            for (plugin in Editor.Objects.Plugins.Current) {
-                let styles = Editor.Objects.Plugins.Current[plugin]['styles'];
+            for (plugin in SI.Editor.Objects.Plugins.Current) {
+                let styles = SI.Editor.Objects.Plugins.Current[plugin]['styles'];
                 if (!Array.isArray(styles)) {
                     let sgroup = Ele("optgroup", {
                         label: "    " + plugin,
@@ -266,7 +266,7 @@ function Styler() {
             },
             appendTo: codeview
         });
-        Tools.Text.FingAutoCorrect(codepad);
+         SI.Tools.Text.FingAutoCorrect(codepad);
 
         return container;
     };
@@ -346,21 +346,21 @@ function Styler() {
  
     };
     this.DrawStyleBlock = function (style) {
-        let rand = Tools.String.RandomString(11);
+        let rand =  SI.Tools.String.RandomString(11);
         //Create the Main style box
         let stylebox = Ele('div', {
             class: "si-styler-stylebox",
             id: "si_styler_stylebox_" + rand,
             style: {
                 width: '97%',
-                backgroundColor: Editor.Style.BackgroundColor,
-                color: Editor.Style.TextColor,
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
                 display: 'table',
                 marginLeft: '1%',
                 textAlign: 'top',
                 paddingTop: '3px',
                 paddingBottom: '3px',
-                border: "1px solid " + Editor.Style.TextColor,
+                border: "1px solid " + SI.Editor.Style.TextColor,
             },
             draggable: 'true',
             // appendTo: workspace,
@@ -375,7 +375,7 @@ function Styler() {
                     e2 = document.getElementById(source);
                     //make sure were only swapping with another stylebox
                     if (e2 && e2.classList.contains("si-styler-stylebox")) {
-                        Tools.Element.SwapNodes(this, e2);
+                         SI.Tools.Element.SwapNodes(this, e2);
                     }
                 }
             },
@@ -393,14 +393,14 @@ function Styler() {
             onchange: function (ev) {
                 //debugger;
                 let b = this.checked;
-                Tools.Class.Loop("si-styler-stylebox", function (ele) {
-                    ele.style.backgroundColor = Editor.Style.BackgroundColor;
+                 SI.Tools.Class.Loop("si-styler-stylebox", function (ele) {
+                    ele.style.backgroundColor = SI.Editor.Style.BackgroundColor;
                 });
-                Tools.Class.Loop("si-styler-selectorcontainer", function (ele) {
-                    ele.style.backgroundColor = Editor.Style.BackgroundColor;
+                 SI.Tools.Class.Loop("si-styler-selectorcontainer", function (ele) {
+                    ele.style.backgroundColor = SI.Editor.Style.BackgroundColor;
                 });
 
-                Tools.Class.Loop("si-styler-stylebox-selector", function (ele) {
+                 SI.Tools.Class.Loop("si-styler-stylebox-selector", function (ele) {
                     ele.checked = false;
                 });
 
@@ -424,8 +424,8 @@ function Styler() {
             class: "si-styler-selectorcontainer",
             style: {
                 padding: '10px',
-                backgroundColor: Editor.Style.BackgroundColor,
-                color: Editor.Style.TextColor,
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
                 display: 'table-cell',
                 width: '38%',
             },
@@ -453,8 +453,8 @@ function Styler() {
             let propertiesbox = Ele('table', {
                 id: "si_styler_propertiestable_" + rand,
                 style: {
-                    backgroundColor: Editor.Style.BackgroundColor,
-                    color: Editor.Style.TextColor,
+                    backgroundColor: SI.Editor.Style.BackgroundColor,
+                    color: SI.Editor.Style.TextColor,
                     width: '100%',
                     borderCollapse: 'collapse',
                 },
@@ -470,10 +470,10 @@ function Styler() {
                 appendTo: addSelectCell
             });
             Ele("option", { value: '', innerHTML: '', appendTo: addSelect });
-            for (let group in Editor.Code.css_properties) {
+            for (let group in SI.Editor.Code.css_properties) {
                 if (group !== "Pseudo Class" && group !== "Pseudo Element") {
                     let groupset = Ele("optgroup", { label: group, appendTo: addSelect });
-                    let wholegroup = Editor.Code.css_properties[group];
+                    let wholegroup = SI.Editor.Code.css_properties[group];
                     for (let s in wholegroup) {
                         let prop = wholegroup[s].n;
                         if (!prop.startsWith("@"))
@@ -492,7 +492,7 @@ function Styler() {
                     let select = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiesselect_"));
                     if (select.value.length) {
                         let table = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiestable_"));
-                        let propControl = Editor.Objects.Style.UI({ "Property": select.value.trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true,   });
+                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": select.value.trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true,   });
                         table.appendChild(propControl);
                     } else {
                         alert("To add a new property, select it from the drop down list.");
@@ -551,7 +551,7 @@ function Styler() {
                         //    let sub = kvp[0].substring(index)
                         //}
                         kvp[1] = kvp[1].replace("__BASE__", ";base");  //this little iritent :-P
-                        let propControl = Editor.Objects.Style.UI({ "Property": kvp[0].trim(), "InitialValue": kvp[1].trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true, "Removable":true });
+                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": kvp[0].trim(), "InitialValue": kvp[1].trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true, "Removable":true });
                         propControl.ondrop = function (e) {
                             //   alert(e.target.id);
                         },
@@ -570,7 +570,7 @@ function Styler() {
                 let propertiesbox = Ele('textarea', {
                     id: "si_styler_propertiestable_" + rand,
                     style: {
-                        backgroundColor: Editor.Style.BackgroundColor,
+                        backgroundColor: SI.Editor.Style.BackgroundColor,
                         color: "lightgreen",
                         width: '95%',
                         height: (comment.length / 100 * 24) + 'px',
@@ -624,7 +624,7 @@ function Styler() {
         let selectorCount = appendTo.parentElement.querySelectorAll('button').length;
 
         let selectorbutton = Ele("button", {
-            id: "si_styler_selector_" + Tools.String.RandomString(),
+            id: "si_styler_selector_" +  SI.Tools.String.RandomString(),
             innerHTML: selector,
             class: 'si-styler-selector' + selectorCount,
             style: {
@@ -646,7 +646,7 @@ function Styler() {
         //cleanup
         let menu = document.getElementById('si_styler_selectormenu');
         menu.style.display = 'none';
-        Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
+         SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
     };
     this.Selector = function (options) {
         
@@ -654,8 +654,8 @@ function Styler() {
             "Selector": "body",
             "Order":0,
         };
-        options = Tools.Object.SetDefaults(options, this.Defaults);
-        let randId = Tools.String.RandomString(11);
+        options =  SI.Tools.Object.SetDefaults(options, this.Defaults);
+        let randId =  SI.Tools.String.RandomString(11);
 
 
         sel = options.Selector.trim().replace(/::/g,"^");
@@ -757,10 +757,10 @@ function Styler() {
             let menu = document.getElementById('si_styler_selectormenu');
             let b = menu.parentElement === selector.parentElement;
 
-            Tools.Element.SetParent(menu, selector.parentElement);
+             SI.Tools.Element.SetParent(menu, selector.parentElement);
             hWin.SelectorMenuEffects = selector;
 
-            Tools.Class.Loop("si-styler-selector-picker", function (s) {
+             SI.Tools.Class.Loop("si-styler-selector-picker", function (s) {
                 s.selectedIndex = "0";
                 s.style.display = 'none';
             });
@@ -788,7 +788,7 @@ function Styler() {
         this.Defaults = {
             "Position": "default",
         };
-        options = Tools.Object.SetDefaults(options, this.Defaults);
+        options =  SI.Tools.Object.SetDefaults(options, this.Defaults);
 
 
         let mainTable = Ele("table", {
@@ -848,7 +848,7 @@ function Styler() {
                         //cleanup
                         let menu = document.getElementById('si_styler_selectormenu');
                         menu.style.display = 'none';
-                        Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
+                         SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
                     }
                     else if (hWin.SelectorMenuEffects.tagName === "SPAN") {
                         let picked = this.options[this.selectedIndex];
@@ -869,11 +869,11 @@ function Styler() {
             //debugger;
             switch (type) {
                 case 'element':
-                    for (let elegroup in Editor.Code.html_elements) {
+                    for (let elegroup in SI.Editor.Code.html_elements) {
                         let optgroup = Ele("optgroup", { label: elegroup, appendTo: selectorPicker });
-                        for (ele in Editor.Code.html_elements[elegroup]) {
+                        for (ele in SI.Editor.Code.html_elements[elegroup]) {
                             //debugger;
-                            let html = Editor.Code.html_elements[elegroup][ele];
+                            let html = SI.Editor.Code.html_elements[elegroup][ele];
                             Ele("option", {
                                 innerHTML: html.n,
                                 value: html.n,
@@ -890,11 +890,11 @@ function Styler() {
                     this.UpdateIds(selectorPicker);
                     break;
                 case 'attribute':
-                    for (let attrgroup in Editor.Code.html_attributes) {
+                    for (let attrgroup in SI.Editor.Code.html_attributes) {
                         let optgroup = Ele("optgroup", { label: attrgroup, appendTo: selectorPicker });
-                        for (ele in Editor.Code.html_attributes[attrgroup]) {
+                        for (ele in SI.Editor.Code.html_attributes[attrgroup]) {
                             //debugger;
-                            let attr = Editor.Code.html_attributes[attrgroup][ele];
+                            let attr = SI.Editor.Code.html_attributes[attrgroup][ele];
                             Ele("option", {
                                 innerHTML: attr.n,
                                 value: attr.n,
@@ -905,8 +905,8 @@ function Styler() {
                     }
                     break;
                 case 'pseudo class':
-                    for (let i in Editor.Code.css_properties["Pseudo Class"]) {
-                        let pc = Editor.Code.css_properties["Pseudo Class"][i];
+                    for (let i in SI.Editor.Code.css_properties["Pseudo Class"]) {
+                        let pc = SI.Editor.Code.css_properties["Pseudo Class"][i];
                         Ele("option", {
                             innerHTML: pc.n,
                             value: pc.n,
@@ -916,8 +916,8 @@ function Styler() {
                     }
                     break;
                 case 'pseudo element':
-                    for (let i in Editor.Code.css_properties["Pseudo Element"]) {
-                        let pe = Editor.Code.css_properties["Pseudo Element"][i];
+                    for (let i in SI.Editor.Code.css_properties["Pseudo Element"]) {
+                        let pe = SI.Editor.Code.css_properties["Pseudo Element"][i];
                         Ele("option", {
                             innerHTML: pe.n,
                             value: pe.n,
@@ -956,7 +956,7 @@ function Styler() {
               
                 let menu = document.getElementById('si_styler_selectormenu');
                 menu.style.display = 'none';
-                Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
+                 SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
 
                 let greybox = hWin.SelectorMenuEffects.parentElement.parentElement;
                 hWin.SelectorMenuEffects.parentElement.parentElement.removeChild(hWin.SelectorMenuEffects.parentElement);
@@ -986,7 +986,7 @@ function Styler() {
                 let menu = document.getElementById('si_styler_selectormenu');
                 menu.style.display = 'none';
 
-                Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
+                 SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
                 let selcount = hWin.SelectorMenuEffects.parentElement.parentElement.parentElement.parentElement.querySelectorAll('.si-styler-selectorbox').length;
                 let seltool = hWin.Selector({ "Selector": "ChangeMe", "Order":selcount });
                 hWin.SelectorMenuEffects.parentElement.parentElement.parentElement.appendChild(seltool);
@@ -1017,10 +1017,10 @@ function Styler() {
                     for (let sel of selectors) {
                         //debugger;
                         if (parseInt(sel.dataset.order) === 0) {
-                            allSels += Tools.String.TrimR(sel.innerText,'+');
+                            allSels +=  SI.Tools.String.TrimR(sel.innerText,'+');
                         } else {
                            
-                            allSels += ",\n" + Tools.String.TrimR(sel.innerText, '+');
+                            allSels += ",\n" +  SI.Tools.String.TrimR(sel.innerText, '+');
                         }
                     }
                     styleText += allSels.trim();
@@ -1057,9 +1057,9 @@ function Styler() {
         let sheetname= hWin.LoadedSheet;
         let code = document.getElementById("si_styler_codepad").innerText;
         if (csstype === 'Block') {
-            Editor.Objects.Block.Current[sheetname].style = code;
+            SI.Editor.Code.Objects.Blocks[sheetname].style = code;
             //debugger;
-            Editor.Objects.Block.Save(sheetname, 'style');
+            SI.Editor.Objects.Blocks.Save(sheetname, 'style');
 
             //update everything so we dont need to reload
             let currentStyle = document.getElementById('si_page_style');
@@ -1071,12 +1071,12 @@ function Styler() {
             document.head.appendChild(style);
         }
 
-        //let entityid = Editor.
+        //let entityid = SI.Editor.
     };
     this.LoadStyleByBlock = function (blockname) {
         let style = '';
-        if (typeof Editor.Objects.Block.Current[blockname].style !== 'undefined') {
-            style = Editor.Objects.Block.Current[blockname].style;
+        if (typeof SI.Editor.Code.Objects.Blocks[blockname].style !== 'undefined') {
+            style = SI.Editor.Code.Objects.Blocks[blockname].style;
         }
         this.LoadStyleCode(style);
     };
@@ -1085,8 +1085,13 @@ function Styler() {
             selectorPicker = document.getElementById('si_styler_selector_picker_class');
         }
         selectorPicker.innerHTML = "";
-        for (let c in Editor.Objects.Elements.Classes) {
-            let cl = Editor.Objects.Elements.Classes[c];
+        Ele("option", {
+            innerHTML: "",
+            value: "",
+            appendTo: selectorPicker,
+        });
+        for (let c in SI.Editor.Objects.Elements.Classes) {
+            let cl = SI.Editor.Objects.Elements.Classes[c];
             if (cl.trim().length > 0) {
                 Ele("option", {
                     innerHTML: "." + cl,
@@ -1101,8 +1106,13 @@ function Styler() {
             selectorPicker = document.getElementById('si_styler_selector_picker_id');
         }
         selectorPicker.innerHTML = "";
-        for (let i in Editor.Objects.Elements.Ids) {
-            let id = Editor.Objects.Elements.Ids[i];
+        Ele("option", {
+            innerHTML: "",
+            value: "",
+            appendTo: selectorPicker,
+        });
+        for (let i in SI.Editor.Objects.Elements.Ids) {
+            let id = SI.Editor.Objects.Elements.Ids[i];
             Ele("option", {
                 innerHTML: "#" + id,
                 value: "#" + id,

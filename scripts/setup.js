@@ -4,6 +4,8 @@
 
 	var setup = {
         Init: function () {
+            //to prevent whitescreen if exists
+            localStorage.clear();
             var userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             document.getElementById('si_setup_timezone').value = userTimezone;
             //this is too hard to determine now but from what I hear everybody loves USD

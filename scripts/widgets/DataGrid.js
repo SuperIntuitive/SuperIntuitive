@@ -1,10 +1,12 @@
+if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
 
 function DataGrid(obj) {
     if (typeof obj === "undefined") {
         obj = {};
     }
 
-    this.randomid = Tools.String.RandomString(11);
+    this.randomid = SI.Tools.String.RandomString(11);
     var randId = this.randomid;
 
 

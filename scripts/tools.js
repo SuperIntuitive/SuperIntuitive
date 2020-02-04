@@ -5,14 +5,12 @@ header("Content-type: text/js; charset: UTF-8");
 session_start();
 error_reporting(E_ALL ^ E_WARNING);
 $openMethod = isset($_SESSION['USERPREFS']['OPEN_LINK_IN']) ? $_SESSION['USERPREFS']['OPEN_LINK_IN'] : 'window';
-
 ?>
 
 
 //global hack to set page height
 //document.body.style.height = window.innerHeight + 'px';
 
-log = function () { };//return console.log.apply(console, arguments); };
 
 Q = function (selector) {
     return document.querySelectorAll(selector);
@@ -148,7 +146,6 @@ String.prototype.replaceArray = function (find, replace) {   // so-5069464
     }
     return replaceString;
 };
-
 String.prototype.replaceObj = function (replaceValues) {
 
     var replaceString = this;
@@ -214,8 +211,11 @@ NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
   //  return [...new Set(this)];
  // }
 
+if (!SI) {
+    var SI = {};
+}
 
-var Tools = {
+SI.Tools = {
     String: {
         RandomString: function (length) {
             //stupid IE11 cant do defaults. //will be glad when it is dead
@@ -251,7 +251,7 @@ var Tools = {
             for (var k in obj) {
 
                 if (typeof obj[k] == "object" && obj[k] !== null) {
-                    Tools.Object.Loop(obj[k]);
+                    SI.Tools.Object.Loop(obj[k]);
                 }
                 else if (typeof obj === "function") {
                     if (obj.hasOwnProperty(k)) {
@@ -366,7 +366,7 @@ var Tools = {
                                 append:btn,
                                 appendTo: dir,
                             });
-                            li.appendChild(Tools.Object.ToDataTree(object[i]));
+                            li.appendChild(SI.Tools.Object.ToDataTree(object[i]));
                             break;
                         default:
                             Ele("li", {
@@ -468,10 +468,10 @@ var Tools = {
             else if (/\d/.test(rgb)) {
                 //remove all th text, split it by , and table only the first 3 vals
                 rgb = rgb.replace("rgb(", "").replace("rgba(", '').replace(")", '').split(",").slice(0, 3);
-                return Tools.Color.RgbToHex(rgb[0].trim(), rgb[1].trim(), rgb[2].trim());
+                return SI.Tools.Color.RgbToHex(rgb[0].trim(), rgb[1].trim(), rgb[2].trim());
             } else {
                 //maybe it is a color name
-                let hex = Tools.Color.NameToHex(rgb);
+                let hex = SI.Tools.Color.NameToHex(rgb);
                 if (hex) { return hex }
                 return null;
             }
@@ -543,7 +543,7 @@ var Tools = {
             } else if (ms.toLowerCase() === 'slow') {
                 ms = 2500;
             }
-            if (Tools.Is.Element(id)) {
+            if (SI.Tools.Is.Element(id)) {
                 var ele = id;
             } else {
                 var ele = document.getElementById(id);
@@ -573,7 +573,7 @@ var Tools = {
             } else if (ms.toLowerCase() === 'slow') {
                 ms = 2000;
             }
-            if (Tools.Is.Element(id)) {
+            if (SI.Tools.Is.Element(id)) {
                 var ele = id;
             } else {
                 var ele = document.getElementById(id);
@@ -621,7 +621,7 @@ var Tools = {
         },
         InheritsFrom: function (element, classname) {
             if (element.className.split(' ').indexOf(classname) >= 0) return true;
-            return element.parentNode && Tools.Class.InheritsFrom(element.parentNode, classname);
+            return element.parentNode && SI.Tools.Class.InheritsFrom(element.parentNode, classname);
         },
         GetAll: function () {
             //wtf syntax? got me
@@ -690,7 +690,7 @@ var Tools = {
         },
         ShowValue: function (a) {
             var zoomScale = Number(a) / 10;
-            Tools.Zoom.SetZoom(zoomScale, document.getElementsByClassName('container')[0])
+            SI.Tools.Zoom.SetZoom(zoomScale, document.getElementsByClassName('container')[0])
         }
     },
     Positioning: {
@@ -706,7 +706,7 @@ var Tools = {
     },
     Events: {
         Fire: function (el, etype) {
-            if (Tools.Is.Element(el)) {
+            if (SI.Tools.Is.Element(el)) {
                 if (el.fireEvent) {
                     etype = (etype.startsWith('on')) ? etype : 'on' + etype;
                     el.fireEvent('on' + etype);
@@ -869,7 +869,7 @@ var Tools = {
             let inOf = null;
             if (typeof ele == 'string') {
                 inOf = inlines.indexOf(ele.toLowerCase());
-            } else if (Tools.Is.Element(ele)) {
+            } else if (SI.Tools.Is.Element(ele)) {
                 inOf = inlines.indexOf(ele.tagName.toLowerCase());
             }
             if (inOf == -1) {
@@ -884,7 +884,7 @@ var Tools = {
             const emptyElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
             if (typeof ele == 'string') {
                 inOf = emptyElements.indexOf(ele.toLowerCase());
-            } else if (Tools.Is.Element(ele)) {
+            } else if (SI.Tools.Is.Element(ele)) {
                 inOf = emptyElements.indexOf(ele.tagName.toLowerCase());
             }
             if (inOf == -1) {
@@ -919,7 +919,7 @@ var Tools = {
                     o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
             );
         },
-        Guid: function (test) { return Tools.RegEx.Match('guid', test);},
+        Guid: function (test) { return SI.Tools.RegEx.Match('guid', test);},
     },
     Storage: {
         AppendToStorage: function (name, data) {
@@ -961,7 +961,7 @@ var Tools = {
                 //debugger;
                 try {
                     if (xhr.responseText != null && xhr.responseText.length > 0) {
-                        Tools.Success(xhr.responseText);
+                        SI.Tools.Success(xhr.responseText);
                     }
                 } catch (ex) {
                     //debugger;
@@ -984,7 +984,7 @@ var Tools = {
                     case "EXCEPTION": alert(response); break;
                     case "REFRESH": setTimeout(function () { location.reload(); }, 1500); break; //jus give it a second
                     case "LOGINFAIL": alert("Username or password is incorrect"); break;
-                    case "PLUGIN": Tools.ProcessPlugin(json);
+                    case "PLUGIN": SI.Tools.ProcessPlugin(json);
                 }
             }
         }
@@ -1085,7 +1085,7 @@ var Tools = {
                 } else if (pop.classList.contains('si-block')) {
                     return pop;
                 } else {
-                    return Tools.Element.GetBlock(pop);
+                    return SI.Tools.Element.GetBlock(pop);
                 }
             }
         },
@@ -1298,16 +1298,58 @@ var Tools = {
 
         return cStyle;
     },
-
+    GetMediaFilePath: function (filename, brackets) {
+        if (typeof filename !== 'undefined' && filename.length > 0) {
+            filename = filename.replace('url("', '').replace('")', '').replace('"', '');
+            filename = filename.substring(filename.lastIndexOf('/') + 1);
+            var re = /(?:\.([^.]+))?$/;
+            var ext = re.exec(filename)[1];
+            let path = "";
+            switch (ext) {
+                case "jpg":
+                case "jpeg":
+                case "png":
+                case "bmp":
+                case "gif": path = "/media/images/" + filename;
+                    break;
+                case "mp4":
+                case "avi":
+                case "mpg": path = "/media/videos/" + filename;
+                    break;
+                case "mp3":
+                case "wav":
+                case "flac": path = "/media/audio/" + filename;
+                    break;
+                case "json":
+                case "xml":
+                case "csv":
+                case "xlsx":
+                case "xls": path = "/media/data/" + filename;
+                    break;
+                case "docx":
+                case "pdf": path = "/media/documents/" + filename;
+                    break;
+                case "ttf":
+                case "otf": path = "/media/fonts/" + filename;
+                    break;
+                default: path = null;
+            }
+            if (brackets) {
+                path = 'url("' + path + '")';
+            }
+            return path;
+        }
+        return null;
+    },
     Api: {
         Send: function (options) {
             //debugger;
             this.Defaults = {
                 "Data": {},
-                "Callback": Tools.Api.Returned,
+                "Callback": SI.Tools.Api.Returned,
             }
 
-            options = Tools.Object.SetDefaults(options, this.Defaults);
+            options = SI.Tools.Object.SetDefaults(options, this.Defaults);
             
             var ajax = new XMLHttpRequest();
             ajax.open("POST", "/api.v1.php", true);
@@ -1375,7 +1417,7 @@ var Tools = {
 
 
 IconLink = function (options) {
-    let RandId = Tools.String.RandomString(11);
+    let RandId = SI.Tools.String.RandomString(11);
     this.Defaults = {
         "IconUrl": "/scripts/widgets/icons/defaultAppIcon.png",
         "Link": "#",
@@ -1383,7 +1425,7 @@ IconLink = function (options) {
         "Size": 20,
         "Title": "",
     };
-    options = Tools.Object.SetDefaults(options, this.Defaults);
+    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
     let linkbox = Ele(options.Type, { });
     let img = Ele('img', {

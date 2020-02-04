@@ -3,8 +3,6 @@
 Tools::Autoload();
 class Setup {
 	public function __construct(){
-
-
 		$domdir = $_SERVER["DOCUMENT_ROOT"].'/domains';
 		if( is_dir($domdir) === false )
 		{
@@ -51,9 +49,6 @@ class Setup {
 
 
 	public function GetHead(){
-		//	if(isset($_SESSION)){
-		//	unset($_SESSION);
-		//}
 
 	   //Get the supported pdo drivers
 
@@ -63,6 +58,10 @@ class Setup {
 	}			
 	public function GetBody(){
 		
+		if(isset($_SESSION)){
+			session_unset();
+		}
+
 		require_once "MiscData.php";
 		$miscdata = new MiscData();
 		//Get Languages
@@ -560,7 +559,6 @@ class Setup {
 			//put the creds so login can work OK
 
 			//$login->Attempt();
-
 			echo json_encode(array('outcome' => true));
 		}else{
 			echo json_encode(array('outcome' => false, 'message' => 'Error adding data to database: '.$msg));

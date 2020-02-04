@@ -9,7 +9,7 @@
         let container = Ele("div", {
             id: "si_scripter_container",
             style: {
-                backgroundColor: Editor.Style.BackgroundColor,
+                backgroundColor: SI.Editor.Style.BackgroundColor,
                 width: '100%',
                 height: '100%',
             },
@@ -69,10 +69,10 @@
                 let type = option.getAttribute('data-sourcetype');
                 let script = null;
                 switch (type) {
-                    case "Block": script = Editor.Objects.Block.Current[scriptname].script; break;
+                    case "Block": script = SI.Editor.Code.Objects.Blocks[scriptname].script; break;
                     case "Plugin":
                         let parent = option.parentElement.label.trim();
-                        script = Editor.Objects.Plugins.Current[parent].scripts[scriptname]; break;
+                        script = SI.Editor.Objects.Plugins.Current[parent].scripts[scriptname]; break;
                     case "Script": script = null; break;//SI_StyleSheetsLibrary[stylesheet].style; break;  for now
                     default: alert("No known group type. Can't get script"); return;
                 }
@@ -89,13 +89,13 @@
         });
         //Add the blocks to the selector menu
         //Add blocks to the dropdown list
-        if (Object.keys(Editor.Objects.Block.Current).length > 0) {
+        if (Object.keys(SI.Editor.Code.Objects.Blocks).length > 0) {
             let bgroup = Ele("optgroup", {
                 label: "Blocks",
                 appendTo: scriptSelect,
             });
 
-            for (block in Editor.Objects.Block.Current) {
+            for (block in SI.Editor.Code.Objects.Blocks) {
                 Ele("option", {
                     innerHTML: "\t" + block,
                     appendTo: bgroup,
@@ -106,18 +106,18 @@
             }
         }
         //add plugins to the list
-        if (Object.keys(Editor.Objects.Plugins.Current).length > 0) {
+        if (Object.keys(SI.Editor.Objects.Plugins.Current).length > 0) {
             let pgroup = Ele("optgroup", {
                 label: "Plugins",
                 appendTo: scriptSelect,
             });
 
-            for (plugin in Editor.Objects.Plugins.Current) {
+            for (plugin in SI.Editor.Objects.Plugins.Current) {
                 let sgroup = Ele("optgroup", {
                     label: "    " +plugin,
                     appendTo: scriptSelect,
                 });
-                let scripts = Editor.Objects.Plugins.Current[plugin]['scripts'];
+                let scripts = SI.Editor.Objects.Plugins.Current[plugin]['scripts'];
                 for (script in scripts) {
                     Ele("option", {
                         innerHTML: "\t" + script,
@@ -270,7 +270,7 @@
         });
 
 
-        Tools.Text.FingAutoCorrect(codepad);
+         SI.Tools.Text.FingAutoCorrect(codepad);
 
         return container;
     };
@@ -282,7 +282,7 @@
 
         //this functino will run through a codepad and highlight the syntax of the javascript
         //Nice to see how long the script takes
-        let rand = Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
+        let rand =  SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
         console.time("si-loadScript" + rand);
 
         this.HighlightSyntax(codepad);
@@ -305,8 +305,8 @@
         let scriptname = hWin.LoadedScript;
         let code = document.getElementById("si_scripter_codepad").innerText;
         if (scripttype === 'Block') {
-            Editor.Objects.Block.Current[scriptname].script = code;
-            Editor.Objects.Block.Save(scriptname, 'script');
+            SI.Editor.Code.Objects.Blocks[scriptname].script = code;
+            SI.Editor.Objects.Block.Save(scriptname, 'script');
 
             //update everything so we dont need to reload
             let currentScript = document.getElementById('si_page_script');
@@ -540,11 +540,11 @@
                 //  }
                 let category = topKeys[flg];
                 let tmp = [];
-                for (let name in Editor.Code.js_methods[category]) {
+                for (let name in SI.Editor.Code.js_methods[category]) {
                     let rem = toRemove.indexOf(name);
                     if (rem === -1) { //the blacklist
-                        if (Editor.Code.js_methods[category].hasOwnProperty(name)) {
-                            if (Editor.Code.js_methods[category][name].type === type) {
+                        if (SI.Editor.Code.js_methods[category].hasOwnProperty(name)) {
+                            if (SI.Editor.Code.js_methods[category][name].type === type) {
                                 tmp.push(name);
                             }
                         }
@@ -643,7 +643,7 @@
 
         script = script.replace(tokens, function (token, x, y) {
 
-            let randid = 'si_sytax_' + Tools.String.RandomString();
+            let randid = 'si_sytax_' +  SI.Tools.String.RandomString();
             switch (token) {
                 case "function":
                 case "var":
@@ -782,13 +782,13 @@
 }
 
 //this is the script box that appears on drop.
-class ScriptElement{
+//class ScriptElement{
     
-    constructor(options){
+//    constructor(options){
         
     
 
-    }
+//    }
     
 
-}
+//}

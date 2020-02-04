@@ -1,5 +1,7 @@
-﻿
-function Lookup(options) {
+﻿if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
+
+SI.Widgets.Lookup = function(options) {
 
     this.Defaults = {
         "InstanceEntityName": "",
@@ -22,9 +24,9 @@ function Lookup(options) {
     };
     var self = this;
 
-    this.options = Tools.Object.SetDefaults(options, this.Defaults);
+    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     //debugger;
-    let rand = Tools.String.RandomString();
+    let rand = SI.Tools.String.RandomString();
 
     this.lookupWindow = null;
     this.entitytypewindow = null;
@@ -88,7 +90,7 @@ function Lookup(options) {
             self.entitytypewindow.Show();
         }
         lookupfield.setAttribute('list', lookupfield.id + "_datalist");
-        Tools.Element.InsertAfter(searchData, lookupfield);
+        SI.Tools.Element.InsertAfter(searchData, lookupfield);
 
     };
 
@@ -107,7 +109,7 @@ function Lookup(options) {
         };
         options.Callback = self.SetOptions;
            //debugger;
-        Tools.Api.Send(options);
+        SI.Tools.Api.Send(options);
     };
 
     this.SetOptions = function (data, options) {
@@ -193,7 +195,7 @@ function Lookup(options) {
     }
 }
 
-var si_lu = new Lookup();
+var si_lu = new SI.Widgets.Lookup();
 si_lu.InitTimer();
 
 

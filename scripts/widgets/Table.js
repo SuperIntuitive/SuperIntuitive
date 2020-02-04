@@ -1,3 +1,5 @@
+if (!SI) { var SI = {}; }
+if (!SI.Widgets) { SI.Widgets = {}; }
 
 function Table(obj) {
     if (typeof obj === "undefined") {
