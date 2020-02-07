@@ -161,15 +161,19 @@ class Page {
 		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
 		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
 		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script> 
-		<script src='/scripts/tools.js?$t' defer ></script> 
+		<script src='/scripts/tools.js?$t' defer ></script>";
 
-		<script src='/scripts/widgets/Window.js?$t' defer ></script> 
-		<script src='/scripts/widgets/Menu.js?$t' defer ></script> 
-		<script src='/scripts/widgets/Tabs.js?$t' defer ></script> 
-		<script src='/scripts/widgets/Tiles.js?$t' defer ></script> 
-		<script src='/scripts/widgets/Uploader.js?$t' defer ></script>
-		<script src='/scripts/widgets/Field.js?$t' defer ></script>
-		<script src='/scripts/widgets/Lookup.js?$t' defer ></script>";
+		$widgetfiles = scandir('scripts/widgets');
+		foreach($widgetfiles as $widget){
+			if(!is_dir('scripts/widgets/'.$widget)){
+				$moded = filemtime('scripts/widgets/'.$widget);
+				$head .= "<script src='/scripts/widgets/$widget?$moded' defer></script>";	
+			}
+		}
+
+
+
+
 
 			if(Tools::UserHasRole("SuperAdmin,Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']=='dev'){
 				$admin = new Admin();

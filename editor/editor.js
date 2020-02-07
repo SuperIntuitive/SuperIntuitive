@@ -449,7 +449,7 @@ SI.Editor = {
                 }
             },
             SupplementData: function () {
-                SetEntityLists = function () {
+                let SetEntityLists = function () {
                     let info = SI.Editor.Objects.Entity.Info;
                     let notallowednames = SI.Editor.Objects.Entity.Lists.NotAllowedNames;
                     let entkey = {}
@@ -476,7 +476,7 @@ SI.Editor = {
                     SI.Editor.Objects.Entity.Lists.NotAllowedNames = notallowednames;
                 };
                 //the relations data is nothign but guids. lets try to make this more readable and useable
-                SupplementRelationsData = function () {  
+                let SupplementRelationsData = function () {  
                     let relations = SI.Editor.Objects.Entity.Relationships;
                     let lookup = SI.Editor.Objects.Entity.Lists.FwdRevLookup;
                     for (r in relations) {
@@ -509,9 +509,9 @@ SI.Editor = {
             SI.Editor.UI.MainMenu.Init();
 
             //Initalize 3 sub menus
-            EditorPanels = ["AddPanel", "EditPanel", "ToolsPanel"];
-            for (let i in EditorPanels) {
-                let title = EditorPanels[i];
+            let editorPanels = ["AddPanel", "EditPanel", "ToolsPanel"];
+            for (let i in editorPanels) {
+                let title = editorPanels[i];
                 SI.Editor.UI[title].Init();
             }
 

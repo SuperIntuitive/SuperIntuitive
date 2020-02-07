@@ -10,18 +10,20 @@ Tools::Autoload();
 class Admin {
 	public function IncludeAdminFiles(){
 		
-		$files = "	
-		<script src='/editor/editor.js' defer></script>	
-		<link rel='stylesheet' type='text/css'  href='/editor/editor.css'>
-		";
+
+		$moded = filemtime('editor/editor.css');
+		$files = "<link rel='stylesheet' type='text/css'  href='/editor/editor.css?$moded'>";
+
+		$moded = filemtime('editor/editor.js');
+		$files .= "<script src='/editor/editor.js?$moded' defer></script>";	
+
 		$objfiles = scandir('editor/objects');
 		foreach($objfiles as $obj){
-			if(strlen($obj) > 2){
-				$files .= "<script src='/editor/objects/$obj' defer></script>";		
+			if(!is_dir('editor/objects/'.$obj)){
+				$moded = filemtime('editor/objects/'.$obj);
+				$files .= "<script src='/editor/objects/$obj?$moded' defer></script>";	
 			}
-
 		}
-
 
 		//$files.=$this->AdminStyle();
 		return $files;

@@ -237,7 +237,9 @@ SI.Editor.Objects.Elements = {
     },
     //Sets the start info when dragging starts
     MoveStart: function (ev) {
-        if (!this.style.position || this.style.position === 'static') {
+        let style = window.getComputedStyle(this);
+        //debugger;
+        if (!style.position || style.position === 'static') {
             alert(SI.Editor.Objects.Alert.StaticMove);
         }
         else {

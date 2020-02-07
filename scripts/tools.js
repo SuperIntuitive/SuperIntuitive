@@ -982,7 +982,7 @@ SI.Tools = {
                 //debugger;
                 switch (prop) {
                     case "EXCEPTION": alert(response); break;
-                    case "REFRESH": setTimeout(function () { location.reload(); }, 1500); break; //jus give it a second
+                    case "REFRESH": setTimeout(function () { location.reload(); }, 3000); break; //jus give it a second
                     case "LOGINFAIL": alert("Username or password is incorrect"); break;
                     case "PLUGIN": SI.Tools.ProcessPlugin(json);
                 }
