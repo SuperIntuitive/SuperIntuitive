@@ -172,40 +172,59 @@ class Plugins {
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin." ".$ex->getMessage();
 			}
 
-			if( file_exists($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/sql/install.sql") && file_exists($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/sql/uninstall.sql")  ){
-				/*
-				$sqlfile = file_get_contents($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/sql/instal.sql");
-				if($sqfile!= NULL){
+			if( file_exists($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/install.json") ){
+				$installer = file_get_contents($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/install.json");
+				if($installer!= NULL){
+					$installer = json_decode($installer, true);
+					Tools::Log($installer);
+					if(isset($installer["components"])){
+					    //create any entities needed
+						if(isset($installer["components"]["entities"])){
 
-					$dbc=null;
-					try{
-						Tools::Log("Try to connect",true);
-						$dbc = new PDO($connect, $user, $pw);
-						Tools::Log("Connected with db string: ".$connect, true);
-					} catch (PDOException $e) {
-						Tools::Log("New Database login error: ". $e->getMessage());
-						die("DB ERROR: ". $e->getMessage());
-					}
+							$entities = $installer["components"]["entities"];
+							foreach($entities as $entity){
 
-					$sqlfile = explode(';'.PHP_EOL,$sqlstr);
-					Tools::Log($sqlfile,true);
-					Tools::Log("GuidTokens:".print_r($this->guidTokens,true));
-					Tools::Log("Total: ".$this->total);
-					Tools::Log("Unique: ".$this->unique);
-					$outcome = true;
-					$msg = "";
-					foreach($sqlfile as $sql){
-						try {
-							$dbc->exec($sql);
-			
-						} catch (PDOException $ex) {
-							Tools::Log("Error performing Query: " . $sql . "   Message: " . $ex->getMessage() . "\n",true);
-							$msg .= $ex->getMessage()." ";
-							$outcome = false;
+								if(isset($entity["name"])){
+
+								    $newEntity = new Entity();
+									$data = array();
+									$data['sname'] = $entity["name"];
+									$data['pname'] = $entity["pluralname"];
+									$data['global'] = $entity["global"];
+									if(!empty($entity["attributes"])){
+										$data['attributes'] = array();
+										$attributes = $entity["attributes"];
+										foreach($attributes as $attribute){
+											$attr = array();
+											$attr["name"] = $attribute["name"];
+											$attr["type"] = $attribute["datatype"];
+											$attr["def"] = $attribute["default"];
+											$attr["deploy"] = FALSE;
+											$data['attributes'][] = $attr;
+										}
+									}
+
+									Tools::Log($data);
+									//$newEntity->NewEntity($data);
+									/*
+									$post['sname']
+									$post['pname']
+									$post['global']
+									$post['attributes'] 
+										$v['name']
+										$v['type']
+										$v['def']
+										$v['deploy']
+									*/
+
+
+								}
+							}
 						}
+						
 					}
+
 				}
-				*/
 			}
 
 

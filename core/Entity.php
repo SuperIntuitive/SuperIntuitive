@@ -75,7 +75,7 @@ class Entity{
 			}else{
 			    $pname=$sname.'s';
 			}
-			Tools::Log(get_class_methods(Database) );
+			//Tools::Log(get_class_methods(Database) );
 			$attrsql = '';
 			Tools::Log("Logging Attrs");
 			if(!empty($post['attributes'])){
@@ -117,7 +117,7 @@ class Entity{
 			}
 
 			$createtable = "		
-			CREATE TABLE `$pname` (
+			CREATE TABLE IF NOT EXISTS `$pname` (
 			  `id` binary(16) NOT NULL,
 			  `status` enum('active','inactive') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'active',
 			  `statusreason` enum('live','test','dev') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'dev',
