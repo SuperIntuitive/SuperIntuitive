@@ -1,4 +1,9 @@
-﻿function Scripter(){
+﻿if (!SI) { var SI = {}; }
+if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
+if (!SI.Objects) { SI.Objects = {}; }
+
+
+function Scripter() {
     var hWin = this;
 
     let scripttype = null;
@@ -306,7 +311,7 @@
         let code = document.getElementById("si_scripter_codepad").innerText;
         if (scripttype === 'Block') {
             SI.Editor.Code.Objects.Blocks[scriptname].script = code;
-            SI.Editor.Objects.Block.Save(scriptname, 'script');
+            SI.Editor.Objects.Blocks.Save(scriptname, 'script');
 
             //update everything so we dont need to reload
             let currentScript = document.getElementById('si_page_script');

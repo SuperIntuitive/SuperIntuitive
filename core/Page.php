@@ -194,7 +194,8 @@ class Page {
 			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
 				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
 				$head.= "<script>
-							var LoggedInUser = {'name':'$name'};
+							if (!SI) { var SI = {}; }
+							SI.LoggedInUser = {'name':'$name'};
 						 </script>";
 			}
 			if($bodystyle != null){

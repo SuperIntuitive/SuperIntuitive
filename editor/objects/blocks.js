@@ -1,6 +1,6 @@
 ﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
 if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
+if (!SI.Objects) { SI.Objects = {}; }
 
 
 SI.Editor.Objects.Blocks = {
@@ -362,7 +362,7 @@ SI.Editor.Objects.Blocks = {
                 let blockname = this.dataset.fkey;
 
                 SI.Editor.UI.Styler.Window.Show();
-                SI.Editor.UI.Styler.Styler.LoadStyleByBlock(blockname);
+                SI.Editor.UI.Styler.LoadStyleByBlock(blockname);
                 e.stopPropagation(); //keep from clicking through
             },
             appendTo: blockui,
