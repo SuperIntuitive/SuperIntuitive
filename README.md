@@ -1,2 +1,3 @@
 # superintuitive
-web builder
+
+Drag and drop, point and click, website builder. 
