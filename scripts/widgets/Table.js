@@ -1,17 +1,15 @@
 if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
-function Table(obj) {
+SI.Widgets.Table = function (obj) {
     if (typeof obj === "undefined") {
         obj = {};
     }
-
 
     let base = document.createElement('table');
     base.style.width = '100%';
     base.style.height = '100%';
     base.style.backgroundColor = 'green';
-
     for (var i = 0; i < 12; i++) {
         let r = document.createElement('tr');
         r.id = 'tr-' + i + '_' + id;
@@ -23,7 +21,5 @@ function Table(obj) {
         }
         base.appendChild(r);
     }
-
     return base;
-
-}
+};

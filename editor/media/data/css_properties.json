@@ -2542,5 +2542,53 @@
       "mdn": "/en-US/docs/Web/CSS/z-index",
       "a": 1
     }
+  ],
+  "At Selectors": [
+    {
+      "n": "@keyframes",
+      "d": "Specifies the animation code",
+      "t": "S",
+      "v": "",
+      "w3": "/cssref/css3_pr_animation-keyframes.asp",
+      "mdn": "/en-US/docs/Web/CSS/@keyframes",
+      "a": 0
+    },
+    {
+      "n": "@charset",
+      "d": "Specifies the character encoding used in the style sheet",
+      "t": "S",
+      "v": "",
+      "w3": "/cssref/pr_charset_rule.asp",
+      "mdn": "/en-US/docs/Web/CSS/@charset",
+      "a": 0
+    },
+    {
+      "n": "@font-face",
+      "d": "A rule that allows websites to download and use fonts other than the \"web-safe\" fonts",
+      "t": "S",
+      "v": "",
+      "w3": "/cssref/css3_pr_font-face_rule.asp",
+      "mdn": "/en-US/docs/Web/CSS/@font-face",
+      "a": 0
+    },
+    {
+      "n": "@font-feature-values",
+      "d": "Allows authors to use a common name in font-variant-alternate for feature activated differently in OpenType",
+      "t": "S",
+      "v": "",
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/@font-feature-values",
+      "a": 0
+    },
+    {
+      "n": "@media",
+      "d": "Sets the style rules for different media types/devices/sizes",
+      "t": "S",
+      "v": "",
+      "w3": "/cssref/css3_pr_mediaquery.asp",
+      "mdn": "/en-US/docs/Web/CSS/@media",
+      "a": 0
+    }
   ]
+
 }

@@ -1,8 +1,7 @@
 ﻿if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
-SI.Widgets.Lookup = function(options) {
-
+SI.Widgets.Lookup = function (options) {
     this.Defaults = {
         "InstanceEntityName": "",
         "EntityName": "",
@@ -19,31 +18,27 @@ SI.Widgets.Lookup = function(options) {
         "Right": "",
         "FontSize": "1em",
         "FontColor": "black",
-        "TextAlign": "left",
-
+        "TextAlign": "left"
     };
-    var self = this;
-
-    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    //debugger;
     let rand = SI.Tools.String.RandomString();
-
+    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     this.lookupWindow = null;
     this.entitytypewindow = null;
     this.InitTimer = function () {
-       //debugger;
+        //debugger;
         let initLoopTime = 1000;
         let initLoopTries = 10;
         let timer = 500;
         let thereafter = 3000;
-        setInterval(function () {
+        let lookuptimer = setInterval(function () {
             if (initLoopTries > 0) {
                 initLoopTries--;
                 timer = initLoopTime;
             } else {
                 timer = thereafter;
+                clearInterval(lookuptimer);
             }
-          
+
             let lookups = document.querySelectorAll("input[type=lookup]");
             let status = "init";
             if (lookups) {
@@ -59,22 +54,19 @@ SI.Widgets.Lookup = function(options) {
                 }
             }
 
-        }, timer );
+        }, timer);
     };
     this.Init = function (lookupfield) {
         //debugger;
         lookupfield.addEventListener('change', self.ChangeOptions, false);
-
         if (lookupfield.dataset.type === 'blocks') {
-           //debugger;
+            //debugger;
         }
-
-       // lookupfield.onchange += self.ChangeOptions;
+        // lookupfield.onchange += self.ChangeOptions;
         searchData = Ele("datalist", {
-            id: lookupfield.id+"_datalist",
+            id: lookupfield.id + "_datalist",
             appendTo: lookupfield,
         });
-
         if (lookupfield.dataset.type) {
             self.GetOptions({ type: lookupfield.dataset.type, datalist: lookupfield.id + "_datalist" });
         } else {
@@ -85,21 +77,18 @@ SI.Widgets.Lookup = function(options) {
             }
             let container = Ele("div", {
 
-            })
-
+            });
             self.entitytypewindow.Show();
         }
         lookupfield.setAttribute('list', lookupfield.id + "_datalist");
         SI.Tools.Element.InsertAfter(searchData, lookupfield);
 
     };
-
     this.GetOptions = function (obj) {
-       //debugger;
+        //debugger;
         let type = obj.type;
         let list = obj.datalist;
         let options = {};
-
         options.Data = {
             Operation: "Retrieve",
             Entity: {
@@ -108,17 +97,13 @@ SI.Widgets.Lookup = function(options) {
             LookupDatalist: obj.datalist,
         };
         options.Callback = self.SetOptions;
-           //debugger;
+        //debugger;
         SI.Tools.Api.Send(options);
     };
-
     this.SetOptions = function (data, options) {
-
         if (options.Data.Entity === 'blocks') {
             //debugger;
         }
-        
-
         let dl = document.getElementById(options.Data.LookupDatalist);
         for (let i in data) {
             if (data.hasOwnProperty(i)) {
@@ -134,7 +119,6 @@ SI.Widgets.Lookup = function(options) {
 
             }
         }
-
         Ele("option", {
             innerHTML: "LOOK IT UP!",
             data: {
@@ -146,11 +130,9 @@ SI.Widgets.Lookup = function(options) {
             appendTo: dl,
         });
     };
-
     this.ChangeOptions = function () {
         this.style.color = 'black';
         this.removeAttribute('title');
-
         if (this.value === "LOOK IT UP!") {
             if (self.lookupWindow === null) {
                 //debugger;
@@ -161,7 +143,6 @@ SI.Widgets.Lookup = function(options) {
             self.lookupWindow.Append(self.DrawLookupWindow());
             self.lookupWindow.Show();
         }
-
         else {
             if (this.value.length > 0) {
                 list = this.list.children;
@@ -181,20 +162,17 @@ SI.Widgets.Lookup = function(options) {
                 this.removeAttribute('data-guid');
             }
         }
-
-
-
     };
-
-    this.DrawLookupWindow = function(){
+    this.DrawLookupWindow = function () {
         let content = Ele('div', {
-            innerHTML:'lookup stuff here soon',
+            innerHTML: 'lookup stuff here soon',
 
         });
         return content;
-    }
-}
-
+    };
+    var self = this;
+};
+SI.Widgets.Lookup.Instances = {};
 var si_lu = new SI.Widgets.Lookup();
 si_lu.InitTimer();
 

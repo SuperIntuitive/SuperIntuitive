@@ -10,16 +10,16 @@ SI.Widgets.Window = function (options) {
         "Title": { "value": "Title", "type": "TEXT" },
         "StartWidth": { "value": "800px", "type": "LEN" },
         "StartHeight": { "value": "600px", "type": "LEN" },
-        "StartTop": {"value":"0px","type":"LEN" },
+        "StartTop": { "value": "0px", "type": "LEN" },
         "StartLeft": { "value": "0px", "type": "LEN" },
         "OpenPosition": { "value": "MOUSE4", "type": "ENUM", "choices": ["MOUSE4", "MOUSE8", "CENTER", "START"] },
         "BackgroundColor": { "value": "silver", "type": "COLOR" },
         "BorderColor": { "value": "rgba(96,96,96,.1)", "type": "COLOR" },
         "TitleBarColor": { "value": "#484B57", "type": "COLOR" }, //maybe sub in a variable to a default color pattern
-        "TitleBarHeight": {"value": "24px", "type": "LEN"},
-        "TitleFontFamily": { "value": "Arial, Helvetica, sans - serif;", "type": "FONT" }, 
+        "TitleBarHeight": { "value": "24px", "type": "LEN" },
+        "TitleFontFamily": { "value": "Arial, Helvetica, sans - serif;", "type": "FONT" },
         "TitleColor": { "value": "#EEFFFF", "type": "COLOR" },
-        "TitleBarBorder": { "value": '1px inset rgba(0,0,0,.2)', "type": "BORDER" }, 
+        "TitleBarBorder": { "value": '1px inset rgba(0,0,0,.2)', "type": "BORDER" },
         "WindowControls": { "value": "MIN,MAX,CLOSE", "type": "STRING" },
         "Shadow": { "value": "5px 10px 18px #000", "type": "TEXT" },
         "ControlColorClose": { "value": "white", "type": "COLOR" },
@@ -33,7 +33,7 @@ SI.Widgets.Window = function (options) {
         "CloseAppChar": { "value": '⊗', "type": "CHAR" },
         "CornerRadius": { "value": "4px", "type": "LEN" },
         "ResizeThickness": { "value": 3, "type": "NUM" },
-        "HasIcon": { "value": "IMG", "type": "ENUM", "choices":["NONE","IMG","URL","CHAR"] },
+        "HasIcon": { "value": "IMG", "type": "ENUM", "choices": ["NONE", "IMG", "URL", "CHAR"] },
         "IconImg": { "value": "/scripts/widgets/icons/SpinningGear.gif", "type": "IMG" },
         "IconUrl": { "value": "/scripts/widgets/icons/defaultAppIcon.png", "type": "URL" },
         "IconChar": { "value": "128187", "type": "NUM" },
@@ -41,7 +41,7 @@ SI.Widgets.Window = function (options) {
         "PreResize": { "value": function () { console.log("Resizing") }, "type": "FUNC" },
         "Resize": { "value": function () { console.log("Resizing") }, "type": "FUNC" },
         "OnLoad": { "value": function () { console.log("OnLoad") }, "type": "FUNC" },
-        "Resizable": { "value":true , "type": "BOOL" },
+        "Resizable": { "value": true, "type": "BOOL" },
         "Dockable": { "value": true, "type": "BOOL" },
         "ZLevel": { "value": 980, "type": "NUM" },
         "Overflow": { "value": "AUTO", "type": "ENUM", "choices": ["AUTO", "SCROLL", "HIDDEN"] },
@@ -49,9 +49,8 @@ SI.Widgets.Window = function (options) {
         "OnClose": { "value": function () { console.log("Window Closing") }, "type": "FUNC" }, //the window is really only hidden if it has been created and closed. 
         "Modal": { "value": false, "type": "BOOL" },
     };
-
-    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    options = this.Options;
     //locals
     //Window Move /Resize
     let hWinDrag = null;
@@ -60,9 +59,8 @@ SI.Widgets.Window = function (options) {
     let startResize = null;
     let hasIframe = false;
 
-
     //Make the DOCK. check to see if dock exists. if it does not, and we need it, make it.
-    if (options.Dockable) {
+    if (this.Options.Dockable) {
         let doc = document.getElementById('si_window_dock');
         if (!doc) {
             doc = Ele("div", {
@@ -75,14 +73,14 @@ SI.Widgets.Window = function (options) {
                     height: '60%',
                     border: "1px dotted black",
                     backgroundColor: "rgba(255,255,255,0.1)",
-                    display: 'none', //only display if there is at least one window minimized
+                    display: 'none' //only display if there is at least one window minimized
                 },
-                appendTo: "body",
+                appendTo: "body"
             });
         }
     }
 
-    if (options.Modal) {
+    if (this.Options.Modal) {
         let modal = document.getElementById('si_window_modal');
         if (!modal) {
             modal = Ele("div", {
@@ -101,78 +99,70 @@ SI.Widgets.Window = function (options) {
         }
         modal.style.display = 'block';
     }
-
-
-    let randId = SI.Tools.String.RandomString(11);
+    this.RandId = SI.Tools.String.RandomString(11);
+    let randId = this.RandId;
     let windowState = 'normal';
     //this can be used al init time only, not in 
-    let width = parseInt(options.StartWidth);
-    let height = parseInt(options.StartHeight);
+    let width = parseInt(this.Options.StartWidth);
+    let height = parseInt(this.Options.StartHeight);
     let loaded = false;
 
     //Member Functions
     this.Show = function (fadetime) {
-        
         if (loaded === false) {
-            options.OnLoad();
+            this.Options.OnLoad();
             loaded = true;
         }
         if (typeof (fadetime) === 'undefined') {
-            fadetime = options.MinMaxSpeed;
+            fadetime = this.Options.MinMaxSpeed;
         }
         //if theres a modal close it
-        if (options.Modal) {
+        if (this.Options.Modal) {
             SI.Tools.Style.FadeIn('si_window_modal', fadetime);
         }
         //Drop all windows to default z index
         var winds = document.getElementsByClassName("si-window-container");
         for (var i = 0; i < winds.length; i++) {
-            winds[i].style.zIndex = options.ZLevel;
+            winds[i].style.zIndex = this.Options.ZLevel;
         }
         //fade in our window
-        SI.Tools.Style.FadeIn('si_window_container_' + randId, 200);
-        
-        if (options.Resizable) {
+        SI.Tools.Style.FadeIn('si_window_container_' + this.RandId, 200);
+
+        if (this.Options.Resizable) {
             FixResizers();
         }
 
     };
-
     this.Hide = function (fadetime) {
         if (typeof fadetime === 'undefined') {
             fadetime = 250;
         }
-        options.OnClose();
+        this.Options.OnClose();
         SI.Tools.Style.FadeOut('si_window_container_' + randId, fadetime);
 
         //if theres a modal close it
-        if (options.Modal) {
+        if (this.Options.Modal) {
             SI.Tools.Style.FadeOut('si_window_modal', fadetime);
         }
     };
-
     this.IsVisible = function () {
-        container = document.getElementById('si_window_container_' + randId);
+        container = document.getElementById('si_window_container_' + this.RandId);
         if (container.style.display === "none" || container.style.display === "") {
             return false;
         }
         return true;
     };
-
     this.Dispose = function () {
         log("disposing window");
         ele = document.getElementById('si_window_content_' + randId); //this should be container
         ele.parentNode.removeChild(ele);
     };
-
     this.GetHeight = function () {
         return document.getElementById('si_window_content_' + randId).offsetHeight;
     };
-
     this.GetWidth = function () {
         return document.getElementById('si_window_content_' + randId).offsetWidth;
     };
-
     this.Append = function (data) {
         if (typeof data === "string") {
             content.innerHTML += data;
@@ -181,7 +171,6 @@ SI.Widgets.Window = function (options) {
             content.appendChild(data);
         }
     };
-
     this.Prepend = function (data) {
         if (typeof data === "string") {
             let ele = document.getElementById('si_window_content_' + randId);
@@ -190,11 +179,9 @@ SI.Widgets.Window = function (options) {
             document.getElementById('si_window_content_' + randId).prepend(data);
         }
     };
-
     this.GetContentId = function () {
         return document.getElementById('si_window_content_' + randId);
     };
-
     this.SetPosition = function (left, top) {
         top = typeof top !== 'undefined' ? top : container.style.top;
         left = typeof left !== 'undefined' ? left : container.style.left;
@@ -206,7 +193,6 @@ SI.Widgets.Window = function (options) {
             document.getElementById(container.id).style.left = left;
         }
     }
-
     //me thinks this will allow the user to add a callback win.Resize(callback) or even assign over this function win.Resize = 
     this.Resize = function (callback) {
         //debugger;
@@ -215,57 +201,52 @@ SI.Widgets.Window = function (options) {
                 callback();
             }
         }
-        if (typeof options.Resize === "function")
-        {
-            options.Resize(self);
+        if (typeof this.Options.Resize === "function") {
+            this.Options.Resize(self);
         }
     };
-
-
     let self = this; //allows us to call our own function in events
 
     //debugger;
     //add the class list last as to be the last processed. we want it to override even the defaults
-
     //at the very end after the element has been created apply the 
-
     //The container is the outer most edge of the window. It should be invisible
-    var container = Ele("div", {
+    let container = Ele("div", {
         id: 'si_window_container_' + randId,
         data: {
-            name: options.Name,
+            name: this.Options.Name,
         },
         style: {
-            zIndex: options.ZLevel + 1,
-            position : options.Position,
-            width : options.StartWidth,
-            height: height + parseInt(options.TitleBarHeight)+"px",
-            top: options.StartTop,
-            left: options.StartLeft,
+            zIndex: this.Options.ZLevel + 1,
+            position: this.Options.Position,
+            width: this.Options.StartWidth,
+            height: height + parseInt(this.Options.TitleBarHeight) + "px",
+            top: this.Options.StartTop,
+            left: this.Options.StartLeft,
             padding: '0px',
             margin: '0px',
             display: 'none',
-            boxShadow:options.Shadow,         
+            boxShadow: this.Options.Shadow,
         },
-        class: "si-window-container",
+        class: "si-window-container"
     });
     //add a class if desired
-    if (options.ContainerClass.length > 0) {
-        container.classList.add(options.ContainerClass);
+    if (this.Options.ContainerClass.length > 0) {
+        container.classList.add(this.Options.ContainerClass);
     }
     //Titlebar
     let titlebar = Ele("div", {
-        id : 'si_window_titlebar_' + randId,
+        id: 'si_window_titlebar_' + randId,
         style: {
-            position : 'relative',
-            top : '0px',
-            left : '0px',
-            width : width-2+"px",
-            height: options.TitleBarHeight,
+            position: 'relative',
+            top: '0px',
+            left: '0px',
+            width: width - 2 + "px",
+            height: this.Options.TitleBarHeight,
             cursor: "move",
-            border: options.TitleBarBorder,
-            borderRadius: options.CornerRadius+" "+options.CornerRadius+' 0px 0px',
-            backgroundColor: options.TitleBarColor,
+            border: this.Options.TitleBarBorder,
+            borderRadius: this.Options.CornerRadius + " " + this.Options.CornerRadius + ' 0px 0px',
+            backgroundColor: this.Options.TitleBarColor,
             borderStyle: 'groove',
         },
         onmousedown: function (e) {
@@ -285,88 +266,88 @@ SI.Widgets.Window = function (options) {
             }
             e.preventDefault();
         },
-        appendTo:container,
+        appendTo: container,
     });
 
     //Icon
     //on further review there seems to be little difference between IMG and URL
-    if (options.HasIcon === "URL") {
+    if (this.Options.HasIcon === "URL") {
         Ele("img", {
             draggable: false,
-            src: options.IconUrl,
+            src: this.Options.IconUrl,
             style: {
                 width: '16px',
                 verticalAlign: "middle",
                 marginLeft: '7px',
-                pointerEvents : 'none',
+                pointerEvents: 'none',
             },
-            appendTo:titlebar,
+            appendTo: titlebar,
         });
     }
-    else if (options.HasIcon === "IMG") {
+    else if (this.Options.HasIcon === "IMG") {
         Ele("img", {
             draggable: false,
-            src: options.IconImg,
+            src: this.Options.IconImg,
             style: {
                 width: '24px',
                 verticalAlign: "middle",
                 marginLeft: '7px',
-                pointerEvents : 'none',
+                pointerEvents: 'none',
             },
-            appendTo:titlebar,
+            appendTo: titlebar,
         });
     }
-    else if(options.HasIcon === "CHAR"){
+    else if (this.Options.HasIcon === "CHAR") {
         Ele("span", {
             draggable: false,
-            innerHTML: "&#"+options.IconChar+";", //"&#"+this.value+";";
+            innerHTML: "&#" + this.Options.IconChar + ";", //"&#"+this.value+";";
             style: {
                 width: '16px',
                 verticalAlign: "middle",
                 marginLeft: '7px',
                 marginTop: '-1px',
-                pointerEvents : 'none',
+                pointerEvents: 'none',
             },
-            appendTo:titlebar,
+            appendTo: titlebar,
         });
     }
 
     //The title of the Window
     Ele("span", {
         id: 'si_window_titletext_' + randId,
-        innerHTML:options.Title,
+        innerHTML: this.Options.Title,
         style: {
-            color: options.TitleColor,
-            fontFamily: options.TitleFontFamily,
+            color: this.Options.TitleColor,
+            fontFamily: this.Options.TitleFontFamily,
             paddingLeft: '10px',
-            pointerEvents : 'none',
-            userSelect : 'none',
+            pointerEvents: 'none',
+            userSelect: 'none'
         },
-        appendTo:titlebar,
+        appendTo: titlebar
     });
 
     //a container fot the min/max buttons
     let statebox = Ele('div', {
         id: 'si_window_statebox_' + randId,
         style: {
-            float:'right',
+            float: 'right'
         },
-        appendTo:titlebar,
+        appendTo: titlebar
     });
 
     //when the window is minimised and maximised, we need to track where to return it too. Here:
     let lastNormalDims = { w: width, h: height, t: container.top, l: container.left };
 
     //draw the windows controls
-    if (options.WindowControls.indexOf("MIN") !== -1 && options.Dockable === true) {
+    if (this.Options.WindowControls.indexOf("MIN") !== -1 && this.Options.Dockable === true) {
         let min = Ele("div", {
             id: 'si_window_minimize_' + randId,
-            innerHTML: options.MinimizeChar,
+            innerHTML: this.Options.MinimizeChar,
             style: {
                 width: '28px',
                 height: '20px',
-                color: options.ControlColorMin,
-                background: options.ControlBackgroundColorMin,
+                color: this.Options.ControlColorMin,
+                background: this.Options.ControlBackgroundColorMin,
                 display: 'inline-block',
                 cursor: 'pointer',
                 userSelect: 'none',
@@ -376,27 +357,27 @@ SI.Widgets.Window = function (options) {
                 e.stopPropagation();
                 if (windowState === 'minimized') {
                     return;//were already minimised. this should never happen anyway.
-                }             
+                }
                 Minimize(this);
             },
-            appendTo:statebox,
+            appendTo: statebox
         });
     }
-    if (options.WindowControls.indexOf("MAX") !== -1) {
+    if (this.Options.WindowControls.indexOf("MAX") !== -1) {
         let max = Ele("div", {
             id: 'si_window_maximize_' + randId,
-            innerHTML: options.MaximizeChar,
+            innerHTML: this.Options.MaximizeChar,
             style: {
                 width: '28px',
                 height: '20px',
-                color: options.ControlColorMax,
-                background: options.ControlBackgroundColorMax,
+                color: this.Options.ControlColorMax,
+                background: this.Options.ControlBackgroundColorMax,
                 display: 'inline-block',
                 cursor: 'pointer',
                 userSelect: 'none',
                 textAlign: 'center',
             },
-            onmouseup : function (e) {
+            onmouseup: function (e) {
                 e.stopPropagation();
                 //debugger
                 if (windowState === 'maximised' || windowState === 'minimized') {
@@ -404,33 +385,32 @@ SI.Widgets.Window = function (options) {
                     windowState = 'normal';
                     Normalize(this);
                 }
-                else   
+                else
                     Maximize(this);
             },
             appendTo: statebox,
         });
     }
-    if (options.WindowControls.indexOf("CLOSE") !== -1) {
+    if (this.Options.WindowControls.indexOf("CLOSE") !== -1) {
         let max = Ele("div", {
             id: 'si_window_closeApp_' + randId,
-            innerHTML: options.CloseAppChar,
+            innerHTML: this.Options.CloseAppChar,
             style: {
                 width: '28px',
                 height: '20px',
-                color: options.ControlColorClose,
-                background: options.ControlBackgroundColorClose,
+                color: this.Options.ControlColorClose,
+                background: this.Options.ControlBackgroundColorClose,
                 display: 'inline-block',
                 cursor: 'pointer',
                 userSelect: 'none',
                 textAlign: 'center',
             },
-            onmousedown : function (e) {
+            onmousedown: function (e) {
                 var base = e.target.id.replace('closeApp', 'container');
                 self.Hide(options.MinMaxSpeed);
-                //Tools.Style.FadeOut(base, options.MinMaxSpeed);
                 e.stopPropagation();
             },
-            appendTo: statebox,
+            appendTo: statebox
         });
     }
 
@@ -445,23 +425,20 @@ SI.Widgets.Window = function (options) {
             position: 'relative',
             width: 'inherit',
             overflow: 'auto',
-            height:height+'px',
-            backgroundColor: options.BackgroundColor,
-            borderRadius: ' 0px 0px ' + options.CornerRadius + " " + options.CornerRadius,
+            height: height + 'px',
+            backgroundColor: this.Options.BackgroundColor,
+            borderRadius: ' 0px 0px ' + this.Options.CornerRadius + " " + this.Options.CornerRadius
         },
         appendTo: container,
     });
-    if(options.Overflow != "AUTO"){
-        switch (options.Overflow) {
+    if (this.Options.Overflow !== "AUTO") {
+        switch (this.Options.Overflow) {
             case "scroll":
             case "SCROLL": content.style.overflow = 'scroll'; break;
-            case "hidden": 
+            case "hidden":
             case "HIDDEN": content.style.overflow = 'hidden'; break;
         }
     }
-
-
-
 
     document.addEventListener('mouseup', function (e) {
         hWinDrag = null;
@@ -470,8 +447,8 @@ SI.Widgets.Window = function (options) {
         startResize = null;
     });
     document.addEventListener('mousemove', function (e) {
-        if (hWinDrag) {     
-          //  let offset = SI.Tools.Positioning.GetDocOffset(hWinDrag);
+        if (hWinDrag) {
+            //  let offset = SI.Tools.Positioning.GetDocOffset(hWinDrag);
             if (dragOffset) {
                 var X = e.pageX - dragOffset[0];//(e.clientX) - dragOffset[0];
                 var Y = e.pageY - dragOffset[1];//(e.clientY) - dragOffset[1];
@@ -483,12 +460,12 @@ SI.Widgets.Window = function (options) {
                     parent = document.getElementById(options.ParentId);
                 }
 
-                if (Y < 0) {Y=0} //keep the window from being dragged to high as to not allow recovery of it
-                if (X < 0) {X=0}
+                if (Y < 0) { Y = 0 } //keep the window from being dragged to high as to not allow recovery of it
+                if (X < 0) { X = 0 }
                 hWinDrag.style.top = Y + "px";
                 hWinDrag.style.left = X + "px";
             }
-        } 
+        }
         if (resizeSensor) {
             var left = parseInt(startResize.left);
             var top = parseInt(startResize.top);
@@ -498,8 +475,8 @@ SI.Widgets.Window = function (options) {
             var mouseY = e.pageY;
             switch (resizeSensor.id) {
                 case 'si_window_topLeftResize_' + randId:
-                    container.style.left = mouseX  + "px";
-                    container.style.width = (width + left - mouseX ) + "px";
+                    container.style.left = mouseX + "px";
+                    container.style.width = (width + left - mouseX) + "px";
                     container.style.top = mouseY + "px";
                     container.style.height = (height + top - mouseY) + "px";
                     break;
@@ -510,25 +487,25 @@ SI.Widgets.Window = function (options) {
                 case 'si_window_topRightResize_' + randId:
                     container.style.top = mouseY + "px";
                     container.style.height = (height + top - mouseY) + "px";
-                    container.style.width = (mouseX  - left) + "px";
+                    container.style.width = (mouseX - left) + "px";
                     break;
                 case 'si_window_leftResize_' + randId:
-                    container.style.left = mouseX  + "px";
-                    container.style.width = (width + left - mouseX ) + "px";
+                    container.style.left = mouseX + "px";
+                    container.style.width = (width + left - mouseX) + "px";
                     break;
                 case 'si_window_rightResize_' + randId:
-                    container.style.width = (mouseX  - left) + "px";
+                    container.style.width = (mouseX - left) + "px";
                     break;
                 case 'si_window_bottomLeftResize_' + randId:
-                    container.style.left = mouseX  + "px";
-                    container.style.width = (width + left - mouseX ) + "px";
+                    container.style.left = mouseX + "px";
+                    container.style.width = (width + left - mouseX) + "px";
                     container.style.height = (mouseY - top) + "px";
                     break;
                 case 'si_window_bottomResize_' + randId:
                     container.style.height = (mouseY - top) + "px";
                     break;
                 case 'si_window_bottomRightResize_' + randId:
-                    container.style.width = (mouseX  - left) + "px";
+                    container.style.width = (mouseX - left) + "px";
                     container.style.height = (mouseY - top) + "px";
                     break;
             }
@@ -540,7 +517,7 @@ SI.Widgets.Window = function (options) {
     });
 
     //debugger;
-    let barThickness = parseInt(options.ResizeThickness);
+    let barThickness = parseInt(this.Options.ResizeThickness);
     let cornerThickness = barThickness + 1;
     let cornerDblThickness = cornerThickness * 2;
 
@@ -576,9 +553,9 @@ SI.Widgets.Window = function (options) {
         let content = document.getElementById('si_window_content_' + randId);
         content.style.height = parseInt(container.style.height) - parseInt(options.TitleBarHeight) + 'px';
         let titlebar = document.getElementById('si_window_titlebar_' + randId);
-        titlebar.style.width = parseInt(container.style.width)-2+"px";
+        titlebar.style.width = parseInt(container.style.width) - 2 + "px";
     };
-    
+
 
     let Maximize = function (self) {
         let rand = self.id.replace("si_window_maximize_", "");
@@ -603,11 +580,11 @@ SI.Widgets.Window = function (options) {
                 'width': document.documentElement.clientWidth + 'px',
                 'height': document.documentElement.clientHeight + 'px',
                 'top': '0px',
-                'left':'0px',
+                'left': '0px',
             }]
             , options.MinMaxSpeed);
         setTimeout(function () {
-            container.style.width = document.documentElement.clientWidth+'px';
+            container.style.width = document.documentElement.clientWidth + 'px';
             container.style.height = document.documentElement.clientHeight + 'px';
             container.style.top = '0px';
             container.style.left = '0px';
@@ -627,11 +604,12 @@ SI.Widgets.Window = function (options) {
         let contents = document.getElementById('si_window_content_' + rand).style.display = 'block';
 
         let container = document.getElementById('si_window_container_' + rand);
-        alert(
+        /*alert(
             lastNormalDims.w +
             lastNormalDims.h +
             lastNormalDims.t +
-            lastNormalDims.l );
+            lastNormalDims.l);
+        */
 
         container.animate([
             { //from
@@ -698,10 +676,10 @@ SI.Widgets.Window = function (options) {
             style: {
                 position: 'absolute',
                 top: '0px',
-                left:'0px',
+                left: '0px',
                 height: '100%',
-                width: '100%',
-            },
+                width: '100%'
+            }
         });
         cont.parentElement.appendChild(blocker);
 
@@ -710,66 +688,65 @@ SI.Widgets.Window = function (options) {
         topLeft: {
             top: '0px',
             left: '0px',
-            width: cornerThickness+'px',
-            height: cornerThickness+'px',
-            cursor: "nwse-resize",
+            width: cornerThickness + 'px',
+            height: cornerThickness + 'px',
+            cursor: "nwse-resize"
         },
         top: {
             top: '0px',
-            left: cornerThickness+'px',
+            left: cornerThickness + 'px',
             width: (width - cornerDblThickness) + 'px',
-            height: barThickness+'px',
-            cursor: "ns-resize",
+            height: barThickness + 'px',
+            cursor: "ns-resize"
         },
         topRight: {
             top: '0px',
             left: (width - cornerThickness) + 'px',
-            width: cornerThickness+'px',
-            height: cornerThickness+'px',
-            cursor: "nesw-resize",
+            width: cornerThickness + 'px',
+            height: cornerThickness + 'px',
+            cursor: "nesw-resize"
         },
         left: {
-            top: cornerThickness+'px',
+            top: cornerThickness + 'px',
             left: '0px',
-            width: barThickness+'px',
+            width: barThickness + 'px',
             height: (height - cornerDblThickness) + 'px',
-            cursor: "ew-resize",
+            cursor: "ew-resize"
         },
         right: {
-            top: cornerThickness+'px',
+            top: cornerThickness + 'px',
             left: (width - barThickness) + 'px',
-            width: barThickness+'px',
+            width: barThickness + 'px',
             height: (height - cornerDblThickness) + 'px',
-            cursor: "ew-resize",
+            cursor: "ew-resize"
         },
         bottomLeft: {
             top: (height - cornerThickness) + 'px',
             left: '0px',
-            width: cornerThickness+'px',
-            height: cornerThickness+'px',
-            cursor: "nesw-resize",
+            width: cornerThickness + 'px',
+            height: cornerThickness + 'px',
+            cursor: "nesw-resize"
         },
         bottom: {
             top: (height - barThickness) + 'px',
-            left: cornerThickness+'px',
+            left: cornerThickness + 'px',
             width: (width - cornerDblThickness) + 'px',
-            height: barThickness+'px',
-            cursor: "ns-resize",
+            height: barThickness + 'px',
+            cursor: "ns-resize"
         },
         bottomRight: {
             top: (height - cornerThickness) + 'px',
             left: (width - cornerThickness) + 'px',
-            width: cornerThickness+'px',
-            height: cornerThickness+'px',
-            cursor: "nwse-resize",
-        },
+            width: cornerThickness + 'px',
+            height: cornerThickness + 'px',
+            cursor: "nwse-resize"
+        }
     };
-    if(options.Resizable){
+    if (this.Options.Resizable) {
         for (let resizer in resizers) {
-            //       console.log(resizer);
             let props = resizers[resizer];
             Ele('div', {
-                id: "si_window_"+resizer + 'Resize_' + randId,
+                id: "si_window_" + resizer + 'Resize_' + randId,
                 style: {
                     position: 'absolute',
                     top: props.top,
@@ -777,7 +754,7 @@ SI.Widgets.Window = function (options) {
                     width: props.width,
                     height: props.height,
                     cursor: props.cursor,
-                    backgroundColor: options.BorderColor,
+                    backgroundColor: this.Options.BorderColor
                 },
                 onmousedown: function (e) {
                     e.preventDefault();
@@ -787,24 +764,19 @@ SI.Widgets.Window = function (options) {
                     startResize = { left: container.style.left, top: container.style.top, width: container.style.width, height: container.style.height };
                     resizeSensor = this;
                 },
-                appendTo: container,
+                appendTo: container
             });
         }
     }
 
-
-    if (options.ParentId === 'body') {
+    if (this.Options.ParentId === 'body') {
         let parent = document.body;
         parent.appendChild(container);
     } else {
-        let parent = document.getElementById(options.ParentId);
+        let parent = document.getElementById(this.Options.ParentId);
         if (SI.Tools.Is.Element(parent)) {
             parent.appendChild(container);
         }
     }
 
-
-
- 
-
-}
+};

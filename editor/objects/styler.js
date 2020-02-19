@@ -1,6 +1,6 @@
 if (!SI) { var SI = {}; }
+if (!SI.Editor) { SI.Editor = {}; }
 if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-if (!SI.Objects) { SI.Objects = {}; }
 
 
 
@@ -15,7 +15,6 @@ function Styler() {
 
     this.Init = function () {
         //Init draws both the workspace and the codeview.
-
         let container = Ele("div", {
             id: "si_styler_container",
             style: {
@@ -273,6 +272,18 @@ function Styler() {
         });
          SI.Tools.Text.FingAutoCorrect(codepad);
 
+        let animationnamelist = Ele('datalist', {
+            id: 'si_styler_animationnames',
+            appendTo: container
+        });
+        //load the animaiton list
+        for (animationname in SI.Editor.Code.DataLists.AnimationNames) {
+            Ele("option", {
+                value: animationname,
+                appendTo: animationnamelist
+            });
+        }
+
         return container;
     };
 
@@ -383,9 +394,7 @@ function Styler() {
                          SI.Tools.Element.SwapNodes(this, e2);
                     }
                 }
-            },
-
-
+            }
         });
 
         //create a new Selector Box
@@ -419,11 +428,10 @@ function Styler() {
                 }
 
             },
-            appendTo: stylebox,
+            appendTo: stylebox
         });
-        Ele("br", {
-            appendTo: stylebox,
-        });
+        Ele("br", { appendTo: stylebox });
+
         //create the selector box. (OLD just text)
         let selectorbox = Ele('div', {
             class: "si-styler-selectorcontainer",
@@ -432,11 +440,10 @@ function Styler() {
                 backgroundColor: SI.Editor.Style.BackgroundColor,
                 color: SI.Editor.Style.TextColor,
                 display: 'table-cell',
-                width: '38%',
+                width: '38%'
             },
             // innerHTML: style.selector,
-            appendTo: stylebox,
-
+            appendTo: stylebox
         });
 
         //debugger;
@@ -464,7 +471,7 @@ function Styler() {
                     borderCollapse: 'collapse',
                 },
 
-                appendTo: stylebox,
+                appendTo: stylebox
             });
 
             let addRow = Ele("tr", { draggable: 'true', appendTo: propertiesbox });
@@ -481,8 +488,9 @@ function Styler() {
                     let wholegroup = SI.Editor.Code.css_properties[group];
                     for (let s in wholegroup) {
                         let prop = wholegroup[s].n;
-                        if (!prop.startsWith("@"))
+                        if (!prop.startsWith("@")) {
                             Ele("option", { value: prop, innerHTML: prop, title: wholegroup[s].d, appendTo: groupset });
+                        }
                     }
                 }
 
@@ -493,11 +501,10 @@ function Styler() {
                 value: "Add new property",
                 type: 'button',
                 onclick: function (ev) {
-                    //debugger; 
                     let select = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiesselect_"));
                     if (select.value.length) {
                         let table = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiestable_"));
-                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": select.value.trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true,   });
+                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": select.value.trim(),  "Effect": "none", "Preserve":true, "Draggable": true,   });
                         table.appendChild(propControl);
                     } else {
                         alert("To add a new property, select it from the drop down list.");
@@ -509,19 +516,18 @@ function Styler() {
             if (style.properties) {
                 //debugger;
                 let properties = style.properties.trim('"').trim('"');
-                //let propertyList = style.properties.split(';');
-                let propertyList = style.properties.match(/("[^"]*")|[^;]+/g); 
-                //let propertyList2 = style.properties.match(/(".*?")|(/;+)/g);
+                let propertyList = properties.match(/("[^"]*")|[^;]+/g); 
+
                 //BUG:: some urls have a ; in them such in the case of the MS only validation in jqueryui.css.
                 //once this list is complete we will need to go through every cell and if there is a ' or " in this cell and the one before it, we are in quotes and should merge these two cells with a semicolon
                 //the above match was supposed to work and it is only a few seconds longer to compile jqui.css but it does not seem to do the trick on the url(data;gif issue)
-                
+                //debugger;
                 for (let p in propertyList) {
                     var kvp = propertyList[p].split(':');
                     if (typeof kvp[1] !== "undefined") {
                         //determine if we have a comment
                         if (kvp[0].indexOf('_COMMENT__') !== -1) {
-                            //debugger;
+                            
                             kvp[0] = kvp[0].replace('_COMMENT__', '');
                             let tmp = kvp[0].split('__');
                             let num = tmp.shift().trim();
@@ -542,9 +548,8 @@ function Styler() {
                             }
                             kvp[0] = tmp.join('').trim();
                         }
-
                         if (kvp.length > 2) {
-                            //debugger;
+                           
                             let k = kvp[0];
                             kvp.shift();
                             let v = kvp.join(':');
@@ -552,17 +557,13 @@ function Styler() {
                             kvp = tmp;
                         }
 
-                        //if (index !== -1) {
-                        //    let sub = kvp[0].substring(index)
-                        //}
                         kvp[1] = kvp[1].replace("__BASE__", ";base");  //this little iritent :-P
                         let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": kvp[0].trim(), "InitialValue": kvp[1].trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true, "Removable":true });
                         propControl.ondrop = function (e) {
-                            //   alert(e.target.id);
+                               console.log(e);
                         },
-                            propertiesbox.appendChild(propControl);
+                        propertiesbox.appendChild(propControl);
                     }
-
                 }
             }
 
@@ -590,11 +591,7 @@ function Styler() {
 
         }
 
-
-
         return stylebox;
-
-
     };
     this.Add = function (selector, appendTo) {
         let parent = this.parentElement;
@@ -809,7 +806,7 @@ function Styler() {
         });
 
         //build the selector menu
-        let selectorTypes = ["element", "class", "id", "attribute", 'pseudo class', 'pseudo element', 'combinator'];
+        let selectorTypes = ["element", "class", "id", "attribute", 'pseudo class', 'pseudo element', 'combinator','@'];
         let topOffset = 0;
         for (let type in selectorTypes) {
             type = selectorTypes[type];
@@ -848,14 +845,19 @@ function Styler() {
                             case "attribute": hWin.SelectorMenuEffects.style.backgroundColor = "lightsalmon"; break;
                             case "pseudo_class": hWin.SelectorMenuEffects.style.backgroundColor = 'plum'; break;
                             case "pseudo_element": hWin.SelectorMenuEffects.style.backgroundColor = "palevioletred"; break;
+                            case "combinator": hWin.SelectorMenuEffects.style.backgroundColor = "orange"; break;
+                            case "@": hWin.SelectorMenuEffects.style.backgroundColor = "green";
+                                AtSelector(hWin.SelectorMenuEffects);
+                                break;
                             default: break;
                         }
                         //cleanup
                         let menu = document.getElementById('si_styler_selectormenu');
                         menu.style.display = 'none';
-                         SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
+                        SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
                     }
                     else if (hWin.SelectorMenuEffects.tagName === "SPAN") {
+                     
                         let picked = this.options[this.selectedIndex];
                         hWin.Add(picked.innerHTML, this.parentElement.parentElement.parentElement.parentElement);
                     }
@@ -863,13 +865,13 @@ function Styler() {
                 onmouseout: function (ev) {
                     this.style.display = "none";
                 },
-                appendTo: selectorSubButton,
+                appendTo: selectorSubButton
             });
 
             Ele("option", {
                 innerHTML: "",
                 value: "",
-                appendTo: selectorPicker,
+                appendTo: selectorPicker
             });
             //debugger;
             switch (type) {
@@ -904,7 +906,7 @@ function Styler() {
                                 innerHTML: attr.n,
                                 value: attr.n,
                                 title: attr.d,
-                                appendTo: optgroup,
+                                appendTo: optgroup
                             });
                         }
                     }
@@ -916,7 +918,7 @@ function Styler() {
                             innerHTML: pc.n,
                             value: pc.n,
                             title: pc.d,
-                            appendTo: selectorPicker,
+                            appendTo: selectorPicker
                         });
                     }
                     break;
@@ -927,7 +929,7 @@ function Styler() {
                             innerHTML: pe.n,
                             value: pe.n,
                             title:pe.d,
-                            appendTo: selectorPicker,
+                            appendTo: selectorPicker
                         });
                     }
                     break;
@@ -938,7 +940,18 @@ function Styler() {
                         Ele("option", {
                             innerHTML: c,
                             value: c,
-                            appendTo: selectorPicker,
+                            appendTo: selectorPicker
+                        });
+                    }
+                    break;
+                case '@':
+                    for (let i in SI.Editor.Code.css_properties["At Selectors"]) {
+                        let as = SI.Editor.Code.css_properties["At Selectors"][i];
+                        Ele("option", {
+                            innerHTML: as.n,
+                            value: as.n,
+                            title: as.d,
+                            appendTo: selectorPicker
                         });
                     }
                     break;
@@ -999,6 +1012,61 @@ function Styler() {
             appendTo: toolsCell,
         });
 
+        let AtSelector = function (atButton) {
+
+            let atType = atButton.innerHTML;
+            let newParent = atButton.parentElement.nextSibling;
+            switch (atType) {
+                case '@keyframes':
+                    //get the button, then the + and replace it with an input for the keyframe name
+                    newParent.innerHTML = '';
+                    let aniname = Ele('input', {
+                        type: 'list',
+                        
+                        placeholder: "Animation Name",
+                        style: {
+                            marginLeft: '8px',
+                            paddingLeft: '8px',
+                            height: "20px",
+                            width: '150px'
+                        },
+                        onchange: function () {
+                            if (this.value.toLowerCase() === 'none') {
+                                this.value = '';
+                                alert("'none' cant be used for an animation name.");
+                                return;
+                            }
+                            if (this.value.toLowerCase() !== 'none' && SI.Editor.Code.DataLists.AnimationNames.indexOf(this.value) === -1 && this.value.length > 0) {
+                                SI.Editor.Code.DataLists.AnimationNames.push(this.value);
+                                let anilist = document.getElementById('si_styler_animationnames');
+                                anilist.innerHTML = "";
+                                //load the animaiton list
+                                for (animationname of SI.Editor.Code.DataLists.AnimationNames) {
+                                    Ele("option", {
+                                        value: animationname,
+                                        innerHTML: animationname,
+                                        appendTo: anilist
+                                    });
+                                }
+                            }
+                        },
+                        appendTo: newParent
+                    });
+                    aniname.setAttribute('list', 'si_styler_animationnames');
+                    //the aniamtion name list
+
+
+                    break;
+                case '@font-face':
+                    //nothing can com after the font face selector. the properties must be filtered to font-family(req), src(req),
+                       //unicode-range,font-variant,font-feature-settings,font-variation-settings,font-stretch,font-weight,font-style
+                    newParent.innerHTML = '';
+            }
+
+
+
+        };
+
         return mainTable;
     };
     this.BuildStyle = function () {
@@ -1055,25 +1123,31 @@ function Styler() {
         console.timeEnd("StyleBuildTime");
     };
     this.SaveStyle = function () {
-        //debugger;
         let s = this;
-        //let casheStyle = SI_BlockLibrary
+        debugger;
         let csstype = hWin.LoadedType; 
         let sheetname= hWin.LoadedSheet;
         let code = document.getElementById("si_styler_codepad").innerText;
         if (csstype === 'Block') {
-            SI.Editor.Code.Objects.Blocks[sheetname].style = code;
+            SI.Editor.Code.Objects.Blocks[sheetname].style = code.trim();
             //debugger;
             SI.Editor.Objects.Blocks.Save(sheetname, 'style');
 
             //update everything so we dont need to reload
             let currentStyle = document.getElementById('si_page_style');
-            currentStyle.parentElement.removeChild(currentStyle);
-          //  let head = document.getElementsByTagName('head')[0];
-            let style = document.createElement('link');
-            style.id = 'si_page_style';
-            style.href = 'style/page.css?' + Date.now();
-            document.head.appendChild(style);
+            
+
+            
+            let head = document.getElementsByTagName('head')[0];
+            Ele("link", {
+                id : 'si_page_style',
+                rel: 'stylesheet',
+                type: 'text/css',
+                href: 'style/page.css?' + Date.now(),
+                media: 'all',
+                appendTo:head
+            });
+            setTimeout(function () { debugger; currentStyle.parentElement.removeChild(currentStyle); }, 500);
         }
 
         //let entityid = SI.Editor.

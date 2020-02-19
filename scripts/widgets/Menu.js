@@ -1,7 +1,7 @@
 if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
-function Menu(options) {
+SI.Widgets.Menu = function(options) {
     //debugger;
     this.Defaults = {
         "ContainerClass": "",
@@ -17,7 +17,7 @@ function Menu(options) {
         "TextColor": "white",
         "Items": {},
     };
-    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     let randId = SI.Tools.String.RandomString(11);
     let container = Ele('div', {
         id: "si_menu_" + randId,
@@ -38,7 +38,7 @@ function Menu(options) {
     });
     let level = 0;
 
-    CreateMenu = function (items, parent) {
+    this.CreateMenu = function (items, parent) {
         let menuRandId = SI.Tools.String.RandomString(11);
 
         //let menuContainer = Ele('div', {

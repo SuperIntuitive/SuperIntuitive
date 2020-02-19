@@ -228,13 +228,12 @@ if (Tools::UserHasRole('Admin'))
 
 ?> 
 
-if (!SI) {
-    var SI = {};
-}
+if (!SI) { var SI = {}; }
+if (!SI.Editor) { SI.Editor = {}; }
+
 
 SI.Editor = {
     Style: {
-
         BackgroundColor: 'rgb(72, 75, 87)',
         TextColor: 'rgb(172, 175, 187)',
         MenuColor: 'slategrey',
@@ -270,12 +269,10 @@ SI.Editor = {
                 SI.Editor.Style.SetTheme();
                 SI.Editor.Objects.Elements.Init();
                 SI.Editor.UI.Init();
-
-
             }
         }, 50);
         console.timeEnd('EditorLoadTime');
-        console.log(window.Editor);
+        console.log(SI.Editor);
        // setTimeout(function () { SI.Editor.Ajax.PostSetup.Go() }, 1000);
     },
     //SI.Editor.Code object stores all needed to maintain the 5 semantics that will be supported. html,css,js,php,sql
@@ -298,7 +295,8 @@ SI.Editor = {
             PhpMethodsDatalist: null,
             SqlMethodsDataList: null, 
             AcceptedMimeTypes: <?=$mimes ?>,
-            AdminData:<?=$sessionPageData?>,
+            AdminData:<?= $sessionPageData ?>,
+            AnimationNames: [],
         },
         Init: function () {
             var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"];
@@ -349,14 +347,14 @@ SI.Editor = {
                     }
                 }
             });
-
             SI.Editor.Code.Tools.SupplementData();
         },
         OptionSets: {
             HTML: {
               Elements:{}
             },
-            CSS:{
+            CSS: {
+
                 Keyframes: [],
                 FontFaces: [],
                 Media: [],
@@ -369,8 +367,6 @@ SI.Editor = {
             Language: {
                 All : "<?= $langoptions ?>",
             },
-
-
         },
         Objects: {
             Blocks: <?= $blockObjects ?>,
@@ -381,7 +377,6 @@ SI.Editor = {
             HelpLinks: <?= $helplinks ?>,
         },
         Tools: {
-
             ClearSelection: function () {
                 if (document.selection && document.selection.empty) {
                     document.selection.empty();
@@ -1653,6 +1648,7 @@ SI.Editor = {
 
             //When a element is selected, update ALL the Attributes and styles UIs to reflect the elements values.
             SetSelectedElementValues: function (element) {
+                //debugger;
                 //CONFIG the menu
                 //In the attributes menu we have tag specific attributes. We only want to show the Global, Event, and Tag specific attributes.
                 //first hide all attribute groups.
@@ -1789,13 +1785,17 @@ SI.Editor = {
             //Clears the Attributes or the Styles
             Clear: {
                 Attributes: function () {
-                   SI.Tools.Class.Loop("si-edit-attribute", function (ele) {
-                        ele.value = "";
+                    SI.Tools.Class.Loop("si-edit-attribute", function (ele) {
+                        if (!ele.dataset.siPreserve) {
+                            ele.value = "";
+                        }
                     });
                 },
                 Styles: function () {
                    SI.Tools.Class.Loop("si-edit-style", function (ele) {
-                        ele.value = "";
+                       if (!ele.dataset.siPreserve) {
+                           ele.value = "";
+                       }
                     });
                 },
             }
@@ -6778,6 +6778,6 @@ SI.Editor = {
 }
 SI.Editor.Run();
 
-    <?php 
-    }  //End the above role security if
-    ?>
+<?php 
+}  //End the above role security if
+?>

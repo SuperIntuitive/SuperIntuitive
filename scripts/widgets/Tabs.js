@@ -31,17 +31,14 @@ SI.Widgets.Tabs = function (options) {
         "OnChange": null,
         "Selected": null,
     };
-
     this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    var hWin = this;
+    let hWin = this;
     //private members
     let randId = SI.Tools.String.RandomString(11);
     let SelectedId = '';
-    
     //public vars
     this.RandomId = randId;
     this.Container = null;
-
     //Items Object
     this.Items = {
         Count:0,
@@ -93,7 +90,6 @@ SI.Widgets.Tabs = function (options) {
             return document.getElementById(SelectedId);         
         }
     };
-
     this.Show = function () {
         this.container.style.display = 'block';
     };
@@ -187,9 +183,9 @@ SI.Widgets.Tabs = function (options) {
                     this.style.backgroundColor = hWin.options.SelectedTabBackgroundColor;
                     this.style.filter = hWin.options.SelectedTabFilter;
 
-                    var contentid = this.id.replace('si_tabitem_', 'si_tabcontent_');
+                    let contentid = this.id.replace('si_tabitem_', 'si_tabcontent_');
                     //    console.log(contentid);
-
+                    debugger;
                     document.getElementById(contentid).style.display = 'block';
                     SelectedId = this.id;
                     options.Selected = this.dataset.tabname;
@@ -274,8 +270,6 @@ SI.Widgets.Tabs = function (options) {
         }
 
     }
-
-    
 
     return this;
 }

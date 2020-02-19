@@ -1,6 +1,7 @@
 ﻿if (!SI) { var SI = {}; }
+if (!SI.Editor) { SI.Editor = {}; }
 if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-if (!SI.Objects) { SI.Objects = {}; }
+
 
 
 SI.Editor.Objects.Blocks = {
@@ -77,11 +78,9 @@ SI.Editor.Objects.Blocks = {
                 if (SI.Tools.RegEx.Match("guid", options.Data.id)) {
                     options.Guid = options.Data.id;
                 }
-                if (options.RelationsId == null && typeof options.Data.relationsId !== 'undefined' && SI.Tools.RegEx.Match("guid", options.Data.relationsId))
+                if (options.RelationsId === null && typeof options.Data.relationsId !== 'undefined' && SI.Tools.RegEx.Match("guid", options.Data.relationsId))
                     options.RelationsId = options.Data.relationsId;
             }
-
-
         }
 
 
@@ -133,11 +132,11 @@ SI.Editor.Objects.Blocks = {
 
                 let actualBlock2id = myId.replace("si_bid_", "si_block_");
                 let actualBlock2 = document.getElementById(actualBlock2id);
-                if (actualBlock1 != null && actualBlock2 != null) {
+                if (actualBlock1 !== null && actualBlock2 !== null) {
                     //debugger;
                     let orderField1id = droppedId.replace("si_bid_", "si_bid_order_");
                     let orderField2id = this.id.replace("si_bid_", "si_bid_order_");
-                    if (orderField1id != orderField2id) {
+                    if (orderField1id !== orderField2id) {
 
                         let orderField1 = document.getElementById(orderField1id);
                         let orderField2 = document.getElementById(orderField2id);
@@ -928,7 +927,7 @@ SI.Editor.Objects.Blocks = {
         for (let i in stylefields) {
             if (stylefields.hasOwnProperty(i)) {
                 let stylebox = stylefields[i];
-                let prop = stylebox.dataset.sistyleprop;
+                let prop = stylebox.dataset.siStyleProp;
                 let val = stylebox.value;
                 options['style'][prop] = val;
             }

@@ -1,7 +1,7 @@
 if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
-function DataGrid(obj) {
+SI.Widgets.DataGrid = function (obj) {
     if (typeof obj === "undefined") {
         obj = {};
     }
@@ -29,6 +29,8 @@ function DataGrid(obj) {
     }
 
     return base;
+};
+SI.Widgets.DataGrid.Instances = {};
 
 /*
     var id_ = 'columns-full';
@@ -87,5 +89,3 @@ function DataGrid(obj) {
 
 
 
-
-}

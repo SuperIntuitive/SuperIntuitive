@@ -1,9 +1,7 @@
 ﻿if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
-
-function Field(options) {
-
+SI.Widgets.Field = function (options) {
     this.Defaults = {
         "Label": "",
         "Value": "",
@@ -18,8 +16,7 @@ function Field(options) {
     this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     let self = this; //make available for event handelers.
     this.rand = SI.Tools.String.RandomString();
-
-    if (this.options.LabelColor.length === 0){
+    if (this.options.LabelColor.length === 0) {
         switch (this.options.Type) {
             case "text": this.options.LabelColor = '#000000'; break;
             case "number": this.options.LabelColor = '#00FF00'; break;
@@ -28,11 +25,10 @@ function Field(options) {
         }
 
     }
-
     //this is the box that will be returned
     let field = Ele("div", {
         style: {
-            display:'inline-block',
+            display: 'inline-block',
         }
     });
     //if there is a label, 
@@ -79,7 +75,7 @@ function Field(options) {
             value: this.options.Value,
             appendTo: field,
             onchange: function (ev) {
-                
+
                 //allow change event handeler to be input
                 if (self.options.OnChange.length > 0) {
                     self.options.OnChange(ev);
@@ -87,20 +83,13 @@ function Field(options) {
             }
         });
     }
-    else
-    {
+    else {
         let span = Ele("span", {
             id: "si_entityfield_" + rand,
             value: this.options.Value,
             appendTo: field,
         });
-
     }
-
-
-
-
     return field;
-
-
-}
+};
+SI.Widgets.Field.Instances = {};

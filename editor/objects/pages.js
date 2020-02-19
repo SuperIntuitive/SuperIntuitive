@@ -1,6 +1,6 @@
 ﻿if (!SI) { var SI = {}; }
+if (!SI.Editor) { SI.Editor = {}; }
 if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-if (!SI.Objects) { SI.Objects = {}; }
 
 
 SI.Editor.Objects.Page = {
@@ -81,7 +81,7 @@ SI.Editor.Objects.Page = {
             for (let i in currentBodyStyles) {
                 if (currentBodyStyles.hasOwnProperty(i)) {
                     bodystyle = currentBodyStyles[i];
-                    let prop = bodystyle.dataset.sistyleprop;
+                    let prop = bodystyle.dataset.siStyleProp;
                     let value = bodystyle.value;
                     data.body.style[prop] = value;
                 }

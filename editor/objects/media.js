@@ -1,6 +1,6 @@
 ﻿if (!SI) { var SI = {}; }
+if (!SI.Editor) { SI.Editor = {}; }
 if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-if (!SI.Objects) { SI.Objects = {}; }
 
 
 SI.Editor.Objects.Media = {
