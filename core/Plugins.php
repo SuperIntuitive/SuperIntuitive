@@ -205,6 +205,7 @@ class Plugins {
 									}
 
 									Tools::Log($data);
+									//this is just a test comment
 									//$newEntity->NewEntity($data);
 									/*
 									$post['sname']
