@@ -6360,7 +6360,7 @@ SI.Editor = {
                                 let company = obj.company;
                                 let domain = obj.domain;
                                 let path = domain + codeobj[site];
-                                appendTo.appendChild(IconLink({ "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n+" on " + company }));
+                                appendTo.appendChild(SI.Widgets.IconLink({ "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n+" on " + company }));
                             }
                         }
                     }
