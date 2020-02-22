@@ -372,9 +372,17 @@ SI.Editor = {
             Blocks: <?= $blockObjects ?>,
             Pages: <?= $pageObjects ?>,
             Media: <?= $mediaObjects ?>,
+            Users: "<?= $usertable ?>"
         },
         User: {
             HelpLinks: <?= $helplinks ?>,
+            Languages: <?= $myLangs ?>,
+            QuickMenuItems: <?= $quickmenuitems ?>,
+        },
+        Site: {
+            Domain: "<?= SI_DOMAIN_NAME ?>",
+            BusinessUnit: "<?= SI_BUSINESSUNIT_NAME ?>",
+            SessionPageData:  <?= $sessionPageData ?>,
         },
         Tools: {
             ClearSelection: function () {
@@ -710,7 +718,6 @@ SI.Editor = {
                 }
                 //Append Main Menu at the end
                 mainMenu.appendChild(mainMenuTable);
-
                 //Close Editor x button	
                 mainMenu.appendChild(Ele('button', {
                     id: 'close-editor',
@@ -729,7 +736,6 @@ SI.Editor = {
                     },
                     onclick: function () { SI.Editor.Style.SetTheme(); mainMenu.style.display = 'none'; },
                 }));
-
                 SI.Editor.UI.Container.appendChild(mainMenu);
                 SI.Editor.UI.MainMenu.Element = document.getElementById('si_edit_main_menu');
             }, 
@@ -742,7 +748,8 @@ SI.Editor = {
                 }
                 if (menu && SI.Tools.Is.Visible(menu)) {
                     SI.Tools.Style.FadeOut(menu, 200);
-                } else {
+                }
+                else {
                     let menus = ["si_edit_add_menuitem", "si_edit_edit_menuitem", "si_edit_tools_menuitem"];
                     menus.forEach(function (_menu) {
                         if (menu === _menu) {
@@ -1003,12 +1010,10 @@ SI.Editor = {
                     },
 
                 });
-
                 var tabs = new SI.Widgets.Tabs({ Height: '100%' });
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
-
                 editMenu.appendChild(tabs.Draw());
                 SI.Editor.UI.MainMenu.Element.appendChild(editMenu);
             },
@@ -1029,7 +1034,7 @@ SI.Editor = {
                     },
 
                 });
-               SI.Tools.StopOverscroll(container);
+                SI.Tools.StopOverscroll(container);
                 //Menubox
                 let menu = Ele('div', {
                     id: "si_edit_main_menubox",
@@ -1396,8 +1401,7 @@ SI.Editor = {
                     appendTo: advancedpanel,
                 });
                 //MULTILINGUAL SELECT
-                let mylang = <?= $myLangs ?>;
-                //not that easy
+                let mylang = SI.Editor.Code.User.Languages;
                 let multilingualselect = Ele('select', {
                     id:'si_edit_main_advanced_mlselect',
                     append: Ele('option', {}),
@@ -1495,8 +1499,6 @@ SI.Editor = {
                 });
 
 
-
-
                 let maintable = Ele("table", {
                     id: "si_edit_main_shotrcuttable",
                     style: {
@@ -1507,13 +1509,12 @@ SI.Editor = {
                 });
 
                 //soon to be user selectable shortcuts to often used tools.       
-                SI.Editor.UI.EditPanel.DrawUserShortcuts(maintable);
+                SI.Editor.UI.EditPanel.DrawQuickMenuItems(maintable);
                 return container
             },
-            UserShortcuts:<?= $quickmenuitems ?>,
-            DrawUserShortcuts: function(maintable) {
+            DrawQuickMenuItems: function(maintable) {
                 maintable.innerHTML = "";
-                let sc = SI.Editor.UI.EditPanel.UserShortcuts;
+                let sc = SI.Editor.Code.User.QuickMenuItems;
                 for (let i in sc) {
                     if (sc.hasOwnProperty(i)) {
                         let control = sc[i];
@@ -2936,7 +2937,7 @@ SI.Editor = {
                 let dBuNewPage = document.createElement('td');
                 let dBuINewPage = document.createElement('input');
                 dBuINewPage.id = "SI_Struct_NewPage_BU";
-                dBuINewPage.value = "<?= SI_BUSINESSUNIT_NAME ?>";
+                dBuINewPage.value = SI.Editor.Code.Site.BusinessUnit;
 
                 dBuINewPage.readOnly = <?= $notdomainadmin ?>;
                 dBuNewPage.appendChild(dBuINewPage);
@@ -2946,7 +2947,7 @@ SI.Editor = {
                 let dDoINewPage = document.createElement('input');
                 dDoINewPage.readOnly =  <?= $notsuperadmin ?>;
                 dDoINewPage.id = "SI_Struct_NewPage_Domain";
-                dDoINewPage.value = "<?= SI_DOMAIN_NAME ?>";
+                dDoINewPage.value = SI.Editor.Code.Site.Domain;
                 dDoNewPage.appendChild(dDoINewPage);
                 inRowNewPage.appendChild(dDoNewPage);
 
@@ -3318,9 +3319,8 @@ SI.Editor = {
                         color:SI.Editor.Style.TextColor,
                     },
                 });
-                let obj = <?= $sessionPageData ?>;
                 //debugger;
-                let ul =  SI.Tools.Object.ToDataTree(obj);
+                let ul =  SI.Tools.Object.ToDataTree(SI.Editor.Code.Site.SessionPageData);
 
                 let pre = Ele('div', {
                     style: {
@@ -3420,7 +3420,7 @@ SI.Editor = {
                     },
                     appendTo: base,
                 })
-                pre.insertAdjacentHTML('beforeend', " <?= $usertable ?> ");
+                pre.insertAdjacentHTML('beforeend', SI.Editor.Code.Objects.Users);
 
 
 
@@ -5265,9 +5265,9 @@ SI.Editor = {
             New: function(self) {
                 //debugger;
                 var email = prompt("Enter the new user's email", "");
-                if (email !== null || email.match(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g)) {
+                if (email !== null && email.match(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g)) {
                     var user = prompt("Enter the new user's username", "");
-                    if (user == null || user.match(/[A-Za-z0-9_]{3,16}/)) {
+                    if (user !== null && user.match(/[A-Za-z0-9_]{3,16}/)) {
                         var password = prompt("Enter the new user's password", "");
 
 
