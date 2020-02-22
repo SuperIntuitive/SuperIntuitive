@@ -164,6 +164,7 @@ class Page {
 		<script src='/scripts/tools.js?$t' defer ></script>";
 
 		$widgetfiles = scandir('scripts/widgets');
+		Tools::Log($widgetfiles);
 		foreach($widgetfiles as $widget){
 			if(!is_dir('scripts/widgets/'.$widget)){
 				$moded = filemtime('scripts/widgets/'.$widget);
@@ -193,9 +194,18 @@ class Page {
 			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
 			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
 				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
+
+				//get user preferences here... for now
+				$openMethod = isset($_SESSION['USERPREFS']['OPEN_LINK_IN']) ? $_SESSION['USERPREFS']['OPEN_LINK_IN'] : 'window';
+
 				$head.= "<script>
 							if (!SI) { var SI = {}; }
-							SI.LoggedInUser = {'name':'$name'};
+							SI.LoggedInUser = {
+								'name':'$name', 
+								'preferences':{
+									OpenLinksIn: $openMethod
+								} 
+							};
 						 </script>";
 			}
 			if($bodystyle != null){
