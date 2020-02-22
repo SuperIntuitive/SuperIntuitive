@@ -195,7 +195,12 @@ class Page {
 				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
 				$head.= "<script>
 							if (!SI) { var SI = {}; }
-							SI.LoggedInUser = {'name':'$name'};
+							SI.LoggedInUser = {
+								'name':'$name', 
+								'preferences':{
+									OpenLinksIn: $openMethod
+								} 
+							};
 						 </script>";
 			}
 			if($bodystyle != null){
