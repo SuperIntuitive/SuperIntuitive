@@ -1,5 +1,5 @@
 <?php 
-header("Content-type: text/javascript; charset: UTF-8");
+header("Content-Type: application/javascript; charset: UTF-8");
 
 session_start();
 require_once '../core/Tools.php';

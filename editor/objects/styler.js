@@ -1,3 +1,8 @@
+<?php 
+header("Content-Type: application/javascript; charset: UTF-8");
+?>
+
+
 if (!SI) { var SI = {}; }
 if (!SI.Editor) { SI.Editor = {}; }
 if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }

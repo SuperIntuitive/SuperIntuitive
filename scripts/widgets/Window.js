@@ -1,4 +1,8 @@
-﻿if (!SI) { var SI = {}; }
+﻿<?php 
+header("Content-Type: application/javascript; charset: UTF-8");
+?>
+
+if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
 SI.Widgets.Window = function (options) {

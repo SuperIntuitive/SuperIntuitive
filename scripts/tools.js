@@ -1,7 +1,5 @@
-
-
 <?php 
-header("Content-type: text/js; charset: UTF-8");
+header("Content-Type: application/javascript; charset: UTF-8");
 session_start();
 error_reporting(E_ALL ^ E_WARNING);
 $openMethod = isset($_SESSION['USERPREFS']['OPEN_LINK_IN']) ? $_SESSION['USERPREFS']['OPEN_LINK_IN'] : 'window';

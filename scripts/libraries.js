@@ -1,5 +1,6 @@
 <?php 
-header("Content-type: text/js; charset: UTF-8");
+header("Content-Type: application/javascript; charset: UTF-8");
+
 require_once '../core/Tools.php';
 session_start();
 Tools::DefineServer();
