@@ -617,7 +617,7 @@ SI.Editor.Objects.Blocks = {
 
                 }
                 let deployoptions = { EntityName: saveto, EntityId: deployId, Attribute: dField, LabelMargin: labelMar };
-                deploymentsContainer.appendChild(SI.Editor.Objects.Deployment.UI(deployoptions));
+                deploymentsContainer.appendChild(SI.Editor.Code.Objects.Deployment.UI(deployoptions));
             }
         }
 

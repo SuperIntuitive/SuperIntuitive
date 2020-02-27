@@ -6,8 +6,10 @@ class Entity{
 	public $Name = null; //the name of the table
 	public $Id = null; //The id of the record
 	public $Attributes = null; //a grouping of the columns in the table
+	public $Order = null;
 	public $Limit = 20;
-	private $Filter = null;
+	public $Filter = null;
+	
 
     public function __construct($entity=null, $id=null){
 		$this->Attributes = new AttributeCollection();
@@ -24,7 +26,28 @@ class Entity{
 		        $this->Id = $entity->Id;
 				$this->$Attributes = $entity->$Attributes;
 			}
-		}				
+		}	
+		else if (Tools::IsJson($entity) ){
+		   $json = Tools::JsonValidate($entity);
+		   if(isset($json['Name'])){
+				$this->Name = $json['Name'];
+		   }
+		   if(isset($json['Id'])){
+				$this->Id = $json['Id'];
+		   }
+		   if(isset($json['Attributes'])){
+				$this->Attributes = $json['Attributes'];
+		   }
+		   if(isset($json['Order'])){
+				$this->Order = $json['Order'];
+		   }
+		   if(isset($json['Limit'])){
+				$this->Limit = $json['Limit'];
+		   }
+		   if(isset($json['Filter'])){
+				$this->Filter = $json['Filter'];
+		   }
+		}
 		else{
 			if($entity!=null)
 			{
@@ -151,7 +174,6 @@ class Entity{
 
 
 	private function ProcessEntity($operatrion){
-		
 		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME])){
 			$unit = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME];
 			$name = $this->Name;
@@ -175,12 +197,6 @@ class Entity{
 				$append = isset($entitypermissions['append']) ? $entitypermissions['append'] :false;
 				$appendTo = isset($entitypermissions['appendTo']) ? $entitypermissions['appendTo'] :false;
 			}
-
-
-
-
-
-
 		}
 		else{
 			//The Session has expired so make sure to handle this.
@@ -223,7 +239,6 @@ class Attribute{
 	public $Name = null;
 	public $Value = null;
 	public $Type = null;
-	public $EntityReference = null;
 
     public function __construct($name, $value, $type=null)
 	{
@@ -235,7 +250,7 @@ class Attribute{
 				$er = new EntityReference();
 				$er->Name = $value->Name;
 				$er->Id = $value->Id;
-				$this->EntityReference = $value;
+				$this->Value = $er;
 			}
 			else{
 			    $this->Value = $value;
