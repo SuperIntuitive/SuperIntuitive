@@ -21,7 +21,7 @@ class Tools{
 				if($class === "DataTable" || $class === "DataColumn" || $class === "DataRow" || $class === "DataSet" ){
 					$class = "Datatable";
 				}
-				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute"){
+				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute" || $class === "Filter" ){
 					$class = "Entity";
 				}
 				if($class == "QueryParameter"){

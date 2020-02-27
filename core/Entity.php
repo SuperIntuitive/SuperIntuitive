@@ -165,10 +165,10 @@ class Entity{
 				$entitypermissions =  isset($unit['user']['permissions'][strtolower("$entityId")]) ? $unit['user']['permissions'][strtolower("$entityId")]:false;
 				//These should be consolidated to be the same someday. for now use this to match them
 				//it is truly a case of programmer and user lingo at odds
-				$permMap = array("select"->"read","create"->"create","update"->"write","delete"->"delete");
+				$permMap = array("select"=>"read","create"=>"create","update"=>"write","delete"=>"delete");
 				$perm = $permMap[$operatrion];
 				$hasPermission = isset($entitypermissions[$perm]) ? $entitypermissions[$perm] :false;
-				if($hasPermission == false)){
+				if($hasPermission == false){
 					Tools::Log("User does not have $name $operatrion permission");
 					return null;
 				}
@@ -232,8 +232,10 @@ class Attribute{
 			$ctype = get_class($value);
 			if($ctype =='Entity' || $ctype =='EntityReference')
 			{
-				$this.EntityReference->Name = $value->Name;
-				$this.EntityReference->Id = $value->Id;
+				$er = new EntityReference();
+				$er->Name = $value->Name;
+				$er->Id = $value->Id;
+				$this->EntityReference = $value;
 			}
 			else{
 			    $this->Value = $value;
@@ -287,16 +289,13 @@ class AttributeCollection{
 //this is tough so lets...
 //The Search is the whole search with all the groups. should be simple like an array
 class Filter{
-	public Items = array();
+	public $Items = array();
 	public $Type = 'and';
 	public $Count = 0;
     public function __construct()
 	{
 		//every search has a default group that 'ands' all of the base attributes together. 
 		//it is always at element #0 and cannot be moved. maybe we can change it to 'or' but not till were working ok
-		$base = new Filter()
-		$this->Items[] = $base;
-		$this->Count = count($this->Items);
 	}
 	public function AddFilter($filter)
 	{
