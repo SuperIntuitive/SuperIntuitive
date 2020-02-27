@@ -7,7 +7,6 @@ class Entity{
 	public $Id = null; //The id of the record
 	public $Attributes = null; //a grouping of the columns in the table
 	public $Limit = 20;
-	private $Filter = null;
 
     public function __construct($entity=null, $id=null){
 		$this->Attributes = new AttributeCollection();
@@ -35,7 +34,6 @@ class Entity{
 				$this->Id = $id;
 			}
 		}	
-		$this->Filter = new Filter();
 	}
 
 	public function Create(){
@@ -149,44 +147,6 @@ class Entity{
 		}
 	}
 
-
-	private function ProcessEntity($operatrion){
-		
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME])){
-			$unit = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME];
-			$name = $this->Name;
-			//First check security
-			$append = false;  //These two will need to be used further down in the Attributes loop. 
-			$appendTo = false;
-			if(empty( $unit['user']['permissions'][strtolower("$entityId")])){
-				Tools::Log("User does not have any $name permission");
-				return null;
-			}else{
-				$entitypermissions =  isset($unit['user']['permissions'][strtolower("$entityId")]) ? $unit['user']['permissions'][strtolower("$entityId")]:false;
-				//These should be consolidated to be the same someday. for now use this to match them
-				//it is truly a case of programmer and user lingo at odds
-				$permMap = array("select"->"read","create"->"create","update"->"write","delete"->"delete");
-				$perm = $permMap[$operatrion];
-				$hasPermission = isset($entitypermissions[$perm]) ? $entitypermissions[$perm] :false;
-				if($hasPermission == false)){
-					Tools::Log("User does not have $name $operatrion permission");
-					return null;
-				}
-				$append = isset($entitypermissions['append']) ? $entitypermissions['append'] :false;
-				$appendTo = isset($entitypermissions['appendTo']) ? $entitypermissions['appendTo'] :false;
-			}
-
-
-
-
-
-
-		}
-		else{
-			//The Session has expired so make sure to handle this.
-		}
-
-	}
 }
 
 class EntityCollection{
@@ -219,27 +179,16 @@ class EntityReference{
 }
 
 class Attribute{
-//this needs to be smarter
 	public $Name = null;
 	public $Value = null;
 	public $Type = null;
-	public $EntityReference = null;
-
-    public function __construct($name, $value, $type=null)
+	public $Opp = "edit";
+    public function __construct($name, $value, $type=null, $opp = "edit")
 	{
 	    if($name != null || $value != null){
 			$this->Name = $name;
-			$ctype = get_class($value);
-			if($ctype =='Entity' || $ctype =='EntityReference')
-			{
-				$this.EntityReference->Name = $value->Name;
-				$this.EntityReference->Id = $value->Id;
-			}
-			else{
-			    $this->Value = $value;
-			}
-
-		    
+		    $this->Value = $value;
+			$this->Opp = $opp;
 			if($type != null){
 				$this->Type = $type; 
 			}
@@ -265,6 +214,7 @@ class AttributeCollection{
 			}
 		}
 	}
+
 	public function Add($attribs)
 	{
 	    if(gettype($attribs)==='array'){
@@ -283,45 +233,3 @@ class AttributeCollection{
 	}
 }
 
-
-//this is tough so lets...
-//The Search is the whole search with all the groups. should be simple like an array
-class Filter{
-	public Items = array();
-	public $Type = 'and';
-	public $Count = 0;
-    public function __construct()
-	{
-		//every search has a default group that 'ands' all of the base attributes together. 
-		//it is always at element #0 and cannot be moved. maybe we can change it to 'or' but not till were working ok
-		$base = new Filter()
-		$this->Items[] = $base;
-		$this->Count = count($this->Items);
-	}
-	public function AddFilter($filter)
-	{
-		if(get_class($group)==='Filter')
-		{
-			$this->Items[] = $filter;
-		}
-		$this->Count = count($this->Items);
-	}
-	public function AddCondition($group)
-	{
-		if(get_class($group)==='SearchGroup')
-		{
-			$this->Items[] = $group;
-		}
-		$this->Count = count($this->Items);
-	}
-	
-}
-class Condition{
-	public $Attribute;
-	public $Operator;
-	public function __construct($attr, $op)
-	{
-		$this->Attribute = $attr;
-		$this->Operator = $op;
-	}
-}
