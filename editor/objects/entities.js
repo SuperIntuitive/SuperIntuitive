@@ -35,7 +35,7 @@ SI.Editor.Objects.Entity = {
 
         //debugger;
         //Get all the entity data
-        let ent = SI.Editor.Code.Objects.Entities.Definitions
+        let ent = SI.Editor.Data.Objects.Entities.Definitions
 
         entitiesSelectChange = function (e) {
             //debugger;
@@ -405,11 +405,11 @@ SI.Editor.Objects.Entity = {
 
     },
     Find: function (search) {
-        if (typeof SI.Editor.Code.Objects.Entities.Definitions[search] !== 'undefined') {
-            return SI.Editor.Code.Objects.Entities.Definitions[search];
+        if (typeof SI.Editor.Data.Objects.Entities.Definitions[search] !== 'undefined') {
+            return SI.Editor.Data.Objects.Entities.Definitions[search];
         }
         else {
-            let info = SI.Editor.Code.Objects.Entities.Definitions;
+            let info = SI.Editor.Data.Objects.Entities.Definitions;
             for (let item in info) {
                 if (typeof item.instanceguid !== 'undefined') {
                     if (search == item.instanceguid || '0x' + search == item.instanceguid) {
@@ -663,7 +663,7 @@ SI.Editor.Objects.Entity = {
             innerHTML: '',
             appendTo: lookupEntity,
         });
-        let ent = SI.Editor.Code.Objects.Entities.Definitions;
+        let ent = SI.Editor.Data.Objects.Entities.Definitions;
         for (let e in ent) {
             let entity = ent[e];
             //create an option tag for each entity
@@ -1108,8 +1108,8 @@ SI.Editor.Objects.Entity = {
                     if (columnBlacklist.indexOf(f) === -1) {
                         //debugger;
                         let value = rowdata[f];
-                        if (typeof SI.Editor.Code.Objects.Entities.Definitions[entityName] !== 'undefined' && typeof SI.Editor.Code.Objects.Entities.Definitions[entityName][f] !== 'undefined') {
-                            fieldAttrs = SI.Editor.Code.Objects.Entities.Definitions[entityName][f];
+                        if (typeof SI.Editor.Data.Objects.Entities.Definitions[entityName] !== 'undefined' && typeof SI.Editor.Data.Objects.Entities.Definitions[entityName][f] !== 'undefined') {
+                            fieldAttrs = SI.Editor.Data.Objects.Entities.Definitions[entityName][f];
                             //debugger;
 
                         }

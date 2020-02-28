@@ -23,8 +23,8 @@ SI.Editor.Objects.Blocks = {
         options = SI.Tools.Object.SetDefaults(options, this.Defaults);
         //housekeeping
         //debugger;
-        if (typeof SI.Editor.Code.Objects.Blocks === 'undefined' || SI.Editor.Code.Objects.Blocks === null) {
-            SI.Editor.Code.Objects.Blocks = [];
+        if (typeof SI.Editor.Data.Objects.Blocks === 'undefined' || SI.Editor.Data.Objects.Blocks === null) {
+            SI.Editor.Data.Objects.Blocks = [];
         }
         if (!options.BlockName || !options.BlockName.length > 0) {
             console.log("BlockName invalid in Block.UI");
@@ -46,8 +46,8 @@ SI.Editor.Objects.Blocks = {
             //debugger;
             //put the block and data on the current list
             //SI.Editor.Objects.Blocks.Current[fixedkey] = options;
-            if (typeof SI.Editor.Code.Objects.Blocks[options.BlockName] === 'undefined') {
-                SI.Editor.Code.Objects.Blocks[options.BlockName] = {};
+            if (typeof SI.Editor.Data.Objects.Blocks[options.BlockName] === 'undefined') {
+                SI.Editor.Data.Objects.Blocks[options.BlockName] = {};
             }
 
             //make the block and put it at the order it should be. 
@@ -57,7 +57,7 @@ SI.Editor.Objects.Blocks = {
         else {
             //debugger;
             if (options.Data === null) {
-                options.Data = SI.Editor.Code.Objects.Blocks[options.BlockName];
+                options.Data = SI.Editor.Data.Objects.Blocks[options.BlockName];
             }
             if (options.Order === null) {
                 options.Order = options.Data.order;
@@ -393,8 +393,8 @@ SI.Editor.Objects.Blocks = {
                     me.parentElement.removeChild(me);
                     let bl = document.getElementById('si_block_' + fixedkey);
                     bl.parentElement.removeChild(bl);
-                    if (SI.Editor.Code.Objects.Blocks[fixedkey]) {
-                        delete SI.Editor.Code.Objects.Blocks[fixedkey];
+                    if (SI.Editor.Data.Objects.Blocks[fixedkey]) {
+                        delete SI.Editor.Data.Objects.Blocks[fixedkey];
                     }
 
                     SI.Editor.Objects.Blocks.Remove(relayid);
@@ -617,7 +617,7 @@ SI.Editor.Objects.Blocks = {
 
                 }
                 let deployoptions = { EntityName: saveto, EntityId: deployId, Attribute: dField, LabelMargin: labelMar };
-                deploymentsContainer.appendChild(SI.Editor.Code.Objects.Deployment.UI(deployoptions));
+                deploymentsContainer.appendChild(SI.Editor.Data.Objects.Deployment.UI(deployoptions));
             }
         }
 
@@ -703,10 +703,10 @@ SI.Editor.Objects.Blocks = {
             appendTo: blockui,
         });
         Ele("option", { value: '', innerHTML: '', appendTo: addStyleSelect });
-        for (let group in SI.Editor.Code.css_properties) {
+        for (let group in SI.Editor.Data.css_properties) {
             if (group !== "Pseudo Class" && group !== "Pseudo Element") {
                 let groupset = Ele("optgroup", { label: group, appendTo: addStyleSelect });
-                let wholegroup = SI.Editor.Code.css_properties[group];
+                let wholegroup = SI.Editor.Data.css_properties[group];
                 for (let s in wholegroup) {
                     let prop = wholegroup[s].n;
                     if (!prop.startsWith("@"))
@@ -723,7 +723,7 @@ SI.Editor.Objects.Blocks = {
     },
     BabyBlock: function (blockname) {
         //debugger;
-        let blk = SI.Editor.Code.Objects.Blocks[blockname];
+        let blk = SI.Editor.Data.Objects.Blocks[blockname];
         let html = '';
         let style = {
             position: 'relative',
@@ -803,14 +803,14 @@ SI.Editor.Objects.Blocks = {
     },
     Created: function (newblock) {
         //we related a new block. now we need to put it in the Block data object by name
-        if (typeof SI.Editor.Code.Objects.Blocks[newblock.NAME] === 'undefined') {
+        if (typeof SI.Editor.Data.Objects.Blocks[newblock.NAME] === 'undefined') {
             //debugger;
-            SI.Editor.Code.Objects.Blocks[newblock.NAME] = {};
-            SI.Editor.Code.Objects.Blocks[newblock.NAME].id = newblock.ID;
-            SI.Editor.Code.Objects.Blocks[newblock.NAME].html = newblock.HTML;
-            SI.Editor.Code.Objects.Blocks[newblock.NAME].relationsId = newblock.RELID;
-            SI.Editor.Code.Objects.Blocks[newblock.NAME].order = newblock.ORDER;
-            SI.Editor.Code.Objects.Blocks[newblock.NAME].name = newblock.NAME;
+            SI.Editor.Data.Objects.Blocks[newblock.NAME] = {};
+            SI.Editor.Data.Objects.Blocks[newblock.NAME].id = newblock.ID;
+            SI.Editor.Data.Objects.Blocks[newblock.NAME].html = newblock.HTML;
+            SI.Editor.Data.Objects.Blocks[newblock.NAME].relationsId = newblock.RELID;
+            SI.Editor.Data.Objects.Blocks[newblock.NAME].order = newblock.ORDER;
+            SI.Editor.Data.Objects.Blocks[newblock.NAME].name = newblock.NAME;
 
         } else {
             alert("ERROR: That block already exists.");
@@ -830,7 +830,7 @@ SI.Editor.Objects.Blocks = {
         //add the guid to where it is needed. 
         let blocklib = document.getElementById('si_editor_page_block_container');
         blocklib.appendChild(blockui);
-        SI.Editor.Code.Tools.ClearSelection();
+        SI.Editor.Data.Tools.ClearSelection();
         console.log(blockname + ' has been created');
     },
     Save: function (blockui, flag = 'flag') {
@@ -853,8 +853,8 @@ SI.Editor.Objects.Blocks = {
         let tmp, tguid;
 
         let t = this;
-        if (typeof SI.Editor.Code.Objects.Blocks[bname] !== 'undefined') {
-            tmp = SI.Editor.Code.Objects.Blocks[bname];
+        if (typeof SI.Editor.Data.Objects.Blocks[bname] !== 'undefined') {
+            tmp = SI.Editor.Data.Objects.Blocks[bname];
             tguid = tmp.id;
         }
 
@@ -905,11 +905,11 @@ SI.Editor.Objects.Blocks = {
             }
         }
         if (flag == 'script') {
-            data.script = SI.Editor.Code.Objects.Blocks[bname].script;
+            data.script = SI.Editor.Data.Objects.Blocks[bname].script;
             empty = false;
         }
         if (flag == 'style') {
-            data.style = SI.Editor.Code.Objects.Blocks[bname].style;
+            data.style = SI.Editor.Data.Objects.Blocks[bname].style;
             empty = false;
         }
 

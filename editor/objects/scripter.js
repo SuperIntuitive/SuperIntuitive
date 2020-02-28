@@ -74,7 +74,7 @@ function Scripter() {
                 let type = option.getAttribute('data-sourcetype');
                 let script = null;
                 switch (type) {
-                    case "Block": script = SI.Editor.Code.Objects.Blocks[scriptname].script; break;
+                    case "Block": script = SI.Editor.Data.Objects.Blocks[scriptname].script; break;
                     case "Plugin":
                         let parent = option.parentElement.label.trim();
                         script = SI.Editor.Objects.Plugins.Current[parent].scripts[scriptname]; break;
@@ -94,13 +94,13 @@ function Scripter() {
         });
         //Add the blocks to the selector menu
         //Add blocks to the dropdown list
-        if (Object.keys(SI.Editor.Code.Objects.Blocks).length > 0) {
+        if (Object.keys(SI.Editor.Data.Objects.Blocks).length > 0) {
             let bgroup = Ele("optgroup", {
                 label: "Blocks",
                 appendTo: scriptSelect,
             });
 
-            for (block in SI.Editor.Code.Objects.Blocks) {
+            for (block in SI.Editor.Data.Objects.Blocks) {
                 Ele("option", {
                     innerHTML: "\t" + block,
                     appendTo: bgroup,
@@ -310,7 +310,7 @@ function Scripter() {
         let scriptname = hWin.LoadedScript;
         let code = document.getElementById("si_scripter_codepad").innerText;
         if (scripttype === 'Block') {
-            SI.Editor.Code.Objects.Blocks[scriptname].script = code;
+            SI.Editor.Data.Objects.Blocks[scriptname].script = code;
             SI.Editor.Objects.Blocks.Save(scriptname, 'script');
 
             //update everything so we dont need to reload
@@ -545,11 +545,11 @@ function Scripter() {
                 //  }
                 let category = topKeys[flg];
                 let tmp = [];
-                for (let name in SI.Editor.Code.js_methods[category]) {
+                for (let name in SI.Editor.Data.js_methods[category]) {
                     let rem = toRemove.indexOf(name);
                     if (rem === -1) { //the blacklist
-                        if (SI.Editor.Code.js_methods[category].hasOwnProperty(name)) {
-                            if (SI.Editor.Code.js_methods[category][name].type === type) {
+                        if (SI.Editor.Data.js_methods[category].hasOwnProperty(name)) {
+                            if (SI.Editor.Data.js_methods[category][name].type === type) {
                                 tmp.push(name);
                             }
                         }

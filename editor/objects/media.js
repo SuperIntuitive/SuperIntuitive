@@ -28,7 +28,7 @@ SI.Editor.Objects.Media = {
         document.getElementById('si_media_' + tabname + '_Name').value = name;
         document.getElementById('si_media_' + tabname + '_Filename').value = filename;
         document.getElementById('si_media_' + tabname + '_Mime').value = mime;
-        document.getElementById('si_media_' + tabname + '_Size').value = SI.Editor.Code.Tools.GetFileSize(validPath);
+        document.getElementById('si_media_' + tabname + '_Size').value = SI.Editor.Data.Tools.GetFileSize(validPath);
         switch (tabname) {
             case "Images":
                 document.getElementById('si_media_' + tabname + '_Width').value = this.firstChild.naturalWidth + 'px';

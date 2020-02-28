@@ -71,10 +71,10 @@ function Styler() {
                 let type = option.getAttribute('data-sourcetype');
                 let style = null;
                 switch (type) {
-                    case "Block": style = SI.Editor.Code.Objects.Blocks[stylesheet].style; break;
+                    case "Block": style = SI.Editor.Data.Objects.Blocks[stylesheet].style; break;
                     case "Plugin":
                         let parent = option.parentElement.label.trim();
-                        style = SI.Editor.Code.Objects.Blocks[parent].styles[stylesheet];
+                        style = SI.Editor.Data.Objects.Blocks[parent].styles[stylesheet];
                         break;
                     case "Sheet": style = SI_StyleSheetsLibrary[stylesheet].style; break;
                     default: alert("No known group type. Can't get style"); return;
@@ -91,9 +91,9 @@ function Styler() {
             },
             appendTo: mainmenu,
         });
-        if (SI.Editor.Code.Objects.Blocks !== 'undefined') {
+        if (SI.Editor.Data.Objects.Blocks !== 'undefined') {
            //debugger;
-            let blocks = Object.keys(SI.Editor.Code.Objects.Blocks);
+            let blocks = Object.keys(SI.Editor.Data.Objects.Blocks);
             let blocksGroup = Ele("optgroup", {
                 label: "Block",
                 appendTo: styleSheetSelect
@@ -277,7 +277,7 @@ function Styler() {
             appendTo: container
         });
         //load the animaiton list
-        for (animationname in SI.Editor.Code.DataLists.AnimationNames) {
+        for (animationname in SI.Editor.Data.DataLists.AnimationNames) {
             Ele("option", {
                 value: animationname,
                 appendTo: animationnamelist
@@ -482,10 +482,10 @@ function Styler() {
                 appendTo: addSelectCell
             });
             Ele("option", { value: '', innerHTML: '', appendTo: addSelect });
-            for (let group in SI.Editor.Code.css_properties) {
+            for (let group in SI.Editor.Data.css_properties) {
                 if (group !== "Pseudo Class" && group !== "Pseudo Element") {
                     let groupset = Ele("optgroup", { label: group, appendTo: addSelect });
-                    let wholegroup = SI.Editor.Code.css_properties[group];
+                    let wholegroup = SI.Editor.Data.css_properties[group];
                     for (let s in wholegroup) {
                         let prop = wholegroup[s].n;
                         if (!prop.startsWith("@")) {
@@ -876,11 +876,11 @@ function Styler() {
             //debugger;
             switch (type) {
                 case 'element':
-                    for (let elegroup in SI.Editor.Code.html_elements) {
+                    for (let elegroup in SI.Editor.Data.html_elements) {
                         let optgroup = Ele("optgroup", { label: elegroup, appendTo: selectorPicker });
-                        for (ele in SI.Editor.Code.html_elements[elegroup]) {
+                        for (ele in SI.Editor.Data.html_elements[elegroup]) {
                             //debugger;
-                            let html = SI.Editor.Code.html_elements[elegroup][ele];
+                            let html = SI.Editor.Data.html_elements[elegroup][ele];
                             Ele("option", {
                                 innerHTML: html.n,
                                 value: html.n,
@@ -897,11 +897,11 @@ function Styler() {
                     this.UpdateIds(selectorPicker);
                     break;
                 case 'attribute':
-                    for (let attrgroup in SI.Editor.Code.html_attributes) {
+                    for (let attrgroup in SI.Editor.Data.html_attributes) {
                         let optgroup = Ele("optgroup", { label: attrgroup, appendTo: selectorPicker });
-                        for (ele in SI.Editor.Code.html_attributes[attrgroup]) {
+                        for (ele in SI.Editor.Data.html_attributes[attrgroup]) {
                             //debugger;
-                            let attr = SI.Editor.Code.html_attributes[attrgroup][ele];
+                            let attr = SI.Editor.Data.html_attributes[attrgroup][ele];
                             Ele("option", {
                                 innerHTML: attr.n,
                                 value: attr.n,
@@ -912,8 +912,8 @@ function Styler() {
                     }
                     break;
                 case 'pseudo class':
-                    for (let i in SI.Editor.Code.css_properties["Pseudo Class"]) {
-                        let pc = SI.Editor.Code.css_properties["Pseudo Class"][i];
+                    for (let i in SI.Editor.Data.css_properties["Pseudo Class"]) {
+                        let pc = SI.Editor.Data.css_properties["Pseudo Class"][i];
                         Ele("option", {
                             innerHTML: pc.n,
                             value: pc.n,
@@ -923,8 +923,8 @@ function Styler() {
                     }
                     break;
                 case 'pseudo element':
-                    for (let i in SI.Editor.Code.css_properties["Pseudo Element"]) {
-                        let pe = SI.Editor.Code.css_properties["Pseudo Element"][i];
+                    for (let i in SI.Editor.Data.css_properties["Pseudo Element"]) {
+                        let pe = SI.Editor.Data.css_properties["Pseudo Element"][i];
                         Ele("option", {
                             innerHTML: pe.n,
                             value: pe.n,
@@ -945,8 +945,8 @@ function Styler() {
                     }
                     break;
                 case '@':
-                    for (let i in SI.Editor.Code.css_properties["At Selectors"]) {
-                        let as = SI.Editor.Code.css_properties["At Selectors"][i];
+                    for (let i in SI.Editor.Data.css_properties["At Selectors"]) {
+                        let as = SI.Editor.Data.css_properties["At Selectors"][i];
                         Ele("option", {
                             innerHTML: as.n,
                             value: as.n,
@@ -1036,12 +1036,12 @@ function Styler() {
                                 alert("'none' cant be used for an animation name.");
                                 return;
                             }
-                            if (this.value.toLowerCase() !== 'none' && SI.Editor.Code.DataLists.AnimationNames.indexOf(this.value) === -1 && this.value.length > 0) {
-                                SI.Editor.Code.DataLists.AnimationNames.push(this.value);
+                            if (this.value.toLowerCase() !== 'none' && SI.Editor.Data.DataLists.AnimationNames.indexOf(this.value) === -1 && this.value.length > 0) {
+                                SI.Editor.Data.DataLists.AnimationNames.push(this.value);
                                 let anilist = document.getElementById('si_styler_animationnames');
                                 anilist.innerHTML = "";
                                 //load the animaiton list
-                                for (animationname of SI.Editor.Code.DataLists.AnimationNames) {
+                                for (animationname of SI.Editor.Data.DataLists.AnimationNames) {
                                     Ele("option", {
                                         value: animationname,
                                         innerHTML: animationname,
@@ -1129,7 +1129,7 @@ function Styler() {
         let sheetname= hWin.LoadedSheet;
         let code = document.getElementById("si_styler_codepad").innerText;
         if (csstype === 'Block') {
-            SI.Editor.Code.Objects.Blocks[sheetname].style = code.trim();
+            SI.Editor.Data.Objects.Blocks[sheetname].style = code.trim();
             //debugger;
             SI.Editor.Objects.Blocks.Save(sheetname, 'style');
 
@@ -1154,8 +1154,8 @@ function Styler() {
     };
     this.LoadStyleByBlock = function (blockname) {
         let style = '';
-        if (typeof SI.Editor.Code.Objects.Blocks[blockname].style !== 'undefined') {
-            style = SI.Editor.Code.Objects.Blocks[blockname].style;
+        if (typeof SI.Editor.Data.Objects.Blocks[blockname].style !== 'undefined') {
+            style = SI.Editor.Data.Objects.Blocks[blockname].style;
         }
         this.LoadStyleCode(style);
     };

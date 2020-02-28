@@ -264,10 +264,10 @@ SI.Editor = {
     Run: function () {
       //  let t0 = performance.now(); //how long does the editor take to load?
         console.time('EditorLoadTime');
-        SI.Editor.Code.Init(); 
+        SI.Editor.Data.Init(); 
         //wait for all the code to load before continuing. 
         var starttimmer = setInterval(function () {
-            if (SI.Editor.Code.loaded) {
+            if (SI.Editor.Data.loaded) {
                 clearInterval(starttimmer);
                 SI.Editor.Style.SetTheme();
                 SI.Editor.Objects.Elements.Init();
@@ -279,7 +279,7 @@ SI.Editor = {
        // setTimeout(function () { SI.Editor.Ajax.PostSetup.Go() }, 1000);
     },
     //SI.Editor.Code object stores all needed to maintain the 5 semantics that will be supported. html,css,js,php,sql
-    Code: {
+    Data: {
         loaded : false,
         html_elements: {},
         html_attributes: {},
@@ -312,18 +312,18 @@ SI.Editor = {
 
                 let jsonstring = localStorage.getItem(codetype);
 
-                if ( timestamp === "undefined" || (SI.Editor.Code.DataAge[codetype] != null && timestamp <= SI.Editor.Code.DataAge[codetype] && jsonstring === null)  ) {
+                if ( timestamp === "undefined" || (SI.Editor.Data.DataAge[codetype] != null && timestamp <= SI.Editor.Data.DataAge[codetype] && jsonstring === null)  ) {
                     var request = new XMLHttpRequest();
                     try {
                         request.onreadystatechange = function () {
                             if (this.readyState == 4 && this.status == 200) {
                                 if (request.responseText.length > 0) {
                                     SI.Tools.Storage.OverwriteStorage(codetype, request.responseText);
-                                    SI.Tools.Storage.OverwriteStorage(codetype + "_last_modified", SI.Editor.Code.DataAge[codetype]);
-                                    SI.Editor.Code[codetype] = JSON.parse(request.responseText);
+                                    SI.Tools.Storage.OverwriteStorage(codetype + "_last_modified", SI.Editor.Data.DataAge[codetype]);
+                                    SI.Editor.Data[codetype] = JSON.parse(request.responseText);
                                     loadedcount++;
                                     if (loadedcount == codes.length) {
-                                        SI.Editor.Code.loaded = true;
+                                        SI.Editor.Data.loaded = true;
                                     }
                                 }
                             }
@@ -338,10 +338,10 @@ SI.Editor = {
                     if (jsonstring != null && jsonstring.length > 0) {
                     //    console.log(jsonstring);
                         try {
-                            SI.Editor.Code[codetype] = JSON.parse(jsonstring);
+                            SI.Editor.Data[codetype] = JSON.parse(jsonstring);
                             loadedcount++;
                             if (loadedcount == codes.length) {       
-                                SI.Editor.Code.loaded = true;
+                                SI.Editor.Data.loaded = true;
                             }
                         } catch (ex) {
                             console.warn(ex);                           
@@ -350,7 +350,7 @@ SI.Editor = {
                     }
                 }
             });
-            SI.Editor.Code.Tools.SupplementData();
+            SI.Editor.Data.Tools.SupplementData();
         },
         OptionSets: {
             HTML: {
@@ -440,7 +440,7 @@ SI.Editor = {
                         if (options.LabelMargin) {
                             label.style.marginRight = options.LabelMargin;
                         }
-                        let deployments = SI.Editor.Code.Objects.Deployment.Levels;
+                        let deployments = SI.Editor.Data.Objects.Deployment.Levels;
                         for (deployment in deployments) {
                             //debugger;
                             let props = deployments[deployment];
@@ -542,29 +542,29 @@ SI.Editor = {
                 ajax.send(null);
             },
             GetStyleByName: function (name) {
-                for (let i in SI.Editor.Code.css_properties) {
-                    let group = SI.Editor.Code.css_properties[i];
+                for (let i in SI.Editor.Data.css_properties) {
+                    let group = SI.Editor.Data.css_properties[i];
                     for (let j in group) {
                         if (group[j].n === name) {
-                            SI.Editor.Code.css_properties[i][j].group = i;
-                            SI.Editor.Code.css_properties[i][j].index = j;
-                            return SI.Editor.Code.css_properties[i][j];
+                            SI.Editor.Data.css_properties[i][j].group = i;
+                            SI.Editor.Data.css_properties[i][j].index = j;
+                            return SI.Editor.Data.css_properties[i][j];
                         }
                     }
                 }
             },
             //GetAttributesByName returns the first instance of the attribute. there are several listed under multiple divs. they are not guaranteed unless a group is specified
             GetAttributeByName: function (name, group=null) {
-                for (let i in SI.Editor.Code.html_attributes) {
-                    let curgroup = SI.Editor.Code.html_attributes[i];
+                for (let i in SI.Editor.Data.html_attributes) {
+                    let curgroup = SI.Editor.Data.html_attributes[i];
                     if (curgroup == group || group == null) {
                         for (let j in curgroup) {
                             debugger;
                             if (curgroup[j].s === name) {
                                 //debugger;
-                                SI.Editor.Code.html_attributes[i][j].curgroup = i;
-                                SI.Editor.Code.html_attributes[i][j].index = j;
-                                return SI.Editor.Code.html_attributes[i][j];
+                                SI.Editor.Data.html_attributes[i][j].curgroup = i;
+                                SI.Editor.Data.html_attributes[i][j].index = j;
+                                return SI.Editor.Data.html_attributes[i][j];
                             }
                         }
                     }
@@ -573,7 +573,7 @@ SI.Editor = {
             BuildDataLists: function () {
                 //debugger;
                 if (SI.Editor.UI.Container != null) {
-                    if (SI.Editor.Code.html_elements) {
+                    if (SI.Editor.Data.html_elements) {
                         htmlTagDataList = document.createElement('datalist');
                         htmlTagDataList.id = "html-elements-datalist";
                         SI.Editor.UI.Container.append(htmlTagDataList);
@@ -582,8 +582,8 @@ SI.Editor = {
             },
             SupplementData: function () {
                 let SetEntityLists = function () {
-                    let info = SI.Editor.Code.Objects.Entities.Definitions;
-                    let notallowednames = SI.Editor.Code.Objects.Entities.Lists.NotAllowedNames;
+                    let info = SI.Editor.Data.Objects.Entities.Definitions;
+                    let notallowednames = SI.Editor.Data.Objects.Entities.Lists.NotAllowedNames;
                     let entkey = {}
                     for (ent in info) {
                         entdata = info[ent]
@@ -604,13 +604,13 @@ SI.Editor = {
                             }
                         }
                     }
-                    SI.Editor.Code.Objects.Entities.Lists.FwdRevLookup = entkey;
-                    SI.Editor.Code.Objects.Entities.Lists.NotAllowedNames = notallowednames;
+                    SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup = entkey;
+                    SI.Editor.Data.Objects.Entities.Lists.NotAllowedNames = notallowednames;
                 };
                 //the relations data is nothign but guids. lets try to make this more readable and useable
                 let SupplementRelationsData = function () {  
-                    let relations = SI.Editor.Code.Objects.Entities.Relationships;
-                    let lookup = SI.Editor.Code.Objects.Entities.Lists.FwdRevLookup;
+                    let relations = SI.Editor.Data.Objects.Entities.Relationships;
+                    let lookup = SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup;
                     for (r in relations) {
                         let relation = relations[r];
                         let childid = relation.childentity_id;
@@ -980,14 +980,14 @@ SI.Editor = {
                     }
                 });
                 
-                for (let group in SI.Editor.Code.html_elements) {
-                    if (SI.Editor.Code.html_elements.hasOwnProperty(group)) {
+                for (let group in SI.Editor.Data.html_elements) {
+                    if (SI.Editor.Data.html_elements.hasOwnProperty(group)) {
                         let tagbox = Ele('div', { innerHTML : group });
                         let tagtable = Ele('table', {
                             style:{backgroundColor: SI.Editor.Style.BackgroundColor, width:'100%'}
                         });
                         //debugger;
-                        let tagGroup = SI.Editor.Code.html_elements[group]; 
+                        let tagGroup = SI.Editor.Data.html_elements[group]; 
 
                         for (let prop in tagGroup) {
                             if (tagGroup.hasOwnProperty(prop)) {
@@ -1085,7 +1085,7 @@ SI.Editor = {
                                             //make block dirty so that we can tell the user to save it before leaving
                                             let block =SI.Tools.Element.GetBlock(obj).id.replace("si_block_", "");
                                             if (block) {
-                                                SI.Editor.Code.Objects.Blocks[block].IsDirty = true;
+                                                SI.Editor.Data.Objects.Blocks[block].IsDirty = true;
                                             }
                                             
                                         }
@@ -1530,7 +1530,7 @@ SI.Editor = {
                     appendTo: advancedpanel,
                 });
                 //MULTILINGUAL SELECT
-                let mylang = SI.Editor.Code.User.Languages;
+                let mylang = SI.Editor.Data.User.Languages;
                 let multilingualselect = Ele('select', {
                     id:'si_edit_main_advanced_mlselect',
                     append: Ele('option', {}),
@@ -1643,7 +1643,7 @@ SI.Editor = {
             },
             DrawQuickMenuItems: function(maintable) {
                 maintable.innerHTML = "";
-                let sc = SI.Editor.Code.User.QuickMenuItems;
+                let sc = SI.Editor.Data.User.QuickMenuItems;
                 for (let i in sc) {
                     if (sc.hasOwnProperty(i)) {
                         let control = sc[i];
@@ -1679,9 +1679,9 @@ SI.Editor = {
                 fnameLabel.innerHTML = '<input />';
                 fnamerow.appendChild(fnameLabel);
 
-                for (let group in SI.Editor.Code.html_attributes) {
+                for (let group in SI.Editor.Data.html_attributes) {
                     //           console.log(eletype + "  " + prop);
-                    if (SI.Editor.Code.html_attributes.hasOwnProperty(group)) {
+                    if (SI.Editor.Data.html_attributes.hasOwnProperty(group)) {
 
                         var attrsbox = Ele('div', {
                             innerHTML: group,
@@ -1704,8 +1704,8 @@ SI.Editor = {
                                 backgroundColor: SI.Editor.Style.BackgroundColor,
                             }
                         });
-                        for (let attribute in SI.Editor.Code.html_attributes[group]) {
-                            if (SI.Editor.Code.html_attributes[group].hasOwnProperty(attribute)) {
+                        for (let attribute in SI.Editor.Data.html_attributes[group]) {
+                            if (SI.Editor.Data.html_attributes[group].hasOwnProperty(attribute)) {
                                 let editableAttributeRow = SI.Editor.Objects.Elements.Attributes.Widget({ "Group": group, "Index": attribute });
                                 if (editableAttributeRow != null) {
                                     attrstable.appendChild(editableAttributeRow);                                 
@@ -1737,8 +1737,8 @@ SI.Editor = {
                 
                // var eletype = ele.tagName.toLowerCase();
                 //Loop through all of the groups of styles
-                for (let group in SI.Editor.Code.css_properties) {
-                    if (SI.Editor.Code.css_properties.hasOwnProperty(group)) {
+                for (let group in SI.Editor.Data.css_properties) {
+                    if (SI.Editor.Data.css_properties.hasOwnProperty(group)) {
 
                         if (!group.startsWith("Pseudo")) {
                             //Make the group box
@@ -1761,8 +1761,8 @@ SI.Editor = {
                                 appendTo: stylebox,
                             });
                             //Loop through all of the possible styles and create a user interface for them :)
-                            for (let css in SI.Editor.Code.css_properties[group]) {
-                                if (SI.Editor.Code.css_properties[group].hasOwnProperty(css)) {
+                            for (let css in SI.Editor.Data.css_properties[group]) {
+                                if (SI.Editor.Data.css_properties[group].hasOwnProperty(css)) {
                                     var editableChoiceRow = SI.Editor.Objects.Elements.Styles.Widget({ "Group": group, "Index": css });
                                     if (editableChoiceRow != null) {
                                         styletable.appendChild(editableChoiceRow);
@@ -2363,7 +2363,7 @@ SI.Editor = {
                     //this would be better with a bunch of inline blocks
                     for (item in bodystyle) {
                         //debugger;
-                        //let style = SI.Editor.Code.Tools.GetStyleByName(item);
+                        //let style = SI.Editor.Data.Tools.GetStyleByName(item);
                         let styleobj = {
                             "Property": item,
                             "Effected": 'body',
@@ -2407,7 +2407,7 @@ SI.Editor = {
                             let dField = df;
                             let dEnt = dFields[df];
                             let deployoptions = { EntityName: dEnt, EntityId: pageid, Attribute: dField };
-                            deployment.appendChild(SI.Editor.Code.Objects.Deployment.UI(deployoptions));
+                            deployment.appendChild(SI.Editor.Data.Objects.Deployment.UI(deployoptions));
                         }
                     }
                 }
@@ -2533,12 +2533,12 @@ SI.Editor = {
 
                 //Build the block library
                 //debugger;
-                for (let key in SI.Editor.Code.Objects.Blocks) {
-                    if (SI.Editor.Code.Objects.Blocks.hasOwnProperty(key)) {
+                for (let key in SI.Editor.Data.Objects.Blocks) {
+                    if (SI.Editor.Data.Objects.Blocks.hasOwnProperty(key)) {
                         if (typeof (SI.Editor.Objects.Blocks.Names[key]) == "undefined") {
                             SI.Editor.Objects.Blocks.Names.push(key);
                             //debugger;
-                            blocklib.appendChild(SI.Editor.Objects.Blocks.UI(key, SI.Editor.Code.Objects.Blocks[key]));
+                            blocklib.appendChild(SI.Editor.Objects.Blocks.UI(key, SI.Editor.Data.Objects.Blocks[key]));
                         }
                     }
                 }
@@ -2833,7 +2833,7 @@ SI.Editor = {
                 //clear spacer to keep icons off the toolbar
                 var mediaspacer = Ele('div', { style: { position: 'relative', width: '100%',  height: "20px",  pointerEvents:'none', }, appendTo: mediascroller });
 
-                let medialibrary = SI.Editor.Code.Objects.Media;
+                let medialibrary = SI.Editor.Data.Objects.Media;
 
                 for (var media in medialibrary) {
                     if (medialibrary.hasOwnProperty(media)) {
@@ -2841,7 +2841,7 @@ SI.Editor = {
                         let data = medialibrary[media];
                         if (data.hasOwnProperty('mime')) {
                      
-                            if (SI.Editor.Code.DataLists.AcceptedMimeTypes[tabname].indexOf(data.mime) > -1) {
+                            if (SI.Editor.Data.DataLists.AcceptedMimeTypes[tabname].indexOf(data.mime) > -1) {
                              //debugger;
                             //    console.log(data);
                                 let validPath =SI.Tools.GetMediaFilePath("dev_" + data['path']);
@@ -3066,7 +3066,7 @@ SI.Editor = {
                 let dBuNewPage = document.createElement('td');
                 let dBuINewPage = document.createElement('input');
                 dBuINewPage.id = "SI_Struct_NewPage_BU";
-                dBuINewPage.value = SI.Editor.Code.Site.BusinessUnit;
+                dBuINewPage.value = SI.Editor.Data.Site.BusinessUnit;
 
                 dBuINewPage.readOnly = <?= $notdomainadmin ?>;
                 dBuNewPage.appendChild(dBuINewPage);
@@ -3076,7 +3076,7 @@ SI.Editor = {
                 let dDoINewPage = document.createElement('input');
                 dDoINewPage.readOnly =  <?= $notsuperadmin ?>;
                 dDoINewPage.id = "SI_Struct_NewPage_Domain";
-                dDoINewPage.value = SI.Editor.Code.Site.Domain;
+                dDoINewPage.value = SI.Editor.Data.Site.Domain;
                 dDoNewPage.appendChild(dDoINewPage);
                 inRowNewPage.appendChild(dDoNewPage);
 
@@ -3114,7 +3114,7 @@ SI.Editor = {
                 });
 
                 //debugger;
-                let pageData = SI.Editor.Code.Objects.Pages;
+                let pageData = SI.Editor.Data.Objects.Pages;
                 let domains = [];
                 for (domain of pageData) {
                     //Deal with domain setup
@@ -3208,7 +3208,7 @@ SI.Editor = {
                                         });
 
                                         //try to round up some relationships
-                                        let relationships = SI.Editor.Code.Objects.Entities.Relationships;
+                                        let relationships = SI.Editor.Data.Objects.Entities.Relationships;
                                         //debugger;
 
                                         
@@ -3449,7 +3449,7 @@ SI.Editor = {
                     },
                 });
                 //debugger;
-                let ul =  SI.Tools.Object.ToDataTree(SI.Editor.Code.Site.SessionPageData);
+                let ul =  SI.Tools.Object.ToDataTree(SI.Editor.Data.Site.SessionPageData);
 
                 let pre = Ele('div', {
                     style: {
@@ -3549,7 +3549,7 @@ SI.Editor = {
                     },
                     appendTo: base,
                 })
-                pre.insertAdjacentHTML('beforeend', SI.Editor.Code.Objects.Users);
+                pre.insertAdjacentHTML('beforeend', SI.Editor.Data.Objects.Users);
 
 
 
@@ -3727,11 +3727,11 @@ SI.Editor = {
 
                 
                 blockTemplateBox = document.createElement('div');
-                for (let key in SI.Editor.Code.Objects.Blocks) {
-                    if (SI.Editor.Code.Objects.Blocks.hasOwnProperty(key)) {
+                for (let key in SI.Editor.Data.Objects.Blocks) {
+                    if (SI.Editor.Data.Objects.Blocks.hasOwnProperty(key)) {
 
-                        if (typeof (SI.Editor.Code.Objects.Blocks[key]) != "undefined") {
-                            blockTemplateBox.appendChild(SI.Editor.UI.BlockTemplates.Add(SI.Editor.Code.Objects.Blocks[key]));
+                        if (typeof (SI.Editor.Data.Objects.Blocks[key]) != "undefined") {
+                            blockTemplateBox.appendChild(SI.Editor.UI.BlockTemplates.Add(SI.Editor.Data.Objects.Blocks[key]));
                         }
 
                     }
@@ -4187,7 +4187,7 @@ Objects: {
                 SI.Tools.Select.Sort(installedLangs);
             },
             Draw: function () {
-                // var localtext = SI.Editor.Code.Objects.Entities.Definitions.localtext.attributes;
+                // var localtext = SI.Editor.Data.Objects.Entities.Definitions.localtext.attributes;
                 //Base
                 let base = Ele('div', {
                     style: {
@@ -4552,7 +4552,7 @@ Objects: {
 
                     let item = {
                         createdon: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                        entity_id: SI.Editor.Code.Objects.Entities.Definitions.localtext.instanceguid,//dont need this but its in entities
+                        entity_id: SI.Editor.Data.Objects.Entities.Definitions.localtext.instanceguid,//dont need this but its in entities
                         id: response['id'],
                         modifiedon: null,
                         name: response['token'],
@@ -5171,7 +5171,7 @@ Objects: {
 
                 },
                 Show: function(type, codeobj, appendTo) {
-                    for (let site of SI.Editor.Code.User.HelpLinks) {
+                    for (let site of SI.Editor.Data.User.HelpLinks) {
                         if (site in SI.Editor.Objects.Settings.Help.Sites && site in codeobj) {
                             let obj = SI.Editor.Objects.Settings.Help.Sites[site];
                             let types = obj.types;
@@ -5376,7 +5376,7 @@ Objects: {
                 var result = window.prompt('Enter a new role name:');
                 if (result) {
                     console.log("Createing Role: " + result);
-                    let entities = SI.Editor.Code.Objects.Entities.Definitions;
+                    let entities = SI.Editor.Data.Objects.Entities.Definitions;
                     let obj = {};
                     obj.name = result;
                     obj.rules = {};
@@ -5551,7 +5551,7 @@ Objects: {
                     //debugger;
                     let value = json[prop];
                     switch (prop) {
-                        case "CREATEELEMENT": editor.Code.Tools.CreateEditorElement(prop);
+                        case "CREATEELEMENT": SI.Editor.Data.Tools.CreateEditorElement(prop);
                         case "EXCEPTION": alert(JSON.stringify(value)); break;
                         case "REFRESH": location.reload(); break;
                         case "CONSOLELOG": console.log(value); break;
@@ -5564,7 +5564,7 @@ Objects: {
                         case "BLOCKREMOVED": console.log(value); break; 
 
                         //Common
-                        case "PROMOTED": SI.Editor.Code.Objects.Deployment.Promoted(value, options); break;
+                        case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
 
                         //Media
                         case "FILEPROMOTED": SI.Editor.Objects.Media.Promoted(value); break;

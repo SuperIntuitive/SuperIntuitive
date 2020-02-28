@@ -198,13 +198,13 @@ SI.Editor.Objects.Elements = {
 
 
                 //setup datalists
-                if (SI.Editor.Code.DataLists.AnimationNames === null) {
-                    SI.Editor.Code.DataLists.AnimationNames = [];
+                if (SI.Editor.Data.DataLists.AnimationNames === null) {
+                    SI.Editor.Data.DataLists.AnimationNames = [];
                 } 
                 //fill up our style lists
                 var compstyle = window.getComputedStyle(ele);
-                if (compstyle.animationName !== 'none' && SI.Editor.Code.DataLists.AnimationNames.indexOf(compstyle.animationName) === -1) {
-                    SI.Editor.Code.DataLists.AnimationNames.push(compstyle.animationName);
+                if (compstyle.animationName !== 'none' && SI.Editor.Data.DataLists.AnimationNames.indexOf(compstyle.animationName) === -1) {
+                    SI.Editor.Data.DataLists.AnimationNames.push(compstyle.animationName);
                 }
                 
 
@@ -353,10 +353,10 @@ SI.Editor.Objects.Elements = {
                     let a;
                     if (options.Group === null) {
                         //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? 
-                        a = SI.Editor.Code.Tools.GetAttributeByName(options.Property);
+                        a = SI.Editor.Data.Tools.GetAttributeByName(options.Property);
                     } else {
                         //if we dont have an index but do have a group name, guarentee the correct attr
-                        a = SI.Editor.Code.Tools.GetAttributeByName(options.Property, options.Group);
+                        a = SI.Editor.Data.Tools.GetAttributeByName(options.Property, options.Group);
                     }
 
                     options.Group = a.group;
@@ -364,7 +364,7 @@ SI.Editor.Objects.Elements = {
                 }
             }
 
-            let attrobj = SI.Editor.Code.html_attributes[options.Group][options.Index];
+            let attrobj = SI.Editor.Data.html_attributes[options.Group][options.Index];
             let attrrow = document.createElement('tr');
 
             let getEffected = function () {
@@ -820,7 +820,7 @@ SI.Editor.Objects.Elements = {
                 let blank = document.createElement('option');
                 blank.innerText = '';
                 attrInput.appendChild(blank);
-                attrInput.innerHTML += SI.Editor.Code.OptionSets.Language.All;
+                attrInput.innerHTML += SI.Editor.Data.OptionSets.Language.All;
                 attrInput.onchange = function (e) {
                     let ele = getEffected();
                     if (ele !== null) {
@@ -939,7 +939,7 @@ SI.Editor.Objects.Elements = {
                     return null;
                 }
                 else {
-                    let s = SI.Editor.Code.Tools.GetStyleByName(options.Property);
+                    let s = SI.Editor.Data.Tools.GetStyleByName(options.Property);
                     if (s) {
                         options.Group = s.group;
                         options.Index = s.index;
@@ -955,7 +955,7 @@ SI.Editor.Objects.Elements = {
                 return unsupportedRow;
             }
             else {
-                styleobj = SI.Editor.Code.css_properties[options.Group][options.Index];
+                styleobj = SI.Editor.Data.css_properties[options.Group][options.Index];
             }
 
             if (typeof styleobj === 'undefined' || styleobj.n.startsWith('@') || styleobj.n.startsWith(':')) {
@@ -1354,7 +1354,7 @@ SI.Editor.Objects.Elements = {
                     style: {
                         width: '120px',
                     },
-                    innerHTML: SI.Editor.Code.OptionSets.CSS.Colors,
+                    innerHTML: SI.Editor.Data.OptionSets.CSS.Colors,
                     onchange: function () {
                         //debugger;
                         var colorname = document.getElementById("si_edit_style_color_name_" + styleobj.n + "_" + RandId).value;
@@ -1513,7 +1513,7 @@ SI.Editor.Objects.Elements = {
                     });
 
                     for (let prop of psv) {
-                        let s = SI.Editor.Code.Tools.GetStyleByName(prop);
+                        let s = SI.Editor.Data.Tools.GetStyleByName(prop);
                         if (typeof s !== 'undefined') {
                             let sh;
                             if (s.v.indexOf('OS(') === -1) {
@@ -1524,11 +1524,11 @@ SI.Editor.Objects.Elements = {
                             }
 
                         } else {
-                            console.warn("Style: " + prop + " not obtainable from SI.Editor.Code.Tools.GetStyleByName()");
+                            console.warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
                         }
 
 
-                        //  let val = SI.Editor.Code.css_properties.
+                        //  let val = SI.Editor.Data.css_properties.
                         //  shorthandBox.appendChild(stylerow);
                     }
                     //   this.css_table.appendChild(row);
