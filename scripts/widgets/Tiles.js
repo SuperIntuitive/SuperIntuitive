@@ -1,7 +1,7 @@
 if (!SI) { var SI = {}; }
 if (!SI.Widgets) { SI.Widgets = {}; }
 
-function Tiles(options) {
+SI.Widgets.Tile = function(options) {
 
     this.Defaults = {
         "Type": "Images",
@@ -34,16 +34,13 @@ function Tiles(options) {
         "Group": "Generic",
         "NameChanged": function () { },
     };
-
-    this.Container = null;
-    this.Title = null;
-
-    var randId = SI.Tools.String.RandomString(11);
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Container;
+    this.Title;
+    this.RandId = SI.Tools.String.RandomString(11);
 
     this.Init = function () {
-        options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    //    console.log(options);
-        //set the size contingent with the type of element
+
         let height = "";
         let width = "";
         let labelheight = "";
@@ -86,7 +83,7 @@ function Tiles(options) {
         }
 
         let container = Ele('div', {
-            id: "si_tile_" + randId,
+            id: "si_tile_" + this.RandId,
             class: options.Group,
             style: {
                 width: width,
@@ -250,7 +247,7 @@ function Tiles(options) {
         return this.Container;
     }
 
-
+    let self = this;
     return this.Init();
 }
 

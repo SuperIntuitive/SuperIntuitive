@@ -112,9 +112,9 @@
     },
     {
         "n": "border-radius",
-        "d": "A shorthand property for setting all the four border-*-radius properties",
+        "d": "A shorthand property for setting all the four border-*-radius properties. \nSetting 1 value will apply to all 4 corners, \nSetting 2 values will pair the opposite corners, \nSetting 3 will set the top-left, the top-right and bottom-left, and the bottom-right, \nSetting 4 values will apply the 4 radii clockwise starting from the top-left",
         "t": "SH",
-        "v": "SH(LEN|LEN|LEN|LEN)",
+        "v": "SH(border-top-left-radius|border-top-right-radius|border-bottom-right-radius|border-bottom-left-radius)",
         "w3": "/cssref/css3_pr_border-radius.asp",
         "mdn": "/en-US/docs/Web/CSS/border-radius",
         "a": 0
@@ -267,7 +267,7 @@
         "n": "border-top-left-radius",
         "d": "Defines the radius of the border of the top-left corner",
         "t": "P",
-        "v": "SH(LEN|LEN)",
+        "v": "LEN",
         "w3": "/cssref/css3_pr_border-top-left-radius.asp",
         "mdn": "/en-US/docs/Web/CSS/border-top-left-radius",
         "a": 1
@@ -276,7 +276,7 @@
         "n": "border-top-right-radius",
         "d": "Defines the radius of the border of the top-right corner",
         "t": "P",
-        "v": "SH(LEN|LEN)",
+        "v": "LEN",
         "w3": "/cssref/css3_pr_border-top-right-radius.asp",
         "mdn": "/en-US/docs/Web/CSS/border-top-right-radius",
         "a": 1
@@ -332,7 +332,7 @@
         "n": "flex",
         "d": "Specifies the length of the item, relative to the rest",
         "t": "SH",
-        "v": "OS(SH(flex-grow|flex-shrink|flex-basis)|auto)",
+        "v": "OS(SH(flex-grow|flex-shrink|flex-basis)|auto|none)",
         "w3": "/cssref/css3_pr_flex.asp",
         "mdn": "/en-US/docs/Web/CSS/flex",
         "a": 1

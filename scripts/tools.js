@@ -491,12 +491,20 @@ SI.Tools = {
             }
 
         },
-        Random: function () {
+        Random: function (transparency = null) {
             var letters = '0123456789ABCDEF';
             var color = '#';
             for (var i = 0; i < 6; i++) {
                 color += letters[Math.floor(Math.random() * 16)];
             }
+
+            if (transparency) {
+                color = SI.Tools.Color.HexToRgb(color);
+                if (color) {
+                    color = "rgba(" + color.r + "," + color.g + "," + color.b + "," + transparency + ")";
+                }
+            }
+
             return color;
         },
         NameToHex: function (name) {
@@ -1141,9 +1149,18 @@ SI.Tools = {
             }
         }
     },
-
     AddPhp: function (php) {
         document.body.appendChild(document.createComment("<?php " + php + " ?>"));
+    },
+    SuperAlert: function(msg, duration=5000) //si 15466802
+    {
+        var el = document.createElement("div");
+        el.setAttribute("style", "position:absolute;top:40%;left:35%;background-color:white;padding:20px;");
+        el.innerHTML = msg;
+        setTimeout(function () {
+            el.parentNode.removeChild(el);
+        }, duration);
+        document.body.appendChild(el);
     },
     GetSubdomain: function (hostname) {
         hostname = typeof hostname !== 'undefined' ? hostname : window.location.hostname;
@@ -1392,7 +1409,6 @@ SI.Tools = {
         },
 
     },
-
     Select: {
         Sort: function(selElem) {
             var tmpAry = new Array();

@@ -195,7 +195,7 @@ SI.Widgets.Window = function (options) {
     }
     //me thinks this will allow the user to add a callback win.Resize(callback) or even assign over this function win.Resize = 
     this.Resize = function (callback) {
-        //debugger;
+        debugger;
         if (typeof callback !== 'undefined') {
             if (typeof callback === "function") {
                 callback();
@@ -779,4 +779,8 @@ SI.Widgets.Window = function (options) {
         }
     }
 
+};
+
+SI.Widgets.Windows = {
+    //Add all windows to this under unique window name. 
 };

@@ -1065,7 +1065,7 @@ SI.Editor.Objects.Elements = {
                 appendTo: container,
             });
 
-            var AssignStyle = function (val) {
+            var AssignStyle = function (val,shnum=null) {
                 //debugger;
                 val = val.trim();
                 //sets the values of the read only input
@@ -1436,35 +1436,75 @@ SI.Editor.Objects.Elements = {
 
                 return box;
             }
+            this.KEYFRAMENAMES = function () {          
+                var box = Ele('div', {});
+                let keyframenames = Ele("input", {
+                    id: "si_edit_style_keyframename_" + styleobj.n + "_" + RandId,
+                    
+                    onchange: function () {
+                        AssignStyle(this.value);
+                    },
+                    appendTo: box,
+                });
+                keyframenames.setAttribute('list', "si_edit_style_keyframenamelist_" + styleobj.n + "_" + RandId);
+                let datalist = Ele("datalist", {
+                    id: "si_edit_style_keyframenamelist_" + styleobj.n + "_" + RandId,
+                    appendTo: box
+                });
+                function getAllKeyframeNames() {
+
+                    names = SI.Editor.Data.DataLists.AnimationNames;
+                    for (name of names) {
+                        Ele("option", {
+                            value: name,
+                            appendTo: datalist
+                        });
+                    }
+
+                }
+                getAllKeyframeNames();
+                return box;
+            }
             //function to build the caller for the above builder functions
-            this.BuildFunction = function (opts = "", label = null) {
-                let val = null;
-                if (typeof this[opts] == 'function') {
-                    val = this[opts]();
+            this.BuildFunction = function (func, color = null) {
+
+                if (typeof func !== 'undefined') {
+                    let val = null;
+                    if (typeof this[func] === 'function') {
+                        val = this[func]();
+                    }
+                    let row = document.createElement('tr');
+                    //  if (label) {
+                    //      Ele('td');
+                    //   }
+                    let data = document.createElement('td');
+
+                    if (val !== null) {
+                        data.appendChild(val);
+                    } else {
+                        data.innerHTML = func;
+                    }
+                    if (color) {
+                        data.style.backgroundColor = color;
+                        row.style.backgroundColor = color;
+                    }
+                    row.appendChild(data);
+                    return row;
                 }
-                let row = document.createElement('tr');
-                if (label) {
-                    Ele('td');
-                }
-                let data = document.createElement('td');
-                if (val != null) {
-                    data.appendChild(val);
-                } else {
-                    data.innerHTML = opts;
-                }
-                row.appendChild(data);
-                return row;
             }
 
-            this.BuildOptionset = function (achoices) {
+            this.BuildOptionset = function (optionset, color=null) {
                 let stylize = ['cursor'];
-                for (let i in achoices) {
-                    let opt = achoices[i];
+
+                for (let i in optionset) {
+                    let opt = optionset[i];
                     let row = document.createElement('tr');
                     let data = document.createElement('td');
+                    if (color) {
+                        data.style.backgroundColor = color;
+                    }
                     if (SI.Tools.String.IsUpperCase(opt)) {
-                        row = this.BuildFunction(opt);
-
+                        row = this.BuildFunction(opt,color);
                     } else {
                         data.innerHTML = opt;
                         data.onclick = function () {
@@ -1474,6 +1514,7 @@ SI.Editor.Objects.Elements = {
                     }
                     if (stylize.indexOf(styleobj.n) !== -1) {
                         row.style[styleobj.n] = opt;
+
                     }
                     this.css_table.appendChild(row);
                 }
@@ -1492,52 +1533,53 @@ SI.Editor.Objects.Elements = {
                 } else {
                     let choices = styleobj.v.replace('OS(').replace('undefined', '');
                     choices = SI.Tools.String.TrimR(choices, ')');
-                    if (choices != undefined) {
-                        let achoices = choices.split('|');
-                        this.BuildOptionset(achoices);
+                    if (choices !== undefined) {
+                        let optionset = choices.split('|');
+                        this.BuildOptionset(optionset);
                     }
                 }
 
             }
             else if (styleobj.t === 'SH') { //if we have an optionset full of build options...
-                //debugger;
-                if (styleobj.v.indexOf('OS(') === -1) {
-                    let psv = styleobj.v.replace('SH(', '').replace(')', '').split("|");
-                    let row = Ele('tr', {});
-                    let data = Ele('td', {
-                        appendTo: row,
-                    });
+                let val = SI.Tools.String.TrimR(styleobj.v.replace('SH(', ''), ")");
+                let psv = val.split("|");
+                let row = Ele('tr', {});
+                let data = Ele('td', {
+                    appendTo: row,
+                });
 
-                    let shorthandBox = Ele('table', {
-                        appendTo: data,
-                    });
-
-                    for (let prop of psv) {
-                        let s = SI.Editor.Data.Tools.GetStyleByName(prop);
-                        if (typeof s !== 'undefined') {
-                            let sh;
-                            if (s.v.indexOf('OS(') === -1) {
-                                sh = this.BuildFunction(s.v);
-                                this.css_table.appendChild(sh);
-                            } else {
-                                //  sh = this.BuildOptionset(s.v);
-                            }
-
+                let shorthandBox = Ele('table', {
+                    appendTo: data
+                });
+                for (i = 0; i < psv.length; i++) {
+                    let color = SI.Tools.Color.Random(0.1); 
+                    let prop = psv[i];
+                    if (prop === 'LEN' || prop === 'NUM') {
+                        //debugger;
+                    }
+                    let s = SI.Editor.Data.Tools.GetStyleByName(prop);
+                    if (typeof s !== 'undefined') {
+                        let sh;
+                        if (s.v.indexOf('OS(') === -1) {
+                       
+                            sh = this.BuildFunction(s.v, color);
+                            this.css_table.appendChild(sh);
                         } else {
-                            console.warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
+                            let os = SI.Tools.String.TrimR(s.v.replace('OS(', ''), ")");
+                            let osa = os.split("|");
+                     
+                            this.BuildOptionset(osa,color);
                         }
 
-
-                        //  let val = SI.Editor.Data.css_properties.
-                        //  shorthandBox.appendChild(stylerow);
+                    } else {
+                        console.warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
                     }
-                    //   this.css_table.appendChild(row);
 
-                } else {
-                    //debugger;
-                    //this has a OS in the SH case senario deal with after
+
+                    //  let val = SI.Editor.Data.css_properties.
+                    //  shorthandBox.appendChild(stylerow);
                 }
-
+                //   this.css_table.appendChild(row);
 
                 this.css_value.readOnly = false;
             }

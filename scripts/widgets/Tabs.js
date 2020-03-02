@@ -185,7 +185,7 @@ SI.Widgets.Tabs = function (options) {
 
                     let contentid = this.id.replace('si_tabitem_', 'si_tabcontent_');
                     //    console.log(contentid);
-                    debugger;
+                    //debugger;
                     document.getElementById(contentid).style.display = 'block';
                     SelectedId = this.id;
                     options.Selected = this.dataset.tabname;

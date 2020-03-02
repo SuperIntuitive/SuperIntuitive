@@ -4,7 +4,7 @@ if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
 
 
 
-function Styler() {
+SI.Editor.Objects.Styler = function() {
 
     this.SelectedStyle = null;
     this.SelectorMenuEffects = null;

@@ -25,5 +25,6 @@ if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINE
             }             
         }
     }
+    echo " @keyframes mymove { from {left: 0px;} to {left: 200px;} }";
 ?>
 

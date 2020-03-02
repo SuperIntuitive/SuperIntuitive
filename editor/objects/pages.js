@@ -4,6 +4,543 @@ if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
 
 
 SI.Editor.Objects.Page = {
+    Draw: function () {
+        SI.Editor.UI.BlockTemplates.Init();
+        SI.Editor.UI.ImportBlock.Init();
+
+        let base = Ele('div', {
+            style: {
+                width: '100%',
+                height: '100%',
+                backgroundColor: "teal",
+                overflowY: 'scroll',
+            }
+
+        });
+
+        let sub = SI.Tools.GetSubdomain();
+        let dir = SI.Tools.GetPathDirectory();
+
+        //Path Section
+        let pageContainer = Ele('section', {
+            innerHTML: 'Page',
+            style: {
+                backgroundColor: 'black',
+                color: SI.Editor.Style.TextColor,
+                margin: '7px',
+                padding: '6px',
+            },
+            appendTo: base,
+        });
+
+        //
+        //Save Page Button
+        //
+        let dirSave = Ele('button', {
+            appendTo: pageContainer,
+            style: {
+                width: '20px',
+                height: '20px',
+                float: 'right',
+                backgroundImage: "url('/editor/media/icons/save.png')",
+                backgroundSize: 'cover'
+            },
+            title: "Save the Page",
+            //SAVE THE PAGE HERE
+            onclick: function () {
+                SI.Editor.Objects.Page.Save();
+            }
+
+        });
+
+        let pathFieldset = Ele("fieldset", {
+            style: {
+                margin: '6px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                width: "95%",
+                display: 'block',
+                borderRadius: '10px',
+            },
+            appendTo: pageContainer,
+            append: Ele("legend", { innerHTML: "Path" }),
+        });
+
+        let pathTable = Ele("table", {
+            style: {
+                margin: '6px',
+                padding: '3px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                width: '99%',
+            },
+            appendTo: pathFieldset,
+        });
+
+        let pathHeaderRow = Ele('tr', { appendTo: pathTable, style: { color: SI.Editor.Style.TextColor }, });
+        let subHeader = Ele('th', { innerHTML: "Business Unit", appendTo: pathHeaderRow, userSelect: 'none' });
+        let domainHeader = Ele('th', { innerHTML: "Domain", appendTo: pathHeaderRow, userSelect: 'none' });
+        let pageHeader = Ele('th', { innerHTML: "Directory", appendTo: pathHeaderRow, userSelect: 'none' });
+        let spaceHeader = Ele('th', { appendTo: pathHeaderRow });
+        let pathDataRow = Ele('tr', { appendTo: pathTable });
+        let subData = Ele('td', { appendTo: pathDataRow });
+        let subInput = Ele('input', { readOnly: true, value: sub, appendTo: subData, style: { width: '95%', backgroundColor: '#aababc' } });
+        let domainData = Ele('td', { innerHTML: '. ', appendTo: pathDataRow });
+        let domainInput = Ele('input', { readOnly: true, value: document.domain, appendTo: domainData, style: { width: '90%', backgroundColor: '#aababc' } })
+        let dirData = Ele('td', { innerHTML: '/ ', appendTo: pathDataRow });
+        let dirInput = Ele('input', { id: 'si_page_directory_field', data: { name: dir }, style: { width: '90%' }, value: dir, appendTo: dirData })
+        let saveBtn = Ele('td', { appendTo: pathDataRow });
+
+        //Redirect
+        let pageredirectrow = Ele('tr', { appendTo: pathTable });
+
+
+        let pageredirectto = Ele('td', {
+            style: {
+                paddingTop: '15px',
+            },
+            colSpan: 4,
+            appendTo: pageredirectrow,
+        });
+        let redirectLuLbl = Ele('label', { for: 'si_edit_page_redirectlu', appendTo: pageredirectto, innerHTML: "Redirect To: ", });
+        let redirectLu = Ele('input', {
+            id: "si_edit_page_redirectlu",
+            type: "lookup",
+            appendTo: pageredirectto,
+            enabled: 'false',
+            data: {
+                type: "pages",
+                column: 'path'
+            }, style: {
+                width: '300px',
+            }
+        });
+        redirectLu.addEventListener('change',
+            function () {
+                if (this.value !== "LOOK IT UP!") {
+                    if (!confirm('If you redirect this page, you will only be able to remove the redirect from the Site tool. Are you sure you want to redirect it?')){
+                        this.value = null;
+                    }
+                }
+            },
+            false);
+
+        //End Path Section
+
+        //Meta Section
+        let bodyFieldset = Ele("fieldset", {
+            style: {
+                margin: '6px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                width: "95%",
+                display: 'block',
+                borderRadius: '10px',
+            },
+            appendTo: pageContainer,
+            append: Ele("legend", { innerHTML: "Meta Tags" }),
+        });
+
+        let metaTable = Ele("table", {
+            style: {
+                margin: '6px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                width: "99%",
+            },
+            appendTo: bodyFieldset,
+        });
+
+        let metaPageTitleRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor }, });
+        let metaPageTitle = Ele('td', { innerHTML: "Title", appendTo: metaPageTitleRow, style: { width: '150px' } });
+        let metaPageTitleCell = Ele('td', { appendTo: metaPageTitleRow });
+        let cleantitle = document.title.replace("dev - ", "");
+        let metaPageTitleInput = Ele('input', {
+            placeholder: "The Page Title that appears in the tab",
+            value: cleantitle,
+            appendTo: metaPageTitleCell,
+            style: {
+                width: '97%',
+            },
+            onkeyup: function (e) {
+                var title = document.getElementById('si_pagetitle');
+                title.innerHTML = this.value.replace("dev - ", '');
+            },
+        });
+        //Favicon
+        //debugger;
+        var nodeList = document.getElementsByTagName("link");
+        var favicon = null;
+        for (var i = 0; i < nodeList.length; i++) {
+            if ((nodeList[i].getAttribute("rel") == "icon") || (nodeList[i].getAttribute("rel") == "shortcut icon")) {
+                favicon = nodeList[i].getAttribute("href");
+                break;
+            }
+        }
+        if (favicon) {
+            favicon = favicon.replace("media/images/dev_", '');
+        }
+
+
+        let metaPageIconRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor }, });
+        let metaPageIcon = Ele('td', { innerHTML: "Favicon", appendTo: metaPageIconRow });
+        let metaPageIconLookupCell = Ele('td', { appendTo: metaPageIconRow });
+        let metaPageIconLookup = Ele('input', {
+            type: "lookup",
+            data: { type: "media", column: 'path' },
+            placeholder: "Temp",
+            value: favicon,
+            appendTo: metaPageIconLookupCell,
+            style: {
+                width: '97%',
+            },
+            onkeyup: function (e) {
+                //debugger;
+                var icon = document.getElementById('si_favicon');
+                pathonly = icon.href.substring(0, icon.href.lastIndexOf("dev_")) + "dev_";
+                icon.href = pathonly + this.value;
+            },
+        });
+
+        nodeList = document.getElementsByTagName("meta");
+        var charset;
+        for (var i = 0; i < nodeList.length; i++) {
+            if ((nodeList[i].getAttribute("charset") != null)) {
+                charset = nodeList[i].getAttribute("charset");
+                break;
+            }
+        }
+
+        let metaPageCharsetRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor }, });
+        let metaPageCharset = Ele('td', { innerHTML: "Charset", appendTo: metaPageCharsetRow });
+        let metaPageCharsetLookupCell = Ele('td', { appendTo: metaPageCharsetRow });
+
+        let metaPageCharsetLookup = Ele('input', {
+            placeholder: "utf-8",
+            value: charset,
+            list: "si_datalist_charsets",
+            appendTo: metaPageCharsetLookupCell,
+            style: {
+                width: '97%',
+            },
+            onkeyup: function (e) {
+                var meta = document.getElementById('si_meta_charset');
+                meta.setAttribute("charset", this.value);
+            },
+        });
+
+        //More or Less link
+        let metaPageMoreRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor }, });
+        let metaPageMore = Ele('th', {
+            innerHTML: "more",
+            id: 'si_moremetatoggle',
+            appendTo: metaPageMoreRow,
+            colspan: '1',
+            style: {
+                color: SI.Editor.Style.TextColor,
+                fontSize: 'x-small',
+                cursor: 'pointer',
+                backgroundColor: '#333',
+                borderStyle: 'inset',
+                borderRadius: '8px',
+                borderColor: 'navy',
+            },
+            onclick: function () {
+                metafieldfix = document.getElementsByClassName("si-editor-page-metainput");
+                for (let i = 0; i < metafieldfix.length; i++) {
+                    if (this.innerHTML == "more") {
+                        metafieldfix[i].style.display = 'table-row';
+                    } else {
+                        metafieldfix[i].style.display = 'none';
+                    }
+                }
+                if (this.innerHTML == "more") {
+                    this.innerHTML = 'less';
+                } else {
+                    this.innerHTML = 'more';
+                }
+            },
+        });
+        //loop meta items so that they are all controlable
+        //debugger;
+        let metaPageMoreMetaRow = Ele('tr', { id: 'si_moremetabox', appendTo: metaTable, colspan: 2, style: { color: SI.Editor.Style.TextColor }, });
+
+        // let metaitems = { 'description': 'Page Description', 'keywords': 'Website builder cms', 'author': 'You!', 'viewport': 'width=device-width, initial-scale=1' };
+        let metaitems = {};
+        let metas = document.getElementsByTagName('meta');
+        //debugger;
+        for (let i = 0; i < metas.length; i++) {
+            let name = null;
+            if (metas[i].getAttribute('name') != null && metas[i].getAttribute('name').length > 0) {
+                metaitems[metas[i].getAttribute('name')] = metas[i].getAttribute('content');
+            }
+            else if (metas[i].getAttribute('httpEquiv') !== "undefined") {
+                //debugger;
+                metaitems[metas[i].getAttribute('http-equiv')] = metas[i].getAttribute('content');
+            }
+        }
+
+        for (item in metaitems) {
+            if (item != 'null') {
+                let currentMetaValue = '';
+
+                for (let i = 0; i < metas.length; i++) {
+                    if (metas[i].getAttribute('name') === item) {
+                        currentMetaValue = metas[i].getAttribute('content');
+                        break;
+                    }
+                }
+
+                let metaRow = Ele('tr', { appendTo: metaTable, class: "si-editor-page-metainput", style: { color: SI.Editor.Style.TextColor, display: 'none' }, });
+                let metaName = Ele('td', {
+                    innerHTML: item,
+                    style: {
+                        width: '100px',
+
+                    },
+                    appendTo: metaRow
+                });
+                let metaInput = Ele('input', {
+                    placeholder: currentMetaValue,
+                    id: "si_meta_" + item.replace(/-/g, '_'),
+                    value: currentMetaValue,
+                    style: {
+                        width: '97%',
+                    },
+                    onchange: function (e) {
+                        let name = this.id.replace('si_meta_', '').replace(/_/g, '-');
+                        let metas = Q('meta');
+                        for (let i in metas) {
+                            let meta = metas[i];
+                            if (meta.name != null && meta.name === name) {
+                                meta.content = this.value;
+                                break;
+                            } else if (meta.httpEquiv != null && meta.httpEquiv === name) {
+                                meta.content = this.value;
+                            }
+                        }
+                    }
+                });
+                let metainputCell = Ele('td', {
+                    style: {
+                    },
+                    append: metaInput,
+                    appendTo: metaRow
+                });
+            }
+
+        }
+
+        // let metaPageMoreMetaBox = Ele('td', { append: metaMoreTable, appendTo: metaPageMoreMetaRow, style: {} });
+
+        var bodyStyleEle = document.getElementById("si_bodystyle");
+        if (bodyStyleEle) {
+            var bodystyle = bodyStyleEle.innerHTML;
+            //Body Styles
+            let bodyTable = Ele("fieldset", {
+                style: {
+                    margin: '6px',
+                    backgroundColor: SI.Editor.Style.BackgroundColor,
+                    width: "95%",
+                    display: 'block',
+                    borderRadius: '10px',
+                },
+                appendTo: pageContainer,
+                append: Ele("legend", { innerHTML: "Body Style" }),
+            });
+
+            bodystyle = "{\"" + bodystyle.replace("body {", "").replace(/:/g, '":"').replace(/;/g, '","').replace(',"}', '}');
+            bodystyle = JSON.parse(bodystyle);
+
+            let tablebox = Ele("div", {
+                style: {
+                    display: 'flex',
+                },
+                appendTo: bodyTable,
+            })
+            let leftTable = Ele("table", {
+                style: {
+                    display: 'inline-block',
+                },
+                appendTo: tablebox,
+            });
+            let rightTable = Ele("table", {
+                style: {
+                    float: 'right',
+                },
+                appendTo: tablebox,
+
+            });
+
+            let onleft = true;
+            //this would be better with a bunch of inline blocks
+            for (item in bodystyle) {
+                //debugger;
+                //let style = SI.Editor.Data.Tools.GetStyleByName(item);
+                let styleobj = {
+                    "Property": item,
+                    "Effected": 'body',
+                    "InitialValue": bodystyle[item],
+                    "InputId": 'si_page_body_style_' + SI.Tools.CssProp2JsKey(item),
+                    "AccessClass": "si-editor-page-bodystyle"
+                };
+
+                let stylerow = SI.Editor.Objects.Elements.Styles.Widget(styleobj);// "Group": style.group, "Index": style.index, "Effect": 'body' });
+                if (stylerow != null) {
+                    if (onleft) {
+                        leftTable.appendChild(stylerow);
+                    } else {
+                        rightTable.appendChild(stylerow);
+                    }
+                    onleft = !onleft;
+                }
+            }
+        }
+
+        //Page Deployment
+        if (document.body.dataset.guid != null && document.body.dataset.guid.length === 34) {
+            let pageid = document.body.dataset.guid;
+            let deployment = Ele("fieldset", {
+                style: {
+                    margin: '6px',
+                    backgroundColor: SI.Editor.Style.BackgroundColor,
+                    width: "95%",
+                    display: 'block',
+                    borderRadius: '10px',
+                },
+                appendTo: pageContainer,
+                append: Ele("legend", { innerHTML: "Deployment" }),
+            });
+
+            let dFields = { "options": "pages" };
+
+            for (df in dFields) {
+                if (dFields.hasOwnProperty(df)) {
+                    //debugger;
+                    let dField = df;
+                    let dEnt = dFields[df];
+                    let deployoptions = { EntityName: dEnt, EntityId: pageid, Attribute: dField };
+                    deployment.appendChild(SI.Editor.Data.Objects.Deployment.UI(deployoptions));
+                }
+            }
+        }
+
+        //BLOCKS Initially created here:
+        let blocklib = Ele('section', {
+            id: "si_editor_page_block_container",
+            style: {
+                backgroundColor: 'black',
+                width: '96.5%',
+                padding: '6px',
+                margin: '7px',
+            },
+            onclick: function (e) { SI.Editor.Objects.Blocks.Select(); },
+            onmouseenter: function () {
+                SI.Editor.Objects.Blocks.Reorder();
+            }
+        });
+
+        base.appendChild(blocklib);
+
+        SI.Editor.UI.Page.Window.Append(base);
+
+        let blocklabel = Ele('span', {
+            innerHTML: "Blocks",
+            style: {
+                color: SI.Editor.Style.TextColor,
+            },
+            appendTo: blocklib,
+        });
+
+        //
+        //New Block Button
+        //
+        let newblockbutton = Ele('button', {
+            appendTo: blocklib,
+            style: {
+                width: '20px',
+                height: '20px',
+                float: 'right',
+                backgroundImage: "url('/editor/media/icons/new-block-btn.png')",
+                backgroundSize: 'cover'
+            },
+            title: "New Block",
+            onclick: function (ev) {
+                let newBlockName = prompt("Please enter a unique name for the Block : ", "");
+                if (newBlockName != null) {
+                    var potentialId = SI.Tools.RegEx.Fix("OkId", newBlockName);
+                    if (document.getElementById("si_bid_" + potentialId) == null) {
+                        SI.Editor.Objects.Blocks.New(newBlockName);
+                    } else {
+                        alert("That Blockname is already in use on this page.");
+                    }
+
+                }
+            },
+
+        });
+
+        //Import Block Button
+        let blockImportLabel = Ele('button', {
+            appendTo: blocklib,
+            style: {
+                width: '20px',
+                height: '20px',
+                float: 'right',
+                backgroundImage: "url('/editor/media/icons/import.png')",
+                backgroundSize: 'cover'
+            },
+            title: "Import Existing Block",
+            onclick: function (e) {
+
+                SI.Editor.UI.ImportBlock.Window.SetPosition(e.pageY + 25, e.pageX - 250);
+                SI.Editor.UI.ImportBlock.Window.Show();
+            }
+
+        });
+
+        //Block Template Button
+        let blockTemplateLabel = Ele('button', {
+            appendTo: blocklib,
+            style: {
+                width: '20px',
+                height: '20px',
+                float: 'right',
+                backgroundImage: "url('/editor/media/icons/page-template-btn.png')",
+                backgroundSize: 'cover'
+            },
+            title: "Block Template Library",
+            onclick: function () {
+                SI.Editor.UI.BlockTemplates.Window.Show();
+            }
+
+        });
+        let blockstablebox = Ele("div", {
+            appendTo: blocklib,
+        })
+        let leftBlockTable = Ele("table", {
+            style: {
+                display: 'inline-block',
+            },
+            appendTo: blockstablebox,
+        });
+        let rightBlockTable = Ele("table", {
+            style: {
+                float: 'right',
+            },
+            appendTo: blockstablebox,
+
+        });
+        let onleft = true;
+
+        //Build the block library
+        //debugger;
+        for (let key in SI.Editor.Data.Objects.Blocks) {
+            if (SI.Editor.Data.Objects.Blocks.hasOwnProperty(key)) {
+                if (typeof (SI.Editor.Objects.Blocks.Names[key]) == "undefined") {
+                    SI.Editor.Objects.Blocks.Names.push(key);
+                    //debugger;
+                    blocklib.appendChild(SI.Editor.Objects.Blocks.UI(key, SI.Editor.Data.Objects.Blocks[key]));
+                }
+            }
+        }
+    },
     New: function (page) {
         let data = { "KEY": "PageNew", "page": page };
         //debugger
@@ -11,7 +548,7 @@ SI.Editor.Objects.Page = {
     },
     Save: function () {
         let guid = "";
-        if (document.body.dataset.guid != null && document.body.dataset.guid.length === 34) {
+        if (document.body.dataset.guid !== null && document.body.dataset.guid.length === 34) {
             //get all of the data needed from the actual page, not the UI. all of the UI will be responsible for changing the page the the page will always be up to date and can be saved. All changes (and non changes) will be saved.
             let data = {};
             data.head = {};
@@ -124,16 +661,14 @@ SI.Editor.Objects.Page = {
         if (data.hasOwnProperty('CURRENTDBPAGEPATH')) {
             let rp = data.CURRENTDBPAGEPATH;
             let current = SI.Tools.GetPathDirectory();
-            if (current.length == 0) {
+            if (current.length === 0) {
                 current = "_ROOT_";
             }
-            if (rp != current) {
+            if (rp !== current) {
                 let newlocal = "/" + rp;
                 newlocal = newlocal.replace("/_ROOT_", "/");
                 window.location = newlocal;
-            } else {
-
-            }
+            } 
         }
         if (data.hasOwnProperty('DUPE')) {
             alert("Sorry,that page already exists.\nIf you would like to redirect this page to that one, please do so in the redirect field below.");
