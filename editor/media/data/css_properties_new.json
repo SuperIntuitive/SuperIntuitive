@@ -19,12 +19,13 @@
     "FONTFAMILY"
   ],
   "Animation": [
+
     {
       "name": "animation",
       "groups": [ "Animation" ],
+      "default": "none 0 ease 0 1 normal none running",
       "discription": "A shorthand property for all the animation properties",
       "type": "SH",
-      "default": "none 0 ease 0 1 normal none running",
       "values": [
         "animation-name",
         "animation-duration",
@@ -44,6 +45,7 @@
 
     {
       "name": "@keyframes",
+      "groups": [ "Animation" ],
       "discription": "Specifies the animation code",
       "type": "AT",
       "values": [ "Animation" ],
@@ -57,9 +59,10 @@
     {
       "name": "animation-delay",
       "groups": [ "Animation" ],
+      "default": "0s",
       "discription": "Specifies a delay for the start of an animation",
       "type": "P",
-      "values": "TIME",
+      "values": [ "TIME" ],
       "animatable": false,
       "help": {
         "w3": "/cssref/css3_pr_animation-delay.asp",
@@ -70,6 +73,7 @@
     {
       "name": "animation-direction",
       "groups": [ "Animation" ],
+      "default": "normal",
       "discription": "Specifies whether an animation should be played forwards, backwards or in alternate cycles",
       "type": "OS",
       "values": [
@@ -90,7 +94,7 @@
       "groups": [ "Animation" ],
       "discription": "Specifies how long an animation should take to complete one cycle",
       "type": "P",
-      "values": "TIME",
+      "values": [ "TIME" ],
       "animatable": false,
       "help": {
         "w3": "/cssref/css3_pr_animation-duration.asp",
@@ -207,12 +211,14 @@
         "mdn": "/en-US/docs/Web/CSS/animation-timing-function"
       }
     }
+
   ],
+
   "Colors and Backgrounds": [
 
     {
       "name": "background",
-      "groups": [ "Colors and Backgrounds" ],
+      "groups": [ "Backgrounds" ],
       "discription": "A shorthand property for setting all the background properties in one declaration",
       "type": "SH",
       "values": [
@@ -234,7 +240,7 @@
 
     {
       "name": "border-image",
-      "groups": [ "Colors and Backgrounds", "Borders", "Images" ],
+      "groups": [ "Borders", "Images" ],
       "discription": "A shorthand property for setting all the border-image-* properties",
       "type": "SH",
       "values": [
@@ -253,7 +259,7 @@
 
     {
       "name": "border-radius",
-      "groups": [ "Colors and Backgrounds", "Borders", "Radius" ],
+      "groups": [ "Borders", "Radius" ],
       "discription": "A shorthand property for setting all the four border-*-radius properties. \nSetting 1 value will apply to all 4 corners, \nSetting 2 values will pair the opposite corners, \nSetting 3 will set the top-left, the top-right and bottom-left, and the bottom-right, \nSetting 4 values will apply the 4 radii clockwise starting from the top-left",
       "type": "SH",
       "values": [
@@ -271,7 +277,7 @@
 
     {
       "name": "background-attachment",
-      "groups": [ "Colors and Backgrounds", "Position" ],
+      "groups": [ "Backgrounds", "Position" ],
       "discription": "Sets whether a background image scrolls with the rest of the page, or is fixed",
       "type": "OS",
       "values": [
@@ -312,6 +318,7 @@
 
     {
       "name": "background-clip",
+      "groups": [ "Colors and Backgrounds" ],
       "discription": "Defines how far the background (color or image) should extend within an element",
       "type": "OS",
       "values": [
@@ -328,6 +335,7 @@
 
     {
       "name": "background-color",
+      "groups": [ "Colors and Backgrounds" ],
       "discription": "Specifies the background color of an element",
       "type": "OS",
       "values": [
@@ -343,6 +351,7 @@
 
     {
       "name": "background-image",
+      "groups": [ "Colors and Backgrounds", "Images" ],
       "discription": "Specifies one or more background images for an element",
       "type": "OS",
       "values": [
@@ -358,6 +367,7 @@
 
     {
       "name": "background-origin",
+      "groups": [ "Colors and Backgrounds" ],
       "discription": "Specifies the origin position of a background image",
       "type": "OS",
       "values": [
@@ -374,6 +384,7 @@
 
     {
       "name": "background-position",
+      "groups": [ "Colors and Backgrounds", "Position" ],
       "discription": "Specifies the position of a background image",
       "type": "OS",
       "values": [
@@ -394,8 +405,10 @@
         "mdn": "/en-US/docs/Web/CSS/background-position"
       }
     },
+
     {
       "name": "background-repeat",
+      "groups": [ "Colors and Backgrounds", "Position" ],
       "discription": "Sets if/how a background image will be repeated",
       "type": "OS",
       "values": [
@@ -413,6 +426,7 @@
 
     {
       "name": "background-size",
+      "groups": [ "Colors and Backgrounds", "Position" ],
       "discription": "Specifies the size of the background images",
       "type": "OS",
       "values": [
@@ -430,6 +444,7 @@
 
     {
       "name": "border-bottom-left-radius",
+      "groups": [ "Borders", "Radius" ],
       "discription": "Defines the radius of the border of the bottom-left corner",
       "type": "P",
       "values": "LEN",
@@ -442,6 +457,7 @@
 
     {
       "name": "border-bottom-right-radius",
+      "groups": [ "Borders", "Radius" ],
       "discription": "Defines the radius of the border of the bottom-right corner",
       "type": "P",
       "values": "LEN",
@@ -454,6 +470,7 @@
 
     {
       "name": "border-image-outset",
+      "groups": [ "Colors and Backgrounds", "Image", "Position" ],
       "discription": "Specifies the amount by which the border image area extends beyond the border box",
       "type": "OS",
       "values": [
@@ -469,6 +486,7 @@
 
     {
       "name": "border-image-repeat",
+      "groups": [ "Colors and Backgrounds", "Image", "Position" ],
       "discription": "Specifies whether the border image should be repeated, rounded or stretched",
       "type": "OS",
       "values": [
@@ -485,6 +503,7 @@
 
     {
       "name": "border-image-slice",
+      "groups": [ "Borders", "Images", "Position" ],
       "discription": "Specifies how to slice the border image",
       "type": "OS",
       "values": [
@@ -501,6 +520,7 @@
 
     {
       "name": "border-image-source",
+      "groups": [ "Borders", "Images" ],
       "discription": "Specifies the path to the image to be used as a border",
       "type": "OS",
       "values": [
@@ -517,6 +537,7 @@
 
     {
       "name": "border-image-width",
+      "groups": [ "Borders", "Images", "Size" ],
       "discription": "Specifies the width of the border image",
       "type": "OS",
       "values": [
@@ -574,6 +595,7 @@
         "mdn": "/en-US/docs/Web/CSS/box-shadow"
       }
     },
+
     {
       "name": "caret-color",
       "discription": "Specifies the color of the cursor (caret) in inputs, textareas, or any element that is editable",
@@ -588,6 +610,7 @@
         "mdn": "/en-US/docs/Web/CSS/caret-color"
       }
     },
+
     {
       "name": "color",
       "discription": "Sets the color of text",
@@ -599,6 +622,7 @@
         "mdn": "/en-US/docs/Web/CSS/color"
       }
     },
+
     {
       "name": "filter",
       "discription": "Defines effects (e.g. blurring or color shifting) on an element before the element is displayed",
@@ -626,6 +650,7 @@
         "mdn": "/en-US/docs/Web/CSS/filter"
       }
     },
+
     {
       "name": "opacity",
       "discription": "Sets the opacity level for an element",
@@ -637,8 +662,11 @@
         "mdn": "/en-US/docs/Web/CSS/opacity"
       }
     }
+
   ],
+
   "Flex": [
+
     {
       "name": "flex",
       "discription": "Specifies the length of the item, relative to the rest",
@@ -660,6 +688,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex"
       }
     },
+
     {
       "name": "flex-flow",
       "discription": "A shorthand property for the flex-direction and the flex-wrap properties",
@@ -674,6 +703,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex-flow"
       }
     },
+
     {
       "name": "flex-basis",
       "discription": "Specifies the initial length of a flexible item",
@@ -688,6 +718,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex-basis"
       }
     },
+
     {
       "name": "flex-direction",
       "discription": "Specifies the direction of the flexible items",
@@ -704,6 +735,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex-direction"
       }
     },
+
     {
       "name": "flex-grow",
       "discription": "Specifies how much the item will grow relative to the rest",
@@ -715,6 +747,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex-grow"
       }
     },
+
     {
       "name": "flex-shrink",
       "discription": "Specifies how the item will shrink relative to the rest",
@@ -726,6 +759,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex-shrink"
       }
     },
+
     {
       "name": "flex-wrap",
       "discription": "Specifies whether the flexible items should wrap or not",
@@ -741,6 +775,7 @@
         "mdn": "/en-US/docs/Web/CSS/flex-wrap"
       }
     },
+
     {
       "name": "order",
       "discription": "Sets the order of the flexible item, relative to the rest",
@@ -752,8 +787,11 @@
         "mdn": "/en-US/docs/Web/CSS/order"
       }
     }
+
   ],
+
   "Generated Content and Lists": [
+
     {
       "name": "list-style",
       "discription": "Sets all the properties for a list in one declaration",
@@ -769,6 +807,7 @@
         "mdn": "/en-US/docs/Web/CSS/list-style"
       }
     },
+
     {
       "name": "content",
       "discription": "Used with the :before and :after pseudo-elements, to insert generated content",
@@ -791,6 +830,7 @@
         "mdn": "/en-US/docs/Web/CSS/content"
       }
     },
+
     {
       "name": "counter-increment",
       "discription": "Increases or decreases the value of one or more CSS counters",
@@ -805,6 +845,7 @@
         "mdn": "/en-US/docs/Web/CSS/counter-increment"
       }
     },
+
     {
       "name": "counter-reset",
       "discription": "Creates or resets one or more CSS counters",
@@ -820,6 +861,7 @@
         "mdn": "/en-US/docs/Web/CSS/counter-reset"
       }
     },
+
     {
       "name": "list-style-image",
       "discription": "Specifies an image as the list-item marker",
@@ -834,6 +876,7 @@
         "mdn": "/en-US/docs/Web/CSS/list-style-image"
       }
     },
+
     {
       "name": "list-style-position",
       "discription": "Specifies if the list-item markers should appear inside or outside the content flow",
@@ -848,6 +891,7 @@
         "mdn": "/en-US/docs/Web/CSS/list-style-position"
       }
     },
+
     {
       "name": "list-style-type",
       "discription": "Specifies the type of list-item marker",
@@ -882,6 +926,7 @@
         "mdn": "/en-US/docs/Web/CSS/list-style-type"
       }
     },
+
     {
       "name": "quotes",
       "discription": "Sets the type of quotation marks for embedded quotations",
@@ -902,8 +947,11 @@
         "mdn": "/en-US/docs/Web/CSS/quotes"
       }
     }
+
   ],
+
   "Grid": [
+
     {
       "name": "column-rule",
       "discription": "A shorthand property for setting all the column-rule-* properties",
@@ -919,6 +967,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-rule"
       }
     },
+
     {
       "name": "columns",
       "discription": "A shorthand property for setting column-width and column-count",
@@ -938,6 +987,7 @@
         "mdn": "/en-US/docs/Web/CSS/columns"
       }
     },
+
     {
       "name": "grid",
       "discription": "A shorthand property",
@@ -961,6 +1011,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid"
       }
     },
+
     {
       "name": "grid-area",
       "discription": "Either specifies a name for the grid item, or this property is a shorthand property for the grid-row-start, grid-column-start, grid-row-end, and grid-column-end properties",
@@ -984,6 +1035,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-area"
       }
     },
+
     {
       "name": "grid-column",
       "discription": "A shorthand property for the grid-column-start and the grid-column-end properties",
@@ -1004,6 +1056,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-column"
       }
     },
+
     {
       "name": "grid-gap",
       "discription": "A shorthand property for the grid-row-gap and grid-column-gap properties",
@@ -1018,6 +1071,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-gap"
       }
     },
+
     {
       "name": "grid-row",
       "discription": "A shorthand property for the grid-row-start and the grid-row-end properties",
@@ -1038,6 +1092,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-row"
       }
     },
+
     {
       "name": "grid-template",
       "discription": "A shorthand property for the grid-template-rows, grid-template-columns and grid-areas properties",
@@ -1059,6 +1114,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-template"
       }
     },
+
     {
       "name": "break-after",
       "discription": "Specifies the page-, column-, or region-break behavior after the generated box",
@@ -1084,6 +1140,7 @@
         "mdn": "/en-US/docs/Web/CSS/break-after"
       }
     },
+
     {
       "name": "break-before",
       "discription": "Specifies the page-, column-, or region-break behavior before the generated box",
@@ -1109,6 +1166,7 @@
         "mdn": "/en-US/docs/Web/CSS/break-before"
       }
     },
+
     {
       "name": "break-inside",
       "discription": "Specifies the page-, column-, or region-break behavior inside the generated box",
@@ -1126,6 +1184,7 @@
         "mdn": "/en-US/docs/Web/CSS/break-inside"
       }
     },
+
     {
       "name": "column-count",
       "discription": "Specifies the number of columns an element should be divided into",
@@ -1140,6 +1199,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-count"
       }
     },
+
     {
       "name": "column-fill",
       "discription": "Specifies how to fill columns, balanced or not",
@@ -1154,6 +1214,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-fill"
       }
     },
+
     {
       "name": "column-gap",
       "discription": "Specifies the gap between the columns",
@@ -1168,6 +1229,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-gap"
       }
     },
+
     {
       "name": "column-rule-color",
       "discription": "Specifies the color of the rule between columns",
@@ -1179,6 +1241,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-rule-color"
       }
     },
+
     {
       "name": "column-rule-style",
       "discription": "Specifies the style of the rule between columns",
@@ -1201,6 +1264,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-rule-style"
       }
     },
+
     {
       "name": "column-rule-width",
       "discription": "Specifies the width of the rule between columns",
@@ -1217,6 +1281,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-rule-width"
       }
     },
+
     {
       "name": "column-span",
       "discription": "Specifies how many columns an element should span across",
@@ -1228,6 +1293,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-span"
       }
     },
+
     {
       "name": "column-width",
       "discription": "Specifies the column width",
@@ -1242,6 +1308,7 @@
         "mdn": "/en-US/docs/Web/CSS/column-width"
       }
     },
+
     {
       "name": "grid-auto-columns",
       "discription": "Specifies a default column size",
@@ -1253,6 +1320,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-auto-columns"
       }
     },
+
     {
       "name": "grid-auto-flow",
       "discription": "Specifies how auto-placed items are inserted in the grid",
@@ -1269,6 +1337,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-auto-flow"
       }
     },
+
     {
       "name": "grid-auto-rows",
       "discription": "Specifies a default row size",
@@ -1285,6 +1354,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-auto-rows"
       }
     },
+
     {
       "name": "grid-column-end",
       "discription": "Specifies where to end the grid item",
@@ -1300,6 +1370,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-column-end"
       }
     },
+
     {
       "name": "grid-column-gap",
       "discription": "Specifies the size of the gap between columns",
@@ -1311,6 +1382,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-column-gap"
       }
     },
+
     {
       "name": "grid-column-start",
       "discription": "Specifies where to start the grid item",
@@ -1325,6 +1397,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-column-start"
       }
     },
+
     {
       "name": "grid-row-end",
       "discription": "Specifies where to end the grid item",
@@ -1340,6 +1413,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-row-end"
       }
     },
+
     {
       "name": "grid-row-gap",
       "discription": "Specifies the size of the gap between rows",
@@ -1351,6 +1425,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-row-gap"
       }
     },
+
     {
       "name": "grid-row-start",
       "discription": "Specifies where to start the grid item",
@@ -1365,6 +1440,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-row-start"
       }
     },
+
     {
       "name": "grid-template-areas",
       "discription": "Specifies how to display columns and rows, using named grid items",
@@ -1379,6 +1455,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-template-areas"
       }
     },
+
     {
       "name": "grid-template-columns",
       "discription": "Specifies the size of the columns, and how many columns in a grid layout",
@@ -1396,6 +1473,7 @@
         "mdn": "/en-US/docs/Web/CSS/grid-template-columns"
       }
     },
+
     {
       "name": "grid-template-rows",
       "discription": "Specifies the size of the rows in a grid layout",
@@ -1413,8 +1491,11 @@
         "mdn": "/en-US/docs/Web/CSS/grid-template-rows"
       }
     }
+
   ],
+
   "Misc.": [
+
     {
       "name": "outline",
       "discription": "Sets all the outline properties in one declaration",
@@ -1430,6 +1511,7 @@
         "mdn": "/en-US/docs/Web/CSS/outline"
       }
     },
+
     {
       "name": "@charset",
       "discription": "Specifies the character encoding used in the style sheet",
@@ -1441,6 +1523,7 @@
         "mdn": "/en-US/docs/Web/CSS/@charset"
       }
     },
+
     {
       "name": "all",
       "discription": "Resets all properties (excepct unicode-bidi and direction)",
@@ -1452,6 +1535,7 @@
         "mdn": "/en-US/docs/Web/CSS/all"
       }
     },
+
     {
       "name": "cursor",
       "discription": "Specifies the mouse cursor to be displayed when pointing over an element",
@@ -1501,6 +1585,7 @@
         "mdn": "/en-US/docs/Web/CSS/cursor"
       }
     },
+
     {
       "name": "pointer-events",
       "discription": "The pointer-events property defines whether or not an element reacts to pointer events.",
@@ -1515,6 +1600,7 @@
         "mdn": "/en-US/docs/Web/CSS/pointer-events"
       }
     },
+
     {
       "name": "direction",
       "discription": "Specifies the text direction/writing direction",
@@ -1529,6 +1615,7 @@
         "mdn": "/en-US/docs/Web/CSS/direction"
       }
     },
+
     {
       "name": "outline-color",
       "discription": "Sets the color of an outline",
@@ -1543,6 +1630,7 @@
         "mdn": "/en-US/docs/Web/CSS/outline-color"
       }
     },
+
     {
       "name": "outline-style",
       "discription": "Sets the style of an outline",
@@ -1565,6 +1653,7 @@
         "mdn": "/en-US/docs/Web/CSS/outline-style"
       }
     },
+
     {
       "name": "outline-width",
       "discription": "Sets the width of an outline",
@@ -1581,6 +1670,7 @@
         "mdn": "/en-US/docs/Web/CSS/outline-width"
       }
     },
+
     {
       "name": "unicode-bidi",
       "discription": "Used together with the direction property to set or return whether the text should be overridden to support multiple languages in the same document",
@@ -1596,8 +1686,11 @@
         "mdn": "/en-US/docs/Web/CSS/unicode-bidi"
       }
     }
+
   ],
+
   "3D": [
+
     {
       "name": "perspective",
       "discription": "Specifies the perspective on how 3D elements are viewed",
@@ -1612,6 +1705,7 @@
         "mdn": "/en-US/docs/Web/CSS/perspective"
       }
     },
+
     {
       "name": "perspective-origin",
       "discription": "Specifies the position that the user is looking at the element",
@@ -1626,6 +1720,7 @@
         "mdn": "/en-US/docs/Web/CSS/perspective-origin"
       }
     },
+
     {
       "name": "transform-style",
       "discription": "Specifies how nested elements are rendered in 3D space",
@@ -1640,8 +1735,11 @@
         "mdn": "/en-US/docs/Web/CSS/transform-style"
       }
     }
+
   ],
+
   "Text and Fonts": [
+
     {
       "name": "font",
       "discription": "Sets all the font properties in one declaration",
@@ -1669,6 +1767,7 @@
         "mdn": "/en-US/docs/Web/CSS/font"
       }
     },
+
     {
       "name": "@font-face",
       "discription": "A rule that allows websites to download and use fonts other than the \"web-safe\" fonts",
@@ -1680,6 +1779,7 @@
         "mdn": "/en-US/docs/Web/CSS/@font-face"
       }
     },
+
     {
       "name": "font-family",
       "discription": "Specifies the font family for text",
@@ -1696,6 +1796,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-family"
       }
     },
+
     {
       "name": "font-feature-settings",
       "discription": "Allows control over advanced typographic features in OpenType fonts",
@@ -1722,6 +1823,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-feature-settings"
       }
     },
+
     {
       "name": "font-kerning",
       "discription": "Controls the usage of the kerning information (how letters are spaced)",
@@ -1737,6 +1839,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-kerning"
       }
     },
+
     {
       "name": "font-size",
       "discription": "Specifies the font size of text",
@@ -1759,6 +1862,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-size"
       }
     },
+
     {
       "name": "font-size-adjust",
       "discription": "Preserves the readability of text when font fallback occurs",
@@ -1773,6 +1877,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-size-adjust"
       }
     },
+
     {
       "name": "font-stretch",
       "discription": "Selects a normal, condensed, or expanded face from a font family",
@@ -1794,6 +1899,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-stretch"
       }
     },
+
     {
       "name": "font-style",
       "discription": "Specifies the font style for text",
@@ -1809,6 +1915,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-style"
       }
     },
+
     {
       "name": "font-variant",
       "discription": "Specifies whether or not a text should be displayed in a small-caps font",
@@ -1823,6 +1930,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-variant"
       }
     },
+
     {
       "name": "font-variant-caps",
       "discription": "Controls the usage of alternate glyphs for capital letters",
@@ -1842,6 +1950,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-variant-caps"
       }
     },
+
     {
       "name": "font-variant-east-asian",
       "discription": "Controls the usage of alternate glyphs for East Asian scripts (e.g Japanese and Chinese)",
@@ -1865,6 +1974,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-variant-east-asian"
       }
     },
+
     {
       "name": "font-variant-ligatures",
       "discription": "Controls which ligatures and contextual forms are used in textual content of the elements it applies to",
@@ -1891,6 +2001,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-variant-ligatures"
       }
     },
+
     {
       "name": "font-variant-numeric",
       "discription": "Controls the usage of alternate glyphs for numbers, fractions, and ordinal markers",
@@ -1913,6 +2024,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-variant-numeric"
       }
     },
+
     {
       "name": "font-variant-position",
       "discription": "Controls the usage of alternate glyphs of smaller size positioned as superscript or subscript regarding the baseline of the font",
@@ -1928,6 +2040,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-variant-position"
       }
     },
+
     {
       "name": "font-weight",
       "discription": "Specifies the weight of a font",
@@ -1945,6 +2058,7 @@
         "mdn": "/en-US/docs/Web/CSS/font-weight"
       }
     },
+
     {
       "name": "hanging-punctuation",
       "discription": "Specifies whether a punctuation character may be placed outside the line box",
@@ -1956,6 +2070,7 @@
         "mdn": "/en-US/docs/Web/CSS/hanging-punctuation"
       }
     },
+
     {
       "name": "hyphens",
       "discription": "Sets how to split words to improve the layout of paragraphs",
@@ -1967,6 +2082,7 @@
         "mdn": "/en-US/docs/Web/CSS/hyphens"
       }
     },
+
     {
       "name": "letter-spacing",
       "discription": "Increases or decreases the space between characters in a text",
@@ -1978,6 +2094,7 @@
         "mdn": "/en-US/docs/Web/CSS/letter-spacing"
       }
     },
+
     {
       "name": "line-break",
       "discription": "Specifies how/if to break lines",
@@ -1989,6 +2106,7 @@
         "mdn": "/en-US/docs/Web/CSS/line-break"
       }
     },
+
     {
       "name": "line-height",
       "discription": "Sets the line height",
@@ -2000,6 +2118,7 @@
         "mdn": "/en-US/docs/Web/CSS/line-height"
       }
     },
+
     {
       "name": "text-align",
       "discription": "Specifies the horizontal alignment of text",
@@ -2011,6 +2130,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-align"
       }
     },
+
     {
       "name": "text-decoration",
       "discription": "Specifies the decoration added to text",
@@ -2022,6 +2142,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-decoration"
       }
     },
+
     {
       "name": "text-indent",
       "discription": "Specifies the indentation of the first line in a text-block",
@@ -2033,6 +2154,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-indent"
       }
     },
+
     {
       "name": "text-transform",
       "discription": "Controls the capitalization of text",
@@ -2044,6 +2166,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-transform"
       }
     },
+
     {
       "name": "user-select",
       "discription": "Specifies whether the text of an element can be selected",
@@ -2055,6 +2178,7 @@
         "mdn": "/en-US/docs/Web/CSS/user-select"
       }
     },
+
     {
       "name": "vertical-align",
       "discription": "Sets the vertical alignment of an element",
@@ -2066,6 +2190,7 @@
         "mdn": "/en-US/docs/Web/CSS/vertical-align"
       }
     },
+
     {
       "name": "white-space",
       "discription": "Specifies how white-space inside an element is handled",
@@ -2077,6 +2202,7 @@
         "mdn": "/en-US/docs/Web/CSS/white-space"
       }
     },
+
     {
       "name": "word-break",
       "discription": "Specifies line breaking rules for non-CJK scripts",
@@ -2088,6 +2214,7 @@
         "mdn": "/en-US/docs/Web/CSS/word-break"
       }
     },
+
     {
       "name": "word-spacing",
       "discription": "Increases or decreases the space between words in a text",
@@ -2099,6 +2226,7 @@
         "mdn": "/en-US/docs/Web/CSS/word-spacing"
       }
     },
+
     {
       "name": "word-wrap",
       "discription": "Allows long, unbreakable words to be broken and wrap to the next line",
@@ -2110,6 +2238,7 @@
         "mdn": "/en-US/docs/Web/CSS/word-wrap"
       }
     },
+
     {
       "name": "writing-mode",
       "discription": "",
@@ -2121,6 +2250,7 @@
         "mdn": "/en-US/docs/Web/CSS/writing-mode"
       }
     },
+
     {
       "name": "tab-size",
       "discription": "Specifies the length of the tab-character",
@@ -2132,6 +2262,7 @@
         "mdn": "/en-US/docs/Web/CSS/tab-size"
       }
     },
+
     {
       "name": "text-align-last",
       "discription": "Describes how the last line of a block or a line right before a forced line break is aligned when text-align is \"justify\"",
@@ -2143,6 +2274,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-align-last"
       }
     },
+
     {
       "name": "text-combine-upright",
       "discription": "Specifies the combination of multiple characters into the space of a single character",
@@ -2154,6 +2286,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-combine-upright"
       }
     },
+
     {
       "name": "text-decoration-color",
       "discription": "Specifies the color of the text-decoration",
@@ -2165,6 +2298,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-decoration-color"
       }
     },
+
     {
       "name": "text-decoration-line",
       "discription": "Specifies the type of line in a text-decoration",
@@ -2176,6 +2310,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-decoration-line"
       }
     },
+
     {
       "name": "text-decoration-style",
       "discription": "Specifies the style of the line in a text decoration",
@@ -2187,6 +2322,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-decoration-style"
       }
     },
+
     {
       "name": "text-justify",
       "discription": "Specifies the justification method used when text-align is \"justify\"",
@@ -2198,6 +2334,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-justify"
       }
     },
+
     {
       "name": "text-orientation",
       "discription": "Defines the orientation of the text in a line",
@@ -2209,6 +2346,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-orientation"
       }
     },
+
     {
       "name": "text-overflow",
       "discription": "Specifies what should happen when text overflows the containing element",
@@ -2220,6 +2358,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-overflow"
       }
     },
+
     {
       "name": "text-shadow",
       "discription": "Adds shadow to text",
@@ -2231,6 +2370,7 @@
         "mdn": "/en-US/docs/Web/CSS/text-shadow"
       }
     },
+
     {
       "name": "text-underline-position",
       "discription": "Specifies the position of the underline which is set using the text-decoration property",
@@ -2242,8 +2382,11 @@
         "mdn": "/en-US/docs/Web/CSS/text-underline-position"
       }
     }
+
   ],
+
   "The Box Model": [
+
     {
       "name": "border",
       "discription": "A shorthand property for border-width, border-style and border-color",
@@ -2255,6 +2398,7 @@
         "mdn": "/en-US/docs/Web/CSS/border"
       }
     },
+
     {
       "name": "border-bottom",
       "discription": "A shorthand property for setting all the bottom border properties in one declaration",
@@ -2266,6 +2410,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-bottom"
       }
     },
+
     {
       "name": "border-left",
       "discription": "A shorthand property for setting all the left border properties in one declaration",
@@ -2277,6 +2422,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-left"
       }
     },
+
     {
       "name": "border-right",
       "discription": "A shorthand property for setting all the right border properties in one declaration",
@@ -2288,6 +2434,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-right"
       }
     },
+
     {
       "name": "border-top",
       "discription": "A shorthand property for setting all the top border properties in one declaration",
@@ -2299,6 +2446,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-top"
       }
     },
+
     {
       "name": "margin",
       "discription": "Sets all the margin properties in one declaration",
@@ -2315,6 +2463,7 @@
         "mdn": "/en-US/docs/Web/CSS/margin"
       }
     },
+
     {
       "name": "padding",
       "discription": "Sets all the padding properties in one declaration",
@@ -2326,6 +2475,7 @@
         "mdn": "/en-US/docs/Web/CSS/padding"
       }
     },
+
     {
       "name": "border-bottom-color",
       "discription": "Sets the color of the bottom border",
@@ -2337,6 +2487,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-bottom-color"
       }
     },
+
     {
       "name": "border-bottom-style",
       "discription": "Sets the style of the bottom border",
@@ -2348,6 +2499,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-bottom-style"
       }
     },
+
     {
       "name": "border-bottom-width",
       "discription": "Sets the width of the bottom border",
@@ -2359,6 +2511,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-bottom-width"
       }
     },
+
     {
       "name": "border-color",
       "discription": "Sets the color of the four borders",
@@ -2370,6 +2523,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-color"
       }
     },
+
     {
       "name": "border-left-color",
       "discription": "Sets the color of the left border",
@@ -2381,6 +2535,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-left-color"
       }
     },
+
     {
       "name": "border-left-style",
       "discription": "Sets the style of the left border",
@@ -2392,6 +2547,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-left-style"
       }
     },
+
     {
       "name": "border-left-width",
       "discription": "Sets the width of the left border",
@@ -2403,6 +2559,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-left-width"
       }
     },
+
     {
       "name": "border-right-color",
       "discription": "Sets the color of the right border",
@@ -2414,6 +2571,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-right-color"
       }
     },
+
     {
       "name": "border-right-style",
       "discription": "Sets the style of the right border",
@@ -2425,6 +2583,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-right-style"
       }
     },
+
     {
       "name": "border-right-width",
       "discription": "Sets the width of the right border",
@@ -2436,6 +2595,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-right-width"
       }
     },
+
     {
       "name": "border-style",
       "discription": "Sets the style of the four borders",
@@ -2447,6 +2607,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-style"
       }
     },
+
     {
       "name": "border-top-color",
       "discription": "Sets the color of the top border",
@@ -2458,6 +2619,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-top-color"
       }
     },
+
     {
       "name": "border-top-style",
       "discription": "Sets the style of the top border",
@@ -2469,6 +2631,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-top-style"
       }
     },
+
     {
       "name": "border-top-width",
       "discription": "Sets the width of the top border",
@@ -2480,6 +2643,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-top-width"
       }
     },
+
     {
       "name": "border-width",
       "discription": "Sets the width of the four borders",
@@ -2491,6 +2655,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-width"
       }
     },
+
     {
       "name": "box-decoration-break",
       "discription": "Sets the behavior of the background and border of an element at page-break, or, for in-line elements, at line-break.",
@@ -2502,6 +2667,7 @@
         "mdn": "/en-US/docs/Web/CSS/box-decoration-break"
       }
     },
+
     {
       "name": "box-sizing",
       "discription": "Defines how the width and height of an element are calculated: should they include padding and borders, or not",
@@ -2513,6 +2679,7 @@
         "mdn": "/en-US/docs/Web/CSS/box-sizing"
       }
     },
+
     {
       "name": "margin-bottom",
       "discription": "Sets the bottom margin of an element",
@@ -2524,6 +2691,7 @@
         "mdn": "/en-US/docs/Web/CSS/margin-bottom"
       }
     },
+
     {
       "name": "margin-left",
       "discription": "Sets the left margin of an element",
@@ -2535,6 +2703,7 @@
         "mdn": "/en-US/docs/Web/CSS/margin-left"
       }
     },
+
     {
       "name": "margin-right",
       "discription": "Sets the right margin of an element",
@@ -2546,6 +2715,7 @@
         "mdn": "/en-US/docs/Web/CSS/margin-right"
       }
     },
+
     {
       "name": "margin-top",
       "discription": "Sets the top margin of an element",
@@ -2557,6 +2727,7 @@
         "mdn": "/en-US/docs/Web/CSS/margin-top"
       }
     },
+
     {
       "name": "outline-offset",
       "discription": "Offsets an outline, and draws it beyond the border edge",
@@ -2568,6 +2739,7 @@
         "mdn": "/en-US/docs/Web/CSS/outline-offset"
       }
     },
+
     {
       "name": "padding-bottom",
       "discription": "Sets the bottom padding of an element",
@@ -2579,6 +2751,7 @@
         "mdn": "/en-US/docs/Web/CSS/padding-bottom"
       }
     },
+
     {
       "name": "padding-left",
       "discription": "Sets the left padding of an element",
@@ -2590,6 +2763,7 @@
         "mdn": "/en-US/docs/Web/CSS/padding-left"
       }
     },
+
     {
       "name": "padding-right",
       "discription": "Sets the right padding of an element",
@@ -2601,6 +2775,7 @@
         "mdn": "/en-US/docs/Web/CSS/padding-right"
       }
     },
+
     {
       "name": "padding-top",
       "discription": "Sets the top padding of an element",
@@ -2612,8 +2787,11 @@
         "mdn": "/en-US/docs/Web/CSS/padding-top"
       }
     }
+
   ],
+
   "Transitions": [
+
     {
       "name": "transition",
       "discription": "A shorthand property for setting the four transition properties",
@@ -2625,6 +2803,7 @@
         "mdn": "/en-US/docs/Web/CSS/transition"
       }
     },
+
     {
       "name": "transition-delay",
       "discription": "Specifies when the transition effect will start",
@@ -2636,6 +2815,7 @@
         "mdn": "/en-US/docs/Web/CSS/transition-delay"
       }
     },
+
     {
       "name": "transition-duration",
       "discription": "Specifies how many seconds or milliseconds a transition effect takes to complete",
@@ -2647,6 +2827,7 @@
         "mdn": "/en-US/docs/Web/CSS/transition-duration"
       }
     },
+
     {
       "name": "transition-property",
       "discription": "Specifies the name of the CSS property the transition effect is for",
@@ -2658,6 +2839,7 @@
         "mdn": "/en-US/docs/Web/CSS/transition-property"
       }
     },
+
     {
       "name": "transition-timing-function",
       "discription": "Specifies the speed curve of the transition effect",
@@ -2669,8 +2851,11 @@
         "mdn": "/en-US/docs/Web/CSS/transition-timing-function"
       }
     }
+
   ],
+
   "Paged Media": [
+
     {
       "name": "@media",
       "discription": "Sets the style rules for different media types/devices/sizes",
@@ -2682,6 +2867,7 @@
         "mdn": "/en-US/docs/Web/CSS/@media"
       }
     },
+
     {
       "name": "orphans",
       "discription": "Sets the minimum number of lines that must be left at the bottom of a page when a page break occurs inside an element",
@@ -2693,6 +2879,7 @@
         "mdn": "/en-US/docs/Web/CSS/orphans"
       }
     },
+
     {
       "name": "page-break-after",
       "discription": "Sets the page-breaking behavior after an element",
@@ -2704,6 +2891,7 @@
         "mdn": "/en-US/docs/Web/CSS/page-break-after"
       }
     },
+
     {
       "name": "page-break-before",
       "discription": "Sets the page-breaking behavior before an element",
@@ -2715,6 +2903,7 @@
         "mdn": "/en-US/docs/Web/CSS/page-break-before"
       }
     },
+
     {
       "name": "page-break-inside",
       "discription": "Sets the page-breaking behavior inside an element",
@@ -2726,6 +2915,7 @@
         "mdn": "/en-US/docs/Web/CSS/page-break-inside"
       }
     },
+
     {
       "name": "widows",
       "discription": "Sets the minimum number of lines that must be left at the top of a page when a page break occurs inside an element",
@@ -2737,8 +2927,11 @@
         "mdn": "/en-US/docs/Web/CSS/widows"
       }
     }
+
   ],
+
   "Pseudo Element": [
+
     {
       "name": "::after",
       "discription": "The ::after creates a pseudo-element that is the last child of the selected element. It is often used to add cosmetic content to an element with the content property. It is inline by default.",
@@ -2750,6 +2943,7 @@
         "mdn": "/en-US/docs/Web/CSS/::after"
       }
     },
+
     {
       "name": "::backdrop",
       "discription": "The ::backdrop CSS pseudo-element is a box rendered immediately below any element rendered in fullscreen mode (and above any lower elements in the stack).",
@@ -2761,6 +2955,7 @@
         "mdn": "/en-US/docs/Web/CSS/::backdrop"
       }
     },
+
     {
       "name": "::before",
       "discription": "The ::before creates a pseudo-element that is the first child of the selected element. It is often used to add cosmetic content to an element with the content property. It is inline by default.",
@@ -2772,6 +2967,7 @@
         "mdn": "/en-US/docs/Web/CSS/::before"
       }
     },
+
     {
       "name": "::cue",
       "discription": "The ::cue CSS pseudo-element matches WebVTT cues within a selected element. This can be used to style captions and other cues in media with VTT tracks.",
@@ -2783,6 +2979,7 @@
         "mdn": "/en-US/docs/Web/CSS/::cue"
       }
     },
+
     {
       "name": "::first-letter",
       "discription": "The ::first-letter CSS pseudo-element applies styles to the first letter of the first line of a block-level element, but only when not preceded by other content (such as images or inline tables).",
@@ -2794,6 +2991,7 @@
         "mdn": "/en-US/docs/Web/CSS/::first-letter"
       }
     },
+
     {
       "name": "::first-line",
       "discription": "The ::first-line CSS pseudo-element applies styles to the first line of a block-level element. Note that the length of the first line depends on many factors, including the width of the element, the width of the document, and the font size of the text.",
@@ -2805,6 +3003,7 @@
         "mdn": "/en-US/docs/Web/CSS/::first-line"
       }
     },
+
     {
       "name": "::grammar-error ",
       "discription": "The ::grammar-error CSS pseudo-element represents a text segment which the user agent has flagged as grammatically incorrect.",
@@ -2816,6 +3015,7 @@
         "mdn": "/en-US/docs/Web/CSS/::grammar-error "
       }
     },
+
     {
       "name": "::marker ",
       "discription": "The ::marker CSS pseudo-element selects the marker box of a list item, which typically contains a bullet or number. It works on any element or pseudo-element set to display: list-item, such as the <li> and <summary> elements.",
@@ -2827,6 +3027,7 @@
         "mdn": "/en-US/docs/Web/CSS/::marker "
       }
     },
+
     {
       "name": "::placeholder ",
       "discription": "The ::placeholder CSS pseudo-element represents the placeholder text of a formelement.",
@@ -2838,6 +3039,7 @@
         "mdn": "/en-US/docs/Web/CSS/::placeholder "
       }
     },
+
     {
       "name": "::selection",
       "discription": "The ::selection CSS pseudo-element applies styles to the portion of a document that has been highlighted by the user (such as with the mouse).",
@@ -2849,6 +3051,7 @@
         "mdn": "/en-US/docs/Web/CSS/::selection"
       }
     },
+
     {
       "name": "::spelling-error ",
       "discription": "The ::spelling-error CSS pseudo-element represents a text segment which the user agent has flagged as incorrectly spelled.",
@@ -2860,8 +3063,11 @@
         "mdn": "/en-US/docs/Web/CSS/::spelling-error "
       }
     }
+
   ],
+
   "Pseudo Class": [
+
     {
       "name": ":active",
       "discription": "The :active CSS pseudo-class represents an element (such as a button) that is being activated by the user. When using a mouse, \"activation\" typically starts when the user presses down the primary mouse button and ends when it is released. The :active pseudo-class is commonly used on <a> and <button> elements, but may be used on other elements, too.",
@@ -2873,6 +3079,7 @@
         "mdn": "/en-US/docs/Web/CSS/:active"
       }
     },
+
     {
       "name": ":any",
       "discription": "The :any() pseudo-class lets you create a selector containing multiple options, any one of which will be matched. This is a simpler alternative to repeating an entire selector multiple times because one item inside it varies.",
@@ -2884,6 +3091,7 @@
         "mdn": "/en-US/docs/Web/CSS/:any"
       }
     },
+
     {
       "name": ":any-link",
       "discription": "The :any-link CSS pseudo-class selector represents an element that acts as the source anchor of a hyperlink, independent of whether it has been visited. In other words, it matches every <a>, <area>, or <link> element that has an href attribute. Thus, it matches all elements that match :link or :visited.",
@@ -2895,6 +3103,7 @@
         "mdn": "/en-US/docs/Web/CSS/:any-link"
       }
     },
+
     {
       "name": ":checked",
       "discription": "The :checked CSS pseudo-class selector represents any radio (<input type=\"radio\">), checkbox (<input type=\"checkbox\">), or option (<option> in a <select>) element that is checked or toggled to an on state.",
@@ -2906,6 +3115,7 @@
         "mdn": "/en-US/docs/Web/CSS/:checked"
       }
     },
+
     {
       "name": ":default",
       "discription": "The :default CSS pseudo-class represents any form element that is the default among a group of related elements. Grouped elements that permit multiple selections may also have multiple defaults, i.e., they may have multiple items initially selected. In this case, all defaults are represented using the :default pseudo-class. For example, you can style the default checkboxes among a group of checkboxes.",
@@ -2917,6 +3127,7 @@
         "mdn": "/en-US/docs/Web/CSS/:default"
       }
     },
+
     {
       "name": ":dir()",
       "discription": "The :dir() CSS pseudo-class matches elements based on the directionality of the text contained in them. The :dir() pseudo-class uses only the semantic value of the directionality, i.e., the one defined in the document itself. It doesn't account for styling directionality, i.e., the directionality set by CSS properties such as direction.",
@@ -2928,6 +3139,7 @@
         "mdn": "/en-US/docs/Web/CSS/:dir()"
       }
     },
+
     {
       "name": ":disabled",
       "discription": "The :disabled CSS pseudo-class represents any disabled element. An element is disabled if it can't be activated (selected, clicked on, typed into, etc.) or accept focus. The element also has an enabled state, in which it can be activated or accept focus.",
@@ -2939,6 +3151,7 @@
         "mdn": "/en-US/docs/Web/CSS/:disabled"
       }
     },
+
     {
       "name": ":empty",
       "discription": "The :empty CSS pseudo-class represents any element that has no children. Children can be either element nodes or text (including whitespace). Comments or processing instructions do not affect whether an element is considered empty or not.",
@@ -2950,6 +3163,7 @@
         "mdn": "/en-US/docs/Web/CSS/:empty"
       }
     },
+
     {
       "name": ":enabled",
       "discription": "The :enabled CSS pseudo-class represents any enabled element. An element is enabled if it can be activated (selected, clicked on, typed into, etc.) or accept focus. The element also has a disabled state, in which it can't be activated or accept focus.",
@@ -2961,6 +3175,7 @@
         "mdn": "/en-US/docs/Web/CSS/:enabled"
       }
     },
+
     {
       "name": ":first",
       "discription": "The :first CSS pseudo-class, used with the  @page at-rule, represents the first page of a printed document.",
@@ -2972,6 +3187,7 @@
         "mdn": "/en-US/docs/Web/CSS/:first"
       }
     },
+
     {
       "name": ":first-child",
       "discription": "The :first-child CSS pseudo-class represents the first element among a group of sibling elements.",
@@ -2983,6 +3199,7 @@
         "mdn": "/en-US/docs/Web/CSS/:first-child"
       }
     },
+
     {
       "name": ":first-of-type",
       "discription": "The :first-of-type CSS pseudo-class represents the first element of its type among a group of sibling elements.",
@@ -2994,6 +3211,7 @@
         "mdn": "/en-US/docs/Web/CSS/:first-of-type"
       }
     },
+
     {
       "name": ":fullscreen",
       "discription": "The :fullscreen CSS pseudo-class represents an element that's displayed when the browser is in fullscreen mode.",
@@ -3005,6 +3223,7 @@
         "mdn": "/en-US/docs/Web/CSS/:fullscreen"
       }
     },
+
     {
       "name": ":focus",
       "discription": "The :focus CSS pseudo-class represents an element (such as a form input) that has received focus. It is generally triggered when the user clicks or taps on an element or selects it with the keyboard's \"tab\" key.",
@@ -3016,6 +3235,7 @@
         "mdn": "/en-US/docs/Web/CSS/:focus"
       }
     },
+
     {
       "name": ":hover",
       "discription": "The :hover CSS pseudo-class matches when the user interacts with an element with a pointing device, but does not necessarily activate it. It is generally triggered when the user hovers over an element with the cursor (mouse pointer).",
@@ -3027,6 +3247,7 @@
         "mdn": "/en-US/docs/Web/CSS/:hover"
       }
     },
+
     {
       "name": ":indeterminate",
       "discription": "The :indeterminate CSS pseudo-class represents any form element whose state is indeterminate.",
@@ -3038,6 +3259,7 @@
         "mdn": "/en-US/docs/Web/CSS/:indeterminate"
       }
     },
+
     {
       "name": ":in-range",
       "discription": "The :in-range CSS pseudo-class represents an <input> element whose current value is within the range limits specified by the min and max attributes.",
@@ -3049,6 +3271,7 @@
         "mdn": "/en-US/docs/Web/CSS/:in-range"
       }
     },
+
     {
       "name": ":invalid",
       "discription": "The :invalid CSS pseudo-class represents any <input> or other <form> element whose contents fail to validate.",
@@ -3060,6 +3283,7 @@
         "mdn": "/en-US/docs/Web/CSS/:invalid"
       }
     },
+
     {
       "name": ":lang()",
       "discription": "The :lang() CSS pseudo-class matches elements based on the language they are determined to be in.",
@@ -3071,6 +3295,7 @@
         "mdn": "/en-US/docs/Web/CSS/:lang()"
       }
     },
+
     {
       "name": ":last-child",
       "discription": "The :last-child CSS pseudo-class represents the last element among a group of sibling elements. It is also an Aerosmith hit.",
@@ -3082,6 +3307,7 @@
         "mdn": "/en-US/docs/Web/CSS/:last-child"
       }
     },
+
     {
       "name": ":last-of-type",
       "discription": "The :last-of-type CSS pseudo-class represents the last element of its type among a group of sibling elements.",
@@ -3093,6 +3319,7 @@
         "mdn": "/en-US/docs/Web/CSS/:last-of-type"
       }
     },
+
     {
       "name": ":left",
       "discription": "The :left CSS pseudo-class, used with the  @page at-rule, represents all left-hand pages of a printed document.",
@@ -3104,6 +3331,7 @@
         "mdn": "/en-US/docs/Web/CSS/:left"
       }
     },
+
     {
       "name": ":link",
       "discription": "The :link CSS pseudo-class represents an element that has not yet been visited. It matches every unvisited <a>, <area>, or <link> element that has an href attribute.",
@@ -3115,6 +3343,7 @@
         "mdn": "/en-US/docs/Web/CSS/:link"
       }
     },
+
     {
       "name": ":not()",
       "discription": "The :not() CSS pseudo-class represents elements that do not match a list of selectors. Since it prevents specific items from being selected, it is known as the negation pseudo-class.",
@@ -3126,6 +3355,7 @@
         "mdn": "/en-US/docs/Web/CSS/:not()"
       }
     },
+
     {
       "name": ":nth-child()",
       "discription": "The :nth-child() CSS pseudo-class matches one or more elements based on their position among a group of siblings. Takes a interger. Append a 'n' for repetitive.",
@@ -3137,6 +3367,7 @@
         "mdn": "/en-US/docs/Web/CSS/:nth-child()"
       }
     },
+
     {
       "name": ":nth-last-child()",
       "discription": "The :nth-last-child() CSS pseudo-class matches one or more elements based on their position among a group of siblings, counting from the end.",
@@ -3148,6 +3379,7 @@
         "mdn": "/en-US/docs/Web/CSS/:nth-last-child()"
       }
     },
+
     {
       "name": ":nth-last-of-type()",
       "discription": "The :nth-last-of-type() CSS pseudo-class matches one or more elements of a given type, based on their position among a group of siblings, counting from the end.",
@@ -3159,6 +3391,7 @@
         "mdn": "/en-US/docs/Web/CSS/:nth-last-of-type()"
       }
     },
+
     {
       "name": ":nth-of-type()",
       "discription": "The :nth-of-type() CSS pseudo-class matches one or more elements of a given type, based on their position among a group of siblings.",
@@ -3170,6 +3403,7 @@
         "mdn": "/en-US/docs/Web/CSS/:nth-of-type()"
       }
     },
+
     {
       "name": ":only-child",
       "discription": "The :only-child CSS pseudo-class represents an element without any siblings. This is the same as :first-child:last-child or :nth-child(1):nth-last-child(1), but with a lower specificity.",
@@ -3181,6 +3415,7 @@
         "mdn": "/en-US/docs/Web/CSS/:only-child"
       }
     },
+
     {
       "name": ":only-of-type",
       "discription": "The :only-of-type CSS pseudo-class represents an element that has no siblings of the same type.",
@@ -3192,6 +3427,7 @@
         "mdn": "/en-US/docs/Web/CSS/:only-of-type"
       }
     },
+
     {
       "name": ":optional",
       "discription": "The :optional CSS pseudo-class represents any <input>, <select>, or <textarea>element that does not have the required attribute set on it.",
@@ -3203,6 +3439,7 @@
         "mdn": "/en-US/docs/Web/CSS/:optional"
       }
     },
+
     {
       "name": ":out-of-range",
       "discription": "The :out-of-range CSS pseudo-class represents an <input> element whose current value is outside the range limits specified by the min and max attributes.",
@@ -3214,6 +3451,7 @@
         "mdn": "/en-US/docs/Web/CSS/:out-of-range"
       }
     },
+
     {
       "name": ":read-only",
       "discription": "The :read-only CSS pseudo-class represents an element (such as a locked text input) that is not editable by the user.",
@@ -3225,6 +3463,7 @@
         "mdn": "/en-US/docs/Web/CSS/:read-only"
       }
     },
+
     {
       "name": ":read-write",
       "discription": "The :read-write CSS pseudo-class represents an element (such as a text input) that is editable by the user.",
@@ -3236,6 +3475,7 @@
         "mdn": "/en-US/docs/Web/CSS/:read-write"
       }
     },
+
     {
       "name": ":required",
       "discription": "The :required CSS pseudo-class represents any <input>, <select>, or <textarea> element that has the required attribute set on it.",
@@ -3247,6 +3487,7 @@
         "mdn": "/en-US/docs/Web/CSS/:required"
       }
     },
+
     {
       "name": ":right",
       "discription": "The :right CSS pseudo-class, used with the  @page at-rule, represents all right-hand pages of a printed document.",
@@ -3258,6 +3499,7 @@
         "mdn": "/en-US/docs/Web/CSS/:right"
       }
     },
+
     {
       "name": ":root",
       "discription": "The :root CSS pseudo-class matches the root element of a tree representing the document. In HTML, :root represents the <html> element and is identical to the selector html, except that its specificity is higher.",
@@ -3269,6 +3511,7 @@
         "mdn": "/en-US/docs/Web/CSS/:root"
       }
     },
+
     {
       "name": ":scope",
       "discription": "The :scope CSS pseudo-class represents elements that are a reference point for selectors to match against.",
@@ -3280,6 +3523,7 @@
         "mdn": "/en-US/docs/Web/CSS/:scope"
       }
     },
+
     {
       "name": ":target",
       "discription": "The :target CSS pseudo-class represents a unique element (the target element) with an id matching the URL's fragment.",
@@ -3291,6 +3535,7 @@
         "mdn": "/en-US/docs/Web/CSS/:target"
       }
     },
+
     {
       "name": ":valid",
       "discription": "The :valid CSS pseudo-class represents any <input> or other <form> element whose contents validate successfully. This allows to easily make valid fields adopt an appearance that helps the user confirm that their data is formatted properly.",
@@ -3302,6 +3547,7 @@
         "mdn": "/en-US/docs/Web/CSS/:valid"
       }
     },
+
     {
       "name": ":visited",
       "discription": "The :visited CSS pseudo-class represents links that the user has already visited. For privacy reasons, the styles that can be modified using this selector are very limited.",
@@ -3313,8 +3559,11 @@
         "mdn": "/en-US/docs/Web/CSS/:visited"
       }
     }
+
   ],
+
   "Tables": [
+
     {
       "name": "border-collapse",
       "discription": "Sets whether table borders should collapse into a single border or be separated",
@@ -3326,6 +3575,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-collapse"
       }
     },
+
     {
       "name": "border-spacing",
       "discription": "Sets the distance between the borders of adjacent cells",
@@ -3337,6 +3587,7 @@
         "mdn": "/en-US/docs/Web/CSS/border-spacing"
       }
     },
+
     {
       "name": "caption-side",
       "discription": "Specifies the placement of a table caption",
@@ -3348,6 +3599,7 @@
         "mdn": "/en-US/docs/Web/CSS/caption-side"
       }
     },
+
     {
       "name": "empty-cells",
       "discription": "Specifies whether or not to display borders and background on empty cells in a table",
@@ -3359,6 +3611,7 @@
         "mdn": "/en-US/docs/Web/CSS/empty-cells"
       }
     },
+
     {
       "name": "table-layout",
       "discription": "Sets the layout algorithm to be used for a table",
@@ -3370,8 +3623,11 @@
         "mdn": "/en-US/docs/Web/CSS/table-layout"
       }
     }
+
   ],
+
   "Transformations": [
+
     {
       "name": "transform",
       "discription": "Applies a 2D or 3D transformation to an element",
@@ -3383,6 +3639,7 @@
         "mdn": "/en-US/docs/Web/CSS/transform"
       }
     },
+
     {
       "name": "transform-origin",
       "discription": "Allows you to change the position on transformed elements",
@@ -3394,6 +3651,7 @@
         "mdn": "/en-US/docs/Web/CSS/transform-origin"
       }
     },
+
     {
       "name": "touch-action",
       "discription": "Sets how an element's region can be manipulated by a touchscreen user (for example, by zooming features built into the browser)",
@@ -3404,10 +3662,15 @@
         "mdn": "/en-US/docs/Web/CSS/touch-action"
       }
     }
+
   ],
+
   "Visual Formatting": [
+
     {
       "name": "align-content",
+      "groups": [],
+      "default": "strech",
       "discription": "Specifies the alignment between the lines inside a flexible container when the items do not use all available space",
       "type": "P",
       "values": [ "stretch", "center", "flex-start", "flex-end", "space-between", "space-around" ],
@@ -3417,6 +3680,7 @@
         "mdn": "/en-US/docs/Web/CSS/align-content"
       }
     },
+
     {
       "name": "align-items",
       "discription": "Specifies the alignment for items inside a flexible container",
@@ -3428,6 +3692,7 @@
         "mdn": "/en-US/docs/Web/CSS/align-items"
       }
     },
+
     {
       "name": "align-self",
       "discription": "Specifies the alignment for selected items inside a flexible container",
@@ -3439,6 +3704,7 @@
         "mdn": "/en-US/docs/Web/CSS/align-self"
       }
     },
+
     {
       "name": "backface-visibility",
       "discription": "Defines whether or not the back face of an element should be visible when facing the user",
@@ -3450,6 +3716,7 @@
         "mdn": "/en-US/docs/Web/CSS/backface-visibility"
       }
     },
+
     {
       "name": "bottom",
       "discription": "Sets the elements position, from the bottom of its parent element",
@@ -3461,6 +3728,7 @@
         "mdn": "/en-US/docs/Web/CSS/bottom"
       }
     },
+
     {
       "name": "clear",
       "discription": "Specifies on which sides of an element floating elements are not allowed to float",
@@ -3472,6 +3740,7 @@
         "mdn": "/en-US/docs/Web/CSS/clear"
       }
     },
+
     {
       "name": "clip-path",
       "discription": "Clips an absolutely positioned element",
@@ -3483,6 +3752,7 @@
         "mdn": "/en-US/docs/Web/CSS/clip"
       }
     },
+
     {
       "name": "display",
       "discription": "Specifies how a certain HTML element should be displayed",
@@ -3494,6 +3764,7 @@
         "mdn": "/en-US/docs/Web/CSS/display"
       }
     },
+
     {
       "name": "float",
       "discription": "Specifies whether or not a box should float",
@@ -3505,6 +3776,7 @@
         "mdn": "/en-US/docs/Web/CSS/float"
       }
     },
+
     {
       "name": "height",
       "discription": "Sets the height of an element",
@@ -3516,6 +3788,7 @@
         "mdn": "/en-US/docs/Web/CSS/height"
       }
     },
+
     {
       "name": "image-orientation",
       "discription": "Specifies a rotation in the right or clockwise direction that a user agent applies to an image (This property is likely going to be deprecated and its functionality moved to HTML)",
@@ -3527,6 +3800,7 @@
         "mdn": "/en-US/docs/Web/CSS/image-orientation"
       }
     },
+
     {
       "name": "image-rendering",
       "discription": "Gives a hint to the browser about what aspects of an image are most important to preserve when the image is scaled",
@@ -3538,6 +3812,7 @@
         "mdn": "/en-US/docs/Web/CSS/image-rendering"
       }
     },
+
     {
       "name": "justify-content",
       "discription": "Specifies the alignment between the items inside a flexible container when the items do not use all available space",
@@ -3549,6 +3824,7 @@
         "mdn": "/en-US/docs/Web/CSS/justify-content"
       }
     },
+
     {
       "name": "left",
       "discription": "Specifies the left position of a positioned element",
@@ -3560,6 +3836,7 @@
         "mdn": "/en-US/docs/Web/CSS/left"
       }
     },
+
     {
       "name": "max-height",
       "discription": "Sets the maximum height of an element",
@@ -3571,6 +3848,7 @@
         "mdn": "/en-US/docs/Web/CSS/max-height"
       }
     },
+
     {
       "name": "max-width",
       "discription": "Sets the maximum width of an element",
@@ -3582,6 +3860,7 @@
         "mdn": "/en-US/docs/Web/CSS/max-width"
       }
     },
+
     {
       "name": "min-height",
       "discription": "Sets the minimum height of an element",
@@ -3593,6 +3872,7 @@
         "mdn": "/en-US/docs/Web/CSS/min-height"
       }
     },
+
     {
       "name": "min-width",
       "discription": "Sets the minimum width of an element",
@@ -3604,6 +3884,7 @@
         "mdn": "/en-US/docs/Web/CSS/min-width"
       }
     },
+
     {
       "name": "object-fit",
       "discription": "Specifies how the contents of a replaced element should be fitted to the box established by its used height and width",
@@ -3615,6 +3896,7 @@
         "mdn": "/en-US/docs/Web/CSS/object-fit"
       }
     },
+
     {
       "name": "object-position",
       "discription": "Specifies the alignment of the replaced element inside its box",
@@ -3629,6 +3911,7 @@
         "mdn": "/en-US/docs/Web/CSS/object-position"
       }
     },
+
     {
       "name": "overflow",
       "discription": "Specifies what happens if content overflows an element's box",
@@ -3640,6 +3923,7 @@
         "mdn": "/en-US/docs/Web/CSS/overflow"
       }
     },
+
     {
       "name": "overflow-wrap",
       "discription": "Specifies whether or not the browser may break lines within words in order to prevent overflow (when a string is too long to fit its containing box)",
@@ -3651,6 +3935,7 @@
         "mdn": "/en-US/docs/Web/CSS/overflow-wrap"
       }
     },
+
     {
       "name": "overflow-x",
       "discription": "Specifies whether or not to clip the left/right edges of the content, if it overflows the element's content area",
@@ -3662,6 +3947,7 @@
         "mdn": "/en-US/docs/Web/CSS/overflow-x"
       }
     },
+
     {
       "name": "overflow-y",
       "discription": "Specifies whether or not to clip the top/bottom edges of the content, if it overflows the element's content area",
@@ -3673,6 +3959,7 @@
         "mdn": "/en-US/docs/Web/CSS/overflow-y"
       }
     },
+
     {
       "name": "position",
       "discription": "Specifies the type of positioning method used for an element (static, relative, absolute or fixed)",
@@ -3684,6 +3971,7 @@
         "mdn": "/en-US/docs/Web/CSS/position"
       }
     },
+
     {
       "name": "resize",
       "discription": "Specifies whether or not an element is resizable by the user",
@@ -3695,6 +3983,7 @@
         "mdn": "/en-US/docs/Web/CSS/resize"
       }
     },
+
     {
       "name": "right",
       "discription": "Specifies the right position of a positioned element",
@@ -3706,6 +3995,7 @@
         "mdn": "/en-US/docs/Web/CSS/right"
       }
     },
+
     {
       "name": "top",
       "discription": "Specifies the top position of a positioned element",
@@ -3717,6 +4007,7 @@
         "mdn": "/en-US/docs/Web/CSS/top"
       }
     },
+
     {
       "name": "visibility",
       "discription": "Specifies whether or not an element is visible",
@@ -3728,6 +4019,7 @@
         "mdn": "/en-US/docs/Web/CSS/visibility"
       }
     },
+
     {
       "name": "width",
       "discription": "Sets the width of an element",
@@ -3742,6 +4034,7 @@
         "mdn": "/en-US/docs/Web/CSS/width"
       }
     },
+
     {
       "name": "z-index",
       "discription": "Sets the stack order of a positioned element",
@@ -3756,8 +4049,11 @@
         "mdn": "/en-US/docs/Web/CSS/z-index"
       }
     }
+
   ],
+
   "At Selectors": [
+
     {
       "name": "@keyframes",
       "discription": "Specifies the animation code",
@@ -3769,6 +4065,7 @@
         "mdn": "/en-US/docs/Web/CSS/@keyframes"
       }
     },
+
     {
       "name": "@charset",
       "discription": "Specifies the character encoding used in the style sheet",
@@ -3780,6 +4077,7 @@
         "mdn": "/en-US/docs/Web/CSS/@charset"
       }
     },
+
     {
       "name": "@font-face",
       "discription": "A rule that allows websites to download and use fonts other than the \"web-safe\" fonts",
@@ -3791,6 +4089,7 @@
         "mdn": "/en-US/docs/Web/CSS/@font-face"
       }
     },
+
     {
       "name": "@media",
       "discription": "Sets the style rules for different media types/devices/sizes",
@@ -3802,5 +4101,7 @@
         "mdn": "/en-US/docs/Web/CSS/@media"
       }
     }
+
   ]
+
 }
