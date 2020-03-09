@@ -5,7 +5,9 @@ session_start();
 require_once '../core/Tools.php';
 Tools::DefineServer();
 
-$finishedScript = '';
+$finishedScript = 'if(!SI){var SI = {}};';
+
+
 if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'])) {
     // Tools:: Log("in page.js after the condidtion");
     Tools::Autoload('subroot');

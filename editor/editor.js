@@ -86,7 +86,7 @@ if (Tools::UserHasRole('Admin'))
     $relationsjson = json_encode($relations);
     //Tools::Log($relations);
 
-    //Get all the relations 
+
     $settingsentities = new Entity('settings');
     $settings = $settingsentities->Retrieve('settingname,settingvalue');
     $tmpSetting = array();
@@ -209,6 +209,7 @@ if (Tools::UserHasRole('Admin'))
     $jsMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/js_methods.js');
     $phpMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/php_methods.json');
     $sqlMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/sql_methods.json');
+    $sqlNew = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_new.json');
 
 
     $dataage = "html_elements: $htmlElementsAge,
@@ -216,7 +217,9 @@ if (Tools::UserHasRole('Admin'))
             css_properties: $cssPropertiesAge,
             js_methods : $jsMethodsAge,
             php_methods : $phpMethodsAge,
-            sql_methods : $sqlMethodsAge, ";
+            sql_methods : $sqlMethodsAge,
+            css_new : $sqlNew
+           ";
     //echo $dataage;
 
     $entities =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'];
@@ -298,10 +301,15 @@ SI.Editor = {
             SqlMethodsDataList: null, 
             AcceptedMimeTypes: <?=$mimes ?>,
             AdminData:<?= $sessionPageData ?>,
+            ImportRules: [],
+            MediaRules: {},
+            FontFaces: {},
             AnimationNames: [],
+
+
         },
         Init: function () {
-            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"];
+            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods","css_new"];
             let loadedcount = 0;
             codes.forEach(function (codetype) {
                 let lastmoddate = codetype + "_last_modified";
@@ -332,7 +340,16 @@ SI.Editor = {
                 } else {
                     if (jsonstring != null && jsonstring.length > 0) {
                         try {
-                            SI.Editor.Data[codetype] = JSON.parse(jsonstring);
+                            if (codetype === "css_new") {
+                                if (!SI.Editor.Data.Objects.Code) {
+                                    SI.Editor.Data.Code = {};
+                                }
+                                SI.Editor.Data.Code.Styles = JSON.parse(jsonstring);
+                            }
+                            else {
+                                SI.Editor.Data[codetype] = JSON.parse(jsonstring);
+                            }
+                            
                             loadedcount++;
                             if (loadedcount == codes.length) {       
                                 SI.Editor.Data.loaded = true;
@@ -565,18 +582,9 @@ SI.Editor = {
                     }
                 }
             },
-            BuildDataLists: function () {
-                //debugger;
-                if (SI.Editor.UI.Container != null) {
-                    if (SI.Editor.Data.html_elements) {
-                        htmlTagDataList = document.createElement('datalist');
-                        htmlTagDataList.id = "html-elements-datalist";
-                        SI.Editor.UI.Container.append(htmlTagDataList);
-                    }
-                }
-            },
             SupplementData: function () {
-                let SetEntityLists = function () {
+                this.EntityData = function () {
+                    //Build the Entity Not allowed names and the Guid reverse lookup list 
                     let info = SI.Editor.Data.Objects.Entities.Definitions;
                     let notallowednames = SI.Editor.Data.Objects.Entities.Lists.NotAllowedNames;
                     let entkey = {}
@@ -603,7 +611,8 @@ SI.Editor = {
                     SI.Editor.Data.Objects.Entities.Lists.NotAllowedNames = notallowednames;
                 };
                 //the relations data is nothign but guids. lets try to make this more readable and useable
-                let SupplementRelationsData = function () {  
+                this.RelationsData = function () {  
+                    //Relations data has only entity guid names. use the reverse lookup from EntityData to get the names to make it easy to read.
                     let relations = SI.Editor.Data.Objects.Entities.Relationships;
                     let lookup = SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup;
                     for (r in relations) {
@@ -617,8 +626,35 @@ SI.Editor = {
                             relation.parententity_name = lookup["0x" + parentid];
                         }
                     }
-
-                    //@keyframenames are the same as animation names. find them and set them.
+                };
+                this.StyleData = function () {
+                    if (SI.Editor.Data.Code.Styles) {
+                        SI.Editor.Data.DataLists.StyleGroups = {};
+                        if (SI.Editor.Objects.Settings.Current.StyleGroupOrder) {
+                            existGroups = SI.Editor.Objects.Settings.Current.StyleGroupOrder.split(",");
+                            for (group of existGroups) {
+                                SI.Editor.Data.DataLists.StyleGroups[group] = [];
+                            }
+                        } 
+                        let styles = SI.Editor.Data.Code.Styles;
+                        for (let i in styles) {
+                            if (styles.hasOwnProperty(i)) {
+                                let style = styles[i];
+                                //Get the unique Groups
+                                if (style.groups) {
+                                    for (group of style.groups) {
+                                        if (!SI.Editor.Data.DataLists.StyleGroups[group]) {
+                                            SI.Editor.Data.DataLists.StyleGroups[group] = [];
+                                        }
+                                        SI.Editor.Data.DataLists.StyleGroups[group].push(i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+                this.AtData = function () {
+                    //@keyframenames are the same as animation names. find them and set them. too bad there isnt a window object that holds all Animation Names.
                     let sheets = document.styleSheets;
                     for (i = 0; i < sheets.length; i++) {
                         let sheet = sheets[i];
@@ -627,22 +663,73 @@ SI.Editor = {
                                 let rules = sheet.cssRules;
                                 for (j = 0; j < rules.length; j++) {
                                     let rule = rules[j];
+                                    //Import Runles
+                                    if (rule.type === 3) {
+                                        let href = rule.href;
+                                        if (!SI.Editor.Data.DataLists.ImportRules.includes(href)) {
+                                            SI.Editor.Data.DataLists.ImportRules.push(href);
+                                        }
+                                    }
+
+                                    //get Media Rules
+                                    if (rule.type === 4) {
+                                        let ctxt = rule.conditionText;
+                                        if (!SI.Editor.Data.DataLists.MediaRules[ctxt]) {
+                                            SI.Editor.Data.DataLists.MediaRules[ctxt] = [];
+                                        }
+                                      
+                                        mediaRules = rule.cssRules;
+                                        for (k = 0; k < mediaRules.length; k++) {
+                                            SI.Editor.Data.DataLists.MediaRules[ctxt].push(mediaRules[k].cssText);
+                                        }
+                                    }
+
+                                    
+                                    //get font faces
+                                    if (rule.type === 5) {
+                                        debugger;
+                                        let ffstyles = rule.style;
+                                        if (ffstyles.fontFamily) {
+                                        //we must have a font face family
+                                            if (!SI.Editor.Data.DataLists.FontFaces[ffstyles.fontFamily]) {
+                                                SI.Editor.Data.DataLists.FontFaces[ffstyles.fontFamily] = {};
+                                            }
+                                            let ittr = 0;
+                                            while (ffstyles[ittr]) {
+                                                if (ffstyles[ittr] !== "font-family") {
+                                                    let ffstyle = ffstyles[ittr];
+                                                    let ffprop = ffstyles[ffstyle];
+                                                    SI.Editor.Data.DataLists.FontFaces[ffstyles.fontFamily][ffstyle] = ffprop;
+                                                }
+                                                ittr++;
+                                            }
+                                        }
+
+                                    }
+
+
+                                    //get Animation Names
                                     if (rule.type === 7) {
                                         let name = rule.name;
                                         if (!SI.Editor.Data.DataLists.AnimationNames.includes(name)) {
                                             SI.Editor.Data.DataLists.AnimationNames.push(name);
                                         }
                                     }
+
+
+
+
                                 }
                             }
                         }
                     }
-
                 };
-                //run our functions
-                SetEntityLists();
-                SupplementRelationsData();//dependent on the function above it to have run.
 
+                //run our functions
+                this.EntityData();
+                this.RelationsData();//dependent on the function above it to have run.
+                this.StyleData();
+                this.AtData();
             },
         },
     },
@@ -1161,6 +1248,7 @@ SI.Editor = {
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
+                tabs.Items.Add('Styles2', SI.Editor.UI.EditPanel.DrawStyles2());
                 editMenu.appendChild(tabs.Draw());
                 SI.Editor.UI.MainMenu.Element.appendChild(editMenu);
             },
@@ -1757,7 +1845,6 @@ SI.Editor = {
                 //Loop through all of the groups of styles
                 for (let group in SI.Editor.Data.css_properties) {
                     if (SI.Editor.Data.css_properties.hasOwnProperty(group)) {
-
                         if (!group.startsWith("Pseudo")) {
                             //Make the group box
                             let stylebox = Ele('div', {
@@ -1769,7 +1856,6 @@ SI.Editor = {
                                 },
                                 appendTo: styleview,
                             });
-
                             let styletable = Ele('table', {
                                 style: {
                                     backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -1792,6 +1878,17 @@ SI.Editor = {
                 }
                 Ele("div",{style: {height:"18px",}, appendTo:styleview });//hack to fix the bottom of the scrolls. This is probably a tabs issue. further investigate.
                 return styleview;
+            },
+
+            DrawStyles2: function() {
+                //create a box for the groups
+                var styleview = Ele('div', {
+                    id: 'si_style_view',
+                    style: {
+                    },
+                });
+
+
             },
 
             //When a element is selected, update ALL the Attributes and styles UIs to reflect the elements values.
