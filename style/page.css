@@ -4,12 +4,12 @@ session_start();
 require_once '../core/Tools.php';
 Tools::DefineServer();
 
-echo "@charset 'UTF-8';";
+echo "@charset \"ISO-8859-1\";";
 echo " @import url('/style/navigation.css');  ";
 echo " @keyframes mymove { from {left: 0px;} to {left: 200px;} } \n";
 echo " @media only screen and (max-width: 600px) { body { background-color: lightblue;}}  \n";
 echo " @font-face { font-family: myFirstFont; src: url(sansation_light.woff); font-weight: bold;} ";
-
+echo " @page {margin: 1cm; widows:4}";
 
 
 

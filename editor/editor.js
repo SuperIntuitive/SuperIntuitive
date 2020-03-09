@@ -304,6 +304,7 @@ SI.Editor = {
             ImportRules: [],
             MediaRules: {},
             FontFaces: {},
+            PageRules: { Allowed: ['margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom',"orphans","widows"]},
             AnimationNames: [],
 
 
@@ -670,7 +671,6 @@ SI.Editor = {
                                             SI.Editor.Data.DataLists.ImportRules.push(href);
                                         }
                                     }
-
                                     //get Media Rules
                                     if (rule.type === 4) {
                                         let ctxt = rule.conditionText;
@@ -683,8 +683,6 @@ SI.Editor = {
                                             SI.Editor.Data.DataLists.MediaRules[ctxt].push(mediaRules[k].cssText);
                                         }
                                     }
-
-                                    
                                     //get font faces
                                     if (rule.type === 5) {
                                         debugger;
@@ -704,9 +702,24 @@ SI.Editor = {
                                                 ittr++;
                                             }
                                         }
-
                                     }
 
+                                    //get page printer rules
+                                    if (rule.type === 6) {
+                                        debugger;
+                                        let pgstyles = rule.style;
+                                        let ittr = 0;
+                                        while (pgstyles[ittr]) {
+                                            if (pgstyles[ittr] !== "font-family") {
+                                                let pgstyle = pgstyles[ittr];
+                                                if (SI.Editor.Data.DataLists.PageRules.Allowed.indexOf(pgstyle)>-1) {
+                                                    let pgprop = pgstyles[pgstyle];
+                                                    SI.Editor.Data.DataLists.PageRules[pgstyle] = pgprop;
+                                                }
+                                            }
+                                            ittr++;
+                                        }
+                                    }
 
                                     //get Animation Names
                                     if (rule.type === 7) {
@@ -715,10 +728,6 @@ SI.Editor = {
                                             SI.Editor.Data.DataLists.AnimationNames.push(name);
                                         }
                                     }
-
-
-
-
                                 }
                             }
                         }
