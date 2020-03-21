@@ -7,7 +7,7 @@ SI.Editor.Objects.Media = function (window) {
     let self = this;
     this.Window = window;
     this.Draw = function () {
-        var tabs = new SI.Widgets.Tabs({});
+        var tabs = new SI.Widget.Tabs({});
 
         tabs.Items.Add('Images', this.MediaTab('Images'));
         tabs.Items.Add('Audio', this.MediaTab('Audio'));
@@ -19,8 +19,8 @@ SI.Editor.Objects.Media = function (window) {
         this.Window.Append(tabs.Draw());
 
         //want the uploader to be fixed to the lower left on all tabs.
-        var uploader = new SI.Widgets.Uploader({ Bottom: '20px', Left: '20px' });
-        this.Window.Append(uploader);
+        var uploader = new SI.Widget.Uploader({ Bottom: '20px', Left: '20px' });
+        this.Window.Append(uploader.Container);
 
         //try to load the first image so we dont have blanks...  ...lol this silly hack works ..at least it used to
         let tiles = document.getElementsByClassName('si_media_Images');
@@ -251,16 +251,18 @@ SI.Editor.Objects.Media = function (window) {
             style: {
                 position: 'absolute',
                 display: 'inline-block',
-                overflow: 'scroll',
+                padding: '6px',
+                overflow: 'auto',
                 left: '260px',
                 top: '24px',
-                minWidth: '538px',
+                width: '538px',
                 height: '100%',
                 backgroundColor: '#708080',
                 paddingRight: '0px'
             },
             appendTo: container
         });
+       // debugger;
 
         //clear spacer to keep icons off the toolbar
         Ele('div', { style: { position: 'relative', width: '100%', height: "20px", pointerEvents: 'none' }, appendTo: mediascroller });
@@ -268,14 +270,11 @@ SI.Editor.Objects.Media = function (window) {
         let medialibrary = SI.Editor.Data.Objects.Media;
         for (var media in medialibrary) {
             if (medialibrary.hasOwnProperty(media)) {
-            
                 let data = medialibrary[media];
                 if (data.hasOwnProperty('mime')) {
-
                     if (SI.Editor.Data.DataLists.AcceptedMimeTypes[tabname].indexOf(data.mime) > -1) {
-                        //    console.log(data);
                         let validPath = SI.Tools.GetMediaFilePath("dev_" + data['path']);
-                        if (validPath !== null) {
+                        if (validPath != null) {
                             let options = {
                                 Type: tabname,
                                 Data: { "path": data['path'], "mime": data['mime'], "name": data['name'], "tabname": tabname, "url": validPath, "id": '0x' + data['id'] },
@@ -283,11 +282,10 @@ SI.Editor.Objects.Media = function (window) {
                                 Url: validPath,
                                 BackgroundColor: 'silver',
                                 Text: data['name'],
-                                OnChange: this.OnChange
+                                OnChange: self.OnChange,
                             };
-
-                            let tile = new SI.Widgets.Tile(options);
-                            mediascroller.appendChild(tile);
+                            let tile = new SI.Widget.Tile(options);
+                            mediascroller.appendChild(tile.Container);
                         } else {
                             console.warn("Unknown file could not be loaded into media viewer: " + data['path']);
                         }
@@ -304,6 +302,11 @@ SI.Editor.Objects.Media = function (window) {
         let w = self.Window.GetWidth();
         let h = self.Window.GetHeight();
         SI.Tools.Class.Loop("si-edit-mediascroller", function (ele) {
+            ele.style.width = (w - 265) + "px";
+            ele.style.height = (h - 56) + "px";
+
+        }); 
+        SI.Tools.Class.Loop('si-edit-mediatoolbar', function (ele) {
             ele.style.width = (w - 260) + "px";
         });
         SI.Tools.Class.Loop("si-media-menu", function (ele) {
@@ -318,16 +321,14 @@ SI.Editor.Objects.Media = function (window) {
     this.Create = function () {
 
     };
-    this.OnChange = function (ev) {
-        //debugger;
+    this.OnChange = function (ev,self) {
         let deploys = ["dev", "test", "live"];
-
-        let filename = this.getAttribute('data-path');
-        let name = this.getAttribute('data-name');
-        let mime = this.getAttribute('data-mime');
-        let tabname = this.getAttribute('data-tabname');
-        let validPath = this.getAttribute('data-url');
-        let id = this.getAttribute('data-id');
+        let filename = self.getAttribute('data-path');
+        let name = self.getAttribute('data-name');
+        let mime = self.getAttribute('data-mime');
+        let tabname = self.getAttribute('data-tabname');
+        let validPath = self.getAttribute('data-url');
+        let id = self.getAttribute('data-id');
 
         //incase we want to recycle them
         let recycle = document.getElementById('si_media_' + tabname + '_recycle');
@@ -342,15 +343,15 @@ SI.Editor.Objects.Media = function (window) {
         document.getElementById('si_media_' + tabname + '_Size').value = SI.Editor.Data.Tools.GetFileSize(validPath);
         switch (tabname) {
             case "Images":
-                document.getElementById('si_media_' + tabname + '_Width').value = this.firstChild.naturalWidth + 'px';
-                document.getElementById('si_media_' + tabname + '_Height').value = this.firstChild.naturalHeight + 'px';
+                document.getElementById('si_media_' + tabname + '_Width').value = self.firstChild.naturalWidth + 'px';
+                document.getElementById('si_media_' + tabname + '_Height').value = self.firstChild.naturalHeight + 'px';
                 break;
             case "Audio":
-                document.getElementById('si_media_' + tabname + '_Duration').value = this.firstChild.duration;
+                document.getElementById('si_media_' + tabname + '_Duration').value = self.firstChild.duration;
 
                 break;
             case "Video":
-                document.getElementById('si_media_' + tabname + '_Duration').value = this.firstChild.duration;
+                document.getElementById('si_media_' + tabname + '_Duration').value = self.firstChild.duration;
                 break;
             case "Documents":
                 break;

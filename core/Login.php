@@ -9,7 +9,7 @@ class Login {
 				$user = new Entity("users");
 				$user->Attributes->Add(new Attribute("email",$post['email']) );
 				$user->Attributes->Add(new Attribute("status",'active') );
-				$users = $user->Retrieve("id,name,email,password");
+				$users = $user->Retrieve("id,name,email,password,preferences");
 
 				if(count($users)==1){
 				    $ouruser = $users[0];
@@ -61,10 +61,10 @@ class Login {
 	}
 
 	private function Verified($ouruser, $post){
+					Tools::Log($ouruser);
 		if(isset($post['rememberme'])){
 			if($post['rememberme']){
 				Tools::Log('rememberme is true');
-				Tools::Log($ouruser);
 				$exptime = time() + (10 * 365 * 24 * 60 * 60); //10 years
 				$token = Tools::RandomString(32);
 				$mtime = preg_replace('/[.+ ]/','',microtime(FALSE));
@@ -108,6 +108,10 @@ class Login {
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs']['help']['moz'] = false;
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs']['help']['w3'] = false; 
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs']['autosave'] = true;
+		if(isset($ouruser['preferences'])){
+		    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences'] = json_decode($ouruser['preferences']);
+		}
+		
 
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'] = array();
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['permissions']=array();

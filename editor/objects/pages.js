@@ -334,6 +334,7 @@ SI.Editor.Objects.Page = {
             var bodystyle = bodyStyleEle.innerHTML;
             //Body Styles
             let bodyTable = Ele("fieldset", {
+
                 style: {
                     margin: '6px',
                     backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -345,6 +346,64 @@ SI.Editor.Objects.Page = {
                 append: Ele("legend", { innerHTML: "Body Style" }),
             });
 
+
+            //Add body style
+
+            let addBodyStyle = Ele("button", {
+                innerHTML: 'Add Style',
+                style: {
+                    height: '20px',
+                    marginLeft: '12px',
+                },
+                onclick: function (e) {
+                    //debugger;
+                    let style = this.nextSibling.value;
+                    if (style.length) {
+                        let styleobj = {
+                            "Property": style,
+                            "Effected": "body",
+                            "AccessClass": "si-editor-page-bodystyle",
+                            "InputId": 'si_page_body_style_' + SI.Tools.CssProp2JsKey(style),
+                            "Removable": true,
+                        };
+                        let stylebox = SI.Editor.Objects.Elements.Styles.Widget(styleobj);
+                        let leftbox = document.getElementById("si_edit_page_body_left_table");
+                        let rightbox = leftbox.nextElementSibling;
+                        if (leftbox.rows.length > rightbox.rows.length) {
+                            rightbox.appendChild(stylebox);
+                        } else {
+                            leftbox.appendChild(stylebox);
+                        }
+                    } else {
+                        alert('Select a style to add it to the block');
+                    }
+                    this.nextSibling.selectedIndex = 0;
+                },
+                appendTo: bodyTable
+            });
+            let addStyleSelect = Ele('select', {
+                style: {
+                    width: '25%',
+                    margin: '10px'
+                },
+                draggable: false,
+                appendTo: bodyTable
+            });
+            Ele("option", { value: '', innerHTML: '', appendTo: addStyleSelect });
+            for (let group in SI.Editor.Data.css_properties) {
+                if (group !== "Pseudo Class" && group !== "Pseudo Element") {
+                    let groupset = Ele("optgroup", { label: group, appendTo: addStyleSelect });
+                    let wholegroup = SI.Editor.Data.css_properties[group];
+                    for (let s in wholegroup) {
+                        let prop = wholegroup[s].n;
+                        if (!prop.startsWith("@"))
+                            Ele("option", { value: prop, innerHTML: prop, title: wholegroup[s].d, appendTo: groupset });
+                    }
+                }
+            }
+
+
+
             bodystyle = "{\"" + bodystyle.replace("body {", "").replace(/:/g, '":"').replace(/;/g, '","').replace(',"}', '}');
             bodystyle = JSON.parse(bodystyle);
 
@@ -353,19 +412,20 @@ SI.Editor.Objects.Page = {
                     display: 'flex',
                 },
                 appendTo: bodyTable,
-            })
+            });
             let leftTable = Ele("table", {
+                id:"si_edit_page_body_left_table",
                 style: {
                     display: 'inline-block',
                 },
                 appendTo: tablebox,
             });
             let rightTable = Ele("table", {
+                id: "si_edit_page_body_right_table",
                 style: {
                     float: 'right',
                 },
                 appendTo: tablebox,
-
             });
 
             let onleft = true;
@@ -378,7 +438,8 @@ SI.Editor.Objects.Page = {
                     "Effected": 'body',
                     "InitialValue": bodystyle[item],
                     "InputId": 'si_page_body_style_' + SI.Tools.CssProp2JsKey(item),
-                    "AccessClass": "si-editor-page-bodystyle"
+                    "AccessClass": "si-editor-page-bodystyle",
+                    "Removable": true,
                 };
 
                 let stylerow = SI.Editor.Objects.Elements.Styles.Widget(styleobj);// "Group": style.group, "Index": style.index, "Effect": 'body' });

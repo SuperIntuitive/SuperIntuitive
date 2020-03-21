@@ -244,7 +244,10 @@ class Attribute{
 	{
 	    if($name != null || $value != null){
 			$this->Name = $name;
-			$ctype = get_class($value);
+			$ctype=null;
+			if(is_object($value)){
+				$ctype = get_class($value);
+			}
 			if($ctype =='Entity' || $ctype =='EntityReference')
 			{
 				$er = new EntityReference();

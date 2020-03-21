@@ -1,25 +1,38 @@
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.Table = function (obj) {
-    if (typeof obj === "undefined") {
-        obj = {};
-    }
+SI.Widget.Table = function (options) {
+    if (!(this instanceof SI.Widget.Table)) { return new SI.Widget.Table(); }
+    this.Defaults = {
+        "Parent": null,
+        "ParentIndex": null,
+    };
 
-    let base = document.createElement('table');
-    base.style.width = '100%';
-    base.style.height = '100%';
-    base.style.backgroundColor = 'green';
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Random = SI.Tools.String.RandomString(11);
+
+    this.Container = Ele("table", {
+        id: "si_datagrid_" + this.Random,
+        class: "si-widget",
+        style: {
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'green'
+        }
+    });
     for (var i = 0; i < 12; i++) {
         let r = document.createElement('tr');
-        r.id = 'tr-' + i + '_' + id;
+        r.id = 'si_row_' + i + '_' + this.Random;
         for (var j = 0; j < 12; j++) {
             let c = document.createElement('td');
-            c.id = 'td-' + i + '-' + j + '_' + id;
+            c.id = 'si_' + i + '_' + j + '_' + this.Random;
 
             r.appendChild(c);
         }
-        base.appendChild(r);
+        this.Container.appendChild(r);
     }
-    return base;
+    if (this.Options.Parent) {
+        this.Options.Parent.appendChild(container);
+    }
+    return this;
 };

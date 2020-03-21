@@ -1,12 +1,13 @@
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.Tabs = function (options) {
-    //Default Fields. make sure to implement these. they are used to allow UI setting
+SI.Widget.Tabs = function (options) {
+    if (!(this instanceof SI.Widget.Tabs)) { return new SI.Widget.Tabs(); }
     this.Defaults = {
         "ContainerClass": "",
         "Position": "absolute",
-        "ParentId": "",
+        "Parent": null,
+        "ParentIndex": null,
         "Width": "100%",
         "Height": "100%",
         "Top": "",
@@ -29,7 +30,7 @@ SI.Widgets.Tabs = function (options) {
         "LeftOfTabsSpace": '18px',
         "Overflow":'hidden',
         "OnChange": null,
-        "Selected": null,
+        "Selected": null
     };
     this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     let hWin = this;

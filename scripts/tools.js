@@ -1,20 +1,5 @@
 
 
-<?php 
-header("Content-type: text/js; charset: UTF-8");
-session_start();
-error_reporting(E_ALL ^ E_WARNING);
-$openMethod = isset($_SESSION['USERPREFS']['OPEN_LINK_IN']) ? $_SESSION['USERPREFS']['OPEN_LINK_IN'] : 'window';
-?>
-
-
-//global hack to set page height
-//document.body.style.height = window.innerHeight + 'px';
-
-
-Q = function (selector) {
-    return document.querySelectorAll(selector);
-}
 EleRun= 0;
 Ele = function (tag, attrs, log) {
     log = typeof log !== 'undefined' ? log : false; //silly IE can handle defaults
@@ -135,7 +120,6 @@ Ele = function (tag, attrs, log) {
     return ele;
 }
 
-
 //prototypes
 String.prototype.replaceArray = function (find, replace) {   // so-5069464
     var replaceString = this;
@@ -177,9 +161,21 @@ String.prototype.hexDecode = function () { //21647928
     }
     return back;
 }
-
 Element.prototype.remove = function () {
     this.parentElement.removeChild(this);
+}
+Element.prototype.hide = function () {
+    this.style.display = "none";
+}
+Element.prototype.clear = function () {
+    this.innerHTML = "";
+}
+NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
+    for (var i = this.length - 1; i >= 0; i--) {
+        if (this[i]) {
+            this[i].style.display = 'none';
+        }
+    }
 }
 NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
     for (var i = this.length - 1; i >= 0; i--) {
@@ -188,28 +184,6 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
         }
     }
 }
-
-Element.prototype.hide = function () {
-    this.style.display = "none";
-}
-
-Element.prototype.clear = function () {
-    this.innerHTML = "";
-}
-
-NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
-    for (var i = this.length - 1; i >= 0; i--) {
-        if (this[i]) {
-            this[i].style.display = 'none';
-        }
-    }
-}
-
-//Array.prototype.unique = function() {
-    //var prev;
-    //return this.sort().filter(e => e !== prev && (prev = e));
-  //  return [...new Set(this)];
- // }
 
 if (!SI) {
     var SI = {};
@@ -266,42 +240,109 @@ SI.Tools = {
 
             //if we dont have a options object
             if (typeof options === "undefined") {
+
                 //use all the defaults
-                //loop through the defaults and get the values. options should never have json. only defaults
+                //loop through the defaults and get the values. options should never have json data. only defaults
                 options = [];
-                for (let def in defaults) {
-                    if (typeof (def.Value) != 'undefined') {
-                        options[def] = defaults[def].value;
-                    } else {
-                        options[def] = defaults[def];
+                for (let name in defaults) {
+     
+                    //check sludge
+                    if (name === "SomeBrokenKey") {
+                        debugger;
                     }
+                    if (defaults[name] === null) {
+                        options[name] = null;
+                    }
+                    else if (typeof defaults[name] === 'object') {
+                        if (defaults[name].hasOwnProperty("value")) {
+                            options[name] = defaults[name].value;
+                        } else {
+                            options[name] = defaults[name]; //its a object but has no value key
+                        }
+                    }
+                    //it is not an object, just set it.
+                    else {
+                        options[name] = defaults[name];
+                    }
+
+                    if (name === "Parent") {
+                        let index = typeof options.ParentIndex !== 'undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                        if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
+                            index = index.value;
+                        }
+                        options[name] = SI.Tools.Element.Get(options[name], index);
+                    }
+
                 }
             }
             else {
+
+                //check sludge
+                if (name === "WindowControls") {
+                    debugger;
+                }
+
                 //if the parent has the value set as a default 
                 let checkparentdefault = false;
                 if (typeof options.Defaults != 'undefined') {
+                    debugger;
                     checkparentdefault = options.Defaults;
                 }
-                //rifle through the defaults and one by one set the missing options 
-                for (let name in defaults) {
 
+
+                //rifle through the defaults and one by one set the missing options      
+                for (let name in defaults) {
+                    //only set the option to the default if it is undefined.
                     if (typeof options[name] === "undefined") {
-                        let key = defaults[name];
-                        if (key == null) {
+                        //get the default value from the Default object
+                        let defaultValue = defaults[name];
+                        //this is the eventual value to be added to the options object that will be returned
+                        let value;
+                        //if the default value is null, than set the options value to null
+                        if (defaultValue === null) {
                             value = null;
                         }
-                        else if (typeof key.value === 'undefined') {
+                        //We can have a value that is a object with helper properties. One MUST be .value if it is not defined then value can be set
+                        else if (typeof defaultValue === 'object') {
+                            //IF it is meant to be a object it will MUST be a nested object as shown { value:{}, type:'OBJECT' } prefereably with a type, but it will catch it in any event
+                            if (defaultValue.hasOwnProperty("value")) {
+                                value = defaults[name].value;
+                            } else {
+                                value = defaults[name]; //its a object but has no value key
+                            }
+                        }
+                        //it is not an object, just set it.
+                        else {
                             value = defaults[name];
-                        } else {
-                            //debugger;
-                            value = defaults[name].value;
+                        }
+
+                        //the value is now known 
+
+                        //check sludge
+                        if (name === "SomeBrokenKey") {
+                            debugger;
+                        }
+
+                        if (name === "Parent") {
+                            let index = typeof options.ParentIndex !=='undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                            if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
+                                index = index.value;
+                            } 
+                            value = SI.Tools.Element.Get(value, index);
                         }
                         options[name] = value;
+
                     } else {
                         if (checkparentdefault && typeof checkparentdefault[name] !== 'undefined') {
                             //debugger;
                             options[name] = checkparentdefault[name].value;
+                        }
+                        if (name === "Parent") {
+                            let index = typeof options.ParentIndex !== 'undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                            if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
+                                index = index.value;
+                            }
+                            options[name] = SI.Tools.Element.Get(options[name], index);
                         }
                     }
                 }
@@ -390,7 +431,20 @@ SI.Tools = {
         IsEmpty: function (obj) {
             return Object.entries(obj).length === 0 && obj.constructor === Object
         },
-
+        GetIfExists: function (objstring) {
+            let parts = objstring.split(".");
+            if (!window[parts[0]]){
+                return false;
+            }
+            let test = window[parts[0]]
+            for (let i = 1; i < parts.length; i++) {
+                if (!test.hasOwnProperty(parts[i])) {
+                    return false;
+                }
+                test = test[parts[i]];
+            }
+            return test;
+        },
         GetById: function (current, guid) {  //This function will loop through its 1st gen children looking if at the property 'id' and that id = guid and return that child
             if (guid.length == 32) { //it does not work yet and I found a quick workaround hack so this needs to be finished and would be very helpfull.
                 guid = '0x' + guid;
@@ -465,9 +519,10 @@ SI.Tools = {
             if (rgb.charAt(0) == "#") {
                 return rgb;//already hex
             }
-            else if (/\d/.test(rgb)) {
+            else if (/(rgb)/.test(rgb)) {
                 //remove all th text, split it by , and table only the first 3 vals
                 rgb = rgb.replace("rgb(", "").replace("rgba(", '').replace(")", '').split(",").slice(0, 3);
+
                 return SI.Tools.Color.RgbToHex(rgb[0].trim(), rgb[1].trim(), rgb[2].trim());
             } else {
                 //maybe it is a color name
@@ -517,14 +572,26 @@ SI.Tools = {
             }
         },
         GetTheme: function () {
+            let theme = 'dark'
             si_theme = document.getElementById('si_colorscheme');
             if (si_theme) {
-                document.body.appendChild(si_theme);
+                //document.body.appendChild(si_theme);
                 let compStyles = window.getComputedStyle(si_theme);
                 let color = compStyles.getPropertyValue('color');
-                return (color === 'rgb(255, 255, 255)') ? 'light' : 'dark';
+                color = SI.Tools.Color.ParseToHex(color); //try to capture as many computed colors as possible
+                theme = (color === '#ffffff') ? 'light' : 'dark';
             }
-            return 'dark';
+            if (!SI.Theme) {
+                SI.Theme = {};
+            }
+            SI.Theme.UserPreference = theme;
+            SI.Theme.BackColor = (theme === "light") ? 'white' : 'black';
+            SI.Theme.BackgroundColor = (theme === "light") ? '#AAA' : 'rgb(72, 75, 87)';
+            SI.Theme.TextColor = (theme === "light") ? '#111' : 'rgb(172, 175, 187)';
+            SI.Theme.MenuColor = (theme === "light") ? '#777' : 'slategrey';
+            SI.Theme.ButtonColor = (theme === "light") ? '#345' : '#9A9';
+            SI.Theme.DraggerColor = (theme === "light") ? '#234' : '#99A';
+            return theme;
         },
     },
     Style: {
@@ -870,7 +937,7 @@ SI.Tools = {
             return (
                 typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
                     o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
-            );
+            );  //SO-384286
         },
         InlineElement: function (ele) {
             const inlines = ['a', 'abbr', 'acronym', 'b', 'bdo', 'big', 'br', 'button', 'cite', 'code', 'dfn', 'em', 'i', 'img', 'input', 'kbd', 'label', 'map', 'object', 'q', 'samp', 'script', 'select', 'small', 'span', 'strong', 'sub', 'sup', 'textarea', 'time', 'tt', 'var']
@@ -895,7 +962,7 @@ SI.Tools = {
             } else if (SI.Tools.Is.Element(ele)) {
                 inOf = emptyElements.indexOf(ele.tagName.toLowerCase());
             }
-            if (inOf == -1) {
+            if (inOf === -1) {
                 return false;
             } else {
                 return true;
@@ -927,7 +994,14 @@ SI.Tools = {
                     o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
             );
         },
-        Guid: function (test) { return SI.Tools.RegEx.Match('guid', test);},
+        Guid: function (test) { return SI.Tools.RegEx.Match('guid', test); },
+        Tag: function (test) {
+            alltags = ["a", "abbr", "acronym", "address", "applet", "area", "article", "aside", "audio", "b", "base", "basefont", "bb", "bdo", "big", "blockquote", "body", "br", "button", "canvas", "caption", "center", "cite", "code", "col", "colgroup", "command", "datagrid", "datalist", "dd", "del", "details", "dfn", "dialog", "dir", "div", "dl", "dt", "em", "embed", "eventsource", "fieldset", "figcaption", "figure", "font", "footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "keygen", "label", "legend", "li", "link", "map", "mark", "menu", "meta", "meter", "nav", "noframes", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "section", "select", "small", "source", "span", "strike", "strong", "style", "sub", "sup", "table", "tbody", "td", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "tt", "u", "ul", "var", "video", "wbr"];
+            if (alltags.indexOf(test) > -1) {
+                return true;
+            }
+            return false;
+        }
     },
     Storage: {
         AppendToStorage: function (name, data) {
@@ -959,14 +1033,12 @@ SI.Tools = {
         if (typeof obj.Url === "undefined") { this.url = '/delegate.php'; } else { this.url = obj.Url; }
         if (typeof obj.ContentType === "undefined") { this.contentType = 'application/json'; } else { this.contentType = obj.ContentType; }
         if (typeof obj.Async === "undefined") { this.async = true; } else { this.async = obj.Async; }
-        //debugger;
         
         var xhr = new XMLHttpRequest();
         xhr.open(this.method, this.url, this.async);
         xhr.setRequestHeader("Content-Type", this.contentType);
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                //debugger;
                 try {
                     if (xhr.responseText != null && xhr.responseText.length > 0) {
                         SI.Tools.Success(xhr.responseText);
@@ -987,10 +1059,9 @@ SI.Tools = {
         json = json[0];
         for (var prop in json) {
             if (json.hasOwnProperty(prop)) {
-                //debugger;
                 switch (prop) {
                     case "EXCEPTION": alert(response); break;
-                    case "REFRESH": setTimeout(function () { location.reload(); }, 3000); break; //jus give it a second
+                    case "REFRESH": setTimeout(function () { location.reload(); }, 500); break; //jus give it a second
                     case "LOGINFAIL": alert("Username or password is incorrect"); break;
                     case "PLUGIN": SI.Tools.ProcessPlugin(json);
                 }
@@ -1002,6 +1073,60 @@ SI.Tools = {
          
     },
     Element: {
+        Get: function (search, index = null) {
+            //debugger;
+            //this search should be pretty robust. it can handle existing elements, queryselectors, qsAlls, and ids. 
+            //You should be able to throw the kitchen sink at it but it will be slower that a getbyid so use that whe psooible.
+            //This should be used for one offs.not drawing UIs. It is used to find the parents of widgets. 
+            let retval = null;
+            if (search) {
+                if (SI.Tools.Is.Element(search)) {   //If it is a element
+                    retval = search;
+                }
+                else if (SI.Tools.Is.Tag(search)) {   //if it is a tag
+                    let eles = document.querySelectorAll(search);
+                    if (eles) {
+                        if (index && index.isInteger() && eles[index]) {
+                            retval = eles[index];
+                        } else {
+                            retval = eles[0];
+                        }
+                    }
+                    console.warn(search + " could not be found in the document");
+                    return null;
+                }
+                else if (search.charAt(0) === '.') {  //If it is a class
+                    let eles = document.querySelectorAll(search);
+                    if (eles) {
+                        if (index && index.isInteger() && eles[index]) {
+                            retval = eles[index];
+                        } else {
+                            retval = eles[0];
+                        }
+                    }
+                    console.warn(search + " could not be found in the document");
+                    return null;
+                }
+                else if (search.charAt(0) === '#') {   //If it is a ID
+                    retval = document.querySelector(search);
+                }
+                else {
+                    retval = document.getElementById(search);
+                }
+                if (SI.Tools.Is.Element(retval)) {
+                    if (retval.tagName.length > 0 && !SI.Tools.Is.EmptyElement(retval.tagName)) {
+                        return retval;
+                    } else {
+                        console.warn(search + " is an empty element and does not allow children");
+                        return null;
+                    }
+                }
+
+            }
+            else {
+                return null;
+            }
+        },
         SetParent: function (el, newParent) {
             newParent.appendChild(el);
         },
@@ -1407,7 +1532,6 @@ SI.Tools = {
             }
 
         },
-
     },
     Select: {
         Sort: function(selElem) {
@@ -1428,46 +1552,6 @@ SI.Tools = {
             return;
         }
     }
-
 };
-
-
-IconLink = function (options) {
-    let RandId = SI.Tools.String.RandomString(11);
-    this.Defaults = {
-        "IconUrl": "/scripts/widgets/icons/defaultAppIcon.png",
-        "Link": "#",
-        "Type": "div",
-        "Size": 20,
-        "Title": "",
-    };
-    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-
-    let linkbox = Ele(options.Type, { });
-    let img = Ele('img', {
-        width: options.Size,
-        src: options.IconUrl,
-        data: {
-            url: options.Link,
-        },
-    });
-    if (options.Title) {
-        img.title = options.Title;
-    }
-    if ('<?=$openMethod ?>' != 'window') {
-        let anc = Ele('a', {
-            href: options.Link,
-            target: '_blank',
-            append: img,
-            appendTo: linkbox,
-        });
-    } else {
-        img.onclick = function () {
-            let url = this.getAttribute('data-url');
-            window.open(url, '_blank', 'location=yes,width=1280,height=720,scrollbars=yes,status=yes');
-        };
-        linkbox.appendChild(img);
-    }
-    return linkbox;
-}
-
+//try to set ColorTheme
+SI.Tools.Color.GetTheme();

@@ -19,7 +19,7 @@ SI.Editor.Objects.Entity = {
 
 
         //debugger;
-        //let tabs = new SI.Widgets.Tabs();
+        //let tabs = new SI.Widget.Tabs();
         //for (let tab in SI.Editor.Objects.Entity.Tabs) {
         //    tabs.Items.Add(tab, SI.Editor.Objects.Entity.Tabs[tab]);
         //}

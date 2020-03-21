@@ -746,7 +746,7 @@ SI.Editor.Objects.Blocks = {
 
         fixedkey = SI.Tools.RegEx.Fix("OkId", blockname);
         fixedkey = (typeof fixedkey === "undefined") ? SI.Tools.String.RandomString(10) : fixedkey;
-        debugger;
+        //debugger;
         var blockCount = document.getElementsByClassName('si-block').length;
         var babyBlock = Ele('div', {
             id: 'si_block_' + fixedkey,
@@ -830,7 +830,7 @@ SI.Editor.Objects.Blocks = {
         //add the guid to where it is needed. 
         let blocklib = document.getElementById('si_editor_page_block_container');
         blocklib.appendChild(blockui);
-        SI.Editor.Data.Tools.ClearSelection();
+        SI.Tools.Text.ClearSelection();
         console.log(blockname + ' has been created');
     },
     Save: function (blockui, flag = 'flag') {
@@ -875,7 +875,7 @@ SI.Editor.Objects.Blocks = {
         let options = { 'tag': tag };
         let empty = true;
 
-        if (flag == 'html') {
+        if (flag === 'html') {
             //filter the element
             let replacements = {};
             let ignores = block.querySelectorAll('.si-editable-ignoreinner');

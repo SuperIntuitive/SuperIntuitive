@@ -209,7 +209,8 @@ if (Tools::UserHasRole('Admin'))
     $jsMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/js_methods.js');
     $phpMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/php_methods.json');
     $sqlMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/sql_methods.json');
-    $sqlNew = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_new.json');
+    $cssNew = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_new.json');
+    $cssPseudo = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_pseudo.json');
 
 
     $dataage = "html_elements: $htmlElementsAge,
@@ -218,7 +219,8 @@ if (Tools::UserHasRole('Admin'))
             js_methods : $jsMethodsAge,
             php_methods : $phpMethodsAge,
             sql_methods : $sqlMethodsAge,
-            css_new : $sqlNew
+            css_new : $cssNew,
+            css_pseudo: $cssPseudo
            ";
     //echo $dataage;
 
@@ -239,6 +241,7 @@ if(!SI.Editor){ SI.Editor = {};}
 
 SI.Editor = {
     Style: {
+        BackColor: 'black',
         BackgroundColor: 'rgb(72, 75, 87)',
         TextColor: 'rgb(172, 175, 187)',
         MenuColor: 'slategrey',
@@ -246,21 +249,25 @@ SI.Editor = {
         DraggerColor: '#99A',
         FontFace: 'Roboto',
         SetTheme: function () {
-            let theme = SI.Tools.Color.GetTheme();
-            if (theme === 'dark') {
-                SI.Editor.Style.BackgroundColor = 'rgb(72, 75, 87)';
-                SI.Editor.Style.TextColor= 'rgb(172, 175, 187)';
-                SI.Editor.Style.MenuColor= 'slategrey';
-                SI.Editor.Style.ButtonColor= '#9A9';
-                SI.Editor.Style.DraggerColor= '#99A';
+            let theme = SI.Theme.UserPreference;
+            if (theme) {
+                if (theme === 'light') {
+                    SI.Editor.Style.BackColor = 'white',
+                        SI.Editor.Style.BackgroundColor = '#AAA';
+                    SI.Editor.Style.TextColor = '#111';
+                    SI.Editor.Style.MenuColor = '#777';
+                    SI.Editor.Style.ButtonColor = '#345';
+                    SI.Editor.Style.DraggerColor = '#234';
+                }
+                else {
+                    SI.Editor.Style.BackgroundColor = 'rgb(72, 75, 87)';
+                    SI.Editor.Style.TextColor = 'rgb(172, 175, 187)';
+                    SI.Editor.Style.MenuColor = 'slategrey';
+                    SI.Editor.Style.ButtonColor = '#9A9';
+                    SI.Editor.Style.DraggerColor = '#99A';
+                }
             }
-            else if (theme === 'light') {
-                SI.Editor.Style.BackgroundColor = '#AAA';
-                SI.Editor.Style.TextColor = '#111';
-                SI.Editor.Style.MenuColor = '#777';
-                SI.Editor.Style.ButtonColor = '#345';
-                SI.Editor.Style.DraggerColor = '#234';
-            }
+
         }
     },
     Run: function () {
@@ -280,7 +287,6 @@ SI.Editor = {
         console.log(SI.Editor);
        // setTimeout(function () { SI.Editor.Ajax.PostSetup.Go() }, 1000);
     },
-    //SI.Editor.Code object stores all needed to maintain the 5 semantics that will be supported. html,css,js,php,sql
     Data: {
         loaded : false,
         html_elements: {},
@@ -292,6 +298,7 @@ SI.Editor = {
         DataAge: { 
             <?= $dataage ?>        
         },
+        Code: {},
         DataLists: {
             HtmlElementDataList: null,
             HtmlAttributeDataList: null,
@@ -306,11 +313,9 @@ SI.Editor = {
             FontFaces: {},
             PageRules: { Allowed: ['margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom',"orphans","widows"]},
             AnimationNames: [],
-
-
         },
         Init: function () {
-            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods","css_new"];
+            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods", "css_new","css_pseudo"];
             let loadedcount = 0;
             codes.forEach(function (codetype) {
                 let lastmoddate = codetype + "_last_modified";
@@ -342,10 +347,10 @@ SI.Editor = {
                     if (jsonstring != null && jsonstring.length > 0) {
                         try {
                             if (codetype === "css_new") {
-                                if (!SI.Editor.Data.Objects.Code) {
-                                    SI.Editor.Data.Code = {};
-                                }
                                 SI.Editor.Data.Code.Styles = JSON.parse(jsonstring);
+                            }
+                            else if (codetype === "css_pseudo") {
+                                SI.Editor.Data.Code.PseudoStyles = JSON.parse(jsonstring);
                             }
                             else {
                                 SI.Editor.Data[codetype] = JSON.parse(jsonstring);
@@ -361,6 +366,7 @@ SI.Editor = {
                     }
                 }
             });
+            
             SI.Editor.Data.Tools.SupplementData();
         },
         OptionSets: {
@@ -527,19 +533,6 @@ SI.Editor = {
             SessionPageData:  <?= $sessionPageData ?>,
         },
         Tools: {
-            ClearSelection: function () {
-                if (document.selection && document.selection.empty) {
-                    document.selection.empty();
-                } else if (window.getSelection) {
-                    var sel = window.getSelection();
-                    sel.removeAllRanges();
-                }
-            },
-            CreateEditorElement: function (prop) {
-                alert("TODO Make create emelent work");
-                // this will be simple. we will have a json object the same as sent to Ele() but also having a tag attribute. 
-                // we remove the tag attribute into a varibable, then pass the two remaining to the Ele funcition. simple.  
-            },
             GetFileSize: function (path) {
                 var ajax = new XMLHttpRequest();
                 ajax.open('HEAD', path, true);
@@ -685,7 +678,6 @@ SI.Editor = {
                                     }
                                     //get font faces
                                     if (rule.type === 5) {
-                                        debugger;
                                         let ffstyles = rule.style;
                                         if (ffstyles.fontFamily) {
                                         //we must have a font face family
@@ -703,10 +695,8 @@ SI.Editor = {
                                             }
                                         }
                                     }
-
                                     //get page printer rules
                                     if (rule.type === 6) {
-                                        debugger;
                                         let pgstyles = rule.style;
                                         let ittr = 0;
                                         while (pgstyles[ittr]) {
@@ -720,7 +710,6 @@ SI.Editor = {
                                             ittr++;
                                         }
                                     }
-
                                     //get Animation Names
                                     if (rule.type === 7) {
                                         let name = rule.name;
@@ -734,30 +723,28 @@ SI.Editor = {
                     }
                 };
 
-                //run our functions
+
+                //run our data functions
                 this.EntityData();
                 this.RelationsData();//dependent on the function above it to have run.
                 this.StyleData();
                 this.AtData();
             },
-        },
+        }
     },
-    "UI": {
+    UI : {
         Container: null,
         Windows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Scenegraph", "Security", "Users","Settings"],
         Init: function (){
-
             //Initialize main visible panel
             SI.Editor.UI.DrawAppContainer();
             SI.Editor.UI.MainMenu.Init();
-
             //Initalize 3 sub menus
             let editorPanels = ["AddPanel", "EditPanel", "ToolsPanel"];
             for (let i in editorPanels) {
                 let title = editorPanels[i];
                 SI.Editor.UI[title].Init();
             }
-
             //Initialize Windows
             for (let i in SI.Editor.UI.Windows) {
                 let title = SI.Editor.UI.Windows[i];
@@ -766,8 +753,8 @@ SI.Editor = {
             SI.Editor.UI.SetDocumentEvents();
         },
         SetDocumentEvents: function(ev) {
+            //if the rott si menu is open, spawn the browser context menu. if not open the root si menu
             document.oncontextmenu = function (e) {
-
                 let element = document.getElementById('si_edit_main_menu');
                 let v = element.currentStyle ? element.currentStyle.display : getComputedStyle(element, null).display;
                 if (v != 'none') {
@@ -779,7 +766,8 @@ SI.Editor = {
                     e.preventDefault();
                     return false;
                 }
-            };
+             };
+
             window.onbeforeunload = function (ev) {
                 ev.preventDefault();
                 let list = '';
@@ -796,22 +784,20 @@ SI.Editor = {
                     //To google. I really wish this worked.
                     return ev.returnValue = 'There are unsaved changes in blocks: ' + list + '. Leave now?';
                    // return 'There are unsaved changes in blocks: ' + list + '. Leave now?';
-                }
-                
+                }             
             };
 
             var map = {}; // You could also use an array  so-5203407
             onkeydown = onkeyup = function (e) {
                 var selected = SI.Editor.Objects.Elements.Selected;
                 var isFocused = (document.activeElement === selected);      //so-36430561
-
                 var movable = true;
                 if (selected) {
+                    //we only move by arrows if we have a position and the doc does not have a selected element so the arroews dont break textbox navigation
                     if (typeof selected.style.position === 'undefined' || selected.style.position === 'static' || isFocused) {
                         movable = false;
                     }
                 }
-
 
                 e = e || event; // to deal with IE
                 map[e.keyCode] = e.type == 'keydown';
@@ -843,9 +829,7 @@ SI.Editor = {
                 if (map[90] && e.ctrlKey) { //ctrl-z should undo
                     document.execCommand('undo');
                 }
-
                 //alert(e.keyCode);
-
             }
         },
         DrawAppContainer: function () {
@@ -1033,7 +1017,7 @@ SI.Editor = {
                 SI.Editor.UI.MainMenu.Element.appendChild(tagMenu);
             },
             SetupTabs: function (newMenu) {
-                let tabs = SI.Widgets.Tabs();
+                let tabs = SI.Widget.Tabs();
                 //create the tabbox
                 let tabTags = Ele('div', {
                     id: 'si_edit_add_tabs',
@@ -1069,8 +1053,7 @@ SI.Editor = {
                 newMenu.appendChild(tabs.Draw());
             },
             Widgetbox: function () {
-
-                let box = Ele('div', {
+                let widgetscontainer = Ele('div', {
                     innerHTML: "Widgets",
                     style: {
                         backgroundImage: "url('/editor/media/images/underconstruction.png')",
@@ -1078,11 +1061,16 @@ SI.Editor = {
                         width: '100%',
                         height:'100%',
                     },
-                    
                 });
-
-
-                return box;
+                //debugger;
+                if (SI.Widget) {
+                    for (let widget in SI.Widget) {
+                        let w = new SI.Widget[widget]();
+                        let def = w.Defaults;
+                        //debugger;
+                    }
+                }
+                return widgetscontainer;
             },
             TagScroller: function() {
                 var tagsview = Ele('div', {
@@ -1253,11 +1241,11 @@ SI.Editor = {
                     },
 
                 });
-                var tabs = new SI.Widgets.Tabs({ Height: '100%' });
+                var tabs = new SI.Widget.Tabs({ Height: '100%' });
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
-                tabs.Items.Add('Styles2', SI.Editor.UI.EditPanel.DrawStyles2());
+               // tabs.Items.Add('Styles2', SI.Editor.UI.EditPanel.DrawStyles2());
                 editMenu.appendChild(tabs.Draw());
                 SI.Editor.UI.MainMenu.Element.appendChild(editMenu);
             },
@@ -1892,12 +1880,130 @@ SI.Editor = {
             DrawStyles2: function() {
                 //create a box for the groups
                 var styleview = Ele('div', {
-                    id: 'si_style_view',
+                    id: 'si_edit_style_view',
                     style: {
+                        backgroundColor: SI.Editor.Style.BackColor,
+
                     },
                 });
+                //create the menubar for controls
+                var styleviewctrls = Ele('div', {
+                    id: 'si_edit_style_view_controls',
+                    style: {
+                        backgroundColor: SI.Editor.Style.MenuColor,
+                        height:'20px',
+                    },
+                    appendTo: styleview
+                });
+                //add the Group radio box
+                var styleviewradiogrouplabel = Ele('label', {
+                    for: 'si_edit_style_view_controls_radio_group',
+                    innerHTML: "Group",
+                    style: {
+                        marginLeft: '10px',
+                    },
+                    appendTo: styleviewctrls
+                });
+                var styleviewradiogroup = Ele('input', {
+                    type: "radio",
+                    checked:"checked",
+                    name:'si_edit_style_view_controls_sort',
+                    id: 'si_edit_style_view_controls_radio_group',
+                    style: {marginRight:'10px'},
+                    appendTo: styleviewctrls,
+                    onchange: function () {
+                        document.getElementById('si_edit_style_view_groups').style.display = 'block';
+                        document.getElementById('si_edit_style_view_alpha').style.display = 'none';
+                    }
+                });
+                //add the Alpha radio box
+                var styleviewradioalphalabel = Ele('label', {
+                    for: 'si_edit_style_view_controls_radio_alpha',
+                    innerHTML: "A-Z",
+                    appendTo: styleviewctrls
+                });
+                var styleviewradioalpha = Ele('input', {
+                    type: "radio",
+                    name: 'si_edit_style_view_controls_sort',
+                    id: 'si_edit_style_view_controls_radio_alpha',
+                    data: {
+                        'si-loaded': false
+                    },
+                    appendTo: styleviewctrls,
+                    onchange: function () {
+                        alert("alpha");
+                        document.getElementById('si_edit_style_view_groups').style.display = 'none';
+                        let sortedbox = document.getElementById('si_edit_style_view_alpha');
+                        if (!sortedbox.dataset.loaded === true) {
+                            SI.Editor.UI.EditPanel.DrawSortedStyles();
+                        }
+                        sortedbox.style.display = 'block';
+                    }
+                });
+                //The Groups Box
+                var styleviewgroups = Ele('div', {
+                    id: 'si_edit_style_view_groups',
+                    style: {
+                        height: '290px',
+                        overflowX: 'hidden',
+                        overflowY: 'scroll',
+                    },
+                    appendTo: styleview
+                });
+                //The Alphabatized Box
+                var styleviewalpha = Ele('div', {
+                    id: 'si_edit_style_view_alpha',
+                    style: {
+                        height: '290px',
+                        overflowX: 'hidden',
+                        overflowY: 'scroll',
+                        display:'none'
+                    },
+                    appendTo: styleview
+                });
 
+                let groups = SI.Editor.Data.DataLists.StyleGroups;
+                let groupObject = {};
+                for (g in groups) {
 
+                    let groupbox = Ele("div", { });
+
+                    let props = groups[g];
+                    for (p in props) {
+                        let prop = props[p];
+                        let style = SI.Editor.Data.Code.Styles[prop];
+
+                        Ele("div", {
+                            innerHTML:prop,           
+                            appendTo:groupbox
+                        });
+
+                    }
+
+                    groupObject[g] = groupbox;
+                }
+             //   debugger;
+                let options = { Sections: groupObject };
+                let accordion = new SI.Widget.Accordion(options);
+                styleviewgroups.appendChild(accordion);
+                return styleview
+            },
+            DrawSortedStyles: function() {
+                //only draw this if the user selected it.
+                let box = document.getElementById('si_edit_style_view_alpha');
+                
+                let styles = SI.Editor.Data.Code.Styles;
+                let styleObject = {};
+
+                for (s in styles) {
+
+                   
+                }
+
+                let options = { Sections: styleObject };
+                let accordion = new SI.Widget.Accordion(options);
+                debugger;
+                box.dataset.loaded = true;
             },
 
             //When a element is selected, update ALL the Attributes and styles UIs to reflect the elements values.
@@ -2111,8 +2217,8 @@ SI.Editor = {
         Page: {
             Window: null,
             Init: function () { //ParentId: 'si_edit_container',
-                var obj = { Name: "Page", ParentId: "si_edit_container",  Title: "Page", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Page.Window = new SI.Widgets.Window(obj);
+                var options = { Name: "Page", Parent: "si_edit_container", Title: "Page", Width: '800px', Height: '600px' };
+                SI.Editor.UI.Page.Window = new SI.Widget.Window(options);
                 SI.Editor.Objects.Page.Draw();
             },
         },
@@ -2120,10 +2226,10 @@ SI.Editor = {
             Window: null,
             Init: function () {
                 
-                var obj = { Name: "Media", ParentId: "si_edit_container", BackgroundColor: "#999", Title: "Media", Width: '800px', Height: '600px', IconUrl:'/editor/media/icons/window-media.png'};
-            // SI.Editor.UI.Media.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Media", Parent: "si_edit_container", BackgroundColor: "#999", Title: "Media", Width: '800px', Height: '600px', IconUrl:'/editor/media/icons/window-media.png'};
+            // SI.Editor.UI.Media.Window = new SI.Widget.Window(obj);
             // SI.Editor.Objects.Media.Draw();
-                SI.Editor.UI.Media.Window = new SI.Widgets.Window(obj);
+                SI.Editor.UI.Media.Window = new SI.Widget.Window(obj);
                 let media = new SI.Editor.Objects.Media(SI.Editor.UI.Media.Window);
                 media.Draw();
                 SI.Editor.UI.Media.Window.Resize = media.ResizeWindow;
@@ -2132,8 +2238,8 @@ SI.Editor = {
         Styler: {
             Window: null,
             Init: function () {
-                var obj = { Name: "Styler", ParentId: 'si_edit_container', Title: "Styler", Overflow:"HIDDEN"};
-                SI.Editor.UI.Styler.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Styler", Parent: 'si_edit_container', Title: "Styler", Overflow:"HIDDEN"};
+                SI.Editor.UI.Styler.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.Styler.Draw();
             },
             Draw: function (content) {
@@ -2146,8 +2252,8 @@ SI.Editor = {
             Window: null,
             Scripter: null,
             Init: function () {               
-                var obj = { Name: "Scripter", ParentId: 'si_edit_container', Title: "Scripter", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Scripter.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Scripter", Parent: 'si_edit_container', Title: "Scripter", Width: '800px', Height: '600px' };
+                SI.Editor.UI.Scripter.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.Scripter.Draw();
             },
             Draw: function () {                
@@ -2158,8 +2264,8 @@ SI.Editor = {
         Widgets: {
             Window: null,
                 Init: function () {
-                    var obj = { Name: "Widgets", ParentId: 'si_edit_container', Title: "Widgets", Width: '800px', Height: '600px' };
-                    SI.Editor.UI.Widgets.Window = new SI.Widgets.Window(obj);
+                    var obj = { Name: "Widgets", Parent: 'si_edit_container', Title: "Widgets", Width: '800px', Height: '600px' };
+                    SI.Editor.UI.Widgets.Window = new SI.Widget.Window(obj);
                     SI.Editor.UI.Widgets.Draw();
                 },
             Draw: function () {
@@ -2178,8 +2284,8 @@ SI.Editor = {
         Language: {
             Window: null,
             Init: function () {               
-                var obj = { Name: "Language", ParentId: 'si_edit_container', Title: "Language", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Language.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Language", Parent: 'si_edit_container', Title: "Language", Width: '800px', Height: '600px' };
+                SI.Editor.UI.Language.Window = new SI.Widget.Window(obj);
                 SI.Editor.Objects.Language.Draw();
             },
         },
@@ -2187,7 +2293,7 @@ SI.Editor = {
             Window: null,
             Init: function() {
                 var obj = {
-                    Name: "Entities", ParentId: 'si_edit_container', Title: "Entities", Width: '800px', Height: '600px',
+                    Name: "Entities", Parent: 'si_edit_container', Title: "Entities", Width: '800px', Height: '600px',
                     Resize: function(win){
                        //debugger;
                         
@@ -2195,7 +2301,7 @@ SI.Editor = {
                         win.Container.width = win.GetWidth();
                     },
                 };
-                SI.Editor.UI.Entities.Window = new SI.Widgets.Window(obj);
+                SI.Editor.UI.Entities.Window = new SI.Widget.Window(obj);
                 SI.Editor.Objects.Entity.Draw();
             }
         },
@@ -2203,13 +2309,13 @@ SI.Editor = {
             Window: null,
             Init: function () {
                 var obj = {
-                    Name: "Plugins", ParentId: 'si_edit_container', Title: "Plugins", ResizeThickness: 5,
+                    Name: "Plugins", Parent: 'si_edit_container', Title: "Plugins", ResizeThickness: 5,
                     Resize: function (win) {
                         document.getElementById('si_edit_plugins_repo_content').style.height = win.Container.clientHeight - 127 + "px";
                         
                     },
                 };
-                SI.Editor.UI.Plugins.Window = new SI.Widgets.Window(obj);
+                SI.Editor.UI.Plugins.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.Plugins.Draw();
 
             },
@@ -2223,7 +2329,7 @@ SI.Editor = {
                     },
                 });
 
-                let tabs = new SI.Widgets.Tabs({
+                let tabs = new SI.Widget.Tabs({
                     OnChange: function (self) {
                         tab = self.dataset.tabname;
                         let pis = SI.Editor.Objects.Plugins.Repo.Plugins;
@@ -2266,8 +2372,8 @@ SI.Editor = {
         Site: {
             Window: null,
             Init: function () {
-                var obj = { Name: "Site", ParentId: 'si_edit_container', Title: "Site", Width: '800px'};
-                SI.Editor.UI.Site.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Site", Parent: 'si_edit_container', Title: "Site", Width: '800px'};
+                SI.Editor.UI.Site.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.Site.Draw();
             },
             Draw: function () {
@@ -2679,8 +2785,8 @@ SI.Editor = {
         Scenegraph: {
             Window: null,
             Init: function () {
-                var obj = { Name: "Scenegraph", ParentId: 'si_edit_container', Title: "Scenegraph", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Scenegraph.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Scenegraph", Parent: 'si_edit_container', Title: "Scenegraph", Width: '800px', Height: '600px' };
+                SI.Editor.UI.Scenegraph.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.Scenegraph.Draw();
             },
             Draw: function () {
@@ -2710,16 +2816,16 @@ SI.Editor = {
         Security: {
             Window: null,
             Init: function () {
-                var obj = { Name: "Security", ParentId: 'si_edit_container', Title: "Security", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Security.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Security", Parent: 'si_edit_container', Title: "Security", Width: '800px', Height: '600px' };
+                SI.Editor.UI.Security.Window = new SI.Widget.Window(obj);
                 SI.Editor.Objects.Security.Draw();
             },
         },
         Users: {
             Window: null,
             Init: function () {
-                var obj = { Name: "Users", ParentId: 'si_edit_container', Title: "Users", StartWidth:'1000px', StartHeight: '600px' };
-                SI.Editor.UI.Users.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "Users", Parent: 'si_edit_container', Title: "Users", StartWidth:'1000px', StartHeight: '600px' };
+                SI.Editor.UI.Users.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.Users.Draw();
             },
             Draw: function () {
@@ -2806,8 +2912,8 @@ SI.Editor = {
         Settings: {
             Window: null,
             Init: function () {
-                    var obj = { Name: "Settings", ParentId: 'si_edit_container', Title: "Settings", StartWidth: '800px', StartHeight: '600px' };
-                    SI.Editor.UI.Settings.Window = new SI.Widgets.Window(obj);
+                    var obj = { Name: "Settings", Parent: 'si_edit_container', Title: "Settings", StartWidth: '800px', StartHeight: '600px' };
+                    SI.Editor.UI.Settings.Window = new SI.Widget.Window(obj);
                     SI.Editor.UI.Settings.Draw();
                 },
             Draw: function () {
@@ -2962,8 +3068,8 @@ SI.Editor = {
         BlockTemplates: {
             Window: null,
             Init: function () {
-                var obj = { Name: "BlockTemplates", BackgroundColor:'CadetBlue', ParentId: 'si_edit_container', Title: "Block Templates", Width: '600px', Height: '400px' };
-                SI.Editor.UI.BlockTemplates.Window = new SI.Widgets.Window(obj);
+                var obj = { Name: "BlockTemplates", BackgroundColor:'CadetBlue', Parent: 'si_edit_container', Title: "Block Templates", Width: '600px', Height: '400px' };
+                SI.Editor.UI.BlockTemplates.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.BlockTemplates.Window.Append(SI.Editor.UI.BlockTemplates.Draw());
                 SI.Editor.UI.BlockTemplates.Draw(SI.Editor.UI.BlockTemplates.Window.GetContentId());
             },
@@ -3091,11 +3197,11 @@ SI.Editor = {
             Window: null,
             Init: function () {
                 var obj = {
-                    Name: "ImportBlock", BackgroundColor: 'CadetBlue', ParentId: 'si_edit_container',
+                    Name: "ImportBlock", BackgroundColor: 'CadetBlue', Parent: 'si_edit_container',
                     Title: "Import Block", StartWidth: '268px', StartHeight: '75px',
                     StartTop: "400px", StartLeft: "300px", Resizable: false, WindowControls:"CLOSE",
                 };
-                SI.Editor.UI.ImportBlock.Window = new SI.Widgets.Window(obj);
+                SI.Editor.UI.ImportBlock.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.ImportBlock.Window.Append(SI.Editor.UI.ImportBlock.Draw());
 
 
@@ -3160,12 +3266,12 @@ SI.Editor = {
             Window: null,
             Init: function () {
                 var obj = {
-                    Name: "HUD", ParentId: 'si_edit_container', Title: "HUD", StartWidth: '200px', StartHeight: '150px', StartTop:'30%', StartLeft:'1%', Overflow: "hidden", Position: "fixed", "WindowControls": "CLOSE",
+                    Name: "HUD", Parent: 'si_edit_container', Title: "HUD", StartWidth: '200px', StartHeight: '150px', StartTop:'30%', StartLeft:'1%', Overflow: "hidden", Position: "fixed", "WindowControls": "CLOSE",
                     OnClose: function () {  //sync the cb in settings
                         document.getElementById('si_edit_settings_hudcb').checked = false;
                     }
                 };
-                SI.Editor.UI.HUD.Window = new SI.Widgets.Window(obj);
+                SI.Editor.UI.HUD.Window = new SI.Widget.Window(obj);
                 SI.Editor.UI.HUD.Draw();
             },
             Draw: function () {
@@ -3301,8 +3407,8 @@ SI.Editor = {
         Phpinfo: {
             Window: null,
             Init: function () {
-                    var obj = { Name: "PhpInfo", ParentId: 'si_edit_container', Title: "PhpInfo", StartWidth: '990px', StartHeight: '600px' };
-                    SI.Editor.UI.Phpinfo.Window = new SI.Widgets.Window(obj);
+                    var obj = { Name: "PhpInfo", Parent: 'si_edit_container', Title: "PhpInfo", StartWidth: '990px', StartHeight: '600px' };
+                    SI.Editor.UI.Phpinfo.Window = new SI.Widget.Window(obj);
                     SI.Editor.UI.Phpinfo.Draw();
                 },
             Draw: function () {
@@ -3313,7 +3419,7 @@ SI.Editor = {
             },
         },
     },
-Objects: {
+    Objects: {
 
         User: {
             ChangePassword: function(self) {
@@ -3677,7 +3783,7 @@ Objects: {
                     appendTo: tsLabel,
                 });
 
-                let langtabs =new SI.Widgets.Tabs({
+                let langtabs =new SI.Widget.Tabs({
                     Width: '90%',
                     Height: '70%',
                     OnChange: function (ele) {
@@ -4424,7 +4530,8 @@ Objects: {
                                 let company = obj.company;
                                 let domain = obj.domain;
                                 let path = domain + codeobj[site];
-                                appendTo.appendChild(IconLink({ "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n+" on " + company }));
+                                let icon = new SI.Widget.IconLink({ "Parent": appendTo, "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n + " on " + company })
+                              //  appendTo.appendChild(icon.Container);
                             }
                         }
                     }
@@ -4481,7 +4588,7 @@ Objects: {
                     //debugger;
                     let value = json[prop];
                     switch (prop) {
-                        case "CREATEELEMENT": SI.Editor.Data.Tools.CreateEditorElement(prop);
+                        case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
                         case "EXCEPTION": alert(JSON.stringify(value)); break;
                         case "REFRESH": location.reload(); break;
                         case "CONSOLELOG": console.log(value); break;

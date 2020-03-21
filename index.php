@@ -123,7 +123,7 @@ if($page != null){
 	//Tools::Log($head);
 ?>
 <!doctype html>
-<html lang="<?=$lang?>">
+<html lang="<?=$lang?>" style='height: 100%;'>
 	<head>
 		<?= $head ?>	
 	</head>

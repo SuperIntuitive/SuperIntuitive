@@ -910,6 +910,7 @@ SI.Editor.Objects.Elements = {
 
             return attrrow;
         }
+
     },
     Styles: {
         Widget: function (options) {
@@ -1644,6 +1645,12 @@ SI.Editor.Objects.Elements = {
 
             return cssrow;
 
+        },
+        Widget2: function (options) {
+            this.Defaults = {
+
+            };
+            options = SI.Tools.Object.SetDefaults(options, this.Defaults);
         }
     },
 }

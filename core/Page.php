@@ -68,9 +68,9 @@ class Page {
 							if($deployment !="live"){
 								$title = $deployment." - ".$title;
 							}
-							$title = "<title id='si_pagetitle'>$title</title>";
+							$title = "<title id='si_pagetitle'>$title</title>\n";
 						}else{
-						    $title = "<title id='si_pagetitle'></title>";
+						    $title = "<title id='si_pagetitle'></title>\n";
 						}
 
 						if(!empty($options['head']['favicon']))
@@ -79,9 +79,9 @@ class Page {
 							if($deployment !="live"){
 								$favicon = $deployment."_".$favicon;
 							}
-							$favicon = "<link rel='icon' type='image/png' href='media/images/$favicon' id='si_favicon'/>";
+							$favicon = "\t\t<link rel='icon' type='image/png' href='media/images/$favicon' id='si_favicon'/>\n";
 						}else{
-						    $favicon = "<link rel='icon' type='image/png' href='#' id='si_favicon'/>";
+						    $favicon = "\t\t<link rel='icon' type='image/png' href='#' id='si_favicon'/>\n";
 						}
 
 
@@ -94,13 +94,13 @@ class Page {
 								}
 								if(is_array ($metas)){
 									foreach($metas as $name=>$content){
-										$meta.= "<meta $type='$name' content='$content'>";
+										$meta.= "\t\t<meta $type='$name' content='$content'>\n";
 									}
 								}else{
 									if($type ==="charset"){
-										$meta.= "<meta $type='$metas' id='si_meta_charset' >";
+										$meta.= "\t\t<meta $type='$metas' id='si_meta_charset' >\n";
 									}else{
-										$meta.= "<meta $type='$metas' >";
+										$meta.= "\t\t<meta $type='$metas' >\n";
 									}
 								   
 								}
@@ -113,7 +113,7 @@ class Page {
 					if(	!empty($options['body'])){
 					    $body = null;
 						if(	!empty($options['body']['style'])){
-						$body = "<style id='si_bodystyle'>body {";
+						$body = "\t\t<style id='si_bodystyle'>body {";
 							foreach($options['body']['style'] as $prop=>$val){
 								if(strlen($prop)>0 && strlen($val)>0){
 									$body.=$prop.":".$val.";";
@@ -147,9 +147,26 @@ class Page {
 				$head .= $meta;
 			}
 			
+			//If the user is logged in, set up a javacript object for them.
+			//Tools::Log("Logging user");
+			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
+			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
+				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
+				$prefs = "{}";
+				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences'])){
+					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences']);
+				}
+				$head.= 
+		"\t\t<script>
+		if (!SI) { var SI = {}; }
+		SI.LoggedInUser = {'name':'$name'};
+		SI.LoggedInUser.Preferences = $prefs;
+		</script>\n";
+			}
+
 			
 			$head .= "
-		<style id='si_htmlstyle'>html{width: 100%; overflow-x: hidden;}</style>
+		<style id='si_htmlstyle'>html{width: 100%; height:1vh; overflow-x: hidden;}</style>
 		<link rel='stylesheet' type='text/css' id='si_plugins_style' href='/style/plugins.css?$t'>
 		<link rel='stylesheet' type='text/css' id='si_page_style' href='/style/page.css?$lastModified'>
 		<link rel='stylesheet' type='text/css' href='/style/libraries.css?$t'>
@@ -158,20 +175,22 @@ class Page {
 			@media (prefers-color-scheme: dark) {#si_colorscheme {color:black}}
 		</style>
 
-		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
-		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
-		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script> 
-		<script src='/scripts/tools.js?$t' defer ></script>";
+
+		<script src='/scripts/tools.js?$t' defer ></script>\n";
 
 		$widgetfiles = scandir('scripts/widgets');
 		foreach($widgetfiles as $widget){
 			if(!is_dir('scripts/widgets/'.$widget)){
 				$moded = filemtime('scripts/widgets/'.$widget);
-				$head .= "<script src='/scripts/widgets/$widget?$moded' defer></script>";	
+				$head .= "\t\t<script src='/scripts/widgets/$widget?$moded' defer></script>\n";	
 			}
 		}
 
-
+			$head .= "
+		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
+		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
+		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script>
+		";
 
 
 
@@ -188,16 +207,7 @@ class Page {
 				$head.=$admin->IncludeAdminFiles();	
 			}		
 		
-			//If the user is logged in, set up a javacript object for them.
-			//Tools::Log("Logging user");
-			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
-			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
-				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
-				$head.= "<script>
-							if (!SI) { var SI = {}; }
-							SI.LoggedInUser = {'name':'$name'};
-						 </script>";
-			}
+
 			if($bodystyle != null){
 				$head.=$bodystyle;
 			}
@@ -224,7 +234,7 @@ class Page {
 				}
 			}
 			//the body is a string representing the whole body that is returned and output. It is made up of blocks
-	        $body ="<body  $guid >";
+	        $body ="<body  $guid ><i id='si_colorscheme'></i>";
 			//Get the blocks
 			if(isset($this->pageobjects['blocks'])){	
 				$blocks = $this->pageobjects['blocks'];
@@ -274,8 +284,9 @@ class Page {
 				$body.= $deploy->DrawControls();
 				$body = $deploy->DeployMediaPaths($body);
 			}
-			$body.=" <i id='si_colorscheme'></i> </body>";
+			$body.="</body>";
 			$body = Tools::ReplaceMultilangs($body);
+			$body = Tools::ReplaceConstants($body);
 
 			return $body;
 		}

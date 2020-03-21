@@ -378,7 +378,7 @@ CREATE TABLE `relations` (
   `test-options` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `dev-order` int(11) NOT NULL,
   `dev-options` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `json_options` longtext COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '{}'
+  `json_options` longtext COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --

@@ -1,11 +1,13 @@
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
-if (!SI.Widgets.Uploaders) { SI.Widgets.Uploaders = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.Uploader = function(options) {
+
+SI.Widget.Uploader = function (options) {
+    if (!(this instanceof SI.Widget.Uploader)) { return new SI.Widget.Uploader(); }
     this.Defaults = {
         "Name": { "value": "Window", "type": "TEXT" },
-        "ParentId": { "value": "", "type": "ELE" },
+        "Parent": { "value": "", "type": "ELE" },
+        "ParentIndex": { "value": null, "type": "INT" },
         "ContainerClass": { "value": "", "type": "CLASS" },
         "Position": "absolute",
         "Width": { "value": "200px", "type": "LEN" },
@@ -23,10 +25,12 @@ SI.Widgets.Uploader = function(options) {
         "ServerScript": "/filehandeler.php",
     };
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    this.RandId = SI.Tools.String.RandomString(11);
+    this.Random = SI.Tools.String.RandomString(11);
+    let self = this;
+
     this.Container = Ele('div', {
-        id: "uploader_" + this.RandId,
-        innerHTML: options.Text,
+        id: "uploader_" + this.Random,
+        innerHTML: this.Options.Text,
         style:
         {
             "position": this.Options.Position,
@@ -174,17 +178,11 @@ SI.Widgets.Uploader = function(options) {
         //      console.log(file);
         //   }
     }
-    let self = this;
 
-    SI.Widgets.Uploaders[this.RandId] = this;
 
-    if (this.Options.ParentId.length > 0) {
-        var par = document.getElementById(this.Options.ParentId);
-        if (par !== null) {
-            par.appendChild(this.Container);
-            return;
-        }
-    } else {
-        return this.Container;
-    }   
+    if (this.Options.Parent) {
+        this.Options.Parent.appendChild(container);
+    }
+
+    return this;
 }

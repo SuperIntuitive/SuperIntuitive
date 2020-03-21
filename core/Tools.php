@@ -432,6 +432,25 @@ class Tools{
 		$text = str_replace("__NOW.DAY__",date("j"), $text);
 		$text = str_replace("__NOW.DAYSHORT__",date("jS"), $text);
 		$text = str_replace("__NOW.DATLONG__",date("l"), $text);
+		$text = str_replace("__NOW.DBTIME__",date("Y-m-d H:i:s"), $text);
+		$text = str_replace("__NOW.DATEPATH__",date("Y/m/d"), $text);
+		//allow the user to make replacements with Settings
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'])){
+			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'];
+			Tools::Log($settings);		
+			foreach($settings as $k=>$v){
+
+			    $match = preg_match('/^(__\w*__)$/', $k, $matches, PREG_UNMATCHED_AS_NULL);
+				Tools::Log("match");
+				Tools::Log($match);
+				if($match > 0){
+					Tools::Log($k." ".$v);
+					Tools::Log($text);
+					$text = str_replace($k,$v, $text);
+				}
+
+			}
+		}
 
 		return $text;
 	}

@@ -12,16 +12,16 @@ class Admin {
 		
 
 		$moded = filemtime('editor/editor.css');
-		$files = "<link rel='stylesheet' type='text/css'  href='/editor/editor.css?$moded'>";
+		$files = "\t\t<link rel='stylesheet' type='text/css'  href='/editor/editor.css?$moded'>\n";
 
 		$moded = filemtime('editor/editor.js');
-		$files .= "<script src='/editor/editor.js?$moded' defer></script>";	
+		$files .= "\t\t<script src='/editor/editor.js?$moded' defer></script>\n";	
 
 		$objfiles = scandir('editor/objects');
 		foreach($objfiles as $obj){
 			if(!is_dir('editor/objects/'.$obj)){
 				$moded = filemtime('editor/objects/'.$obj);
-				$files .= "<script src='/editor/objects/$obj?$moded' defer></script>";	
+				$files .= "\t\t<script src='/editor/objects/$obj?$moded' defer></script>\n";	
 			}
 		}
 
