@@ -541,7 +541,8 @@ CREATE TABLE `users` (
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `remembertoken` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `remembertime` bigint(20) DEFAULT NULL
+  `remembertime` bigint(20) DEFAULT NULL,
+  `preferences` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`preferences`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='{"EN":"users", "SN":"user"}';
 
 --
@@ -549,7 +550,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `name`, `email`, `password`, `remembertoken`, `remembertime`) VALUES
-(_SI_GUID_56, 'active', _SI_NOWTIME_, NULL, _SI_GUID_13, '__SI_USER_NAME__', '__SI_USER_EMAIL__', '__SI_USER_PASSWORD__', '', NULL);
+(_SI_GUID_56, 'active', _SI_NOWTIME_, NULL, _SI_GUID_13, '__SI_USER_NAME__', '__SI_USER_EMAIL__', '__SI_USER_PASSWORD__', '', NULL, '{ 	\"open_links_in\":\"tab\", 	\"autosave\":true, 	\"help\":{ 		\"moz\":false, 		\"w3\":false 	} }');
 
 --
 -- Indexes for dumped tables

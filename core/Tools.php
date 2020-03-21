@@ -42,6 +42,7 @@ class Tools{
 		}
 	}
 	static function DefineServer(){
+
 		$url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 		//since we do not use apache virtual hosts to partition the domains, this could be anything. If it was bad it wouldnt get by the vhosts.
 		//DO NOT TRUST THIS URL. DO NOT MAKE IT PART OF ANYTHING UNTILL IT IS VERIFIED TO BE IN THE DATABASE.
@@ -95,6 +96,7 @@ class Tools{
 		//if(!file_exists("core/DbCreds.php")){
 		//	file_put_contents("core/DbCreds.php", '<?php class DbCreds { }');
 		//}
+		
 		if(!is_file($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php")){
 			
 			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", '<?php class DbCreds { }');     // Save our content to the file.
