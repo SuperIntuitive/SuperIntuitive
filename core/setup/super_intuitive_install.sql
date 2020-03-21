@@ -549,7 +549,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `name`, `email`, `password`, `remembertoken`, `remembertime`) VALUES
+INSERT INTO `users` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `name`, `email`, `password`, `remembertoken`, `remembertime`, `preferences`) VALUES
 (_SI_GUID_56, 'active', _SI_NOWTIME_, NULL, _SI_GUID_13, '__SI_USER_NAME__', '__SI_USER_EMAIL__', '__SI_USER_PASSWORD__', '', NULL, '{ 	\"open_links_in\":\"tab\", 	\"autosave\":true, 	\"help\":{ 		\"moz\":false, 		\"w3\":false 	} }');
 
 --
