@@ -1124,7 +1124,6 @@ SI.Editor.Objects.Styler = function() {
     };
     this.SaveStyle = function () {
         let s = this;
-        debugger;
         let csstype = hWin.LoadedType; 
         let sheetname= hWin.LoadedSheet;
         let code = document.getElementById("si_styler_codepad").innerText;

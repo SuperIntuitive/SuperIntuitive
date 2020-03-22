@@ -8,6 +8,19 @@ class Deployment {
 	public function __destruct(){
 	}
 
+	public function DrawScript(){
+			return  "
+			<script>
+				if (!SI) { var SI = {}; }
+				if (!SI.Deployment) { SI.Deployment = {}; }
+				SI.Deployment.Change = function(self){
+				//debugger;
+					let deploy = self.id.replace('si_deployment_control_','');
+					SI.Tools.Ajax({Data : {'KEY':'ChangeDeployment','Deployment':deploy}});
+				}	
+			</script>";
+	}
+
 	public function DrawControls(){
 		if(isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] )){
 			//$dep = $_SESSION['SI']['page']['deployment'];
@@ -26,19 +39,11 @@ class Deployment {
 				case "live": $liveB = "filter:brightness(150%)"; $liveE = 'disabled';  break;
 			}
 			$controls =  "<div id='si_deployment_controls' class='si-deployment-control' style='position:fixed; margin-left:95%; top:5px; opacity: 0.5;'>";
-			$controls .=  "<button id='si_deployment_control_live' class='si-deployment-control' title='live' $liveE onclick='SI_ChangeDeployment(this)' style='border-radius:8px; width:16px; height:16px; background-color:red; display:block; border:none; margin:2px; $liveB' >";
-			$controls .=  "<button id='si_deployment_control_test' class='si-deployment-control' title='test' $testE onclick='SI_ChangeDeployment(this)' style='border-radius:8px; width:16px; height:16px; background-color:yellow; display:block; border:none; margin:2px; $testB' >";
+			$controls .=  "<button id='si_deployment_control_live' class='si-deployment-control' title='live' $liveE onclick='SI.Deployment.Change(this)' style='border-radius:8px; width:16px; height:16px; background-color:red; display:block; border:none; margin:2px; $liveB' >";
+			$controls .=  "<button id='si_deployment_control_test' class='si-deployment-control' title='test' $testE onclick='SI.Deployment.Change(this)' style='border-radius:8px; width:16px; height:16px; background-color:yellow; display:block; border:none; margin:2px; $testB' >";
 			if(Tools::UserHasRole("Admin")){
-				$controls .=  "<button id='si_deployment_control_dev' class='si-deployment-control' title='dev' $devE onclick='SI_ChangeDeployment(this)'  style='border-radius:8px; width:16px; height:16px; background-color:green; display:block; border:none; margin:2px; $devB' >";
+				$controls .=  "<button id='si_deployment_control_dev' class='si-deployment-control' title='dev' $devE onclick='SI.Deployment.Change(this)'  style='border-radius:8px; width:16px; height:16px; background-color:green; display:block; border:none; margin:2px; $devB' >";
 			}
-			$controls .=  "
-			<script>
-				var SI_ChangeDeployment = function(self){
-				//debugger;
-					let deploy = self.id.replace('si_deployment_control_','');
-					Tools.Ajax({Data : {'KEY':'ChangeDeployment','Deployment':deploy}});
-				}	
-			</script>";
 
 			$controls .=  "</div>";
 			return $controls;

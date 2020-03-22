@@ -1128,13 +1128,13 @@ SI.Editor.Objects.Elements = {
                 if (options.Effected) {
                     let ele = document.querySelector(options.Effected);
                     if (ele) {
-                        ele.style[Tools.CssProp2JsKey(styleobj.n)] = null;
+                        ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
                     }
                 }
                 ///     else if (options.OnChange != null) {
                 //        options.OnChange(val);
                 //     }
-                else if (SI.Editor.Objects.Elements.Selected != null) {
+                else if (SI.Editor.Objects.Elements.Selected !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
                     for (var i = 0; i < classes.length; i++) {
@@ -1646,11 +1646,5 @@ SI.Editor.Objects.Elements = {
             return cssrow;
 
         },
-        Widget2: function (options) {
-            this.Defaults = {
-
-            };
-            options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-        }
     },
 }

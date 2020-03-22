@@ -26,6 +26,9 @@ class Page {
 			$setup = new Setup();
 			return $setup->GetHead();
 		}
+		else if($this->pageobjects == "%EMPTY_DOMAIN%"){
+		    Tools::Log("This domain is not found");
+	    }
 		else
 		{
 		//Tools::Log($this->pageobjects['page'], true);
@@ -206,7 +209,10 @@ class Page {
 				//$head.=$admin->PopulatePageBlockData($this->pageobjects['admin']['blocktemplates'],true);
 				$head.=$admin->IncludeAdminFiles();	
 			}		
-		
+			if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
+				$deploy = new Deployment();
+				$head.= $deploy->DrawScript();
+			}
 
 			if($bodystyle != null){
 				$head.=$bodystyle;

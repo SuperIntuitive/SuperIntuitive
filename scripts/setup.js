@@ -73,7 +73,7 @@
 		},	
         SetupServer: function (dataobj) {
 
-            let json = { "KEY": "SetupDatabase" };
+            let json = { "KEY": "SetupSuperIntuitive" };
             json = setup.FormatForm(json)
             //debugger;
 

@@ -326,8 +326,7 @@ class Setup {
 	private $total = 0; //preg_match_all('(_SI_GUID_[1234567890]+)', $sqlstr, $matches2);
 	private $unique = 0;
 
-    public function SetupDatabase($post){
-		
+    public function SetupSuperIntuitive($post){
 		$connect = null;
 		$user = null;
 		$pw = null;

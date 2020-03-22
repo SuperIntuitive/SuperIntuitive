@@ -48,12 +48,12 @@ if(isset($post['KEY'])){
 				$user->ForgotPassword($post);
 				break;
 		//Setup functions for use only if not already setup
-		case "SetupDatabase":	
+		case "SetupSuperIntuitive":	
 				$db = new Database();
 				if(!$db->IsCmsSetup() ){
 				    Tools::Log("Setting up the Database.");
 					$setup = new Setup();
-					$setup->SetupDatabase($post);
+					$setup->SetupSuperIntuitive($post);
 				}else{
 					Tools::Log("Attempted overwrite of database.");
 				}
