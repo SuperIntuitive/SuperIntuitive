@@ -1,4 +1,4 @@
-﻿
+
 SI.Editor.Objects.Elements = {
     //Loops through all elements and makes them editable 
     Init: function () {

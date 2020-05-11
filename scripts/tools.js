@@ -17,17 +17,17 @@ Ele = function (tag, attrs, log) {
     let ele = document.createElement(tag);
     for (let attr in attrs) {
         if (attrs.hasOwnProperty(attr)) {
-            if (attr == 'style') {
+            if (attr === 'style') {
                 let styles = attrs[attr];
                 for (let style in styles) {
                     if (styles.hasOwnProperty(style)) {
-                        if (typeof styles[style] != 'undefined' && styles[style].length > 0) {
+                        if (typeof styles[style] !== 'undefined' && styles[style].length > 0) {
                             ele.style[style] = styles[style];
                         }
                     }
                 }
             }
-            else if (attr == 'data') {
+            else if (attr === 'data') {
                 let data = attrs[attr];
                 if (tag !== 'object') {
                     if (typeof data === 'object') {
@@ -45,7 +45,7 @@ Ele = function (tag, attrs, log) {
                 }
 
             }
-            else if (attr == 'class') {
+            else if (attr === 'class') {
                 if (attrs[attr].length > 0) {
                     if (ele.classList) {
                         let cs = attrs[attr].trim().replace(/ /g, ',').split(',');
@@ -58,15 +58,15 @@ Ele = function (tag, attrs, log) {
                 }
 
             }
-            else if (attr == 'appendTo') {
+            else if (attr === 'appendTo') {
                 if (typeof HTMLElement === "object" ? attrs[attr] instanceof HTMLElement : attrs[attr] && typeof attrs[attr] === "object" && attrs[attr] !== null && attrs[attr].nodeType === 1 && typeof attrs[attr].nodeName === "string") {
                     parent = attrs[attr];
                 }
                 else if (typeof attrs[attr] === 'string') {
                     if (attrs[attr].length > 0) {
                         let tmp = document.querySelectorAll(attrs[attr])[0];
-                        if (tmp == null) { tmp = document.getElementById(attrs[attr]); }
-                        if (tmp != null) { parent = tmp; }
+                        if (tmp === null) { tmp = document.getElementById(attrs[attr]); }
+                        if (tmp !== null) { parent = tmp; }
                         else { console.warn("The query string: " + attrs[attr] + " did not return an element") }
                     }
                 }
@@ -118,7 +118,7 @@ Ele = function (tag, attrs, log) {
 
     EleRun++;
     return ele;
-}
+};
 
 //prototypes
 String.prototype.replaceArray = function (find, replace) {   // so-5069464
@@ -151,7 +151,7 @@ String.prototype.hexEncode = function () { //21647928
         result += ("000" + hex).slice(-4);
     }
     return result
-}
+};
 String.prototype.hexDecode = function () { //21647928
     var j;
     var hexes = this.match(/.{1,4}/g) || [];
@@ -160,30 +160,30 @@ String.prototype.hexDecode = function () { //21647928
         back += String.fromCharCode(parseInt(hexes[j], 16));
     }
     return back;
-}
+};
 Element.prototype.remove = function () {
     this.parentElement.removeChild(this);
-}
+};
 Element.prototype.hide = function () {
     this.style.display = "none";
-}
+};
 Element.prototype.clear = function () {
     this.innerHTML = "";
-}
+};
 NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
     for (let i = this.length - 1; i >= 0; i--) {
         if (this[i]) {
             this[i].style.display = 'none';
         }
     }
-}
+};
 NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
     for (let i = this.length - 1; i >= 0; i--) {
         if (this[i] && this[i].parentElement) {
             this[i].parentElement.removeChild(this[i]);
         }
     }
-}
+};
 
 if (!SI) {
     var SI = {};
@@ -202,7 +202,7 @@ SI.Tools = {
         },
         TrimR: function (string, chartoRemove) {
             chartoRemove = typeof chartoRemove !== 'undefined' ? chartoRemove : ' ';
-            if (string.substring(string.length - 1) == chartoRemove) {
+            if (string.substring(string.length - 1) === chartoRemove) {
                 return string.substring(0, string.length - 1);
             }
 
@@ -224,7 +224,7 @@ SI.Tools = {
         Loop: function (obj, func) {
             for (let k in obj) {
 
-                if (typeof obj[k] == "object" && obj[k] !== null) {
+                if (typeof obj[k] === "object" && obj[k] !== null) {
                     SI.Tools.Object.Loop(obj[k]);
                 }
                 else if (typeof obj === "function") {
@@ -284,7 +284,7 @@ SI.Tools = {
 
                 //if the parent has the value set as a default 
                 let checkparentdefault = false;
-                if (typeof options.Defaults != 'undefined') {
+                if (typeof options.Defaults !== 'undefined') {
                     debugger;
                     checkparentdefault = options.Defaults;
                 }
@@ -377,7 +377,7 @@ SI.Tools = {
                                     backgroundImage: 'url(scripts/widgets/icons/minus.png)',
                                     backgroundPosition: 'left',
                                     cursor: 'zoom-out',
-                                    color: color,
+                                    color: color
                                 },
                                 onclick: function (e) {
                                     e.stopPropagation();
@@ -387,25 +387,23 @@ SI.Tools = {
                                         if (children[1].style.display === 'block' || children[1].style.display === '') {
                                             this.style.backgroundImage = 'url(scripts/widgets/icons/plus.png)';
                                             this.style.cursor = 'zoom-in';
-                                            for (var i = 1; i < children.length; i++) {
+                                            for (let i = 1; i < children.length; i++) {
                                                 children[i].style.display = 'none';
                                             }
                                         } else {
-                                            for (var i = 1; i < children.length; i++) {
+                                            for (let i = 1; i < children.length; i++) {
                                                 this.style.backgroundImage = 'url(scripts/widgets/icons/minus.png)';
                                                 this.style.cursor = 'zoom-out';
                                                 children[i].style.display = 'block';
                                             }
                                         }
-
                                     }
-                                },
-
+                                }
                             });
 
                             let li = Ele("li", {
                                 append: btn,
-                                appendTo: dir,
+                                appendTo: dir
                             });
                             li.appendChild(SI.Tools.Object.ToDataTree(object[i]));
                             break;
@@ -416,12 +414,12 @@ SI.Tools = {
                                     backgroundColor: "#888",
                                     color: '#000',
                                     paddingLeft: '5px',
-                                    listStyleType: 'none',
+                                    listStyleType: 'none'
                                 },
                                 onclick: function (e) {
                                     e.stopPropagation();
                                 },
-                                appendTo: dir,
+                                appendTo: dir
                             });
                     }
                 }
@@ -446,7 +444,7 @@ SI.Tools = {
             return test;
         },
         GetById: function (current, guid) {  //This function will loop through its 1st gen children looking if at the property 'id' and that id = guid and return that child
-            if (guid.length == 32) { //it does not work yet and I found a quick workaround hack so this needs to be finished and would be very helpfull.
+            if (guid.length === 32) { //it does not work yet and I found a quick workaround hack so this needs to be finished and would be very helpfull.
                 guid = '0x' + guid;
             }
             for (let obj in current) {
@@ -513,10 +511,10 @@ SI.Tools = {
             return color;
         },
         ParseToHex: function (rgb) {
-            if (typeof rgb == 'undefined') {
+            if (typeof rgb === 'undefined') {
                 return null;
             }
-            if (rgb.charAt(0) == "#") {
+            if (rgb.charAt(0) === "#") {
                 return rgb;//already hex
             }
             else if (/(rgb)/.test(rgb)) {
@@ -565,7 +563,7 @@ SI.Tools = {
         NameToHex: function (name) {
             colors = { "aliceblue": "#f0f8ff", "antiquewhite": "#faebd7", "aqua": "#00ffff", "aquamarine": "#7fffd4", "azure": "#f0ffff", "beige": "#f5f5dc", "bisque": "#ffe4c4", "black": "#000000", "blanchedalmond": "#ffebcd", "blue": "#0000ff", "blueviolet": "#8a2be2", "brown": "#a52a2a", "burlywood": "#deb887", "cadetblue": "#5f9ea0", "chartreuse": "#7fff00", "chocolate": "#d2691e", "coral": "#ff7f50", "cornflowerblue": "#6495ed", "cornsilk": "#fff8dc", "crimson": "#dc143c", "cyan": "#00ffff", "darkblue": "#00008b", "darkcyan": "#008b8b", "darkgoldenrod": "#b8860b", "darkgray": "#a9a9a9", "darkgrey": "#a9a9a9", "darkgreen": "#006400", "darkkhaki": "#bdb76b", "darkmagenta": "#8b008b", "darkolivegreen": "#556b2f", "darkorange": "#ff8c00", "darkorchid": "#9932cc", "darkred": "#8b0000", "darksalmon": "#e9967a", "darkseagreen": "#8fbc8f", "darkslateblue": "#483d8b", "darkslategray": "#2f4f4f", "darkslategrey": "#2f4f4f", "darkturquoise": "#00ced1", "darkviolet": "#9400d3", "deeppink": "#ff1493", "deepskyblue": "#00bfff", "dimgray": "#696969", "dimgrey": "#696969", "dodgerblue": "#1e90ff", "firebrick": "#b22222", "floralwhite": "#fffaf0", "forestgreen": "#228b22", "fuchsia": "#ff00ff", "gainsboro": "#dcdcdc", "ghostwhite": "#f8f8ff", "gold": "#ffd700", "goldenrod": "#daa520", "gray": "#808080", "grey": "#808080", "green": "#008000", "greenyellow": "#adff2f", "honeydew": "#f0fff0", "hotpink": "#ff69b4", "indianred�": "#cd5c5c", "indigo�": "#4b0082", "ivory": "#fffff0", "khaki": "#f0e68c", "lavender": "#e6e6fa", "lavenderblush": "#fff0f5", "lawngreen": "#7cfc00", "lemonchiffon": "#fffacd", "lightblue": "#add8e6", "lightcoral": "#f08080", "lightcyan": "#e0ffff", "lightgoldenrodyellow": "#fafad2", "lightgray": "#d3d3d3", "lightgrey": "#d3d3d3", "lightgreen": "#90ee90", "lightpink": "#ffb6c1", "lightsalmon": "#ffa07a", "lightseagreen": "#20b2aa", "lightskyblue": "#87cefa", "lightslategray": "#778899", "lightslategrey": "#778899", "lightsteelblue": "#b0c4de", "lightyellow": "#ffffe0", "lime": "#00ff00", "limegreen": "#32cd32", "linen": "#faf0e6", "magenta": "#ff00ff", "maroon": "#800000", "mediumaquamarine": "#66cdaa", "mediumblue": "#0000cd", "mediumorchid": "#ba55d3", "mediumpurple": "#9370db", "mediumseagreen": "#3cb371", "mediumslateblue": "#7b68ee", "mediumspringgreen": "#00fa9a", "mediumturquoise": "#48d1cc", "mediumvioletred": "#c71585", "midnightblue": "#191970", "mintcream": "#f5fffa", "mistyrose": "#ffe4e1", "moccasin": "#ffe4b5", "navajowhite": "#ffdead", "navy": "#000080", "oldlace": "#fdf5e6", "olive": "#808000", "olivedrab": "#6b8e23", "orange": "#ffa500", "orangered": "#ff4500", "orchid": "#da70d6", "palegoldenrod": "#eee8aa", "palegreen": "#98fb98", "paleturquoise": "#afeeee", "palevioletred": "#db7093", "papayawhip": "#ffefd5", "peachpuff": "#ffdab9", "peru": "#cd853f", "pink": "#ffc0cb", "plum": "#dda0dd", "powderblue": "#b0e0e6", "purple": "#800080", "rebeccapurple": "#663399", "red": "#ff0000", "rosybrown": "#bc8f8f", "royalblue": "#4169e1", "saddlebrown": "#8b4513", "salmon": "#fa8072", "sandybrown": "#f4a460", "seagreen": "#2e8b57", "seashell": "#fff5ee", "sienna": "#a0522d", "silver": "#c0c0c0", "skyblue": "#87ceeb", "slateblue": "#6a5acd", "slategray": "#708090", "slategrey": "#708090", "snow": "#fffafa", "springgreen": "#00ff7f", "steelblue": "#4682b4", "tan": "#d2b48c", "teal": "#008080", "thistle": "#d8bfd8", "tomato": "#ff6347", "turquoise": "#40e0d0", "violet": "#ee82ee", "wheat": "#f5deb3", "white": "#ffffff", "whitesmoke": "#f5f5f5", "yellow": "#ffff00", "yellowgreen": "#9acd32" };
             let hex = colors[name.toLowerCase()];
-            if (typeof hex != 'undefined') {
+            if (typeof hex !== 'undefined') {
                 return hex;
             } else {
                 return null;
@@ -609,8 +607,9 @@ SI.Tools = {
             },
         },
         FadeOut: function (id, ms) {
+            let ele;
             if (typeof (ms) === "undefined") { ms = 1000; }
-            else if (typeof ms == "number") {
+            else if (typeof ms === "number") {
 
             }
             else if (ms.toLowerCase() === 'fast') {
@@ -619,11 +618,11 @@ SI.Tools = {
                 ms = 2500;
             }
             if (SI.Tools.Is.Element(id)) {
-                var ele = id;
+                ele = id;
             } else {
-                var ele = document.getElementById(id);
+                ele = document.getElementById(id);
             }
-            if (ele != null) {
+            if (ele !== null) {
                 if (ele.animate) {
                     ele.animate({
                         opacity: [1, 0],
@@ -639,8 +638,9 @@ SI.Tools = {
             }
         },
         FadeIn: function (id, ms) {
+            let ele;
             if (typeof (ms) === "undefined") { ms = 1000; }
-            else if (typeof ms == "number") {
+            else if (typeof ms === "number") {
 
             }
             else if (ms.toLowerCase() === 'fast') {
@@ -649,12 +649,12 @@ SI.Tools = {
                 ms = 2000;
             }
             if (SI.Tools.Is.Element(id)) {
-                var ele = id;
+                ele = id;
             } else {
-                var ele = document.getElementById(id);
+                ele = document.getElementById(id);
             }
 
-            if (ele != null) {
+            if (ele !== null) {
                 if (ele.animate) {
                     ele.animate({
                         opacity: [0, 1],
@@ -806,10 +806,10 @@ SI.Tools = {
                     if (test.match(/^\d/)) {
                         test = "_" + test;
                     }
-                    return test;
                     break;
                 case "email": break;
             }
+            return test;
         },
         Match: function (flag, test) {
             switch (flag.toLowerCase()) {
@@ -922,12 +922,12 @@ SI.Tools = {
     },
     Is: {
         Visible: function (ele) {
-            if (typeof (ele) == 'string') {
+            if (typeof (ele) === 'string') {
                 ele = document.getElementById(ele);
             }
             if (ele) {
                 disp = ele.currentStyle ? ele.currentStyle.display : getComputedStyle(ele, null).display;
-                return disp == 'none' ? false : true;
+                return disp === 'none' ? false : true;
             } else {
 
                 //console.warn("Tried to determine if "+ele+" IsVisable. The element was null");
@@ -942,12 +942,12 @@ SI.Tools = {
         InlineElement: function (ele) {
             const inlines = ['a', 'abbr', 'acronym', 'b', 'bdo', 'big', 'br', 'button', 'cite', 'code', 'dfn', 'em', 'i', 'img', 'input', 'kbd', 'label', 'map', 'object', 'q', 'samp', 'script', 'select', 'small', 'span', 'strong', 'sub', 'sup', 'textarea', 'time', 'tt', 'var']
             let inOf = null;
-            if (typeof ele == 'string') {
+            if (typeof ele === 'string') {
                 inOf = inlines.indexOf(ele.toLowerCase());
             } else if (SI.Tools.Is.Element(ele)) {
                 inOf = inlines.indexOf(ele.tagName.toLowerCase());
             }
-            if (inOf == -1) {
+            if (inOf === -1) {
                 return false;
             } else {
                 return true;
@@ -957,7 +957,7 @@ SI.Tools = {
         EmptyElement: function (ele) {
             let inOf = null;
             const emptyElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
-            if (typeof ele == 'string') {
+            if (typeof ele === 'string') {
                 inOf = emptyElements.indexOf(ele.toLowerCase());
             } else if (SI.Tools.Is.Element(ele)) {
                 inOf = emptyElements.indexOf(ele.tagName.toLowerCase());
@@ -1040,7 +1040,7 @@ SI.Tools = {
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 try {
-                    if (xhr.responseText != null && xhr.responseText.length > 0) {
+                    if (xhr.responseText !== null && xhr.responseText.length > 0) {
                         SI.Tools.Success(xhr.responseText);
                     }
                 } catch (ex) {
@@ -1257,7 +1257,7 @@ SI.Tools = {
         let blacklist = ['webkitStorageInfo'];
         //debugger;
         for (let i in obj) {
-            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() == "function") {
+            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() === "function") {
                 allfunctions.push(obj[i].name);
             }
         }
@@ -1335,7 +1335,7 @@ SI.Tools = {
         }
         if (!document.styleSheets) return; //no style sheets?
 
-        if (document.getElementsByTagName('head').length == 0) return; //no head? 
+        if (document.getElementsByTagName('head').length === 0) return; //no head? 
 
         var styleSheet, mediaType;
         //  L(document.styleSheets);
@@ -1353,7 +1353,7 @@ SI.Tools = {
                             styleSheet = document.styleSheets[i];
                         }
                     }
-                    else if (mediaType == 'object') {
+                    else if (mediaType === 'object') {
                         if (media.mediaText === '' || (media.mediaText.indexOf('screen') !== -1)) {
                             styleSheet = document.styleSheets[i];
                         }
@@ -1382,7 +1382,7 @@ SI.Tools = {
 
         if (mediaType === 'string') {
             for (let i = 0, l = styleSheet.rules.length; i < l; i++) {
-                if (styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+                if (styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() === selector.toLowerCase()) {
                     styleSheet.rules[i].style.cssText = style;
                     return;
                 }
@@ -1392,7 +1392,7 @@ SI.Tools = {
         else if (mediaType === 'object') {
             var styleSheetLength = (styleSheet.cssRules) ? styleSheet.cssRules.length : 0;
             for (let i = 0; i < styleSheetLength; i++) {
-                if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+                if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() === selector.toLowerCase()) {
                     styleSheet.cssRules[i].style.cssText = style;
                     return;
                 }
@@ -1410,13 +1410,13 @@ SI.Tools = {
     },
     ToFixed: function (x) {
         if (Math.abs(x) < 1.0) {
-            var e = parseInt(x.toString().split('e-')[1]);
+            let e = parseInt(x.toString().split('e-')[1]);
             if (e) {
                 x *= Math.pow(10, e - 1);
                 x = '0.' + (new Array(e)).join('0') + x.toString().substring(2);
             }
         } else {
-            var e = parseInt(x.toString().split('+')[1]);
+            let e = parseInt(x.toString().split('+')[1]);
             if (e > 20) {
                 e -= 20;
                 x /= Math.pow(10, e);
@@ -1426,16 +1426,16 @@ SI.Tools = {
         return x;
     },
     GetElementOffset: function (element, property) {
-        if (property == "offsetLeft" || property == "offsetTop") {
+        if (property === "offsetLeft" || property === "offsetTop") {
             var actualOffset = element[property];
             var current = element.offsetParent;
             //Look up the node tree to add up all the offset value
-            while (current != null) {
+            while (current !== null) {
                 actualOffset += current[property];
                 current = current.offsetParent;
             }
             return actualOffset;
-        } else if (property == "offsetHeight" || property == "offsetWidth") {
+        } else if (property === "offsetHeight" || property === "offsetWidth") {
             return element[property];
         }
         return false;
@@ -1531,14 +1531,14 @@ SI.Tools = {
         },
         Returned: function (response) {
             //debugger;
-            if (typeof response['Return'] != 'undefined') {
+            if (typeof response['Return'] !== 'undefined') {
                 let queryElements = null;
                 let retEntity = null;
 
-                if (typeof response['Return']['Query'] != 'undefined') {
+                if (typeof response['Return']['Query'] !== 'undefined') {
                     queryElements = document.querySelectorAll(response['Return']['Query']);
                 }
-                if (typeof response['Return']['Entity']['Name'] != 'undefined') {
+                if (typeof response['Return']['Entity']['Name'] !== 'undefined') {
                     retEntity = response['Return']['Entity']['Name'];
                 }
 

@@ -1,4 +1,4 @@
-﻿
+
 SI.Editor.Objects.Media = function (window) {
     let self = this;
     this.Window = window;

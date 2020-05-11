@@ -1,9 +1,10 @@
-﻿
+
 SI.Editor.Objects.Scripter = {
     LoadedScript: null,
     LoadedType: null,
     SyntaxLoaded: false,
     Draw: function () {
+
         //debugger;
         let container = Ele("div", {
             id: "si_scripter_container",

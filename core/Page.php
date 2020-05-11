@@ -188,6 +188,7 @@ class Page {
 		<script src='/scripts/tools.js?$t' defer ></script>\n";
 
 		$widgetfiles = scandir('scripts/widgets');
+		Tools::Log($widgetfiles);
 		foreach($widgetfiles as $widget){
 			if(!is_dir('scripts/widgets/'.$widget)){
 				$moded = filemtime('scripts/widgets/'.$widget);
@@ -200,7 +201,6 @@ class Page {
 		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
 		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script>
 		";
-
 
 
 			if(Tools::UserHasRole("SuperAdmin,Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']=='dev'){

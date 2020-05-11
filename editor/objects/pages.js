@@ -1,4 +1,4 @@
-﻿
+
 SI.Editor.Objects.Page = {
     Draw: function () {
         SI.Editor.UI.BlockTemplates.Init();
