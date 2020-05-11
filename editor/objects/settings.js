@@ -140,7 +140,7 @@ SI.Editor.Objects.Settings = {
             appendTo: existingbox,
         });
         let settings = SI.Editor.Data.Objects.Settings2;
-        debugger;
+
         for (let index in settings) {
             
             if (settings.hasOwnProperty(index)) {
