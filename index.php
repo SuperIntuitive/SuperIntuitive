@@ -3,10 +3,11 @@
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen
  * @license   Licensed under GPLv2 license
- *            See https://github.com/disscombobilated/SuperIntuitive/blob/master/LICENSE
+ *            See https://github.com/SuperIntuitive/SuperIntuitive/blob/master/LICENSE
  * @version   v0.8
  */
 //session_unset();
+
 require_once 'core/Tools.php';	//Include the static tools class
 Tools::Autoload('root');  //Run the auto include function from the root to get all the needed class files. 
 define("SI_ENTRY","PAGELOAD"); //as opposed to ajax or another method. incase we move into a function when both are done
@@ -14,10 +15,8 @@ define("SI_ENTRY","PAGELOAD"); //as opposed to ajax or another method. incase we
 Tools::DefineServer(); 
 
 //Get Database and cms setup status
-	$dbc = new Database();
-	$issetup = $dbc->IsCmsSetup();
-
-
+$dbc = new Database();
+$issetup = $dbc->IsCmsSetup();
 
 //The variable that holds the Page() object instance
 $page = null;
@@ -28,6 +27,11 @@ if(!$issetup){
 	$page = new Page("%SETUP%");
 }
 else{
+
+    //setup session handeling
+	$session = new Sessions();
+
+
 
 	//Using the DOMAIN and BU from DefineServer, we query the db for the domain, bu, and all entities it presides over. 
 	$pageobjects = $dbc->GetDomainInstance();
@@ -49,7 +53,7 @@ else{
 	//2 user does not have an existing session but has cookie keys to log them in
 	//3 user is a guest
 	
-	$session = new Sessions();
+
 	//This will set the current user to the guest user but only if the user does not already exist. This is nice because we can tell if we need to look for a Cookie 
 	$session->SetInitialUser();
 	//If the user is guest, then try to locate a cookie to authenticate the user. 
@@ -113,7 +117,10 @@ else{
 	$page = new Page($pageobjects);
 }
 
-$lang = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0];
+//we need to pass this the list of languages, 
+$lang = Tools::GetBrowserLanguage();
+
+
 //build the html doc
 if($page != null){
 	$head = $page->GetHead();

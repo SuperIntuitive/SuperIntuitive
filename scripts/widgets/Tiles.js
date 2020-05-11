@@ -8,6 +8,7 @@ SI.Widget.Tile = function(options) {
         "Url": "",
         "ContainerClass": "",
         "Position": "relative",
+        "Mime":null,
         "ImageHeight": "140px",
         "ImageWidth": "100px",
         "AudioHeight": "83px",
@@ -63,12 +64,16 @@ SI.Widget.Tile = function(options) {
             labelH =  '1px';
             labelW = '180px';
             pos = 'relative';
+            if (this.Options.Mime === null) {
+                "audio/mpeg";
+            }
+            //debugger;
             this.Thumb  = Ele('audio', {
                 controls: 'controls',
                 style: {
                     width: '90%'
                 },
-                append: Ele('source', { src: SI.Tools.GetMediaFilePath(this.Options.Url), type: "audio/mpeg" })
+                append: Ele('source', { src: SI.Tools.GetMediaFilePath(this.Options.Url), type: this.Options.Mime })
             });
             break;
 
@@ -78,12 +83,15 @@ SI.Widget.Tile = function(options) {
             labelH = (parseInt(height) - 240) + 'px';
             labelW = '180px';
             pos = 'relative';
+            if (this.Options.Mime === null) {
+                "video/mp4";
+            }
             this.Thumb  = Ele('video', {
                 controls: 'controls',
                 style: {
                     width: '90%'
                 },
-                append: Ele('source', { src: SI.Tools.GetMediaFilePath(this.Options.Url), type: "video/mp4" })
+                append: Ele('source', { src: SI.Tools.GetMediaFilePath(this.Options.Url), type: this.Options.Mime })
             });
             break;
 

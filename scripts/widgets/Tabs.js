@@ -60,10 +60,10 @@ SI.Widget.Tabs = function (options) {
                 this.Count--;
             }
             var reset = 0;
-            for (var key in this) {
+            for (let key in this) {
                 if (this.hasOwnProperty(key)) {                
                     if (!isNaN(key)) {
-                        if (key != reset) {
+                        if (key !== reset) {
                         this[reset] = this[key];
                         delete this[key];
                         }
@@ -81,7 +81,7 @@ SI.Widget.Tabs = function (options) {
             }
         },
         Index: function (tabname) {
-            for (var i = 0; i < this.Count; i++) {
+            for (let i = 0; i < this.Count; i++) {
                 if(this[i] != null && this[i][tabname] != null){
                     return i;
                 }
@@ -134,7 +134,7 @@ SI.Widget.Tabs = function (options) {
 
         //log(this.Items.Count);
         //loop the digits and make the lis
-        for (var i = 0; i < this.Items.Count; i++) {
+        for (let i = 0; i < this.Items.Count; i++) {
             let first = false;
             if (i === 0) {
                 first = true;

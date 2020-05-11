@@ -1,13 +1,10 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
+﻿
 SI.Editor.Objects.Elements = {
     //Loops through all elements and makes them editable 
     Init: function () {
         document.querySelectorAll('*').forEach(function (node) {
             let tn = node.tagName;
-            let excludedElements = ['HEAD', 'BODY', 'HTML'];
+            let excludedElements = ['HEAD', 'BODY', 'HTML','META','STYLE','SCRIPT'];
             if (excludedElements.indexOf(tn) === -1) {
                 if (!node.classList.contains("si-block") && !node.classList.contains("si-deployment-control"))
                     node = SI.Editor.Objects.Elements.Editable(node);
@@ -36,7 +33,7 @@ SI.Editor.Objects.Elements = {
         //debugger;
         var selecteds = document.getElementsByClassName("si-editor-selected");
         if (selecteds.length > 0) {
-            for (node in selecteds) {
+            for (let node in selecteds) {
                 let ele = selecteds[node];
                 if (SI.Tools.Is.Element(ele)) {
                     //remove its selected events
@@ -47,7 +44,7 @@ SI.Editor.Objects.Elements = {
                     if (typeof ele.classList !== 'undefined' && ele.classList.contains("si-editor-selected")) {
                         ele.classList.remove("si-editor-selected");
                         // Cycle over each attribute on the element
-                        for (var i = 0; i < ele.attributes.length; i++) {
+                        for (let i = 0; i < ele.attributes.length; i++) {
                             // Store reference to current attr
                             attr = ele.attributes[i];
                             // If attribute nodeName starts with 'data-'
@@ -842,7 +839,7 @@ SI.Editor.Objects.Elements = {
                 let blank = document.createElement('option');
                 blank.innerHTML = "";
                 attrInput.appendChild(blank);
-                for (var i = 0; i < myoptions.length; i++) {
+                for (let i = 0; i < myoptions.length; i++) {
                     let option = document.createElement('option');
                     option.innerHTML = myoptions[i];
                     attrInput.appendChild(option);
@@ -1016,7 +1013,6 @@ SI.Editor.Objects.Elements = {
                 },
                 onclick: function (e) {
                     //debugger;
-                    if (options.Effected) { };
                     var tableid = this.id.replace("si_edit_style_", "si_edit_style_table_");
                     var display = document.getElementById(tableid);
                     if (display.style.display === 'none') {
@@ -1084,7 +1080,7 @@ SI.Editor.Objects.Elements = {
                 else if (SI.Editor.Objects.Elements.Selected !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
-                    for (var i = 0; i < classes.length; i++) {
+                    for (let i = 0; i < classes.length; i++) {
                         classes[i].value = val;
                     }
                     ele = SI.Editor.Objects.Elements.Selected;
@@ -1137,7 +1133,7 @@ SI.Editor.Objects.Elements = {
                 else if (SI.Editor.Objects.Elements.Selected !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
-                    for (var i = 0; i < classes.length; i++) {
+                    for (let i = 0; i < classes.length; i++) {
                         classes[i].value = null;
                     }
                     SI.Editor.Objects.Elements.Selected.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
@@ -1394,7 +1390,10 @@ SI.Editor.Objects.Elements = {
                 var box = Ele('div', {});
                 let url = Ele('input', {
                     id: "si_edit_style_url_" + styleobj.n + "_" + RandId,
-                    type: 'url',
+                    type: "lookup",
+                    data: {
+                        type: "media"
+                    },
                     placeholder: 'url',
                     style: {
                         color: 'blue',
@@ -1455,7 +1454,7 @@ SI.Editor.Objects.Elements = {
                 function getAllKeyframeNames() {
 
                     names = SI.Editor.Data.DataLists.AnimationNames;
-                    for (name of names) {
+                    for (let name of names) {
                         Ele("option", {
                             value: name,
                             appendTo: datalist
@@ -1552,7 +1551,7 @@ SI.Editor.Objects.Elements = {
                 let shorthandBox = Ele('table', {
                     appendTo: data
                 });
-                for (i = 0; i < psv.length; i++) {
+                for (let i = 0; i < psv.length; i++) {
                     let color = SI.Tools.Color.Random(0.1); 
                     let prop = psv[i];
                     if (prop === 'LEN' || prop === 'NUM') {

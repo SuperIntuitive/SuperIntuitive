@@ -1,17 +1,102 @@
 <?php
 Tools::Autoload();
 class Sessions {
-	public function __construct(){
-		//Tools::Log("In Session constructor");
-		if (session_status() == PHP_SESSION_NONE) {
-		   // ini_set('session.cookie_domain', '.'.SI_DOMAIN_NAME ); //this line fucks things up
-			session_start();
-		}
+	private $sessionId;
+	private $sessionEntId = null;
+	private $sessionTimeout = 2326000;
 
+	public function __construct(){
+	   
+	    /*
+		session_set_save_handler(
+			array($this, 'Open'),
+			array($this, 'Close'),
+			array($this, 'Read'),
+			array($this, 'Write'),
+			array($this, 'Destroy'),
+			array($this, 'Garbage')
+		);
+		*/
+
+		if (session_status() == PHP_SESSION_NONE) {
+		    
+			session_start();
+		    $this->sessionid = session_id();
+			//$this->Open('foo', 'bar');
+			//$this->Read($this->sessionid);
+		}
+		
 		if(!isset($_SESSION['SI'])){
 			$_SESSION['SI'] = array();
 		}
 	}
+
+	public function Open($path, $name) {
+		$id = $this->sessionId;
+		$session = new Entity('sessions');
+		$session->Attributes->Add(new Attribute('sessionid', $id));
+		$found = $session->Retrieve('id');
+		if($found){
+			$this->sessionEntId = $found[0]['id'];
+			$session->Attributes->Add(new Attribute('lastaccesstime', time()));
+			$session->Update();
+		}else{
+			$session->Attributes->Add(new Attribute('sessiondata', ''));
+			$session->Create();
+		}
+
+ 
+	}
+	public function Read($id) { 
+		echo $id;
+		if($this->sessionEntId != null){
+			$session = new Entity('sessions');
+			$session->Id = $this->sessionEntId;
+			$found = $session->Retrieve('sessiondata');
+			if($found){
+				return $found[0]['sessiondata'];
+			}
+		}
+
+		return false;
+    }
+	public function Close(){
+		return true;
+	}
+
+    public function Write($id, $data){
+		if($this->sessionEntId != null){
+			$session = new Entity('sessions');
+			$session->Id = $this->sessionEntId;
+			$session->Attributes->Add(new Attribute('sessiondata', $data));
+			$session->Attributes->Add(new Attribute('lastaccesstime', time()));
+			return $session->Update();
+		}
+		return false;
+	}
+    public function Destroy($id){
+		if($this->sessionEntId != null){
+			$session = new Entity('sessions');
+			$session->Id = $this->sessionEntId;
+			$session->Delete();
+			return true;
+		}
+		return false;
+	}
+    public function Garbage($maxlifetime){
+		//this need to happen in a cron job
+		$db = new Database();
+		$dbc = $db->DBC();
+		$timeout= time() - $this->$sessiontimeout;
+		$sql = $dbc->prepare('DELETE FROM sessions WHERE lastaccesstime < :timeout');
+		$sql->bind(':timeout', $timeout);
+		if($sql->execute()){
+			return true;
+		}
+		return false;
+	}
+
+
 	public function SetDomain(){
 		$overwrite = FALSE;
 		if(!isset($_SESSION['SI']['domains'])){
@@ -40,6 +125,13 @@ class Sessions {
 		if( empty( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] ) || $overwrite){
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] = "live";
 		}
+				//define the deployment state
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'])){
+			define('SI_DEPLOYMENT',  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']);
+		}else{
+			define('SI_DEPLOYMENT',  'live');
+		}
+
 	}
 	public function SetInitialUser(){
 		$overwrite = FALSE;

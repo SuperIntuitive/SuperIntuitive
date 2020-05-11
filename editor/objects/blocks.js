@@ -1,9 +1,4 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
-
-
+﻿
 SI.Editor.Objects.Blocks = {
     //Creates a Block UI Element as seen in Tools/Page/Blocks
     UI: function (name, options) {
@@ -204,7 +199,7 @@ SI.Editor.Objects.Blocks = {
         });
         blockControls = ordered;
         //The dynamic properties field.
-        for (control in blockControls) {
+        for (let control in blockControls) {
             let val = blockControls[control];
             //Make a div for the field 
             let fieldbox = Ele('div', {
@@ -287,6 +282,7 @@ SI.Editor.Objects.Blocks = {
         }
 
         //Right floating buttons on the block
+        //this does not work yet.
         let saveAll = Ele("button", {
             style: {
                 display: "inline-block",
@@ -294,7 +290,7 @@ SI.Editor.Objects.Blocks = {
                 width: '20px',
                 height: '20px',
                 float: 'right',
-                display: 'none',
+                
                 backgroundSize: 'cover',
                 backgroundImage: "url('/editor/media/icons/saveall.png')",
             },
@@ -311,7 +307,9 @@ SI.Editor.Objects.Blocks = {
                 //  SI.Editor.Objects.Blocks.Save(this.parentElement, 'html'); //save the block div, which is this save buttons parent
             },
             appendTo: blockui,
-        }); //ToDo
+        });
+        //if we bring this back well fix this
+        saveAll.style.display = 'none';
 
         let openScripter = Ele("button", {
             style: {
@@ -327,14 +325,13 @@ SI.Editor.Objects.Blocks = {
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
-                fkey: fixedkey,
+                fkey: fixedkey
             },
 
             onclick: function (e) {
-                //debugger;
                 let blockname = this.dataset.fkey;
                 SI.Editor.UI.Scripter.Window.Show();
-                SI.Editor.UI.Scripter.Scripter.LoadBlockCode(blockname);
+                SI.Editor.Objects.Scripter.OpenScript(blockname, "Block");
                 e.stopPropagation(); //keep from clicking through
             },
             appendTo: blockui,
@@ -384,7 +381,7 @@ SI.Editor.Objects.Blocks = {
             },
             onclick: function (e) {
                 var retVal = confirm("This block will be removed from the page and all custom block data will be lost. This will not affect the block itself. Proceed?");
-                if (retVal == true) {
+                if (retVal === true) {
                     //SI.Editor.Objects.Blocks.SelectNone();
                     //debugger;
                     //remove all the html
@@ -400,8 +397,6 @@ SI.Editor.Objects.Blocks = {
                     SI.Editor.Objects.Blocks.Remove(relayid);
 
                     //send Ajax to remove this block from the database.
-                } else {
-
                 }
                 e.stopPropagation();
             },
@@ -427,7 +422,7 @@ SI.Editor.Objects.Blocks = {
             onclick: function (e) {
                 let retId = this.id.replace("_button_", "_window_");
                 var win = document.getElementById(retId);
-                if (win != null && win.style.display == "none") {
+                if (win !== null && win.style.display === "none") {
                     win.style.display = "block";
                 } else {
                     win.style.display = "none";
@@ -457,7 +452,7 @@ SI.Editor.Objects.Blocks = {
             onclick: function (e) {
                 let retId = this.id.replace("_button_", "_window_");
                 var win = document.getElementById(retId);
-                if (win != null && win.style.display == "none") {
+                if (win !== null && win.style.display === "none") {
                     win.style.display = "block";
                 } else {
                     win.style.display = "none";
@@ -594,20 +589,20 @@ SI.Editor.Objects.Blocks = {
             },
         };
         //debugger;
-        for (df in dFields) {
+        for (let df in dFields) {
             //debugger;
             if (dFields.hasOwnProperty(df)) {
                 let dField = df;
                 let dEnt = dFields[df];
                 let saveto = dEnt.saveto;
                 let labelMar = null;
-                if (typeof dEnt.labelmargin != 'undefined') {
+                if (typeof dEnt.labelmargin !== 'undefined') {
                     labelMar = dEnt.labelmargin;
                 }
                 let deployId = null;
-                if (saveto == "blocks") {
+                if (saveto === "blocks") {
                     deployId = options.Guid;
-                } else if (saveto == "relations") {
+                } else if (saveto === "relations") {
                     //need to figure out this malarchy
                     if (options.RelationsId) {
                         deployId = options.RelationsId;
@@ -621,7 +616,7 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
-        for (options in blockOptions) {
+        for (let options in blockOptions) {
             if (blockOptions.hasOwnProperty(options)) {
                 //debugger;
                 let tr = Ele('tr', { appendTo: optionsTable });
@@ -644,7 +639,7 @@ SI.Editor.Objects.Blocks = {
         });
 
         //Block Styles
-        for (style in blockStyles) {
+        for (let style in blockStyles) {
             let val = blockStyles[style];
             //debugger;
             let styleobj = {
@@ -678,7 +673,7 @@ SI.Editor.Objects.Blocks = {
                 //debugger;
                 let style = this.nextSibling.value;
                 if (style.length) {
-                    let block = '#' + this.dataset.block
+                    let block = '#' + this.dataset.block;
                     let styleobj = {
                         "Property": style,
                         "Effected": block,
@@ -770,7 +765,7 @@ SI.Editor.Objects.Blocks = {
         SI.Editor.UI.Container.parentNode.insertBefore(babyBlock, SI.Editor.UI.Container);
     },
     New: function (blockname) {
-        if (document.body.dataset.guid != null && document.body.dataset.guid.length === 34) {
+        if (document.body.dataset.guid !== null && document.body.dataset.guid.length === 34) {
             //debugger;
             let data = {};
             data.KEY = 'BlockNew';
@@ -781,8 +776,8 @@ SI.Editor.Objects.Blocks = {
             SI.Editor.Ajax.Run(ajax);
         }
     },
-    Relate: function(blockid) {
-        if (document.body.dataset.guid != null && document.body.dataset.guid.length === 34) {
+    Relate: function (blockid) {
+        if (document.body.dataset.guid !== null && document.body.dataset.guid.length === 34) {
             //debugger;
             let data = {};
             data.KEY = 'BlockRelate';
@@ -793,7 +788,7 @@ SI.Editor.Objects.Blocks = {
             SI.Editor.Ajax.Run(ajax);
         }
     },
-    Remove: function(relid) {
+    Remove: function (relid) {
         let data = {};
         data.KEY = 'BlockRemove';
         data.linkid = relid;
@@ -834,7 +829,6 @@ SI.Editor.Objects.Blocks = {
         console.log(blockname + ' has been created');
     },
     Save: function (blockui, flag = 'flag') {
-
         if (typeof blockui === 'string') {
             blockui = document.getElementById('si_bid_' + blockui);
             if (!blockui) {
@@ -842,9 +836,8 @@ SI.Editor.Objects.Blocks = {
                 return;
             }
         }
-
         let selected = null;
-        if (SI.Editor.Objects.Elements.Selected != null) {
+        if (SI.Editor.Objects.Elements.Selected !== null) {
             selected = SI.Editor.Objects.Elements.Selected;
             SI.Editor.Objects.Elements.SelectNone();
         }
@@ -880,7 +873,7 @@ SI.Editor.Objects.Blocks = {
             let replacements = {};
             let ignores = block.querySelectorAll('.si-editable-ignoreinner');
 
-            for (ignore of ignores) {
+            for (let ignore of ignores) {
                 //put all the inner texts into an object so we can put them back after the data is sent
                 replacements[ignore.id] = ignore.innerHTML;
                 ignore.innerHTML = "";
@@ -888,7 +881,7 @@ SI.Editor.Objects.Blocks = {
 
             //debugger;
             let multilinguals = block.querySelectorAll('.si-multilingual');
-            for (mtext of multilinguals) {
+            for (let mtext of multilinguals) {
                 //put all the inner texts into an object so we can put them back after the data is sent
 
                 replacements[mtext.id] = mtext.innerHTML;
@@ -900,15 +893,15 @@ SI.Editor.Objects.Blocks = {
             empty = false;
 
             //the block(string) has been sent to data, now put the replaces back
-            for (replacement in replacements) {
+            for (let replacement in replacements) {
                 document.getElementById(replacement).innerHTML = replacements[replacement];
             }
         }
-        if (flag == 'script') {
+        if (flag === 'script') {
             data.script = SI.Editor.Data.Objects.Blocks[bname].script;
             empty = false;
         }
-        if (flag == 'style') {
+        if (flag === 'style') {
             data.style = SI.Editor.Data.Objects.Blocks[bname].style;
             empty = false;
         }
@@ -918,7 +911,7 @@ SI.Editor.Objects.Blocks = {
 
         for (let i in attrfields) {
             let field = attrfields[i];
-            input = document.getElementById('si_bid_' + field + '_' + safeid);
+            let input = document.getElementById('si_bid_' + field + '_' + safeid);
             options[field] = input.value;
         }
 
@@ -978,6 +971,7 @@ SI.Editor.Objects.Blocks = {
 
     },
     Saved: function (data) {
+        SI.Tools.SuperAlert(data + " Saved!", 1000);
         console.log('Block has been saved');
     },
     Promote: function (data) {
@@ -988,7 +982,7 @@ SI.Editor.Objects.Blocks = {
     },
     Names: [],
     Blocks: [],
-    Select: function(blockid = '') {
+    Select: function (blockid = '') {
         //make sure it is the block
         //ezhack- if blockid is undefined or null select no blocks.
         let block = document.getElementById(blockid);
@@ -1010,8 +1004,8 @@ SI.Editor.Objects.Blocks = {
         }
     },
     Selected: null,
-    DropBlock : null,
-    DragEnter: function(e) {
+    DropBlock: null,
+    DragEnter: function (e) {
         //debugger;
         if (!SI.Editor.UI.MainMenu.IsDragging) {
             var data = e.dataTransfer.getData("Text");
@@ -1021,10 +1015,10 @@ SI.Editor.Objects.Blocks = {
         }
 
     },
-    Reorder: function() {
+    Reorder: function () {
         let bids = document.getElementsByClassName('si-bids');
         let order = 0;
-        for (bid of bids) {
+        for (let bid of bids) {
             let orderid = bid.id.replace("si_bid_", "si_bid_order_");
             document.getElementById(orderid).value = order;
             order++;

@@ -1,6 +1,6 @@
 
 
-EleRun= 0;
+EleRun = 0;
 Ele = function (tag, attrs, log) {
     log = typeof log !== 'undefined' ? log : false; //silly IE can handle defaults
     if (typeof tag === 'undefined' || tag === null) { //if the tag is packed in the object for some reason.
@@ -26,7 +26,7 @@ Ele = function (tag, attrs, log) {
                         }
                     }
                 }
-            } 
+            }
             else if (attr == 'data') {
                 let data = attrs[attr];
                 if (tag !== 'object') {
@@ -41,20 +41,20 @@ Ele = function (tag, attrs, log) {
                     }
                 } else {
                     //debugger;
-                    ele.setAttribute('data',data);
+                    ele.setAttribute('data', data);
                 }
 
-            } 
+            }
             else if (attr == 'class') {
                 if (attrs[attr].length > 0) {
                     if (ele.classList) {
                         let cs = attrs[attr].trim().replace(/ /g, ',').split(',');
                         for (let c in cs) {
                             ele.classList.add(cs[c]);
-                        } 
+                        }
                     } else {
                         ele.className += ' ' + attrs[attr]; //if old IE is needed
-                    }  
+                    }
                 }
 
             }
@@ -62,30 +62,30 @@ Ele = function (tag, attrs, log) {
                 if (typeof HTMLElement === "object" ? attrs[attr] instanceof HTMLElement : attrs[attr] && typeof attrs[attr] === "object" && attrs[attr] !== null && attrs[attr].nodeType === 1 && typeof attrs[attr].nodeName === "string") {
                     parent = attrs[attr];
                 }
-                else if (typeof attrs[attr] === 'string') { 
+                else if (typeof attrs[attr] === 'string') {
                     if (attrs[attr].length > 0) {
                         let tmp = document.querySelectorAll(attrs[attr])[0];
-                        if (tmp == null) { tmp = document.getElementById(attrs[attr]);}
+                        if (tmp == null) { tmp = document.getElementById(attrs[attr]); }
                         if (tmp != null) { parent = tmp; }
-                        else { console.warn("The query string: " + attrs[attr]+" did not return an element")}
+                        else { console.warn("The query string: " + attrs[attr] + " did not return an element") }
                     }
-                } 
+                }
             }
-            else if (attr == 'append') {
-                 let child = attrs[attr]; 
+            else if (attr === 'append') {
+                let child = attrs[attr];
                 if (typeof child === 'string') {
                     ele.innerHTML += child;
                 } else if (typeof HTMLElement === "object" ? child instanceof HTMLElement : child && typeof child === "object" && child !== null && child.nodeType === 1 && typeof child.nodeName === "string") {
-                    
+
                     ele.appendChild(child);
                 } else {
-                    debugger;
+                    //debugger;
                 }
             }
-            else if (attr == 'innerHTML') {
+            else if (attr === 'innerHTML') {
                 ele[attr] += attrs[attr];
             }
-            else if (attr == 'after') {
+            else if (attr === 'after') {
                 after = attr;
             }
             else {
@@ -93,16 +93,16 @@ Ele = function (tag, attrs, log) {
             }
         }
     }
-    if (parent != null) {
+    if (parent !== null) {
         parent.appendChild(ele);
 
         if (after) {
             if (!Array.isArray(after)) {
                 after = [after];
             }
-            for (e in after) {
+            for (let e in after) {
                 if (e.parent) {
-                    Ele(null, e); 
+                    Ele(null, e);
                 } else {
                     parent.appendChild(Ele(null, e));
                 }
@@ -124,7 +124,7 @@ Ele = function (tag, attrs, log) {
 String.prototype.replaceArray = function (find, replace) {   // so-5069464
     var replaceString = this;
     var regex;
-    for (var i = 0; i < find.length; i++) {
+    for (let i = 0; i < find.length; i++) {
         regex = new RegExp(find[i], "g");
         replaceString = replaceString.replace(regex, replace[i]);
     }
@@ -146,7 +146,7 @@ String.prototype.hexEncode = function () { //21647928
     var hex, i;
 
     var result = "";
-    for (i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
         hex = this.charCodeAt(i).toString(16);
         result += ("000" + hex).slice(-4);
     }
@@ -156,7 +156,7 @@ String.prototype.hexDecode = function () { //21647928
     var j;
     var hexes = this.match(/.{1,4}/g) || [];
     var back = "";
-    for (j = 0; j < hexes.length; j++) {
+    for (let j = 0; j < hexes.length; j++) {
         back += String.fromCharCode(parseInt(hexes[j], 16));
     }
     return back;
@@ -171,14 +171,14 @@ Element.prototype.clear = function () {
     this.innerHTML = "";
 }
 NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
-    for (var i = this.length - 1; i >= 0; i--) {
+    for (let i = this.length - 1; i >= 0; i--) {
         if (this[i]) {
             this[i].style.display = 'none';
         }
     }
 }
 NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
-    for (var i = this.length - 1; i >= 0; i--) {
+    for (let i = this.length - 1; i >= 0; i--) {
         if (this[i] && this[i].parentElement) {
             this[i].parentElement.removeChild(this[i]);
         }
@@ -196,7 +196,7 @@ SI.Tools = {
             length = typeof length !== 'undefined' ? length : '7';
             var text = "";
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            for (var i = 0; i < length; i++)
+            for (let i = 0; i < length; i++)
                 text += possible.charAt(Math.floor(Math.random() * possible.length));
             return text;
         },
@@ -222,7 +222,7 @@ SI.Tools = {
     },
     Object: {
         Loop: function (obj, func) {
-            for (var k in obj) {
+            for (let k in obj) {
 
                 if (typeof obj[k] == "object" && obj[k] !== null) {
                     SI.Tools.Object.Loop(obj[k]);
@@ -245,7 +245,7 @@ SI.Tools = {
                 //loop through the defaults and get the values. options should never have json data. only defaults
                 options = [];
                 for (let name in defaults) {
-     
+
                     //check sludge
                     if (name === "SomeBrokenKey") {
                         debugger;
@@ -324,10 +324,10 @@ SI.Tools = {
                         }
 
                         if (name === "Parent") {
-                            let index = typeof options.ParentIndex !=='undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                            let index = typeof options.ParentIndex !== 'undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
                             if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
                                 index = index.value;
-                            } 
+                            }
                             value = SI.Tools.Element.Get(value, index);
                         }
                         options[name] = value;
@@ -350,14 +350,14 @@ SI.Tools = {
             return options;
         },
         ToDataTree: function (object) {
-        //debugger;
+            //debugger;
             let dir = Ele("ul", {
                 style: {
                     backgroundColor: "#333",
                     listStyleType: 'none',
                 },
             });
-            for (i in object) {
+            for (let i in object) {
                 if (object.hasOwnProperty(i)) {
                     let ot = typeof object[i];
                     switch (ot) {
@@ -366,10 +366,10 @@ SI.Tools = {
                             let color;
                             switch (i) {
                                 case 'domains': color = 'yellow'; break;
-                                default: color = 'white';break;
+                                default: color = 'white'; break;
                             }
                             let btn = Ele("div", {
-                                innerHTML:i,
+                                innerHTML: i,
                                 style: {
                                     height: '22px',
                                     paddingLeft: '20px',
@@ -404,7 +404,7 @@ SI.Tools = {
                             });
 
                             let li = Ele("li", {
-                                append:btn,
+                                append: btn,
                                 appendTo: dir,
                             });
                             li.appendChild(SI.Tools.Object.ToDataTree(object[i]));
@@ -416,9 +416,9 @@ SI.Tools = {
                                     backgroundColor: "#888",
                                     color: '#000',
                                     paddingLeft: '5px',
-                                    listStyleType:'none',
+                                    listStyleType: 'none',
                                 },
-                                onclick:function(e){
+                                onclick: function (e) {
                                     e.stopPropagation();
                                 },
                                 appendTo: dir,
@@ -433,7 +433,7 @@ SI.Tools = {
         },
         GetIfExists: function (objstring) {
             let parts = objstring.split(".");
-            if (!window[parts[0]]){
+            if (!window[parts[0]]) {
                 return false;
             }
             let test = window[parts[0]]
@@ -449,8 +449,8 @@ SI.Tools = {
             if (guid.length == 32) { //it does not work yet and I found a quick workaround hack so this needs to be finished and would be very helpfull.
                 guid = '0x' + guid;
             }
-            for (obj in current) {
-                
+            for (let obj in current) {
+
             }
         }
     },
@@ -549,7 +549,7 @@ SI.Tools = {
         Random: function (transparency = null) {
             var letters = '0123456789ABCDEF';
             var color = '#';
-            for (var i = 0; i < 6; i++) {
+            for (let i = 0; i < 6; i++) {
                 color += letters[Math.floor(Math.random() * 16)];
             }
 
@@ -690,7 +690,7 @@ SI.Tools = {
     Class: {
         Loop: function (c, func) {
             var eles = document.getElementsByClassName(c);
-            for (var i = 0; i < eles.length; ++i) {
+            for (let i = 0; i < eles.length; ++i) {
                 func(eles[i]);
             }
         },
@@ -715,16 +715,16 @@ SI.Tools = {
             //   }
             //return allClasses;
         },
-        Hide: function(myclass){
+        Hide: function (myclass) {
             let eles = document.getElementsByClassName(myclass);
-            for (ele of eles) {
+            for (let ele of eles) {
                 ele.style.display = 'none';
             }
         },
         Show: function (myclass, display = 'block') {
             display = typeof display === 'undefined' ? 'block' : display;
             let eles = document.getElementsByClassName(myclass);
-            for (ele of eles) {
+            for (let ele of eles) {
                 ele.style.display = display;
             }
         },
@@ -735,9 +735,9 @@ SI.Tools = {
         },
         JsArray2HtmlSelect: function (array) {
             let sel = Ele("select", {});
-            for (i in array) {
+            for (let i in array) {
                 let option = array[i];
-                if (option != null) {
+                if (option !== null) {
                     Ele("option", {
                         innerHTML: option,
                         appendTo: sel,
@@ -756,7 +756,7 @@ SI.Tools = {
             var p = ["webkit", "mdn", "ms", "o"],
                 s = "scale(" + zoom + ")",
                 oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
-            for (var i = 0; i < p.length; i++) {
+            for (let i = 0; i < p.length; i++) {
                 el.style[p[i] + "Transform"] = s;
                 el.style[p[i] + "TransformOrigin"] = oString;
             }
@@ -816,7 +816,7 @@ SI.Tools = {
                 case "guid": return test.match(/0[xX][0-9a-fA-F]{32}|[0-9a-fA-F]{32}/);
                 case "email": return test.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
             }
-           
+
         }
     },
     Meta: {
@@ -921,11 +921,11 @@ SI.Tools = {
 
     },
     Is: {
-        Visible: function (ele) {  
+        Visible: function (ele) {
             if (typeof (ele) == 'string') {
                 ele = document.getElementById(ele);
             }
-            if(ele){
+            if (ele) {
                 disp = ele.currentStyle ? ele.currentStyle.display : getComputedStyle(ele, null).display;
                 return disp == 'none' ? false : true;
             } else {
@@ -969,7 +969,7 @@ SI.Tools = {
             }
         },
         EmptyObject: function (obj) {
-            for (var key in obj) {
+            for (let key in obj) {
                 if (obj.hasOwnProperty(key))
                     return false;
             }
@@ -1033,7 +1033,7 @@ SI.Tools = {
         if (typeof obj.Url === "undefined") { this.url = '/delegate.php'; } else { this.url = obj.Url; }
         if (typeof obj.ContentType === "undefined") { this.contentType = 'application/json'; } else { this.contentType = obj.ContentType; }
         if (typeof obj.Async === "undefined") { this.async = true; } else { this.async = obj.Async; }
-        
+
         var xhr = new XMLHttpRequest();
         xhr.open(this.method, this.url, this.async);
         xhr.setRequestHeader("Content-Type", this.contentType);
@@ -1057,7 +1057,7 @@ SI.Tools = {
     Success: function (response) {
         json = JSON.parse(response.trim());
         json = json[0];
-        for (var prop in json) {
+        for (let prop in json) {
             if (json.hasOwnProperty(prop)) {
                 switch (prop) {
                     case "EXCEPTION": alert(response); break;
@@ -1069,8 +1069,8 @@ SI.Tools = {
         }
     },
     ProcessPlugin: function (data) {
-         //plugin ajax returns will be processed here. we will return them to their respective plugin functions here. 
-         
+        //plugin ajax returns will be processed here. we will return them to their respective plugin functions here. 
+
     },
     Element: {
         Get: function (search, index = null) {
@@ -1135,14 +1135,14 @@ SI.Tools = {
             var p2 = n2.parentNode;
             var i1, i2;
             if (!p1 || !p2 || p1.isEqualNode(n2) || p2.isEqualNode(n1)) return;
-            for (var i = 0; i < p1.children.length; i++) {
+            for (let i = 0; i < p1.children.length; i++) {
                 if (p1.children[i].isEqualNode(n1)) {
                     i1 = i;
                 }
             }
-            for (var i = 0; i < p2.children.length; i++) {
-                if (p2.children[i].isEqualNode(n2)) {
-                    i2 = i;
+            for (let j = 0; j < p2.children.length; j++) {
+                if (p2.children[j].isEqualNode(n2)) {
+                    i2 = j;
                 }
             }
             if (p1.isEqualNode(p2) && i1 < i2) {
@@ -1158,10 +1158,10 @@ SI.Tools = {
             //first loop to inspect
             obj = {};
             for (let style in endstyle) {
-                if (style == "width") {
+                if (style === "width") {
                     obj.width = element.offsetWidth;
                 }
-                else if (style == "height") {
+                else if (style === "height") {
                     obj.height = element.offsetHeight;
                 }
                 //get the beginning, get the end, find out the delta and divid by 1000
@@ -1176,12 +1176,12 @@ SI.Tools = {
                 if (checking.classList.contains('si-block')) {
                     foundBlock = true;
                 }
-                else{
+                else {
                     checking = checking.parentElement;
                     generations++;
-                }  
+                }
 
-                if(generations > 100){
+                if (generations > 100) {
                     return null;
                 }
             }
@@ -1193,13 +1193,13 @@ SI.Tools = {
             } else {
                 referenceNode.parentNode.appendChild(el);
             }
-            
+
         },
-        Tags:{
-            Input:{
-                AddData:function(input, data){     
-                    dl = document.createElement('datalist');       
-                    dl.id = input.id+"_dl";
+        Tags: {
+            Input: {
+                AddData: function (input, data) {
+                    dl = document.createElement('datalist');
+                    dl.id = input.id + "_dl";
                     for (let i = 0; i < data.length; i += 1) {
                         var option = document.createElement('option');
                         option.value = data[i];
@@ -1210,22 +1210,19 @@ SI.Tools = {
             }
         },
         GetBlock: function (element) {
-            while (true) {
-                //debugger;
-                let pop = element.parentElement;
-                if (pop.tagName == 'BODY') {
-                    return false;
-                } else if (pop.classList.contains('si-block')) {
-                    return pop;
-                } else {
-                    return SI.Tools.Element.GetBlock(pop);
-                }
+            let pop = element.parentElement;
+            if (pop.tagName === 'BODY') {
+                return false;
+            } else if (pop.classList.contains('si-block')) {
+                return pop;
+            } else {
+                return SI.Tools.Element.GetBlock(pop);
             }
         },
         SafeId: function (id) {
             //debugger;
             //we cant have spaces in ids
-            id = id.replace(/\s/g, "_"); 
+            id = id.replace(/\s/g, "_");
             //make sure the id is unique to the doc or else increment it
             let i = 1;
             let len = id.length;
@@ -1248,7 +1245,7 @@ SI.Tools = {
                 off.top += par.offsetTop;
                 par = par.parentElement;
                 //bail if we hit the desired top
-                if (stopid && par.id == stopid) {
+                if (stopid && par.id === stopid) {
                     break;
                 }
             }
@@ -1259,15 +1256,15 @@ SI.Tools = {
         let allfunctions = [];
         let blacklist = ['webkitStorageInfo'];
         //debugger;
-        for (var i in obj) {
-            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() == "function" ) {
+        for (let i in obj) {
+            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() == "function") {
                 allfunctions.push(obj[i].name);
             }
         }
         return allfunctions;
     },
     StopOverscroll: function (element) { //NEEDS WORKS. Locks up on anthing with some size
-        element.onwheel= function (e) {
+        element.onwheel = function (e) {
             if ((this.scrollTop > parseInt(this.style.height) - 120 && e.deltaY > 0) || (this.scrollTop < 2 && e.deltaY < 0)) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1277,22 +1274,36 @@ SI.Tools = {
     AddPhp: function (php) {
         document.body.appendChild(document.createComment("<?php " + php + " ?>"));
     },
-    SuperAlert: function(msg, duration=5000) //si 15466802
+    SuperAlert: function (msg, duration = 5000) //si 15466802
     {
-        var el = document.createElement("div");
-        el.setAttribute("style", "position:absolute;top:40%;left:35%;background-color:white;padding:20px;");
-        el.innerHTML = msg;
+        let alert = Ele("div", {
+            innerHTML: msg,
+            style: {
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                padding: '20px',
+                backgroundColor: "#aaa",
+                color: '#222',
+                zIndex: '99999',
+                border: '2px solid #FFF',
+                borderRadius: '4px'
+            },
+            appendTo: 'body'
+        });    //9862167
+
         setTimeout(function () {
-            el.parentNode.removeChild(el);
+            alert.parentNode.removeChild(alert);
         }, duration);
-        document.body.appendChild(el);
+
     },
     GetSubdomain: function (hostname) {
         hostname = typeof hostname !== 'undefined' ? hostname : window.location.hostname;
         //debugger;
         var regexParse = new RegExp('[a-z\-0-9]{2,63}\.[a-z\.]{2,5}$');
         var urlParts = regexParse.exec(hostname);
-        if (urlParts != null && urlParts.length > 0) {
+        if (urlParts !== null && urlParts.length > 0) {
             return hostname.replace(urlParts[0], '').slice(0, -1);
         }
     },
@@ -1302,11 +1313,11 @@ SI.Tools = {
 
         loc = loc.replace('https://', '').replace('http://', '');
 
-        if (loc.charAt(0) == '/') {
+        if (loc.charAt(0) === '/') {
             loc = loc.substr(1);
         }
-   
-        if (loc.indexOf("?")>-1) {
+
+        if (loc.indexOf("?") > -1) {
             retval = loc.split('?')[0];
             return retval;
         } else {
@@ -1315,8 +1326,8 @@ SI.Tools = {
 
     },
     GetQueryString: function () {
-        return <?php echo $_SERVER['QUERY_STRING']; ?>;
-        
+        return window.location.search;
+
     },
     CreateCSSSelector: function (selector, style, stylesheet) {
         if (stylesheet === undefined) {
@@ -1329,7 +1340,7 @@ SI.Tools = {
         var styleSheet, mediaType;
         //  L(document.styleSheets);
         if (document.styleSheets.length > 0) {
-            for (var i = 0, l = document.styleSheets.length; i < l; i++) {
+            for (let i = 0, l = document.styleSheets.length; i < l; i++) {
                 if (document.styleSheets[i].href.indexOf(stylesheet) > -1) {
 
                     if (document.styleSheets[i].disabled)
@@ -1359,7 +1370,7 @@ SI.Tools = {
             styleSheetElement.type = 'text/css';
             document.getElementsByTagName('head')[0].appendChild(styleSheetElement);
 
-            for (i = 0; i < document.styleSheets.length; i++) {
+            for (let i = 0; i < document.styleSheets.length; i++) {
                 if (document.styleSheets[i].disabled) {
                     continue;
                 }
@@ -1370,7 +1381,7 @@ SI.Tools = {
         }
 
         if (mediaType === 'string') {
-            for (var i = 0, l = styleSheet.rules.length; i < l; i++) {
+            for (let i = 0, l = styleSheet.rules.length; i < l; i++) {
                 if (styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
                     styleSheet.rules[i].style.cssText = style;
                     return;
@@ -1380,7 +1391,7 @@ SI.Tools = {
         }
         else if (mediaType === 'object') {
             var styleSheetLength = (styleSheet.cssRules) ? styleSheet.cssRules.length : 0;
-            for (var i = 0; i < styleSheetLength; i++) {
+            for (let i = 0; i < styleSheetLength; i++) {
                 if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
                     styleSheet.cssRules[i].style.cssText = style;
                     return;
@@ -1392,7 +1403,7 @@ SI.Tools = {
     RandomColor: function () {
         var letters = '0123456789ABCDEF';
         var color = '#';
-        for (var i = 0; i < 6; i++) {
+        for (let i = 0; i < 6; i++) {
             color += letters[Math.floor(Math.random() * 16)];
         }
         return color;
@@ -1429,10 +1440,10 @@ SI.Tools = {
         }
         return false;
     },
-    GetComputedStyle:function (tag) {
+    GetComputedStyle: function (tag) {
         var cStyle,
-        t = document.createElement(tag),
-        gcs = "getComputedStyle" in window;
+            t = document.createElement(tag),
+            gcs = "getComputedStyle" in window;
 
         document.body.appendChild(t);
         cStyle = (gcs ? window.getComputedStyle(t, "") : t.currentStyle).display;
@@ -1476,6 +1487,8 @@ SI.Tools = {
                     break;
                 default: path = null;
             }
+            path = window.location.origin + path;
+
             if (brackets) {
                 path = 'url("' + path + '")';
             }
@@ -1492,15 +1505,15 @@ SI.Tools = {
             }
 
             options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-            
+
             var ajax = new XMLHttpRequest();
             ajax.open("POST", "/api.v1.php", true);
             ajax.setRequestHeader("Content-Type", "application/json");
             ajax.onreadystatechange = function () {
                 if (ajax.readyState === 4 && ajax.status === 200) {
                     try {
-                        if (ajax.responseText != null && ajax.responseText.length > 0) {
-                           //debugger;
+                        if (ajax.responseText !== null && ajax.responseText.length > 0) {
+                            //debugger;
                             json = JSON.parse(ajax.responseText.trim());
                             options.Callback(json, options);
                         }
@@ -1522,7 +1535,7 @@ SI.Tools = {
                 let queryElements = null;
                 let retEntity = null;
 
-                if (typeof response['Return']['Query'] != 'undefined') {                  
+                if (typeof response['Return']['Query'] != 'undefined') {
                     queryElements = document.querySelectorAll(response['Return']['Query']);
                 }
                 if (typeof response['Return']['Entity']['Name'] != 'undefined') {
@@ -1534,9 +1547,9 @@ SI.Tools = {
         },
     },
     Select: {
-        Sort: function(selElem) {
+        Sort: function (selElem) {
             var tmpAry = new Array();
-            for (var i = 0; i < selElem.options.length; i++) {
+            for (let i = 0; i < selElem.options.length; i++) {
                 tmpAry[i] = new Array();
                 tmpAry[i][0] = selElem.options[i].text;
                 tmpAry[i][1] = selElem.options[i].value;
@@ -1545,7 +1558,7 @@ SI.Tools = {
             while (selElem.options.length > 0) {
                 selElem.options[0] = null;
             }
-            for (var i = 0; i < tmpAry.length; i++) {
+            for (let i = 0; i < tmpAry.length; i++) {
                 var op = new Option(tmpAry[i][0], tmpAry[i][1]);
                 selElem.options[i] = op;
             }

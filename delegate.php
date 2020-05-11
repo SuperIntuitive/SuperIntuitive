@@ -51,7 +51,7 @@ if(isset($post['KEY'])){
 		case "SetupSuperIntuitive":	
 				$db = new Database();
 				if(!$db->IsCmsSetup() ){
-				    Tools::Log("Setting up the Database.");
+				    Tools::Log("Setting up the Super Intuitive.");
 					$setup = new Setup();
 					$setup->SetupSuperIntuitive($post);
 				}else{
@@ -87,19 +87,18 @@ if(isset($post['KEY'])){
 }
 
 
-if(count($_SESSION['AJAXRETURN']) > 0 ){
+if(isset($_SESSION['AJAXRETURN']) && count($_SESSION['AJAXRETURN']) > 0 ){
 	echo json_encode( array($_SESSION['AJAXRETURN'])  );
 	$_SESSION['AJAXRETURN'] = null;
 }
 
-
-if(count($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']) > 0 ){
-	try{
-		echo json_encode( array($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'])  );
-	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'] = null;
-	}catch(Exception $ex){
-	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex->getMessage();
-		
+if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'])){
+	if(count($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']) > 0 ){
+		try{
+			echo json_encode( array($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'])  );
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'] = null;
+		}catch(Exception $ex){
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex->getMessage();
+		}
 	}
-
 }

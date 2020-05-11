@@ -1,15 +1,9 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
-
-function Scripter() {
-    var hWin = this;
-
-    let scripttype = null;
-    let scriptname = null;
-
-    this.Draw = function () {
+﻿
+SI.Editor.Objects.Scripter = {
+    LoadedScript: null,
+    LoadedType: null,
+    SyntaxLoaded: false,
+    Draw: function () {
         //debugger;
         let container = Ele("div", {
             id: "si_scripter_container",
@@ -20,8 +14,6 @@ function Scripter() {
             },
 
         });
-
-
 
         //Drw the Main menu
         let mainmenu = Ele("div", {
@@ -58,37 +50,21 @@ function Scripter() {
             id: "si_scripter_scriptselect",
             appendTo: mainmenu,
             onchange: function (ev) {
-             
-                //Make sure to reparent any moving tools that could be deleted by this
-                //Tools.Element.SetParent(document.getElementById('si_styler_selectormenu'), document.getElementById('si_styler_container'));
-
-                //Delete the workspace and the codepad
-                let workspace = document.getElementById("si_scripter_workspace");
-                workspace.innerHTML = '';
-
-                let codepad = document.getElementById("si_scripter_codepad");
-                codepad.innerHTML = '';
-
                 let option = this.options[this.selectedIndex];
                 let scriptname = this.value;
                 let type = option.getAttribute('data-sourcetype');
                 let script = null;
                 switch (type) {
-                    case "Block": script = SI.Editor.Data.Objects.Blocks[scriptname].script; break;
+                    case "Block":
+                        SI.Editor.Objects.Scripter.OpenScript(scriptname, type);
+                        break;
                     case "Plugin":
                         let parent = option.parentElement.label.trim();
-                        script = SI.Editor.Objects.Plugins.Current[parent].scripts[scriptname]; break;
+                        SI.Editor.Objects.Scripter.OpenScript(scriptname, type, parent);
+                        break;
                     case "Script": script = null; break;//SI_StyleSheetsLibrary[stylesheet].style; break;  for now
                     default: alert("No known group type. Can't get script"); return;
                 }
-                //debugger;
-                hWin.LoadedType = type;
-                hWin.LoadedScript = scriptname;
-                if (script) {
-                    hWin.LoadScriptCode(script);
-                }
-
-
 
             }
         });
@@ -100,30 +76,30 @@ function Scripter() {
                 appendTo: scriptSelect,
             });
 
-            for (block in SI.Editor.Data.Objects.Blocks) {
+            for (let block in SI.Editor.Data.Objects.Blocks) {
                 Ele("option", {
                     innerHTML: "\t" + block,
                     appendTo: bgroup,
                     data: {
-                        sourcetype:"Block",
+                        sourcetype: "Block",
                     }
                 });
             }
         }
         //add plugins to the list
-        if (Object.keys(SI.Editor.Objects.Plugins.Current).length > 0) {
+        if (Object.keys(SI.Editor.Data.Objects.Plugins.Current).length > 0) {
             let pgroup = Ele("optgroup", {
                 label: "Plugins",
                 appendTo: scriptSelect,
             });
 
-            for (plugin in SI.Editor.Objects.Plugins.Current) {
+            for (let plugin in SI.Editor.Data.Objects.Plugins.Current) {
                 let sgroup = Ele("optgroup", {
-                    label: "    " +plugin,
+                    label: "    " + plugin,
                     appendTo: scriptSelect,
                 });
-                let scripts = SI.Editor.Objects.Plugins.Current[plugin]['scripts'];
-                for (script in scripts) {
+                let scripts = SI.Editor.Data.Objects.Plugins.Current[plugin]['scripts'];
+                for (let script in scripts) {
                     Ele("option", {
                         innerHTML: "\t" + script,
                         appendTo: sgroup,
@@ -135,8 +111,6 @@ function Scripter() {
 
             }
         }
-
-
 
         //update codeview
         let updateCodeview = Ele("input", {
@@ -206,7 +180,7 @@ function Scripter() {
                 paddingTop: '13px',
                 marginTop: '0px',
                 borderRight: '5px ridge rgba(39, 40, 60,.5)',
-                backgroundImage:'linear-gradient(to right,	#445566, #112233, #001122, #000)',
+                backgroundImage: 'linear-gradient(to right,	#445566, #112233, #001122, #000)',
             },
             ondragenter: function (e) { e.preventDefault(); },
             ondragover: function (e) { e.preventDefault(); },
@@ -216,7 +190,7 @@ function Scripter() {
         });
         let codepad = Ele('pre', {
             id: 'si_scripter_codepad',
-            class:'si-scripter-codepad',
+            class: 'si-scripter-codepad',
             contentEditable: "True",
             style: {
                 color: 'white',
@@ -229,7 +203,7 @@ function Scripter() {
                 margin: '0px',
                 marginLeft: '65px',
                 textShadow: '1px 1px 2px #555',
-                fontFamily:'Inconsolata',
+                fontFamily: 'Inconsolata',
             },
             onkeydown: function (e) {
                 let pad = e.target;
@@ -245,13 +219,8 @@ function Scripter() {
                     sel.addRange(range);
                     return false;
                 }
-
-
-
-                
             },
             onkeyup: function (e) {
-             
                 let code = e.keyCode;
                 switch (code) {
                     case 9:
@@ -260,59 +229,77 @@ function Scripter() {
                     case 37: break;
                     case 191:
                         if (e.ctrlKey) {
-                            hWin.HighlightSyntax(this);
+                            SI.Editor.Objects.Scripter.HighlightSyntax(this);
                         } else if (e.altKey) {
-                            hWin.ComputeLineNumbers();
+                            SI.Editor.Objects.Scripter.ComputeLineNumbers();
                         }
                         break;
                 }
-
-                
-              //  hWin.HighlightSyntax(this);
             },
 
             appendTo: codeview
         });
-
-
-         SI.Tools.Text.FingAutoCorrect(codepad);
+        SI.Tools.Text.FingAutoCorrect(codepad);
 
         return container;
-    };
-    this.LoadScriptCode = function (script) {
-        
+    },
+    OpenScript: function (name, type, parent = null) {
 
+        //Clear the workspace
+        let workspace = document.getElementById("si_scripter_workspace");
+        workspace.innerHTML = '';
+        //Clear the codepad
+        let codepad = document.getElementById("si_scripter_codepad");
+        codepad.innerHTML = '';
+
+        let script = false;
+        switch (type) {
+            case "Block":
+                script = SI.Tools.Object.GetIfExists("SI.Editor.Data.Objects.Blocks." + name + ".script");
+                break;
+            case "Plugin":
+                if (parent !== null) {
+                    script = SI.Tools.Object.GetIfExists("SI.Editor.Objects.Plugins.Current." + parent + ".scripts" + name);
+                }
+                break;
+            case "Script": script = null; break;//maybe add other types, widgets stands out
+            default: alert("No known group type. Can't get script"); return;
+        }
+        //debugger;
+
+        if (script) {
+            SI.Editor.Objects.Scripter.LoadedScript = name;
+            SI.Editor.Objects.Scripter.LoadedType = type;
+
+            SI.Editor.Objects.Scripter.LoadScriptCode(script);
+        }
+
+    },
+    LoadScriptCode: function (script) {
+        debugger;
         let codepad = document.getElementById("si_scripter_codepad");
         codepad.innerHTML = script.replace(/</g, "&lt;").replace(/>/g, "&gt;"); //lose the html breakers
-
         //this functino will run through a codepad and highlight the syntax of the javascript
         //Nice to see how long the script takes
-        let rand =  SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
+        let rand = SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
         console.time("si-loadScript" + rand);
-
         this.HighlightSyntax(codepad);
         numlines = this.ComputeLineNumbers();
-
         if (numlines === 1) {
             this.AddLineNumbers(30);
         }
-
         console.timeLog("si-loadScript" + rand);
-
-
-    };
-
-    this.SaveScript = function () {
+    },
+    SaveScript: function () {
         //debugger;
         let s = this;
         //   let casheStyle = SI_BlockLibrary
-        let scripttype = hWin.LoadedType;
-        let scriptname = hWin.LoadedScript;
+        let scripttype = SI.Editor.Objects.Scripter.LoadedType;
+        let scriptname = SI.Editor.Objects.Scripter.LoadedScript;
         let code = document.getElementById("si_scripter_codepad").innerText;
         if (scripttype === 'Block') {
             SI.Editor.Data.Objects.Blocks[scriptname].script = code;
             SI.Editor.Objects.Blocks.Save(scriptname, 'script');
-
             //update everything so we dont need to reload
             let currentScript = document.getElementById('si_page_script');
             currentScript.parentElement.removeChild(currentScript);
@@ -321,13 +308,9 @@ function Scripter() {
             script.id = 'si_page_script';
             script.src = 'scripts/page.js?' + Date.now();
             document.head.appendChild(script);
-      
         }
-
-
-    };
-    this.SyntaxLoaded = false;
-    this.HighlightSyntax = function (codepad) {
+    },
+    HighlightSyntax: function (codepad) {
 
         //This is a destructuve process. for now, the whole pad is completly rebuilt on every run. 
         //That being said it would bee nice to save the mouse position so that we can put it back for the user rather than drop them back at the beginning each time.
@@ -340,7 +323,7 @@ function Scripter() {
             curoff = selected.anchorOffset;
             let myNode = selected.anchorNode.parentElement;
             if (myNode) {
-                if (myNode != codepad) {
+                if (myNode !== codepad) {
                     curele = Array.from(myNode.parentNode.childNodes).indexOf(myNode);
                 } else {
                     curele = Array.from(codepad.childNodes).indexOf(myNode);
@@ -349,12 +332,11 @@ function Scripter() {
 
         }
 
-
         //To be less verbos make our own tags
-        if (!hWin.SyntaxLoaded) { //only do this once
-            hWin.SyntaxLoaded = true;
+        if (!SI.Editor.Objects.Scripter.SyntaxLoaded) { //only do this once
+            SI.Editor.Objects.Scripter.SyntaxLoaded = true;
             //create html elements for all of the script types that we can pick
-            window.customElements.define('si-jsur', class extends HTMLElement { //comment
+            window.customElements.define('si-jsur', class extends HTMLElement { //url
                 constructor() {
                     super();
                     this.addEventListener('dblclick', e => {
@@ -364,7 +346,7 @@ function Scripter() {
                     });
                 }
             });
-            window.customElements.define('si-jsrx', class extends HTMLElement { //comment
+            window.customElements.define('si-jsrx', class extends HTMLElement { //Regular Expression
                 constructor() {
                     super();
                 }
@@ -481,7 +463,7 @@ function Scripter() {
                 }
             });
 
-            hWin.SyntaxLoaded = true;
+            SI.Editor.Objects.Scripter.SyntaxLoaded = true;
 
         }
 
@@ -489,15 +471,15 @@ function Scripter() {
         //get the text of the codepad
         let script = codepad.innerText;
 
-        script = script.replace(/>/g, '&gt;').replace(/</g, '&lt;'); 
-  
+        script = script.replace(/>/g, '&gt;').replace(/</g, '&lt;');
+
 
         //Substitutions: we need to sub out comments and strings first so thaat we dont parse inside of them. we will replace them with their color tags and values at the bottom
         /* turns out these must be done in a first in last out fasion */
         /* Sub out Comments */
 
-        let flags = ['UR', 'CM', 'CS', 'DQ', 'SQ', 'RX', 'ARF', 'ARP', 'STF', 'STP', 'DTF', 'DTP','ELF', 'ELP'];
-        let indexes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        let flags = ['UR', 'CM', 'CS', 'DQ', 'SQ', 'RX', 'ARF', 'ARP', 'STF', 'STP', 'DTF', 'DTP', 'ELF', 'ELP'];
+        let indexes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let replacements = {};
         let jstrack = ''; //this has all the function names. many classes has funcitons with the same name. we will need to tune this later but we dont want dupes. 
 
@@ -519,7 +501,7 @@ function Scripter() {
         let toRemove = ['constructor'];
 
 
-        for (k in topKeys) {
+        for (let k in topKeys) {
             if (topKeys.hasOwnProperty(k)) {
                 let flg = k;
 
@@ -576,13 +558,13 @@ function Scripter() {
             }
             let reg = '';
             switch (flag) {
-                case 'UR': reg = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g; break;
-                case 'RX': reg = /\/((?![*+?])(?:[^\r\n\[/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/()/g; break;
-                case 'SQ': reg = /(?<!\\)('[\s\S]*?(?<!\\)')/g; break;
-                case 'DQ': reg = /(?<!\\)("[\s\S]*?(?<!\\)")/g; break;
-                case 'CM': reg = /(\/\*[\s\S]*?\*\/)/g; break;
-                case 'CS': reg = /(?<!"|')(\/\/.*)/g; break;
-               // case 'NU': reg = /[0-9]+([,.0-9]+)?/g; break;
+                case 'UR': reg = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g; break; //URL
+                case 'RX': reg = /\/((?![*+?])(?:[^\r\n\[/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/()/g; break; //Regular Expression
+                case 'SQ': reg = /(?<!\\)('[\s\S]*?(?<!\\)')/g; break; //Single Quote
+                case 'DQ': reg = /(?<!\\)("[\s\S]*?(?<!\\)")/g; break; //Double Quote
+                case 'CM': reg = /(\/\*[\s\S]*?\*\/)/g; break; //Multiline Comment
+                case 'CS': reg = /(?<!"|')(\/\/.*)/g; break; //Singleline Comment 
+                // case 'NU': reg = /[0-9]+([,.0-9]+)?/g; break;
                 case 'ARF':
                 case 'ARP':
                 case 'DTF':
@@ -648,7 +630,7 @@ function Scripter() {
 
         script = script.replace(tokens, function (token, x, y) {
 
-            let randid = 'si_sytax_' +  SI.Tools.String.RandomString();
+            let randid = 'si_sytax_' + SI.Tools.String.RandomString();
             switch (token) {
                 case "function":
                 case "var":
@@ -701,7 +683,7 @@ function Scripter() {
                 case 'CM': tag = 'si-jscom'; reg = /(_REPLACE_CM_\d+_)+/g; break;
                 case 'SQ': tag = 'si-jssq'; reg = /(_REPLACE_SQ_\d+_)+/g; break;
                 case 'DQ': tag = 'si-jsdq'; reg = /(_REPLACE_DQ_\d+_)+/g; break;
-              //  case 'NU': tag = 'si-jsnu'; reg = /(_REPLACE_NU_\d+_)+/g; break;
+                //  case 'NU': tag = 'si-jsnu'; reg = /(_REPLACE_NU_\d+_)+/g; break;
                 case 'ARF': tag = 'si-jsarf'; reg = /(_REPLACE_ARF_\d+_)+/g; break;
                 case 'ARP': tag = 'si-jsarp'; reg = /(_REPLACE_ARP_\d+_)+/g; break;
                 case 'DTF': tag = 'si-jsdtf'; reg = /(_REPLACE_DTF_\d+_)+/g; break;
@@ -762,38 +744,24 @@ function Scripter() {
         }
 
 
-        
 
-    };
-    this.ComputeLineNumbers = function (offset=1) {
+
+    },
+    ComputeLineNumbers: function (offset = 1) {
         let code = document.getElementById('si_scripter_codepad').innerText;
         let numlines = code.split(/\r\n|\r|\n/).length;
         let linebox = document.getElementById("si_scripter_linenums");
         linebox.innerHTML = '';
-        for (let i = 1; i < numlines + offset; i++) {
+        for (var i = 1; i < numlines + offset; i++) {
             linebox.appendChild(Ele('si-linm', { innerHTML: i }));
         }
         return i;
-    };
-    this.AddLineNumbers = function (count = 1) {
+    },
+    AddLineNumbers: function (count = 1) {
         let linebox = document.getElementById("si_scripter_linenums");
         for (let i = 1; i < linebox.children.length + count; i++) {
             linebox.appendChild(Ele('si-linm', { innerHTML: i }));
         }
 
-    };
-
-
-}
-
-//this is the script box that appears on drop.
-//class ScriptElement{
-    
-//    constructor(options){
-        
-    
-
-//    }
-    
-
-//}
+    }
+};

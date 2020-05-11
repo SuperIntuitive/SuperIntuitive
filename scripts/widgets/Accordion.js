@@ -102,7 +102,7 @@ SI.Widget.Accordion = function (options) {
 
     //if we have sections in the options then add them now.
     if (self.Options.Sections) {
-        for (section in self.Options.Sections) {
+        for (let section in self.Options.Sections) {
             if (self.Options.Sections.hasOwnProperty(section)) {
                 self.AddSection(section, self.Options.Sections[section]);
             }

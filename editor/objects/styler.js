@@ -1,8 +1,3 @@
-if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
-
 
 SI.Editor.Objects.Styler = function() {
 
@@ -110,14 +105,14 @@ SI.Editor.Objects.Styler = function() {
             }
         }
         //add plugins to the list
-        if (Object.keys(SI.Editor.Objects.Plugins.Current).length > 0) {
+        if (Object.keys(SI.Editor.Data.Objects.Plugins.Current).length > 0) {
             //debugger;
             let pgroup = Ele("optgroup", {
                 label: "Plugins",
                 appendTo: styleSheetSelect,
             });
 
-            for (plugin in SI.Editor.Objects.Plugins.Current) {
+            for (let plugin in SI.Editor.Objects.Plugins.Current) {
                 let styles = SI.Editor.Objects.Plugins.Current[plugin]['styles'];
                 if (!Array.isArray(styles)) {
                     let sgroup = Ele("optgroup", {
@@ -125,7 +120,7 @@ SI.Editor.Objects.Styler = function() {
                         appendTo: styleSheetSelect,
                     });
 
-                    for (style in styles) {
+                    for (let style in styles) {
                         Ele("option", {
                             innerHTML: "\t" + style,
                             appendTo: sgroup,
@@ -277,7 +272,7 @@ SI.Editor.Objects.Styler = function() {
             appendTo: container
         });
         //load the animaiton list
-        for (animationname in SI.Editor.Data.DataLists.AnimationNames) {
+        for (let animationname in SI.Editor.Data.DataLists.AnimationNames) {
             Ele("option", {
                 value: animationname,
                 appendTo: animationnamelist
@@ -878,7 +873,7 @@ SI.Editor.Objects.Styler = function() {
                 case 'element':
                     for (let elegroup in SI.Editor.Data.html_elements) {
                         let optgroup = Ele("optgroup", { label: elegroup, appendTo: selectorPicker });
-                        for (ele in SI.Editor.Data.html_elements[elegroup]) {
+                        for (let ele in SI.Editor.Data.html_elements[elegroup]) {
                             //debugger;
                             let html = SI.Editor.Data.html_elements[elegroup][ele];
                             Ele("option", {
@@ -899,7 +894,7 @@ SI.Editor.Objects.Styler = function() {
                 case 'attribute':
                     for (let attrgroup in SI.Editor.Data.html_attributes) {
                         let optgroup = Ele("optgroup", { label: attrgroup, appendTo: selectorPicker });
-                        for (ele in SI.Editor.Data.html_attributes[attrgroup]) {
+                        for (let ele in SI.Editor.Data.html_attributes[attrgroup]) {
                             //debugger;
                             let attr = SI.Editor.Data.html_attributes[attrgroup][ele];
                             Ele("option", {
@@ -1041,7 +1036,7 @@ SI.Editor.Objects.Styler = function() {
                                 let anilist = document.getElementById('si_styler_animationnames');
                                 anilist.innerHTML = "";
                                 //load the animaiton list
-                                for (animationname of SI.Editor.Data.DataLists.AnimationNames) {
+                                for (let animationname of SI.Editor.Data.DataLists.AnimationNames) {
                                     Ele("option", {
                                         value: animationname,
                                         innerHTML: animationname,
@@ -1053,7 +1048,7 @@ SI.Editor.Objects.Styler = function() {
                         appendTo: newParent
                     });
                     aniname.setAttribute('list', 'si_styler_animationnames');
-                    //the aniamtion name list
+                    //the animation name list
 
 
                     break;

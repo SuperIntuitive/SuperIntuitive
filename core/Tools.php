@@ -55,7 +55,11 @@ class Tools{
 		$query = parse_url($url, PHP_URL_QUERY); //anything after the ? 
 		$fragment = parse_url($url, PHP_URL_FRAGMENT); //anything after the #
 		//Tools::Log("scheme:$scheme,user:$user,pass:$pass,host:$host,port:$port,path:$path,query:$query,fragment:$fragment", true);
-		$languages = explode( ';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0];
+		$languages = ['en'];
+		if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])){
+			$languages = explode( ';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0];
+		}
+		
 		//$host = "some.sub.that.is.stupid.superintuitive.com"; //check to make sure sillyness works when im programming this thing on localhost
 		//Make the host as usable as we can.
 		//remove any www bs subdomain.
@@ -90,6 +94,8 @@ class Tools{
 		define('SI_API_FRAGMENT', $fragment);
 		define('SI_URI',  SI_PAGE_PATH);
 		define('SI_LANGS',  $languages);
+
+
 
 		//hackety hack time: github forces that I either dont have DbCreds.php or I do, but I can't have it online and ignore it from what Ive seen so Ill get rid of it onlie and do this hack. 
 		//If it does not exist i need to make a blank one before the db is called.
@@ -652,5 +658,21 @@ class Tools{
 			exit($error);
 		}
 		return $result;
+	}
+	static function GetBrowserLanguage( $available = [], $default = 'en' ) {
+		//https://gist.github.com/LucaRosaldi/5676962
+		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+			$langs = explode( ',', $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
+			if ( empty( $available ) ) {
+			  return $langs[0];
+			}
+			foreach ( $langs as $lang ){
+				$lang = substr( $lang, 0, 2 );
+				if( in_array( $lang, $available ) ) {
+					return $lang;
+				}
+			}
+		}
+		return $default;
 	}
 }

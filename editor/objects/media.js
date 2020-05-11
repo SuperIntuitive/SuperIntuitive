@@ -1,8 +1,4 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
-
+﻿
 SI.Editor.Objects.Media = function (window) {
     let self = this;
     this.Window = window;
@@ -19,7 +15,7 @@ SI.Editor.Objects.Media = function (window) {
         this.Window.Append(tabs.Draw());
 
         //want the uploader to be fixed to the lower left on all tabs.
-        var uploader = new SI.Widget.Uploader({ Bottom: '20px', Left: '20px' });
+        var uploader = new SI.Widget.Uploader({ Bottom: '20px', Left: '20px', OnComplete: this.OnComplete });
         this.Window.Append(uploader.Container);
 
         //try to load the first image so we dont have blanks...  ...lol this silly hack works ..at least it used to
@@ -86,7 +82,7 @@ SI.Editor.Objects.Media = function (window) {
                 break;
         }
         //Draw main menu fields
-        for (var fields in globalFields) {
+        for (let fields in globalFields) {
             let fieldBox = Ele('fieldset', {
                 style: {
                     float: 'left'
@@ -94,7 +90,7 @@ SI.Editor.Objects.Media = function (window) {
                 appendTo: menu,
                 append: Ele("legend", { innerHTML: globalFields[fields] })
             });
-            input = Ele('input', {
+            let input = Ele('input', {
                 id: 'si_media_' + tabname + '_' + globalFields[fields].replace(/ /g, ''),
                 style: {
                     width: '150px',
@@ -111,7 +107,7 @@ SI.Editor.Objects.Media = function (window) {
                 float: 'left'
             },
             appendTo: menu,
-            append: Ele("legend", { innerHTML: "File Opps" })
+            append: Ele("legend", { innerHTML: "File" })
         });
         //Replace File button;
         Ele('label', {
@@ -141,7 +137,7 @@ SI.Editor.Objects.Media = function (window) {
                 display: 'block',
             },
             appendTo: fileOpsBox,
-            onclick: SI.Editor.Objects.Media.Recycle,
+            onclick: self.Recycle,
         });
 
 
@@ -239,7 +235,7 @@ SI.Editor.Objects.Media = function (window) {
                 height: "24px",
                 top: '0px',
                 backgroundColor: '#011',
-                left: '260px',
+                left: '260px'
             },
             appendTo: container,
             onclick: function () { alert("Sort and filter stuff will be here soon"); },
@@ -268,13 +264,13 @@ SI.Editor.Objects.Media = function (window) {
         Ele('div', { style: { position: 'relative', width: '100%', height: "20px", pointerEvents: 'none' }, appendTo: mediascroller });
         //Populate the Meida Icons
         let medialibrary = SI.Editor.Data.Objects.Media;
-        for (var media in medialibrary) {
+        for (let media in medialibrary) {
             if (medialibrary.hasOwnProperty(media)) {
                 let data = medialibrary[media];
                 if (data.hasOwnProperty('mime')) {
                     if (SI.Editor.Data.DataLists.AcceptedMimeTypes[tabname].indexOf(data.mime) > -1) {
                         let validPath = SI.Tools.GetMediaFilePath("dev_" + data['path']);
-                        if (validPath != null) {
+                        if (validPath !== null) {
                             let options = {
                                 Type: tabname,
                                 Data: { "path": data['path'], "mime": data['mime'], "name": data['name'], "tabname": tabname, "url": validPath, "id": '0x' + data['id'] },
@@ -282,6 +278,7 @@ SI.Editor.Objects.Media = function (window) {
                                 Url: validPath,
                                 BackgroundColor: 'silver',
                                 Text: data['name'],
+                                Mime: data['mime'],
                                 OnChange: self.OnChange,
                             };
                             let tile = new SI.Widget.Tile(options);
@@ -318,8 +315,38 @@ SI.Editor.Objects.Media = function (window) {
     };
 
 
-    this.Create = function () {
+    this.OnComplete = function (files, responseText) {
+        let response = JSON.parse(responseText);
+        for (let file in files) {
+            if (files.hasOwnProperty(file)) {
+                let filedata = files[file];
+                let moredata = response[file];
+                let tabname = SI.Tools.String.CapFirst(moredata['category']);
+                let name = SI.Tools.String.CapFirst(moredata['name']).split('.')[0];
+                let scroller = document.getElementById('si_edit_mediascroller_' + tabname );
+                if (scroller) {
+                    //debugger;
+                    let options = {
+                        Type: tabname,
+                        Data: { "path": moredata['name'], "mime": moredata['mime'], "name": name, "tabname": tabname, "url": moredata['path'], "id": moredata['id'] },
+                        Group: 'si_media_' + tabname,
+                        Url: moredata['name'],
+                        BackgroundColor: 'silver',
+                        Text: name,
+                        Mime: moredata['mime'],
+                        OnChange: self.OnChange,
+                    };
+                    let tile = new SI.Widget.Tile(options);
 
+                    scroller.appendChild(tile.Container);
+                }
+                
+
+       
+            }
+        }
+
+        
     };
     this.OnChange = function (ev,self) {
         let deploys = ["dev", "test", "live"];
@@ -374,7 +401,7 @@ SI.Editor.Objects.Media = function (window) {
             }
 
 
-            if (media != null) {
+            if (media !== null) {
                 media.src = SI.Tools.GetMediaFilePath(deploy + filename);
                 switch (tabname) {
                     case "Images":
@@ -449,6 +476,7 @@ SI.Editor.Objects.Media = function (window) {
         document.getElementById(preview).src = source;
     };
     this.Recycle = function () {
+        debugger;
         var r = confirm("Are you sure you would like to delete this file?");
         if (r === false) {
             return;

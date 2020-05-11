@@ -25,10 +25,10 @@ SI.Widget.DataGrid = function (options) {
     });
     
 
-    for (var i = 0; i < 12; i++) {
+    for (let i = 0; i < 12; i++) {
         let r = document.createElement('tr');
         r.id = 'si_row_' + i + '_' + this.Random;
-        for (var j = 0; j < 12; j++) {
+        for (let j = 0; j < 12; j++) {
             let c = document.createElement('td');
             c.id = 'si_'+ i + '_' + j + '_' + this.Random;
 

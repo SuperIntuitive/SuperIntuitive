@@ -152,7 +152,7 @@ SI.Widget.Lookup = function (options) {
                 list = this.list.children;
                 //search list for guid
                 let found = false;
-                for (l in list) {
+                for (let l in list) {
                     if (list[l].value === this.value) {
                         this.setAttribute('data-guid', list[l].dataset.id);
                         found = true;

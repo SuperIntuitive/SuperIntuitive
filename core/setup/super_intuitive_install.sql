@@ -274,7 +274,6 @@ CREATE TABLE `media` (
   `entity_id` binary(16) NOT NULL COMMENT 'entity:entities',
   `hash` binary(20) NOT NULL,
   `mime` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `mimetype_id` binary(16) NOT NULL COMMENT 'entity:mimetypes',
   `name` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `path` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `meta` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL
@@ -284,10 +283,10 @@ CREATE TABLE `media` (
 -- Dumping data for table `media`
 --
 
-INSERT INTO `media` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `hash`, `mime`, `mimetype_id`, `name`, `path`, `meta`) VALUES
-(_SI_GUID_26, 'active', _SI_NOWTIME_, NULL, _SI_GUID_19, 0x42727bc1ec17021b233eac156f19ecc26ce498ee, 'image/png', _SI_GUID_27, 'Favicon', 'favicon.png', ''),
-(_SI_GUID_28, 'active', _SI_NOWTIME_, NULL, _SI_GUID_19, 0xf173dca31d8180a604a2ee199f96e9e9138663f2, 'image/jpeg', _SI_GUID_29, 'background-sunset.jpg', 'background-sunset.jpg', ''),
-(_SI_GUID_30, 'active', _SI_NOWTIME_, NULL, _SI_GUID_19, 0xb243412905822b13425dcb4bf9b45f61cdda1fd1, 'image/png', _SI_GUID_27, 'Main Logo', 'logo.png', '');
+INSERT INTO `media` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `hash`, `mime`, `name`, `path`, `meta`) VALUES
+(_SI_GUID_26, 'active', _SI_NOWTIME_, NULL, _SI_GUID_19, 0x42727bc1ec17021b233eac156f19ecc26ce498ee, 'image/png', 'Favicon', 'favicon.png', ''),
+(_SI_GUID_28, 'active', _SI_NOWTIME_, NULL, _SI_GUID_19, 0xf173dca31d8180a604a2ee199f96e9e9138663f2, 'image/jpeg', 'background-sunset.jpg', 'background-sunset.jpg', ''),
+(_SI_GUID_30, 'active', _SI_NOWTIME_, NULL, _SI_GUID_19, 0xb243412905822b13425dcb4bf9b45f61cdda1fd1, 'image/png', 'Main Logo', 'logo.png', '');
 
 -- --------------------------------------------------------
 

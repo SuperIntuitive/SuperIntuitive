@@ -1,7 +1,4 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
+﻿
 SI.Editor.Objects.Entity = {
     Draw: function () {
         //Draw the Container to pass to the Window
@@ -906,14 +903,14 @@ SI.Editor.Objects.Entity = {
                     sname: sname,
                     pname: pname,
                     global: global,
-                    attributes: [],
-                }
+                    attributes: []
+                };
 
-                for (abox of attrboxes) {
+                for (let abox of attrboxes) {
                     let i = entity.attributes.push();
                     entity.attributes[i] = {};
                     let data = abox.dataset;
-                    for (d in data) {
+                    for (let d in data) {
                         if (data.hasOwnProperty(d)) {
                             if (data[d].length > 0) {
                                 entity.attributes[i][d] = data[d];
@@ -922,9 +919,9 @@ SI.Editor.Objects.Entity = {
                     }
                 }
 
-                let options = {}
+                let options = {};
                 options.Data = entity;
-                console.log(entity);
+                //console.log(entity);
                 SI.Editor.Ajax.Run(options);
             }
         });

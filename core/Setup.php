@@ -286,10 +286,10 @@ class Setup {
 		return true;
 	}
 
-	private function CreateDomain($domain){
+	private function CreateDomainFolder($domain){
 		//PRE CONDITION: We already asked if they want to delete it by this point;
 		if(!$this->TestDomain($domain)){
-			$this->DeleteDomain($domain);
+			$this->DeleteDomainFolder($domain);
 		}
 		
 		$domdirectory = $_SERVER["DOCUMENT_ROOT"].'/domains';
@@ -297,7 +297,7 @@ class Setup {
 			mkdir($domdirectory, 0755);
 		} 
 
-		$source = $_SERVER["DOCUMENT_ROOT"].'/core/setup/';
+		$source = $_SERVER["DOCUMENT_ROOT"].'/core/setup/domaintemplate/';
 		$dest= $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
 		//Make the domain folder
 		mkdir($dest, 0755);
@@ -312,7 +312,7 @@ class Setup {
 
 	}
 
-	private function DeleteDomain($domain){
+	private function DeleteDomainFolder($domain){
 		$dir = $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
 		$di = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
 		$ri = new RecursiveIteratorIterator($di, RecursiveIteratorIterator::CHILD_FIRST);
@@ -327,6 +327,7 @@ class Setup {
 	private $unique = 0;
 
     public function SetupSuperIntuitive($post){
+		
 		$connect = null;
 		$user = null;
 		$pw = null;
@@ -370,7 +371,7 @@ class Setup {
 		    $domain = 'localhost'; //this should never happen if I validated right on the form
 		}
 		//
-		$this->CreateDomain($domain);
+		$this->CreateDomainFolder($domain);
 		
 		//move the current DbCreds file to an incremented one as to not overwrite any passwords
 		$dbcrds =  $_SERVER["DOCUMENT_ROOT"].'/core/DbCreds';
@@ -429,29 +430,12 @@ class Setup {
 		//$sqlfile = file_get_contents($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql');
 		$sqlfile = file($_SERVER["DOCUMENT_ROOT"].'/core/setup/super_intuitive_install.sql', FILE_SKIP_EMPTY_LINES);
 		
-		//set the user password
-		$hash = password_hash($post['adminpw'], PASSWORD_DEFAULT);
-		Tools::Log("PW Hash: ".$hash, true);
+
 
 		array_unshift($sqlfile, "USE $db;\n");
 
-		$clean = array();
-		foreach($sqlfile as $line){
+		$this->RemoveBlanksAndComments($sqlfile);
 
-
-			//first trim the whitespace, then check the first two chars. if false, we have a blank or a line with 1 char which does not make sense			
-			$twochars = substr(trim($line), 0, 2); 
-			$keep = true;
-			switch($twochars){
-				case false:$keep=false;break;
-				case "--":$keep=false;break;
-				case "/*":$keep=false;break;
-			}
-			if($keep){
-				$clean[] = trim($line).PHP_EOL;
-			}
-		}
-		$sqlfile = $clean;
 		//change it into a string to do the replaces
 		$sqlstr = implode($sqlfile);
 
@@ -459,9 +443,39 @@ class Setup {
 
 		//$guidTokens = array();
 
+		$this->ReplaceTokens($sqlstr, $post);
 
 
+		Setup::Log($sqlstr);
+		//split again but this time by semicolons followed by newlines
+		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
+		Tools::Log($sqlfile,true);
 
+		$outcome = true;
+		$msg = "";
+		foreach($sqlfile as $sql){
+			try {
+				$dbc->exec($sql);
+			} catch (PDOException $ex) {
+				Tools::Log("Error performing Query: " . $sql . "   Message: " . $ex->getMessage() . "\n",true);
+				$msg .= $ex->getMessage()." ";
+				$outcome = false;
+			}
+		}
+	
+		if($outcome){
+			$result = array("outcome" => true, "time" => "5000", "message"=>"Congratulations!<br />Setup is Complete.<br />Welcome to Super Intuitive!" );
+			echo json_encode($result);
+			session_unset(); 
+		}else{
+			echo json_encode(array('outcome' => false, 'message' => 'Error adding data to database: '.$msg));
+		}
+	}
+
+	private function ReplaceTokens(&$sqlstr, $post){
+	    Tools::Log("In Replace Tokens");
+		Tools::Log($sqlstr);
+		Tools::Log("In Replace Guids");
 		$sqlstr = preg_replace_callback(
 			"(_SI_GUID_[1234567890]+)",
 			function ($matches) {
@@ -490,12 +504,14 @@ class Setup {
 			},
 			$sqlstr
 		);
-
-		//Tools::Log($sqlstr);
+		Tools::Log("Afterreplace Guids");
+		Tools::Log($sqlstr);
 		//replace all of the created on 
 		$sqlstr = str_replace("_SI_NOWTIME_"," CURRENT_TIMESTAMP() ",$sqlstr);
 		
-		
+		//set the user password
+		$hash = password_hash($post['adminpw'], PASSWORD_DEFAULT);
+		Tools::Log("PW Hash: ".$hash, true);
 		$sqlstr= str_replace('__SI_USER_PASSWORD__',$hash,$sqlstr);
 		//set the host email
 		$sqlstr= str_replace('__SI_USER_EMAIL__',$post['adminemail'],$sqlstr);
@@ -527,41 +543,10 @@ class Setup {
 		//set the timezone
 		$sqlstr= str_replace('__SI_DEFAULT_NOTEEMAIL__',$post['noteemail'],$sqlstr);
 
-		Setup::Log($sqlstr);
-		//split again but this time by semicolons followed by newlines
-		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
-		Tools::Log($sqlfile,true);
 		Tools::Log("GuidTokens:".print_r($this->guidTokens,true));
 		Tools::Log("Total: ".$this->total);
 		Tools::Log("Unique: ".$this->unique);
-		$outcome = true;
-		$msg = "";
-		foreach($sqlfile as $sql){
-			try {
-				$dbc->exec($sql);
-			
-			} catch (PDOException $ex) {
-				Tools::Log("Error performing Query: " . $sql . "   Message: " . $ex->getMessage() . "\n",true);
-				$msg .= $ex->getMessage()." ";
-				$outcome = false;
-			}
-		}
-	
-		
 
-
-
-		if($outcome){
-
-			//Login the new user
-		//	$login = new Login();
-			//put the creds so login can work OK
-
-			//$login->Attempt();
-			echo json_encode(array('outcome' => true));
-		}else{
-			echo json_encode(array('outcome' => false, 'message' => 'Error adding data to database: '.$msg));
-		}
 	}
 
 	private function CreateDbForRoot($connection,$post){
@@ -577,7 +562,7 @@ class Setup {
 			        DROP USER IF EXISTS 'super_intuitive'@'$dbserver';
 					CREATE DATABASE `super_intuitive` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;				
 					CREATE USER 'super_intuitive'@'$dbserver' IDENTIFIED BY '$pw';
-					GRANT ALL ON `super_intuitive`.* TO 'super_intuitive'@'$dbserver';
+					GRANT ALL PRIVILEGES ON super_intuitive.* TO 'super_intuitive'@'$dbserver';
 					FLUSH PRIVILEGES;";
 			Tools::Log($sql,true);
 			$dbh->exec($sql);
@@ -592,10 +577,27 @@ class Setup {
 		}
 		return $pw;
 	}
+	private function RemoveBlanksAndComments($sqlfile){
+		$clean = array();
+		foreach($sqlfile as $line){
+			//first trim the whitespace, then check the first two chars. if false, we have a blank or a line with 1 char which does not make sense			
+			$twochars = substr(trim($line), 0, 2); 
+			$keep = true;
+			switch($twochars){
+				case false:$keep=false;break;
+				case "--":$keep=false;break;
+				case "/*":$keep=false;break;
+			}
+			if($keep){
+				$clean[] = trim($line).PHP_EOL;
+			}
+		}
 
-	private function RandomString() //generate a random password between 24 and 32 chars
-    {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#%^&*()_-+={[]}|';
+		$sqlfile = $clean;
+	}
+	private function RandomString()  {
+	    //generate a random password between 24 and 32 chars
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';//!@#%^&*()_-+={[]}|';
 		$charlen = strlen($characters)-1;
         $randstring = '';
 		$len = rand(24,32);
@@ -605,4 +607,70 @@ class Setup {
 
         return $randstring;
     }
+	public function CreateDomain($domain){
+	
+		Tools::Log($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql', true);
+
+		//$sqlfile = file_get_contents($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql');
+		$sqlfile = file($_SERVER["DOCUMENT_ROOT"].'/core/setup/super_intuitive_install.sql', FILE_SKIP_EMPTY_LINES);
+		
+
+
+
+		//set the user password
+		$hash = password_hash($post['adminpw'], PASSWORD_DEFAULT);
+		Tools::Log("PW Hash: ".$hash, true);
+
+		array_unshift($sqlfile, "USE $db;\n");
+
+
+		$this->RemoveBlanksAndComments($sqlfile);
+
+		//change it into a string to do the replaces
+		$sqlstr = implode($sqlfile);
+
+		//This allows new installs to have their own fresh guids and not old ones that were made when I made the installer sql script.
+
+		//$guidTokens = array();
+
+		$this->ReplaceTokens($sqlstr, $post);
+
+		Setup::Log($sqlstr);
+		//split again but this time by semicolons followed by newlines
+		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
+
+		//get rid of all the NON INSERT INTOs
+		$inserts = array();
+		foreach($sqlfile as $line){
+			//first trim the whitespace, then check the first two chars. if false, we have a blank or a line with 1 char which does not make sense			
+			$elevenchars = substr($line, 0, 11); 
+			$keep = false;
+			if($elevenchars === "INSERT INTO"){
+				$inserts[] = $line;
+			}
+		}
+		$sqlfile =  $inserts;
+
+		$outcome = true;
+		$msg = "";
+		foreach($sqlfile as $sql){
+			try {
+				$dbc->exec($sql);
+			
+			} catch (PDOException $ex) {
+				Tools::Log("Error performing Query: " . $sql . "   Message: " . $ex->getMessage() . "\n",true);
+				$msg .= $ex->getMessage()." ";
+				$outcome = false;
+			}
+		}
+	
+		if($outcome){
+			$result = array("outcome" => true, "time" => "7000" );
+			echo json_encode($result);
+			session_unset(); 
+		}else{
+			echo json_encode(array('outcome' => false, 'message' => 'Error adding data to database: '.$msg));
+		}
+
+	}
 } 

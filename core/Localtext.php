@@ -19,7 +19,7 @@ class Localtext{
 			Tools::Log($addLang);
 			$db = new Database();
 			try{
-			    $db -> Execute($addLang);
+			    $db->Execute($addLang);
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['ADDEDLANGUAGE'] = $post;
 			}
 			catch(PDOException $ex){

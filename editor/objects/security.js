@@ -1,8 +1,4 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
-
-
+﻿
 SI.Editor.Objects.Security = {
     Draw: function () {
         let base = Ele('div', {
@@ -165,13 +161,13 @@ SI.Editor.Objects.Security = {
         let eles = document.querySelectorAll(".si-edit-security-entity-box-" + name);
         if (eles) {
             if (eles[0].style.display === "block") {
-                for (e in eles) {
+                for (let e in eles) {
                     if (typeof eles[e] !== 'undefined' && typeof eles[e].style !== 'undefined') {
                         eles[e].style.display = 'none';
                     }
                 }
             } else {
-                for (e in eles) {
+                for (let e in eles) {
                     if (typeof eles[e] !== 'undefined' && typeof eles[e].style !== 'undefined') {
                         if (eles[e].tagName === "DIV") {
                             eles[e].style.display = "inline-block";

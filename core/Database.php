@@ -7,7 +7,7 @@
  * @version   v0.8
  */
 Tools::Autoload();
-error_reporting(E_ALL ^ E_WARNING); 
+
 class Database extends DbCreds 
 {
 	private $pdo = null;
@@ -23,7 +23,7 @@ class Database extends DbCreds
 		$this->Connect();
 	}
 	public function __destruct(){
-		$this->pdo= null;
+
 	}
 	public function DBC(){
 		return $this->pdo;
@@ -35,8 +35,8 @@ class Database extends DbCreds
 		try 
 		{		
 			$creds = new DbCreds();
-			if(!isset($creds->database) ){
-				return;
+			if(!isset($creds->servername) && !isset($creds->username) && !isset($creds->password) && !isset($creds->database) && !isset($creds->dbtype)){
+				return false;
 			}
 			$this->databaseName = $creds->database;
 			$options = [
@@ -48,12 +48,19 @@ class Database extends DbCreds
 		}
 		catch(PDOException $ex)
 		{
+		    $this->pdo = false;
 			Tools::Error("Database connection error: ".$ex->getMessage(),true);
 		}
 	}
 	public function IsCmsSetup(){
-		return ($this->pdo === null ? false : true);
+		if($this->pdo === false){
+			return false;
+		}else{
+			return true;
+		}
 	}	
+
+
 	public function GetDomainInstance(){
 		//When the page is called to load, this looks at the domain and subdomain(bu) to 
 		//get a list of entities from the entities table. This list is a key as to which entities belong to the sub.domain combo. 
@@ -609,7 +616,7 @@ class Database extends DbCreds
 			$values.= strtolower($entIdId).',';
 		
 		    //Make sure to add the EntityID to the create and select sqls. //update will have the guid so it should be fine.. but to prevent shananagans mabe require it too.
-			if($entityId !=null && count($entityId)>0 ){
+			if($entityId !=null && strlen($entityId) === 34 ){
 			
 				$entNameAttr = new Attribute('entity_id',strtolower($entityId) );
 				$entity->Attributes->Add($entNameAttr);
@@ -914,7 +921,9 @@ class Database extends DbCreds
 			    //echo $select;
 				//$data->setFetchMode(PDO::FETCH_ASSOC); 
 				$mydata = $data->fetchAll(PDO::FETCH_ASSOC);
-			
+			    if(count($mydata)===0){
+					return null;
+				}
 				//Tools::Log($mydata );
 				return $mydata;
 			}else if($action =='update'){
@@ -1091,9 +1100,11 @@ class Database extends DbCreds
 			$settingsentities = new Entity('settings');
 			$settings = $settingsentities->Retrieve('settingname,settingvalue');
 			$tmpSetting = array();
-			foreach($settings as $setting){
-				$tmpSetting[$setting['settingname']] = $setting['settingvalue'];
-				$pageobjects['page']['sitesettings']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'][$setting['settingname']] = $setting['settingvalue'];
+			if($settings != null){
+				foreach($settings as $setting){
+					$tmpSetting[$setting['settingname']] = $setting['settingvalue'];
+					$pageobjects['page']['sitesettings']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'][$setting['settingname']] = $setting['settingvalue'];
+				}
 			}
 			//$settings = $tmpSetting;
 			//Tools::Log($settings);
@@ -1345,14 +1356,14 @@ class Database extends DbCreds
 		$data = array();
 		$data = $this->GetRelatedEntities('pages', $this->pageGuid,'libraries', $cols );
 		$libs = array();
-		//echo gettype($data);
-		//print_r($data);
-		foreach($data as $v){
-			if(isset($v['name'])){
-				$libs[$v['name']] = '0x'.$v['id'];
+		if($data !== null){
+			foreach($data as $v){
+				if(isset($v['name'])){
+					$libs[$v['name']] = '0x'.$v['id'];
+				}
 			}
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['libraries'] = $libs;
 		}
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['libraries'] = $libs;
 	}
 	public function GetBlocks($pageid){	
 	    //first clear the blocks from  prev page

@@ -39,16 +39,17 @@ SI.Widget.Window = function (options) {
         "IconUrl": { "value": "/scripts/widgets/icons/defaultAppIcon.png", "type": "URL" },
         "IconChar": { "value": "128187", "type": "NUM" },
         "MinMaxSpeed": { "value": 300, "type": "NUM" },
-        "PreResize": { "value": function () { console.log("Resizing") }, "type": "FUNC" },
-        "Resize": { "value": function () { console.log("Resizing") }, "type": "FUNC" },
-        "OnLoad": { "value": function () { console.log("OnLoad") }, "type": "FUNC" },
+        "PreResize": { "value": function () { console.log("About to resize"); }, "type": "FUNC" },
+        "Resize": { "value": function () { console.log("Resizing"); }, "type": "FUNC" },
+        "OnLoad": { "value": function () { console.log("OnLoad"); }, "type": "FUNC" },
         "Resizable": { "value": true, "type": "BOOL" },
         "Dockable": { "value": true, "type": "BOOL" },
         "ZLevel": { "value": 980, "type": "NUM" },
         "Overflow": { "value": "AUTO", "type": "ENUM", "choices": ["AUTO", "SCROLL", "HIDDEN"] },
         "Position": { "value": "absolute", "type": "ENUM", "choices": ["absolute", "relative", "fixed"] },
-        "OnClose": { "value": function () { console.log("Window Closing") }, "type": "FUNC" }, //the window is really only hidden if it has been created and closed. 
+        "OnClose": { "value": function () { console.log("Window Closing"); }, "type": "FUNC" }, //the window is really only hidden if it has been created and closed. 
         "Modal": { "value": false, "type": "BOOL" },
+        "FontFace": {"value":"Roboto", "type":"STRING"}
     };
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     options = this.Options;
@@ -89,7 +90,7 @@ SI.Widget.Window = function (options) {
                     left: '12px',
                     width: '32px',
                     height: '60%',
-                    border: "1px dotted black",
+                    border: "1px dotted grey",
                     backgroundColor: "rgba(255,255,255,0.1)",
                     display: 'none' //only display if there is at least one window minimized
                 },
@@ -138,7 +139,7 @@ SI.Widget.Window = function (options) {
         }
         //Drop all windows to default z index
         var winds = document.getElementsByClassName("si-window-container");
-        for (var i = 0; i < winds.length; i++) {
+        for (let i = 0; i < winds.length; i++) {
             winds[i].style.zIndex = this.Options.ZLevel;
         }
         //fade in our window
@@ -249,7 +250,8 @@ SI.Widget.Window = function (options) {
             margin: '0px',
             display: 'none',
             boxShadow: this.Options.Shadow,
-            pointerEvents: 'auto'
+            pointerEvents: 'auto',
+            fontFamily: this.Options.FontFace
         },
         class: "si-window-container"
     });
@@ -276,11 +278,11 @@ SI.Widget.Window = function (options) {
         onmousedown: function (e) {
             //debugger;
             var winds = document.getElementsByClassName("si-window-container");
-            for (var i = 0; i < winds.length; i++) {
+            for (let i = 0; i < winds.length; i++) {
                 winds[i].style.zIndex = '980';
             }
             let offY = e.offsetY;
-            if (this.parentElement.style.position == 'fixed') {
+            if (this.parentElement.style.position === 'fixed') {
                 offY += this.scrollHeight;
             }
             dragOffset = [e.offsetX, offY];
@@ -356,7 +358,7 @@ SI.Widget.Window = function (options) {
         },
         appendTo: this.Titlebar
     });
-    //when the window is minimised and maximised, we need to track where to return it too. Here:
+    //when the window is minimised and maximised, we need to track what the last windowed dimentions are so that we can return it to its normal state.
     let lastNormalDims = { w: width, h: height, t: container.top, l: container.left };
     //draw the windows controls
     if (this.Options.WindowControls.indexOf("MIN") !== -1 && this.Options.Dockable === true) {
@@ -447,7 +449,7 @@ SI.Widget.Window = function (options) {
             backgroundColor: this.Options.BackgroundColor,
             borderRadius: ' 0px 0px ' + this.Options.CornerRadius + " " + this.Options.CornerRadius
         },
-        appendTo: this.Container,
+        appendTo: this.Container
     });
     if (this.Options.Overflow !== "AUTO") {
         switch (this.Options.Overflow) {
@@ -661,10 +663,10 @@ SI.Widget.Window = function (options) {
         container.animate([
             { //from
                 'width': container.style.width,
-                'height': container.style.height,
+                'height': container.style.height
             }, {
                 'width': "84px",
-                'height': "32px",
+                'height': "32px"
             }]
             , options.MinMaxSpeed);
         setTimeout(function () {

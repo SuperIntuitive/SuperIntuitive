@@ -19,7 +19,7 @@ class Widget{
         };
         //Make options available to this.
         options = Tools.Object.SetDefaults(options, this.Defaults);
-        for(name in options){
+        for(let name in options){
             if(options.hasOwnProperty(name)){
                 let value = options[name];
                 this[name] = value; 

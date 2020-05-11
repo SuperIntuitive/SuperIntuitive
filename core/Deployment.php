@@ -22,45 +22,45 @@ class Deployment {
 	}
 
 	public function DrawControls(){
-		if(isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] )){
-			//$dep = $_SESSION['SI']['page']['deployment'];
+		if(Tools::UserHasRole("Admin,Tester"))
+		{
+			if(isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] )){
+				$dep = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
 
-			$dep = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+				$liveB = "filter:brightness(50%)";
+				$testB = "filter:brightness(50%)";
+				$devB = "filter:brightness(50%)";
+				$liveE = "";
+				$testE = "";
+				$devE = "";
+				switch($dep){
+					case "dev": $devB = "filter:brightness(150%)"; $devE = 'disabled'; break;
+					case "test": $testB = "filter:brightness(150%)"; $testE = 'disabled'; break;
+					case "live": $liveB = "filter:brightness(150%)"; $liveE = 'disabled';  break;
+				}
+				$controls =  "<div id='si_deployment_controls' class='si-deployment-control' style='position:fixed; margin-left:95%; top:5px; opacity: 0.5;'>";
+				$controls .=  "<button id='si_deployment_control_live' class='si-deployment-control' title='live' $liveE onclick='SI.Deployment.Change(this)' style='border-radius:8px; width:16px; height:16px; background-color:red; display:block; border:none; margin:2px; $liveB' >";
+				$controls .=  "<button id='si_deployment_control_test' class='si-deployment-control' title='test' $testE onclick='SI.Deployment.Change(this)' style='border-radius:8px; width:16px; height:16px; background-color:yellow; display:block; border:none; margin:2px; $testB' >";
+				if(Tools::UserHasRole("Admin")){
+					$controls .=  "<button id='si_deployment_control_dev' class='si-deployment-control' title='dev' $devE onclick='SI.Deployment.Change(this)'  style='border-radius:8px; width:16px; height:16px; background-color:green; display:block; border:none; margin:2px; $devB' >";
+				}
 
-			$liveB = "filter:brightness(50%)";
-			$testB = "filter:brightness(50%)";
-			$devB = "filter:brightness(50%)";
-			$liveE = "";
-			$testE = "";
-			$devE = "";
-			switch($dep){
-				case "dev": $devB = "filter:brightness(150%)"; $devE = 'disabled'; break;
-				case "test": $testB = "filter:brightness(150%)"; $testE = 'disabled'; break;
-				case "live": $liveB = "filter:brightness(150%)"; $liveE = 'disabled';  break;
-			}
-			$controls =  "<div id='si_deployment_controls' class='si-deployment-control' style='position:fixed; margin-left:95%; top:5px; opacity: 0.5;'>";
-			$controls .=  "<button id='si_deployment_control_live' class='si-deployment-control' title='live' $liveE onclick='SI.Deployment.Change(this)' style='border-radius:8px; width:16px; height:16px; background-color:red; display:block; border:none; margin:2px; $liveB' >";
-			$controls .=  "<button id='si_deployment_control_test' class='si-deployment-control' title='test' $testE onclick='SI.Deployment.Change(this)' style='border-radius:8px; width:16px; height:16px; background-color:yellow; display:block; border:none; margin:2px; $testB' >";
-			if(Tools::UserHasRole("Admin")){
-				$controls .=  "<button id='si_deployment_control_dev' class='si-deployment-control' title='dev' $devE onclick='SI.Deployment.Change(this)'  style='border-radius:8px; width:16px; height:16px; background-color:green; display:block; border:none; margin:2px; $devB' >";
-			}
-
-			$controls .=  "</div>";
-			return $controls;
-		}	
-
+				$controls .=  "</div>";
+				return $controls;
+			}	
+		}
 	}
 	public function ChangeDeployment($post)
 	{
-		if(Tools::UserHasRole("SuperAdmin,Admin,Tester"))
+		if(Tools::UserHasRole("Admin,Tester"))
 		{
 			if(isset($post['Deployment']))
 			{
-				if($post['Deployment']==='live' ||$post['Deployment']==='test' ||$post['Deployment']==='dev')
+				if($post['Deployment']==='live' || $post['Deployment']==='test' || $post['Deployment']==='dev')
 				{
 					if($post['Deployment']==='dev')
 					{
-						if(Tools::UserHasRole("SuperAdmin,Admin"))
+						if(Tools::UserHasRole("Admin"))
 						{
 							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] = "dev";
 						}
