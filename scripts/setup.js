@@ -84,7 +84,7 @@
                           
                     let check = document.getElementById('si_setup_dbsuccess');
                     if (response.outcome) {
-                        debugger;
+                        //debugger;
                         //delete the php session cookie, we'll get a new one on reload
                         document.cookie.split(";").forEach(function (c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
                         let div = document.createElement('DIV');

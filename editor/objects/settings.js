@@ -220,7 +220,7 @@ SI.Editor.Objects.Settings = {
             onclick: SI.Editor.Objects.Settings.Delete,
             appendTo: settingvalue,
         });
-        debugger;
+
         if (!table) {
             document.getElementById('si_edit_settings_table').appendChild(settingsrow);
         } else {

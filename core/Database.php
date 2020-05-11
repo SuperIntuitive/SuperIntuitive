@@ -53,7 +53,7 @@ class Database extends DbCreds
 		}
 	}
 	public function IsCmsSetup(){
-		if($this->pdo === false){
+		if($this->pdo === null){
 			return false;
 		}else{
 			return true;
