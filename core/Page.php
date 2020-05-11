@@ -4,16 +4,13 @@ Tools::Autoload();
 class Page {
 	private $pageobjects;
 	private $options;
-	private $settings;
+	//private $settings;
 
 	public function __construct($pageobjects = null){
 		if($pageobjects != null){
 		    $this->pageobjects = $pageobjects;
 			//Tools::Log($pageobjects);
-			$db = new Database();
-			//Tools::Log($pageobjects);
-			$pageid = $pageobjects['page']['id'];
-		    $this->settings = $db->GetRelatedEntities('pages',$pageid,'settings');
+
         }
 
 		//Tools::Log($this->settings);
@@ -26,8 +23,14 @@ class Page {
 			$setup = new Setup();
 			return $setup->GetHead();
 		}
+		else if($this->pageobjects == "%EMPTY_DOMAIN%"){
+		    Tools::Log("This domain is not found");
+	    }
 		else
 		{
+
+
+
 		//Tools::Log($this->pageobjects['page'], true);
 			//search for the page in the database
 			$title = null;
@@ -47,17 +50,14 @@ class Page {
 			$lastModified =  time();
 			//Tools::Log($this->pageobjects);
 			if(isset($this->pageobjects['page']) && isset($this->pageobjects['page']['contentmodified'])){
-			    if( count($this->pageobjects['page']['contentmodified'])>0){
-					//Tools::Log($this->pageobjects['page']['contentmodified']);
+			    if( strlen($this->pageobjects['page']['contentmodified'])===32){
 					$lastModified = $this->pageobjects['page']['contentmodified'];
 				}
 			}
 			//this takes the mod time on all the blocks and hashes them together. this way when they are moded, it will update them and redownload new js and css.
 			   
 			if(!empty($this->pageobjects['page']['options'])){
-
 				$options = json_decode($this->pageobjects['page']['options'],true);
-
 				if(json_last_error() === 0)
 				{
 					if(	!empty($options['head']))
@@ -68,22 +68,20 @@ class Page {
 							if($deployment !="live"){
 								$title = $deployment." - ".$title;
 							}
-							$title = "<title id='si_pagetitle'>$title</title>";
+							$title = "<title id='si_pagetitle'>$title</title>\n";
 						}else{
-						    $title = "<title id='si_pagetitle'></title>";
+						    $title = "<title id='si_pagetitle'></title>\n";
 						}
-
 						if(!empty($options['head']['favicon']))
 						{
 							$favicon = $options['head']['favicon'];
 							if($deployment !="live"){
 								$favicon = $deployment."_".$favicon;
 							}
-							$favicon = "<link rel='icon' type='image/png' href='media/images/$favicon' id='si_favicon'/>";
+							$favicon = "\t\t<link rel='icon' type='image/png' href='media/images/$favicon' id='si_favicon'/>\n";
 						}else{
-						    $favicon = "<link rel='icon' type='image/png' href='#' id='si_favicon'/>";
+						    $favicon = "\t\t<link rel='icon' type='image/png' href='#' id='si_favicon'/>\n";
 						}
-
 
 						if(!empty($options['head']['meta']))
 						{
@@ -94,13 +92,13 @@ class Page {
 								}
 								if(is_array ($metas)){
 									foreach($metas as $name=>$content){
-										$meta.= "<meta $type='$name' content='$content'>";
+										$meta.= "\t\t<meta $type='$name' content='$content'>\n";
 									}
 								}else{
 									if($type ==="charset"){
-										$meta.= "<meta $type='$metas' id='si_meta_charset' >";
+										$meta.= "\t\t<meta $type='$metas' id='si_meta_charset' >\n";
 									}else{
-										$meta.= "<meta $type='$metas' >";
+										$meta.= "\t\t<meta $type='$metas' >\n";
 									}
 								   
 								}
@@ -113,7 +111,7 @@ class Page {
 					if(	!empty($options['body'])){
 					    $body = null;
 						if(	!empty($options['body']['style'])){
-						$body = "<style id='si_bodystyle'>body {";
+						$body = "\t\t<style id='si_bodystyle'>body {";
 							foreach($options['body']['style'] as $prop=>$val){
 								if(strlen($prop)>0 && strlen($val)>0){
 									$body.=$prop.":".$val.";";
@@ -147,9 +145,37 @@ class Page {
 				$head .= $meta;
 			}
 			
+			//get page settings
+			$db = new Database();
+			$settings = null;
+			if(isset($this->pageobjects['page']) && isset($this->pageobjects['page']['id'])){
+				$pageid = $this->pageobjects['page']['id'];
+				$settings = $db->GetRelatedEntities('pages',$pageid,'settings');
+				$settings = json_decode($settings,true);
+			}
+
+			//If the user is logged in, set up a javacript object for them.
+			//Tools::Log("Logging user");
+			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
+			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
+				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
+				$prefs = "{}";
+				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences'])){
+					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences']);
+				}
+				$head.= 
+"		<script>
+	if (!SI) { var SI = {}; }
+	SI.LoggedInUser = {'name':'$name'};
+	SI.LoggedInUser.Preferences = $prefs;
+	SI.Page = {};
+	SI.Page.Settings = { $settings };
+		</script>\n";
+			}
+
 			
 			$head .= "
-		<style id='si_htmlstyle'>html{width: 100%; overflow-x: hidden;}</style>
+		<style id='si_htmlstyle'>html{width: 100%; height:1vh; overflow-x: hidden;}</style>
 		<link rel='stylesheet' type='text/css' id='si_plugins_style' href='/style/plugins.css?$t'>
 		<link rel='stylesheet' type='text/css' id='si_page_style' href='/style/page.css?$lastModified'>
 		<link rel='stylesheet' type='text/css' href='/style/libraries.css?$t'>
@@ -158,22 +184,23 @@ class Page {
 			@media (prefers-color-scheme: dark) {#si_colorscheme {color:black}}
 		</style>
 
-		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
-		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
-		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script> 
-		<script src='/scripts/tools.js?$t' defer ></script>";
+
+		<script src='/scripts/tools.js?$t' defer ></script>\n";
 
 		$widgetfiles = scandir('scripts/widgets');
 		Tools::Log($widgetfiles);
 		foreach($widgetfiles as $widget){
 			if(!is_dir('scripts/widgets/'.$widget)){
 				$moded = filemtime('scripts/widgets/'.$widget);
-				$head .= "<script src='/scripts/widgets/$widget?$moded' defer></script>";	
+				$head .= "\t\t<script src='/scripts/widgets/$widget?$moded' defer></script>\n";	
 			}
 		}
 
-
-
+			$head .= "
+		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
+		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
+		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script>
+		";
 
 
 			if(Tools::UserHasRole("SuperAdmin,Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']=='dev'){
@@ -188,32 +215,17 @@ class Page {
 				//$head.=$admin->PopulatePageBlockData($this->pageobjects['admin']['blocktemplates'],true);
 				$head.=$admin->IncludeAdminFiles();	
 			}		
-		
-			//If the user is logged in, set up a javacript object for them.
-			//Tools::Log("Logging user");
-			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
-			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
-				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
-
-				//get user preferences here... for now
-				$openMethod = isset($_SESSION['USERPREFS']['OPEN_LINK_IN']) ? $_SESSION['USERPREFS']['OPEN_LINK_IN'] : 'window';
-
-				$head.= "<script>
-							if (!SI) { var SI = {}; }
-							SI.LoggedInUser = {
-								'name':'$name', 
-								'preferences':{
-									OpenLinksIn: $openMethod
-								} 
-							};
-						 </script>";
+			if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
+				$deploy = new Deployment();
+				$head.= $deploy->DrawScript();
 			}
+
 			if($bodystyle != null){
 				$head.=$bodystyle;
 			}
 			//Replace any constants or variables with their values
+			//this needs more work. If the head item is saved with the constants it will lose the replacement token
 			$head = Tools::ReplaceConstants($head);
-
 
 			return $head;
 		}
@@ -228,13 +240,13 @@ class Page {
 		{
 			$guid = "";
 			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
-			if(Tools::UserHasRole("Admin")  && $deployment!='live'){
+			if(Tools::UserHasRole("Admin")  && $deployment =='dev'){
 				if(isset($this->pageobjects['page']['id'])){
 					$guid =  " data-guid='0x".$this->pageobjects['page']['id']."'";
 				}
 			}
 			//the body is a string representing the whole body that is returned and output. It is made up of blocks
-	        $body ="<body  $guid >";
+	        $body ="<body  $guid ><i id='si_colorscheme'></i>";
 			//Get the blocks
 			if(isset($this->pageobjects['blocks'])){	
 				$blocks = $this->pageobjects['blocks'];
@@ -284,90 +296,95 @@ class Page {
 				$body.= $deploy->DrawControls();
 				$body = $deploy->DeployMediaPaths($body);
 			}
-			$body.=" <i id='si_colorscheme'></i> </body>";
+			$body.="</body>";
 			$body = Tools::ReplaceMultilangs($body);
+			$body = Tools::ReplaceConstants($body);
 
 			return $body;
 		}
 	}
 
+
+
 	public function Save($post){
-		//make sure we have a guid
-		if(isset($post['body']['data']['guid'])){
-			//make an entity for the page
-			$ent = new Entity("pages");
-			$ent->Id = $post['body']['data']['guid'];
+		//only save the page if we are an admin and in dev
+	    if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] =='dev'){
+			//make sure we have a guid
+			if(isset($post['body']['data']['guid'])){
+				//make an entity for the page
+				$ent = new Entity("pages");
+				$ent->Id = $post['body']['data']['guid'];
 	
-			unset($post['KEY']);
+				unset($post['KEY']);
 
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED'] = array();
 
-			if(isset($post['redirect'])){
-				$ent->Attributes->Add(new Attribute("redirecttopage_id", Tools::FixGuid( $post['redirect'] ) )); 
-				unset($post['redirect']);		
-			}
+				if(isset($post['redirect'])){
+					$ent->Attributes->Add(new Attribute("redirecttopage_id", Tools::FixGuid( $post['redirect'] ) )); 
+					unset($post['redirect']);		
+				}
 			
-			if(isset($post['name'])){
+				if(isset($post['name'])){
 
-				$dupe = new Entity("pages");
-				$dupe->Attributes->Add(new Attribute("name", $post['name'] ) ); 
-				$dupe = $dupe->Retrieve();
-				if(count($dupe)===0){
-					$ent->Attributes->Add(new Attribute("name",$post['name'] ) ); 
-					unset($post['name']);
-				}else{
-				    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
-					return false;
-				}
-			}
-			$path = null;
-			if(isset($post['path'])){
-				$dupe = new Entity("pages");
-				$dupe->Attributes->Add(new Attribute("path", $post['path'] ) ); 
-				$dupe = $dupe->Retrieve();
-				if(count($dupe)===0){
-					$ent->Attributes->Add(new Attribute("path",$post['path'] ) ); 
-				}else{
-				    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
-					return false;
-				}
-
-				$path = $post['path'];
-				if(strlen($path) ==0){
-				  $path = "_ROOT_";
-				}
-				unset($post['path']);
-			}
-
-			$options = $post;
-
-			if(!empty($options)){
-				$json =  json_encode($options); // print_r($post[$field],true);
-				$ent->Attributes->Add(new Attribute("dev-options", $json ) ); 
-			}
-
-			Tools::Log($ent);
-			try{
-				if($ent->Update()){
-					
-					if($path != null){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['CURRENTDBPAGEPATH'] = $path;
+					$dupe = new Entity("pages");
+					$dupe->Attributes->Add(new Attribute("name", $post['name'] ) ); 
+					$dupe = $dupe->Retrieve();
+					if(count($dupe)===0){
+						$ent->Attributes->Add(new Attribute("name",$post['name'] ) ); 
+						unset($post['name']);
+					}else{
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
+						return false;
 					}
-					
 				}
-			}catch(Exception $e){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] .= $e;
-				return false;
-			}
+				$path = null;
+				if(isset($post['path'])){
+					$dupe = new Entity("pages");
+					$dupe->Attributes->Add(new Attribute("path", $post['path'] ) ); 
+					$dupe = $dupe->Retrieve();
+					if(count($dupe)===0){
+						$ent->Attributes->Add(new Attribute("path",$post['path'] ) ); 
+					}else{
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
+						return false;
+					}
+
+					$path = $post['path'];
+					if(strlen($path) ==0){
+					  $path = "_ROOT_";
+					}
+					unset($post['path']);
+				}
+
+				$options = $post;
+
+				if(!empty($options)){
+					$json =  json_encode($options); // print_r($post[$field],true);
+					$ent->Attributes->Add(new Attribute("dev-options", $json ) ); 
+				}
+				//Tools::Log($ent);
+				try{
+					if($ent->Update()){
+					
+						if($path != null){
+							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['CURRENTDBPAGEPATH'] = $path;
+						}
+					
+					}
+				}catch(Exception $e){
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] .= $e;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['UPDATEFAILED'] = "true";
+					return false;
+				}
 			
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGEUPDATED'] = "true";
-				return true;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['PAGEUPDATED'] = "true";
+					return true;
 
-		}else{
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['EXCEPTION'] = "failed to get a data.guid"; 
+			}else{
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['EXCEPTION'] = "failed to get a data.guid"; 
+			}
+
 		}
-
-
 		//echo json_encode($ent);	
 	}
 

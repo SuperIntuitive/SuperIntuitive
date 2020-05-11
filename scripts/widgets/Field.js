@@ -1,100 +1,158 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
-
-
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.Field = function (options) {
+SI.Widget.Field = function (options) {
+    if (!(this instanceof SI.Widget.Field)) { return new SI.Widget.Field(); }
     this.Defaults = {
-        "Label": "",
-        "Value": "",
-        "Type": "text",
+        "Parent": null, 
+        "ParentIndex": null, 
+        "Label": null,
+        "Placeholder": null,
+        "Value": null,
+        "Type": { "value": "text", "type": "ENUM", "choices": ["button", "checkbox", "color", "date", "datetime-local", "email", "file", "hidden", "image", "lookup", "month", "number", "optionset", "password", "radio", "range", "reset", "search", "submit", "tel", "text", "textarea", "time", "url", "week"] },
         "LabelColor": "",
         "InputColor": "",
-        "Entity": "",
-        "Editable": true,
-        "OnChange": "",
-        "KeepSynced": false,
+        "BackgroundColor": "rgba(255, 255, 255, 0.1)",
+        "Entity": null,
+        "Name":null,
+        "ReadOnly": false,
+        "Disabled": false,
+        "Required": false,
+        "OnChange": null,
+        "Validator":null,
+        "MaxChars":"default",
+        "Columns": 0,
+        "Rows": 0,
+        "OptionSet": { "value": null, "type": "ENUM", "choices": [] },
+        "Width": [],
+        "Groups": [],
+        "TabIndex": null,
+        "ToolTip": null,
     };
-    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Random = SI.Tools.String.RandomString();
     let self = this; //make available for event handelers.
-    this.rand = SI.Tools.String.RandomString();
-    if (this.options.LabelColor.length === 0) {
-        switch (this.options.Type) {
-            case "text": this.options.LabelColor = '#000000'; break;
-            case "number": this.options.LabelColor = '#00FF00'; break;
-            case "lookup": this.options.LabelColor = '#0000FF'; break;
+
+    if (this.Options.LabelColor.length === 0) {
+        switch (this.Options.Type) {
+            case "optionset":
+            case "text": this.Options.LabelColor = '#00ee00'; break;
+            case "number": this.Options.LabelColor = '#111111'; break;
+            case "lookup": this.Options.LabelColor = '#0000FF'; break;
+           
             default: break;
         }
 
     }
+
     //this is the box that will be returned
     let field = Ele("div", {
+        id: "si_field_" + this.Random,
+        class:"si-field-"+this.Options.Type,
         style: {
+            backgroundColor: this.Options.BackgroundColor,
             display: 'inline-block',
+            padding: '10px'
         }
     });
+
     //if there is a label, 
-    if (this.options.Label.length > 0) {
+    if (this.Options.Label) {
         let label = Ele("label", {
-            innerHTML: this.options.Label,
-            for: "si_entityfield_" + rand,
-            appendTo: field,
+            innerHTML: this.Options.Label,
+            for: "si_entityfield_" + +this.Random,
+            style: {
+                textAlight: 'right',
+                marginRight: '10px',
+                width:"50%"
+            },
+            appendTo: field
         });
+        if (this.Options.ToolTip) {
+            label.title = this.Options.ToolTip;
+        }
     }
-    //if it is editable, make it an input, else make it a span
-    if (this.options.Editable) {
 
 
-        switch (this.options.Type) {
+    
+
+    //make a input object. 
+    let input = {
+        tag:"input",
+        id: "si_entityfield_" + this.Random,
+        value: this.Options.Value,
+        onchange: function (ev) {
+            debugger;
+            if (self.options.OnChange) {
+                self.options.OnChange(ev, this);
+            }
+            if (self.Options.Entity && this.name.length>0) {
+                if (SI.Tools.Object.GetIfExists("SI.LoggedInUser.Preferences.autosave")) {
+                    //do a api save here. 
+                }
+            }
+
+        },
+        appendTo: field
+    };
+
+    if (this.Options.Name) {
+        input.name = this.Options.Name;
+    }
+    if (this.Options.Placeholder) {
+        input.placeholder = this.Options.Placeholder;
+    }
+    if (this.Options.Validator) {
+        input.pattern = this.Options.Validator;
+    }
+
+    let isInput = true;
+    //determine the tag type
+    switch (this.Options.Type) {
+        case "optionset":
+            input.tag = "select";
+
+            input.onchange = function (ev) {
+                if (self.options.OnChange) {
+                    self.options.OnChange(ev, this);
+                }
+
+            };
+            break;
+        case "textarea": input.tag = "textarea"; break;
+    }
+    
+    if (isInput) {
+        switch (this.Options.Type) {
             case "text":
-                let input = Ele("input", {
-                    id: "si_entityfield_" + rand,
-                    value: this.options.Value,
-                    appendTo: field,
-                    onchange: function (ev) {
-
-                        //allow change event handeler to be input
-                        if (self.options.OnChange.length > 0) {
-                            self.options.OnChange(ev);
-                        }
-                    }
-                });
+                input.tag = "input";
 
                 break;
             case "number":
-
+                tag = "input";
+                input.type = "number";
+                input.oninput = function (ev) {
+                    if (self.options.OnChange) {
+                        self.options.OnChange(ev, this);
+                    }
+                };
                 break;
-            case "lookup":
+            case "lookup": break;
 
-                break;
+            case "optionset": break;
             default: break;
         }
 
-
-
-        let input = Ele("input", {
-            id: "si_entityfield_" + rand,
-            value: this.options.Value,
-            appendTo: field,
-            onchange: function (ev) {
-
-                //allow change event handeler to be input
-                if (self.options.OnChange.length > 0) {
-                    self.options.OnChange(ev);
-                }
-            }
-        });
     }
-    else {
-        let span = Ele("span", {
-            id: "si_entityfield_" + rand,
-            value: this.options.Value,
-            appendTo: field,
-        });
-    }
+
+    let parent = this.Options.Parent;
+    let parentIndex = this.Options.ParentIndex;
+
+
+
+    Ele(null, input );
+
+
+
     return field;
 };
-SI.Widgets.Field.Instances = {};

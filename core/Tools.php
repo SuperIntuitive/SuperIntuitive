@@ -21,7 +21,7 @@ class Tools{
 				if($class === "DataTable" || $class === "DataColumn" || $class === "DataRow" || $class === "DataSet" ){
 					$class = "Datatable";
 				}
-				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute"){
+				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute" || $class === "Filter" ){
 					$class = "Entity";
 				}
 				if($class == "QueryParameter"){
@@ -42,6 +42,7 @@ class Tools{
 		}
 	}
 	static function DefineServer(){
+
 		$url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 		//since we do not use apache virtual hosts to partition the domains, this could be anything. If it was bad it wouldnt get by the vhosts.
 		//DO NOT TRUST THIS URL. DO NOT MAKE IT PART OF ANYTHING UNTILL IT IS VERIFIED TO BE IN THE DATABASE.
@@ -54,7 +55,11 @@ class Tools{
 		$query = parse_url($url, PHP_URL_QUERY); //anything after the ? 
 		$fragment = parse_url($url, PHP_URL_FRAGMENT); //anything after the #
 		//Tools::Log("scheme:$scheme,user:$user,pass:$pass,host:$host,port:$port,path:$path,query:$query,fragment:$fragment", true);
-		$languages = explode( ';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0];
+		$languages = ['en'];
+		if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])){
+			$languages = explode( ';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0];
+		}
+		
 		//$host = "some.sub.that.is.stupid.superintuitive.com"; //check to make sure sillyness works when im programming this thing on localhost
 		//Make the host as usable as we can.
 		//remove any www bs subdomain.
@@ -90,11 +95,14 @@ class Tools{
 		define('SI_URI',  SI_PAGE_PATH);
 		define('SI_LANGS',  $languages);
 
+
+
 		//hackety hack time: github forces that I either dont have DbCreds.php or I do, but I can't have it online and ignore it from what Ive seen so Ill get rid of it onlie and do this hack. 
 		//If it does not exist i need to make a blank one before the db is called.
 		//if(!file_exists("core/DbCreds.php")){
 		//	file_put_contents("core/DbCreds.php", '<?php class DbCreds { }');
 		//}
+		
 		if(!is_file($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php")){
 			
 			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", '<?php class DbCreds { }');     // Save our content to the file.
@@ -432,6 +440,25 @@ class Tools{
 		$text = str_replace("__NOW.DAY__",date("j"), $text);
 		$text = str_replace("__NOW.DAYSHORT__",date("jS"), $text);
 		$text = str_replace("__NOW.DATLONG__",date("l"), $text);
+		$text = str_replace("__NOW.DBTIME__",date("Y-m-d H:i:s"), $text);
+		$text = str_replace("__NOW.DATEPATH__",date("Y/m/d"), $text);
+		//allow the user to make replacements with Settings
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'])){
+			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'];
+			Tools::Log($settings);		
+			foreach($settings as $k=>$v){
+
+			    $match = preg_match('/^(__\w*__)$/', $k, $matches, PREG_UNMATCHED_AS_NULL);
+				Tools::Log("match");
+				Tools::Log($match);
+				if($match > 0){
+					Tools::Log($k." ".$v);
+					Tools::Log($text);
+					$text = str_replace($k,$v, $text);
+				}
+
+			}
+		}
 
 		return $text;
 	}
@@ -588,5 +615,64 @@ class Tools{
 		}
 		return $text;
 	}
-
+	static function IsJson($string){
+		$tmp = trim($string);
+		return (substr($string, 0, 1) == "{" ? TRUE : FALSE);
+	}
+	static function JsonValidate($string)  //SO-6041741
+	{
+		$result = json_decode($string);
+		switch (json_last_error()) {
+			case JSON_ERROR_NONE:
+				$error = '';
+				break;
+			case JSON_ERROR_DEPTH:
+				$error = 'The maximum stack depth has been exceeded.';
+				break;
+			case JSON_ERROR_STATE_MISMATCH:
+				$error = 'Invalid or malformed JSON.';
+				break;
+			case JSON_ERROR_CTRL_CHAR:
+				$error = 'Control character error, possibly incorrectly encoded.';
+				break;
+			case JSON_ERROR_SYNTAX:
+				$error = 'Syntax error, malformed JSON.';
+				break;
+			case JSON_ERROR_UTF8:
+				$error = 'Malformed UTF-8 characters, possibly incorrectly encoded.';
+				break;
+			case JSON_ERROR_RECURSION:
+				$error = 'One or more recursive references in the value to be encoded.';
+				break;
+			case JSON_ERROR_INF_OR_NAN:
+				$error = 'One or more NAN or INF values in the value to be encoded.';
+				break;
+			case JSON_ERROR_UNSUPPORTED_TYPE:
+				$error = 'A value of a type that cannot be encoded was given.';
+				break;
+			default:
+				$error = 'Unknown JSON error occured.';
+				break;
+		}
+		if ($error !== '') {
+			exit($error);
+		}
+		return $result;
+	}
+	static function GetBrowserLanguage( $available = [], $default = 'en' ) {
+		//https://gist.github.com/LucaRosaldi/5676962
+		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+			$langs = explode( ',', $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
+			if ( empty( $available ) ) {
+			  return $langs[0];
+			}
+			foreach ( $langs as $lang ){
+				$lang = substr( $lang, 0, 2 );
+				if( in_array( $lang, $available ) ) {
+					return $lang;
+				}
+			}
+		}
+		return $default;
+	}
 }

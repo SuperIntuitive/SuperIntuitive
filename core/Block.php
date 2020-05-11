@@ -26,7 +26,7 @@ class Block {
 
 			//The fields that could possibly be saved in a block. we dont have to save all of them all the time, but all options must be saved as one
 			$fields = array('order','options','name','script','style','html');
-
+           
 			foreach($fields as $field){
 				if(isset($post[$field] ))
 				{
@@ -85,7 +85,7 @@ class Block {
 					$relations->Update();
 				}
 				
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKSAVED'] = "Success";
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKSAVED'] = $post['name'];
 			}
 			catch(Exception $ex)
 			{
@@ -142,7 +142,6 @@ class Block {
 		catch(Exception $ex){
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
 		}
-
 	}
 	function Relate($post){
 		try{
@@ -165,18 +164,6 @@ class Block {
 					if(!empty($myblock['options']) ){
 						$options = $myblock['options'];
 					}
-
-			//	    if($options===null || strlen($options<2)){
-				//		if($myblock['options']){
-				//			$opts = $myblock['options'];
-				//			if(strlen($opts)>2){ //this should get hte newly related block the right options but not write over any that come through.
-				//				$options = $opts;
-				//			}
-				//		}
-				//	}
-
-
-
 
 					if($options===null || strlen($options<2)){ //finally if we still have no options
 						$options = '{"tag":"div","style":{"position":"static","left":"0px","top":"0px","width":"100%","height":"500px"}}';
@@ -206,9 +193,7 @@ class Block {
 						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['ORDER'] = $order;
 					}
 					return $relatedid;
-
 				}
-
 
 			}
 		}catch(Exception $ex){
@@ -239,7 +224,7 @@ class Block {
 				$libs = array();
 				$ses = array();
 				
-				//echo gettype($data);
+				//echo gettype($data);-
 				Tools::Log($data);
 				foreach($data as $v){
 					if(isset($v['name'])){

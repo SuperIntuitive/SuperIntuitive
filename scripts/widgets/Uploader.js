@@ -3,14 +3,15 @@ header("Content-Type: application/javascript; charset: UTF-8");
 ?>
 
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-function Uploader(options) {
-    //properties that can be set in the UI
-    //debugger;
+
+SI.Widget.Uploader = function (options) {
+    if (!(this instanceof SI.Widget.Uploader)) { return new SI.Widget.Uploader(); }
     this.Defaults = {
         "Name": { "value": "Window", "type": "TEXT" },
-        "ParentId": { "value": "body", "type": "ELE" },
+        "Parent": { "value": "", "type": "ELE" },
+        "ParentIndex": { "value": null, "type": "INT" },
         "ContainerClass": { "value": "", "type": "CLASS" },
         "Position": "absolute",
         "Width": { "value": "200px", "type": "LEN" },
@@ -19,200 +20,195 @@ function Uploader(options) {
         "Left": { "value": "", "type": "LEN" },
         "Right": { "value": "", "type": "LEN" },
         "Bottom": { "value": "", "type": "LEN" },
-        "Border": { "value": "5px dashed #ccc", "type": "BORDER" }, 
-        "OverBorder": { "value":"7px dashed silver", "type": "BORDER" }, 
+        "Border": { "value": "5px dashed #ccc", "type": "BORDER" },
+        "OverBorder": { "value": "7px dashed silver", "type": "BORDER" },
         "FontSize": "2em",
         "FontColor": "silver",
         "Text": '<br />Drag files here to upload',
         "TextAlign": "center",
         "ServerScript": "/filehandeler.php",
+        "OnComplete": null
     };
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Random = SI.Tools.String.RandomString(11);
+    let self = this;
 
-    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-
-
-    this.Container = null;
-    this.Progress = null;
-    //private members
-    var randId = SI.Tools.String.RandomString(11);
-
-
-    //if we dont have a options object
-
-    //debugger;
-    let container = Ele('div', {
-        id: "uploader_" + randId,
-        innerHTML: options.Text,
+    this.Container = Ele('div', {
+        id: "si_uploader_container_" + this.Random,
+        innerHTML: this.Options.Text,
         style:
         {
-            "position": options.Position,
-            "left": options.Left,
-            "right": options.Right,
-            "top": options.Top,
-            "bottom": options.Bottom,
-            "width": options.Width,
-            "height": options.Height,
-            "fontSize": options.FontSize,
-            "color": options.FontColor,
-            "textAlign": options.TextAlign,
-            "border": options.Border,
-            "userSelect": "none",
+            "position": this.Options.Position,
+            "left": this.Options.Left,
+            "right": this.Options.Right,
+            "top": this.Options.Top,
+            "bottom": this.Options.Bottom,
+            "width": this.Options.Width,
+            "height": this.Options.Height,
+            "fontSize": this.Options.FontSize,
+            "color": this.Options.FontColor,
+            "textAlign": this.Options.TextAlign,
+            "border": this.Options.Border,
+            "userSelect": "none"
         },
         ondragover: function (e) {
             //debugger;
-           // this.className = 'SI_hover';
+            // this.className = 'SI_hover';
             return false;
         },
         ondragend: function (e) {
-          //  this.className = '';
+            //  this.className = '';
             return false;
         },
         ondragenter: function (e) {
             e.preventDefault();
             e.stopPropagation();
-            this.style.border = options.OverBorder;
+            this.style.border = self.Options.OverBorder;
         },
         ondragleave: function (e) {
             e.preventDefault();
             e.stopPropagation();
-            this.style.border = options.Border;;
+            this.style.border = self.Options.Border;
         },
         ondrop: function (e) {
-           // this.className = '';
+            // this.className = '';
             //debugger;
             e.preventDefault();
-            ReadFiles(e.dataTransfer.files);
+            self.UploadFiles(e.dataTransfer.files);
         }
     });
 
-    let progressbar = Ele('progress', {
-        id: "progressbar_" + randId,
+    this.ProgressBar = Ele('progress', {
+        id: "si_uploader_progressbar_" + this.Random,
         style: {
             "width": '70%',
             "height": '16px',
             "left": '15%',
             "radius": '3px',
             "position": "relative",
-            "display": 'none',
-
+            "display": 'none'
         },
-        appendTo: container,
+        appendTo: this.Container
     });
-    //Allow public access to the Container
-    this.Container = container;
-
-    var tests = {
-        filereader: typeof FileReader != 'undefined',
-        dnd: 'draggable' in document.createElement('span'),
-        formdata: !!window.FormData,
-        progress: "upload" in new XMLHttpRequest
-    };
-
-
-    var ReadFiles = function (files) {
+    this.UploadFiles = function (files) {
+        //create the form object
         var formData = new FormData();
         let fileData = {};
-        progressbar.style.display = 'block';
-        for (var i = 0; i < files.length; i++) {
+        //change the progress bar to visible
+        self.ProgressBar.style.display = 'block';
+
+        for (let i = 0; i < files.length; i++) {
+            //for each dropped file add them to the FormData object
+
             let file = files[i];
             formData.append('files[]', file);
             fileData.file = files[i];
-            PreviewFile(files[i]);
-        }
-       //debugger;
-       
-        //    formData.sender = "DD";
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', options.ServerScript);
-        xhr.onload = function () {
-            progressbar.value = progressbar.innerHTML = 100;
-        };
 
-        if (tests.progress) {
+            self.PreviewFile(files[i]);
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', self.Options.ServerScript);
+        xhr.onload = function () {
+            self.ProgressBar.value = self.ProgressBar.innerHTML = 100;
+        };
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    if (xhr.responseText !== null && xhr.responseText.length > 0) {
+                        if (self.Options.OnComplete) {
+                            self.Options.OnComplete(files, xhr.responseText);
+                        }
+                    }
+                } catch (ex) {
+                    console.warn(xhr.responseText);
+                    console.warn(ex);
+                }
+            }
+        };
+        if (self.Tests.progress) {
             xhr.upload.onprogress = function (event) {
                 if (event.lengthComputable) {
                     //debugger;
-                    var complete = (event.loaded / event.total * 100 | 0);
-                    progressbar.value = progressbar.innerHTML = complete;
-                    // alert("Upload Complete");
-                    //cool little animation of it leving the box and going to an icon in the tray would be nice. 
-                
+                    var complete = event.loaded / event.total * 100 | 0;
+                    self.ProgressBar.value = self.ProgressBar.innerHTML = complete;
                     setTimeout(function () {
-                        Tools.Style.FadeOut('si_media_preview_image', 1000);
+                        SI.Tools.Style.FadeOut("si_uploader_preview_" + self.Random, 1000);
                         let interval = setInterval(function () {
-                            var img = document.getElementById('si_media_preview_image');
-                            if (img.style.display === 'none') {
-                                img.parentElement.removeChild(img);
-                                progressbar.style.display = 'none';
+                            var preview = document.getElementById("si_uploader_preview_" + self.Random);
+                            if (preview.style.display === 'none') {
+                                preview.parentElement.removeChild(preview);
+                                self.ProgressBar.style.display = 'none';
                                 clearInterval(interval);
+
                             }
                         }, 500);
                     }, 1000);
-                    
-                }
-            }
-        }
-        //debugger;
-        xhr.send(formData);
-    }
 
-    var PreviewFile = function (file) {
-        //   if (tests.filereader === true && acceptedTypes[file.type] === true) {
+                }
+            };
+        }
+        xhr.send(formData);
+    };
+    this.Tests = {
+        filereader: typeof FileReader !== 'undefined',
+        formdata: !!window.FormData,
+        progress: "upload" in new XMLHttpRequest
+    };
+    this.PreviewFile = function (file) {
+
         var reader = new FileReader();
         reader.onload = function (event) {
 
-            var obj = null;
-            //debugger;
-            if (file.type.startsWith("image/")) {
-                obj = new Image();
-                obj.src = event.target.result;
-            } else if (file.type.startsWith("audio/")) {
-                obj = new Audio();
-                obj.src = event.target.result;
-            } else if (file.type.startsWith("video/")) {
-                obj = Ele('video', {
-                    style: {
-                        verticalAlign: 'middle',
-                    }
+            let type = file.type.split('/')[0];
+            let obj = null;
 
-                });
-                Ele('source', {
-                    src: event.target.result,
-                    appendTo: obj,
-                });
-                obj.currentTime += 5;
-              //  obj.src = event.target.result;
-            } else if (file.type.startsWith("text/")) {
+            switch (type) {
+                case "image":
+                    obj = new Image();
+                    obj.src = event.target.result;
+                    break;
+                case "audio":
+                    obj = new Audio();
+                    obj.src = event.target.result;
+                    break;
+                case "video":
+                    obj = Ele('video', {
+                        style: {
+                            verticalAlign: 'middle',
+                        }
+
+                    });
+                    Ele('source', {
+                        src: event.target.result,
+                        appendTo: obj,
+                    });
+                    obj.currentTime += 5;
+                    break;
+                case "text": break;
+                default: break;
 
             }
-            if (obj == null) {
+
+            if (obj === null) {
                 obj = new Image();
                 obj.src = 'editor/media/images/nopreviewavailable.jpg';
             }
-            obj.id = 'si_media_preview_image';
+
+            obj.id = "si_uploader_preview_" + self.Random;
             obj.width = 250; // a fake resize
             obj.style.position = "absolute";
             obj.style.top = '-28px';
             obj.style.left = '-26px';
-            container.appendChild(obj);
+            self.Container.appendChild(obj);
         };
-
         reader.readAsDataURL(file);
-        //   } else {
-        //       container.innerHTML += '<p>Uploaded ' + file.name + ' ' + (file.size ? (file.size / 1024 | 0) + 'K' : '');
-        //      console.log(file);
-        //   }
+
     }
 
+    if (this.Options.Parent) {
+        this.Options.Parent.appendChild(container);
+    }
 
-    //if we have a parent, append to it, if not return the container element.
-    if (options.ParentId.length > 0) {
-        var par = document.getElementById(options.ParentId);
-        if (par != null) {
-            par.appendChild(this.Container);
-            return;
-        }
-    }     
-    return this.Container;
-}
-
+    return this;
+};

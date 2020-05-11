@@ -73,6 +73,38 @@ class Setting {
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGDELETED'] = $kvp;
 		}
 	}
+
+	function Relate($post){
+		try{
+			$isnew = false;
+			if($post['KEY']==="BlockNew"){$isnew = true;}
+			 
+			$pageid = !isset($post['pageid']) ? null : $post['pageid'];
+			$settingid = !isset($post['settingid']) ? null : $post['settingid'];
+			if($pageid && $settingid){
+				//get the block that were relating to the page
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGRELATED'] = array();
+				$relatedid = $db->NewRelatedEntity("pages",$pageid,"settings", $settingid);
+				if($relatedid != null){
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['RELID'] = $relatedid;
+				}
+				return $relatedid;
+			}
+		}catch(Exception $ex){
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
+		}
+
+	}
+
+	function Remove($post){
+	    if(isset($post['linkid'])  ){
+			Tools::Log("Removing relation:".$post['linkid']);
+			$dbc = new Database();
+			$dbc->RemoveRelation($post['linkid']);
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGREMOVED'] = "Block removed";
+		}
+	}
+
 }
 
 

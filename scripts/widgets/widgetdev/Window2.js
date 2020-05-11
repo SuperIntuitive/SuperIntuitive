@@ -48,7 +48,7 @@ class Window2 extends Widget{
         //Make options available to this.
         options = Tools.Object.SetDefaults(options, this.Defaults);
         //once set, put them into this
-        for(name in options){
+        for(let name in options){
             if(options.hasOwnProperty(name)){
                 let value = options[name];
                 this[name] = value; 

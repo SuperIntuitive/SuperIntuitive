@@ -1,0 +1,4244 @@
+{
+  "align-content": {
+    "groups": [
+      "Position",
+      "Flex"
+    ],
+    "default": "stretch",
+    "discription": "Specifies the alignment between the lines inside a flexible container when the items do not use all available space",
+    "values": [
+      "stretch",
+      "center",
+      "flex-start",
+      "flex-end",
+      "space-between",
+      "space-around"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_align-content.asp",
+      "mdn": "/en-US/docs/Web/CSS/align-content"
+    }
+  },
+  "align-items": {
+    "groups": [
+      "Position",
+      "Flex"
+    ],
+    "default": "stretch",
+    "discription": "Specifies the alignment for items inside a flexible container",
+    "values": [
+      "stretch",
+      "center",
+      "flex-start",
+      "flex-end",
+      "baseline"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_align-items.asp",
+      "mdn": "/en-US/docs/Web/CSS/align-items"
+    }
+  },
+  "align-self": {
+    "groups": [
+      "Position",
+      "Flex"
+    ],
+    "default": "auto",
+    "discription": "Specifies the alignment for selected items inside a flexible container",
+    "values": [
+      "auto",
+      "stretch",
+      "center",
+      "flex-start",
+      "flex-end",
+      "baseline"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_align-self.asp",
+      "mdn": "/en-US/docs/Web/CSS/align-self"
+    }
+  },
+  "all": {
+    "groups": [
+      "Modify"
+    ],
+    "default": "none",
+    "discription": "The all property resets all properties, apart from unicode-bidi and direction, to their initial or inherited value.",
+    "values": "revert",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_all.asp",
+      "mdn": "/en-US/docs/Web/CSS/all"
+    }
+  },
+  "animation": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "none 0s ease 0s 1 normal none running",
+    "discription": "The shorthand property for all animation properties",
+    "shorthand": [
+      "animation-name",
+      "animation-duration",
+      "animation-timing-function",
+      "animation-delay",
+      "animation-iteration-count",
+      "animation-direction",
+      "animation-fill-mode",
+      "animation-play-state"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation"
+    }
+  },
+  "animation-delay": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "0s",
+    "discription": "Sets when an animation starts. The animation can start later, immediately from its beginning, or immediately and partway through the animation.",
+    "values": [
+      "TIME"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-delay.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-delay"
+    }
+  },
+  "animation-direction": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "normal",
+    "discription": "Sets whether an animation should play forwards, backwards, or alternating back and forth.",
+    "values": [
+      "normal",
+      "reverse",
+      "alternate",
+      "alternate-reverse"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-direction.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-direction"
+    }
+  },
+  "animation-duration": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "0s",
+    "discription": "Sets the length of time that an animation takes to complete one cycle.",
+    "values": [
+      "TIME"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-duration.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-duration"
+    }
+  },
+  "animation-fill-mode": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "none",
+    "discription": "Sets how an animation applies styles to its target before and after its execution.",
+    "values": [
+      "none",
+      "forwards",
+      "backwards",
+      "both"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-fill-mode.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-fill-mode"
+    }
+  },
+  "animation-iteration-count": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "1",
+    "discription": "Specifies the number of times an animation should be played",
+    "values": [
+      "NUM",
+      "infinite"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-iteration-count.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-iteration-count"
+    }
+  },
+  "animation-name": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "none",
+    "discription": "Specifies a name for the @keyframes animation",
+    "values": [
+      "none",
+      "KEYFRAMES"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-name.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-name"
+    }
+  },
+  "animation-play-state": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "running",
+    "discription": "Specifies whether the animation is running or paused",
+    "values": [
+      "paused",
+      "running"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-play-state.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-play-state"
+    }
+  },
+  "animation-timing-function": {
+    "groups": [
+      "Animation"
+    ],
+    "default": "ease",
+    "discription": "Specifies the speed curve of an animation",
+    "values": [
+      "linear",
+      "ease",
+      "ease-in",
+      "ease-out",
+      "ease-in-out",
+      "step-start",
+      "step-end",
+      "STEPS",
+      "CUBICBEZIER"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_animation-timing-function.asp",
+      "mdn": "/en-US/docs/Web/CSS/animation-timing-function"
+    }
+  },
+  "backface-visibility": {
+    "groups": [
+      "Animation",
+      "3D"
+    ],
+    "discription": "Defines whether or not the back face of an element should be visible when facing the user",
+    "values": [
+      "visible",
+      "hidden"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_backface-visibility.asp",
+      "mdn": "/en-US/docs/Web/CSS/backface-visibility"
+    }
+  },
+  "background": {
+    "groups": [
+      "Background"
+    ],
+    "discription": "A shorthand property for setting all the background properties in one declaration",
+    "shorthand": [
+      "background-color",
+      "background-image",
+      "background-position",
+      "background-size",
+      "background-repeat",
+      "background-origin",
+      "background-clip",
+      "background-attachment"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_background.asp",
+      "mdn": "/en-US/docs/Web/CSS/background"
+    }
+  },
+  "background-attachment": {
+    "groups": [
+      "Background",
+      "Position"
+    ],
+    "discription": "Sets whether a background image scrolls with the rest of the page, or is fixed",
+    "values": [
+      "scroll",
+      "fixed",
+      "local"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_background-attachment.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-attachment"
+    }
+  },
+  "background-blend-mode": {
+    "groups": [
+      "Background",
+      "Color"
+    ],
+    "discription": "Specifies the blending mode of each background layer (color/image)",
+    "values": [
+      "normal",
+      "multiply",
+      "screen",
+      "overlay",
+      "darken",
+      "lighten",
+      "color-dodge",
+      "color-burn",
+      "hard-light",
+      "soft-light",
+      "difference",
+      "exclusion",
+      "hue",
+      "saturation",
+      "color",
+      "luminosity"
+    ],
+    "settings": {
+      "animatable": false,
+      "multival": "i"
+    },
+    "help": {
+      "w3": "/cssref/pr_background-blend-mode.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-blend-mode"
+    }
+  },
+  "background-clip": {
+    "groups": [
+      "Background",
+      "Position",
+      "Color"
+    ],
+    "discription": "Defines how far the background (color or image) should extend within an element",
+    "values": [
+      "border-box",
+      "padding-box",
+      "content-box"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_background-clip.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-clip"
+    }
+  },
+  "background-color": {
+    "groups": [
+      "Color",
+      "Background"
+    ],
+    "discription": "Specifies the background color of an element",
+    "values": [
+      "COLOR",
+      "transparent"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_background-color.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-color"
+    }
+  },
+  "background-image": {
+    "groups": [
+      "Background",
+      "Image"
+    ],
+    "discription": "Specifies one or more background images for an element",
+    "values": [
+      "URL",
+      "COLOR",
+      "GRADIENT",
+      "none"
+    ],
+    "settings": {
+      "animatable": false,
+      "multiback": "csv"
+    },
+    "help": {
+      "w3": "/cssref/pr_background-image.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-image"
+    }
+  },
+  "background-origin": {
+    "groups": [
+      "Background"
+    ],
+    "discription": "Specifies the origin position of a background image",
+    "values": [
+      "padding-box",
+      "border-box",
+      "content-box"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_background-origin.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-origin"
+    }
+  },
+  "background-position": {
+    "groups": [
+      "Background",
+      "Position"
+    ],
+    "discription": "Specifies the position of a background image",
+    "values": [
+      "left",
+      "right",
+      "center",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true,
+      "multival": 2
+    },
+    "help": {
+      "w3": "/cssref/pr_background-position.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-position"
+    }
+  },
+  "background-repeat": {
+    "groups": [
+      "Background",
+      "Position"
+    ],
+    "discription": "Sets if/how a background image will be repeated",
+    "values": [
+      "repeat",
+      "repeat-x",
+      "repeat-y",
+      "no-repeat"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_background-repeat.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-repeat"
+    }
+  },
+  "background-size": {
+    "groups": [
+      "Background",
+      "Size"
+    ],
+    "discription": "Specifies the size of the background images",
+    "values": [
+      "LEN",
+      "auto",
+      "cover",
+      "contain"
+    ],
+    "settings": {
+      "animatable": true,
+      "multival": [
+        2,
+        "LEN",
+        "auto"
+      ],
+      "multiback": "csv"
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_background-size.asp",
+      "mdn": "/en-US/docs/Web/CSS/background-size"
+    }
+  },
+  "border": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "A shorthand property for border-width, border-style and border-color",
+    "shorthand": [
+      "border-width",
+      "border-style",
+      "border-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border.asp",
+      "mdn": "/en-US/docs/Web/CSS/border"
+    }
+  },
+  "border-bottom": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "A shorthand property for setting all the bottom border properties in one declaration",
+    "shorthand": [
+      "border-width",
+      "border-style",
+      "border-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-bottom.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-bottom"
+    }
+  },
+  "border-bottom-color": {
+    "groups": [
+      "Border",
+      "Color"
+    ],
+    "discription": "Sets the color of the bottom border",
+    "values": [
+      "COLOR",
+      "transparent"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-bottom_color.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-bottom-color"
+    }
+  },
+  "border-bottom-left-radius": {
+    "groups": [
+      "Border",
+      "Radius"
+    ],
+    "discription": "Defines the radius of the border of the bottom-left corner",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-bottom-left-radius.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-bottom-left-radius"
+    }
+  },
+  "border-bottom-right-radius": {
+    "groups": [
+      "Border",
+      "Radius"
+    ],
+    "discription": "Defines the radius of the border of the bottom-right corner",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-bottom-right-radius.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-bottom-right-radius"
+    }
+  },
+  "border-bottom-style": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the style of the bottom border",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-bottom_style.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-bottom-style"
+    }
+  },
+  "border-bottom-width": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the width of the bottom border",
+    "values": [
+      "medium",
+      "thin",
+      "thick",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-bottom_width.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-bottom-width"
+    }
+  },
+  "border-collapse": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets whether table borders should collapse into a single border or be separated",
+    "values": [
+      "separate",
+      "collapse"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-collapse.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-collapse"
+    }
+  },
+  "border-color": {
+    "groups": [
+      "Border",
+      "Color"
+    ],
+    "discription": "Sets the color of the four borders",
+    "values": [
+      "COLOR",
+      "transparent"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-color.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-color"
+    }
+  },
+  "border-image": {
+    "groups": [
+      "Border",
+      "Image"
+    ],
+    "groups": [
+      "Border",
+      "Image"
+    ],
+    "discription": "A shorthand property for setting all the border-image-* properties",
+    "shorthand": [
+      "border-image-source",
+      "border-image-slice",
+      "border-image-width",
+      "border-image-outset",
+      "border-image-repeat"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-image.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-image"
+    }
+  },
+  "border-image-outset": {
+    "groups": [
+      "Border",
+      "Image",
+      "Position"
+    ],
+    "discription": "Specifies the amount by which the border image area extends beyond the border box",
+    "values": [
+      "LEN",
+      "NUM"
+    ],
+    "settings": {
+      "animatable": false,
+      "multival": 4
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-image-outset.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-image-outset"
+    }
+  },
+  "border-image-repeat": {
+    "groups": [
+      "Border",
+      "Image"
+    ],
+    "groups": [
+      "Border",
+      "Image",
+      "Position"
+    ],
+    "discription": "Specifies whether the border image should be repeated, rounded or stretched",
+    "values": [
+      "stretch",
+      "repeat",
+      "round"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-image-repeat.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-image-repeat"
+    }
+  },
+  "border-image-slice": {
+    "groups": [
+      "Border",
+      "Image",
+      "Position"
+    ],
+    "discription": "Specifies how to slice the border image",
+    "values": [
+      "NUM",
+      "PERCENT",
+      "fill"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-image-slice.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-image-slice"
+    }
+  },
+  "border-image-source": {
+    "groups": [
+      "Border",
+      "Image"
+    ],
+    "discription": "Specifies the path to the image to be used as a border",
+    "values": [
+      "URL",
+      "none",
+      "IMAGE",
+      "GRADIENT"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-image-source.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-image-source"
+    }
+  },
+  "border-image-width": {
+    "groups": [
+      "Border",
+      "Image",
+      "Size"
+    ],
+    "discription": "Specifies the width of the border image",
+    "values": [
+      "NUM",
+      "PERCENT",
+      "auto"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-image-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-image-width"
+    }
+  },
+  "border-left": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "A shorthand property for setting all the left border properties in one declaration",
+    "shorthand": [
+      "border-width",
+      "border-style",
+      "border-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-left.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-left"
+    }
+  },
+  "border-left-color": {
+    "groups": [
+      "Border",
+      "Color"
+    ],
+    "discription": "Sets the color of the left border",
+    "values": [
+      "COLOR",
+      "transparent"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-left_color.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-left-color"
+    }
+  },
+  "border-left-style": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the style of the left border",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-left_style.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-left-style"
+    }
+  },
+  "border-left-width": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the width of the left border",
+    "values": [
+      "medium",
+      "thin",
+      "thick",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-left_width.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-left-width"
+    }
+  },
+  "border-radius": {
+    "groups": [
+      "Border",
+      "Radius"
+    ],
+    "discription": "A shorthand property for setting all the four border-*-radius properties. \nSetting 1 value will apply to all 4 corners, \nSetting 2 values will pair the opposite corners, \nSetting 3 will set the top-left, the top-right and bottom-left, and the bottom-right, \nSetting 4 values will apply the 4 radii clockwise starting from the top-left",
+    "shorthand": [
+      "border-top-left-radius",
+      "border-top-right-radius",
+      "border-bottom-right-radius",
+      "border-bottom-left-radius"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-radius.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-radius"
+    }
+  },
+  "border-right": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "A shorthand property for setting all the right border properties in one declaration",
+    "shorthand": [
+      "border-width",
+      "border-style",
+      "border-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-right.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-right"
+    }
+  },
+  "border-right-color": {
+    "groups": [
+      "Border",
+      "Color"
+    ],
+    "discription": "Sets the color of the right border",
+    "values": [
+      "COLOR",
+      "transparent"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-right_color.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-right-color"
+    }
+  },
+  "border-right-style": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the style of the right border",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-right_style.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-right-style"
+    }
+  },
+  "border-right-width": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the width of the right border",
+    "values": [
+      "LEN",
+      "medium",
+      "thin",
+      "thick"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-right_width.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-right-width"
+    }
+  },
+  "border-spacing": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the distance between the borders of adjacent cells",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-spacing.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-spacing"
+    }
+  },
+  "border-style": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the style of the four borders",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-style"
+    }
+  },
+  "border-top": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "A shorthand property for setting all the top border properties in one declaration",
+    "shorthand": [
+      "border-width",
+      "border-style",
+      "border-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-top.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-top"
+    }
+  },
+  "border-top-color": {
+    "groups": [
+      "Border",
+      "Color"
+    ],
+    "discription": "Sets the color of the top border",
+    "values": [
+      "COLOR",
+      "transparent"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-top_color.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-top-color"
+    }
+  },
+  "border-top-left-radius": {
+    "groups": [
+      "Border",
+      "Radius"
+    ],
+    "discription": "Defines the radius of the border of the top-left corner",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-top-left-radius.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-top-left-radius"
+    }
+  },
+  "border-top-right-radius": {
+    "groups": [
+      "Border",
+      "Radius"
+    ],
+    "discription": "Defines the radius of the border of the top-right corner",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_border-top-right-radius.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-top-right-radius"
+    }
+  },
+  "border-top-style": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the style of the top border",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-top_style.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-top-style"
+    }
+  },
+  "border-top-width": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the width of the top border",
+    "values": [
+      "LEN",
+      "medium",
+      "thin",
+      "thick"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_border-top_width.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-top-width"
+    }
+  },
+  "border-width": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the width of the four borders",
+    "values": [
+      "LEN",
+      "medium",
+      "thin",
+      "thick"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_border-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/border-width"
+    }
+  },
+  "bottom": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Sets the elements position, from the bottom of its parent element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_bottom.asp",
+      "mdn": "/en-US/docs/Web/CSS/bottom"
+    }
+  },
+  "box-decoration-break": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the behavior of the background and border of an element at page-break, or, for in-line elements, at line-break.",
+    "values": [
+      "slice",
+      "clone"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_box-decoration-break.asp",
+      "mdn": "/en-US/docs/Web/CSS/box-decoration-break"
+    }
+  },
+  "box-shadow": {
+    "groups": [
+      "Text",
+      "Color"
+    ],
+    "discription": "Attaches one or more shadows to an element",
+    "values": [
+      "COLOR",
+      "none",
+      "h-offset",
+      "v-offset",
+      "blur",
+      "spread",
+      "inset"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_box-shadow.asp",
+      "mdn": "/en-US/docs/Web/CSS/box-shadow"
+    }
+  },
+  "box-sizing": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Defines how the width and height of an element are calculated: should they include padding and borders, or not",
+    "values": [
+      "content-box",
+      "border-box"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_box-sizing.asp",
+      "mdn": "/en-US/docs/Web/CSS/box-sizing"
+    }
+  },
+  "break-after": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the page-, column-, or region-break behavior after the generated box",
+    "values": [
+      "auto",
+      "avoid",
+      "avoid-page",
+      "page",
+      "always",
+      "left",
+      "right",
+      "recto",
+      "verso",
+      "avoid-column",
+      "column",
+      "avoid-region",
+      "region"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/break-after"
+    },
+    "nocompat": [
+      "FF",
+      "Safari"
+    ]
+  },
+  "break-before": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the page-, column-, or region-break behavior before the generated box",
+    "values": [
+      "auto",
+      "avoid",
+      "avoid-page",
+      "page",
+      "always",
+      "left",
+      "right",
+      "recto",
+      "verso",
+      "avoid-column",
+      "column",
+      "avoid-region",
+      "region"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/break-before"
+    },
+    "nocompat": [
+      "FF",
+      "Safari"
+    ]
+  },
+  "break-inside": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the page-, column-, or region-break behavior inside the generated box",
+    "values": [
+      "auto",
+      "avoid",
+      "avoid-page",
+      "avoid-column",
+      "avoid-range"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/break-inside"
+    }
+  },
+  "caption-side": {
+    "groups": [
+      "Text",
+      "Position"
+    ],
+    "discription": "Specifies the placement of a table caption",
+    "values": [
+      "top",
+      "bottom"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_tab_caption-side.asp",
+      "mdn": "/en-US/docs/Web/CSS/caption-side"
+    }
+  },
+  "caret-color": {
+    "groups": [
+      "Text",
+      "Color"
+    ],
+    "discription": "Specifies the color of the cursor (caret) in inputs, textareas, or any element that is editable",
+    "values": [
+      "COLOR",
+      "auto"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_caret-color.asp",
+      "mdn": "/en-US/docs/Web/CSS/caret-color"
+    }
+  },
+  "clear": {
+    "groups": [],
+    "discription": "Specifies on which sides of an element floating elements are not allowed to float",
+    "values": [
+      "none",
+      "left",
+      "right",
+      "both"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_class_clear.asp",
+      "mdn": "/en-US/docs/Web/CSS/clear"
+    }
+  },
+  "clip-path": {
+    "groups": [],
+    "discription": "Clips an absolutely positioned element",
+    "values": [
+      "SHAPE",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_clip.asp",
+      "mdn": "/en-US/docs/Web/CSS/clip"
+    }
+  },
+  "color": {
+    "groups": [
+      "Color"
+    ],
+    "discription": "Sets the color of text",
+    "values": "COLOR",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_text_color.asp",
+      "mdn": "/en-US/docs/Web/CSS/color"
+    }
+  },
+  "column-count": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies the number of columns an element should be divided into",
+    "values": [
+      "NUM",
+      "auto"
+    ],
+    "settings": {
+      "groups": [],
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-count.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-count"
+    }
+  },
+  "column-fill": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies how to fill columns, balanced or not",
+    "values": [
+      "balance",
+      "auto"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-fill.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-fill"
+    }
+  },
+  "column-gap": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies the gap between the columns",
+    "values": [
+      "LEN",
+      "normal"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-gap.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-gap"
+    }
+  },
+  "column-rule": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "A shorthand property for setting all the column-rule-* properties",
+    "shorthand": [
+      "column-rule-width",
+      "column-rule-style",
+      "column-rule-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-rule.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-rule"
+    }
+  },
+  "column-rule-color": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies the color of the rule between columns",
+    "values": "COLOR",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-rule-color.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-rule-color"
+    }
+  },
+  "column-rule-style": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies the style of the rule between columns",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-rule-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-rule-style"
+    }
+  },
+  "column-rule-width": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies the width of the rule between columns",
+    "values": [
+      "LEN",
+      "medium",
+      "thin",
+      "thick"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-rule-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-rule-width"
+    }
+  },
+  "columns": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "A shorthand property for setting column-width and column-count",
+    "shorthand": [
+      "column-width",
+      "column-count"
+    ],
+    "values": [
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_columns.asp",
+      "mdn": "/en-US/docs/Web/CSS/columns"
+    }
+  },
+  "column-span": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies how many columns an element should span across",
+    "values": [
+      "NUM",
+      "none",
+      "all"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-span.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-span"
+    }
+  },
+  "column-width": {
+    "groups": [
+      "Columns"
+    ],
+    "discription": "Specifies the column width",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_column-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/column-width"
+    }
+  },
+  "content": {
+    "groups": [
+      "Modify"
+    ],
+    "discription": "Used with the :before and :after pseudo-elements, to insert generated content",
+    "values": [
+      "STRING",
+      "URL",
+      "normal",
+      "none",
+      "counter",
+      "attr",
+      "open-quote",
+      "close-quote",
+      "no-open-quote",
+      "no-close-quote"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_gen_content.asp",
+      "mdn": "/en-US/docs/Web/CSS/content"
+    }
+  },
+  "counter-increment": {
+    "groups": [
+      "Modify"
+    ],
+    "discription": "Increases or decreases the value of one or more CSS counters",
+    "values": [
+      "ID",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_gen_counter-increment.asp",
+      "mdn": "/en-US/docs/Web/CSS/counter-increment"
+    }
+  },
+  "counter-reset": {
+    "groups": [
+      "Modify"
+    ],
+    "discription": "Creates or resets one or more CSS counters",
+    "values": [
+      "NUM",
+      "none",
+      "name"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_gen_counter-reset.asp",
+      "mdn": "/en-US/docs/Web/CSS/counter-reset"
+    }
+  },
+  "cursor": {
+    "groups": [
+      "Event"
+    ],
+    "discription": "Specifies the mouse cursor to be displayed when pointing over an element",
+    "values": [
+      "alias",
+      "all-scroll",
+      "auto",
+      "cell",
+      "context-menu",
+      "col-resize",
+      "copy",
+      "crosshair",
+      "default",
+      "e-resize",
+      "ew-resize",
+      "grab",
+      "grabbing",
+      "help",
+      "move",
+      "n-resize",
+      "ne-resize",
+      "nesw-resize",
+      "ns-resize",
+      "nw-resize",
+      "nwse-resize",
+      "no-drop",
+      "none",
+      "not-allowed",
+      "pointer",
+      "progress",
+      "row-resize",
+      "s-resize",
+      "se-resize",
+      "sw-resize",
+      "text",
+      "url(URL)",
+      "auto",
+      "w-resize",
+      "wait",
+      "zoom-in",
+      "zoom-out"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_class_cursor.asp",
+      "mdn": "/en-US/docs/Web/CSS/cursor"
+    }
+  },
+  "direction": {
+    "groups": [],
+    "discription": "Specifies the text direction/writing direction",
+    "values": [
+      "ltr",
+      "rtl"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_text_direction.asp",
+      "mdn": "/en-US/docs/Web/CSS/direction"
+    }
+  },
+  "display": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies how a certain HTML element should be displayed",
+    "values": [
+      "inline",
+      "block",
+      "flex",
+      "inline-block",
+      "inline-flex",
+      "inline-table",
+      "list-item",
+      "run-in",
+      "table",
+      "table-caption",
+      "table-column-group",
+      "table-header-group",
+      "table-footer-group",
+      "table-row-group",
+      "table-cell",
+      "table-column",
+      "table-row",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_class_display.asp",
+      "mdn": "/en-US/docs/Web/CSS/display"
+    }
+  },
+  "empty-cells": {
+    "groups": [
+      "Table"
+    ],
+    "discription": "Specifies whether or not to display borders and background on empty cells in a table",
+    "values": [
+      "show",
+      "hide"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_tab_empty-cells.asp",
+      "mdn": "/en-US/docs/Web/CSS/empty-cells"
+    }
+  },
+  "filter": {
+    "groups": [
+      "Color"
+    ],
+    "discription": "Defines effects (e.g. blurring or color shifting) on an element before the element is displayed",
+    "values": [
+      "none ",
+      "FILTER"
+    ],
+    "notes": [
+      "blur(#px) ",
+      "brightness(#%)",
+      "contrast(#%)",
+      "drop-shadow(#px #px o#px oCOLOR)",
+      "grayscale(#%)",
+      "hue-rotate(°)",
+      "invert(#%)",
+      "opacity(#%)",
+      "saturate(#%)",
+      "sepia(#%)",
+      "url()"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_filter.asp",
+      "mdn": "/en-US/docs/Web/CSS/filter"
+    }
+  },
+  "flex": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies the length of the item, relative to the rest",
+    "shorthand": [
+      "flex-grow",
+      "flex-shrink",
+      "flex-basis"
+    ],
+    "values": [
+      "auto",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex"
+    }
+  },
+  "flex-basis": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies the initial length of a flexible item",
+    "values": [
+      "NUM",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex-basis.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex-basis"
+    }
+  },
+  "flex-direction": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies the direction of the flexible items",
+    "values": [
+      "row",
+      "row-reverse",
+      "column",
+      "column-reverse"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex-direction.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex-direction"
+    }
+  },
+  "flex-flow": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "A shorthand property for the flex-direction and the flex-wrap properties",
+    "shorthand": [
+      "flex-direction",
+      "flex-wrap"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex-flow.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex-flow"
+    }
+  },
+  "flex-grow": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies how much the item will grow relative to the rest",
+    "values": "NUM",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex-grow.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex-grow"
+    }
+  },
+  "flex-shrink": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies how the item will shrink relative to the rest",
+    "values": "NUM",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex-shrink.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex-shrink"
+    }
+  },
+  "flex-wrap": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies whether the flexible items should wrap or not",
+    "values": [
+      "nowrap",
+      "wrap",
+      "wrap-reverse"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_flex-wrap.asp",
+      "mdn": "/en-US/docs/Web/CSS/flex-wrap"
+    }
+  },
+  "float": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies whether or not a box should float",
+    "values": [
+      "none",
+      "left",
+      "right"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_class_float.asp",
+      "mdn": "/en-US/docs/Web/CSS/float"
+    }
+  },
+  "font": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Sets all the font properties in one declaration",
+    "shorthand": [
+      "font-style",
+      "font-variant",
+      "font-weight",
+      "font-size/line-height",
+      "font-family"
+    ],
+    "values": [
+      "caption",
+      "icon",
+      "menu",
+      "message-box",
+      "small-caption",
+      "status-bar"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_font_font.asp",
+      "mdn": "/en-US/docs/Web/CSS/font"
+    }
+  },
+  "font-family": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Specifies the font family for text",
+    "values": [
+      "FONTFAMILY",
+      "auto",
+      "normal",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_font_font-family.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-family"
+    }
+  },
+  "font-feature-settings": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Allows control over advanced typographic features in OpenType fonts",
+    "values": [
+      [
+        "smcp",
+        "c2sc",
+        "liga",
+        "dlig",
+        "frac",
+        "kern"
+      ],
+      [
+        0,
+        1,
+        "on",
+        "off"
+      ]
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/font-feature-settings"
+    }
+  },
+  "font-kerning": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Controls the usage of the kerning information (how letters are spaced)",
+    "values": [
+      "auto",
+      "normal",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_font-kerning.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-kerning"
+    }
+  },
+  "font-size": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Specifies the font size of text",
+    "values": [
+      "medium",
+      "xx-small",
+      "x-small",
+      "small",
+      "large",
+      "x-large",
+      "xx-large",
+      "smaller",
+      "larger",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_font_font-size.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-size"
+    }
+  },
+  "font-size-adjust": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Preserves the readability of text when font fallback occurs",
+    "values": [
+      "NUM",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_font-size-adjust.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-size-adjust"
+    }
+  },
+  "font-stretch": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Selects a normal, condensed, or expanded face from a font family",
+    "values": [
+      "ultra-condensed",
+      "extra-condensed",
+      "condensed",
+      "semi-condensed",
+      "normal",
+      "semi-expanded",
+      "expanded",
+      "extra-expanded",
+      "ultra-expanded"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_font-stretch.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-stretch"
+    }
+  },
+  "font-style": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Specifies the font style for text",
+    "values": [
+      "normal",
+      "italic",
+      "oblique"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_font_font-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-style"
+    }
+  },
+  "font-variant": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Specifies whether or not a text should be displayed in a small-caps font",
+    "values": [
+      "normal",
+      "small-caps"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_font_font-variant.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-variant"
+    }
+  },
+  "font-variant-caps": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Controls the usage of alternate glyphs for capital letters",
+    "values": [
+      "normal",
+      "small-caps",
+      "all-small-caps",
+      "petite-caps",
+      "all-petite-caps",
+      "unicase",
+      "titling-caps"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/font-variant-caps"
+    }
+  },
+  "font-variant-east-asian": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Controls the usage of alternate glyphs for East Asian scripts (e.g Japanese and Chinese)",
+    "values": [
+      "normal",
+      "ruby",
+      "jis78",
+      "jis83",
+      "jis90",
+      "jis04",
+      "simplified",
+      "traditional",
+      "full-width",
+      "proportional-width",
+      "rubyfull-widthjis83"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/font-variant-east-asian"
+    }
+  },
+  "font-variant-ligatures": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Controls which ligatures and contextual forms are used in textual content of the elements it applies to",
+    "values": [
+      "normal",
+      "none",
+      "common-ligatures",
+      "no-common-ligatures",
+      "discretionary-ligatures",
+      "no-discretionary-ligatures",
+      "historical-ligatures",
+      "no-historical-ligatures",
+      "contextual",
+      "no-contextual",
+      "contextual",
+      "inherit",
+      "initial",
+      "unset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/font-variant-ligatures"
+    }
+  },
+  "font-variant-numeric": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Controls the usage of alternate glyphs for numbers, fractions, and ordinal markers",
+    "values": [
+      "normal",
+      "ordinal",
+      "slashed-zero",
+      "lining-nums",
+      "oldstyle-nums",
+      "proportional-nums",
+      "tabular-nums",
+      "diagonal-fractions",
+      "stacked-fractions",
+      "oldstyle-numsstacked-fractions"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/font-variant-numeric"
+    }
+  },
+  "font-variant-position": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Controls the usage of alternate glyphs of smaller size positioned as superscript or subscript regarding the baseline of the font",
+    "values": [
+      "normal",
+      "sub",
+      "super"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/font-variant-position"
+    }
+  },
+  "font-weight": {
+    "groups": [
+      "Font"
+    ],
+    "discription": "Specifies the weight of a font",
+    "values": [
+      "normal",
+      "bold",
+      "bolder",
+      "lighter",
+      "NUM"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_font_weight.asp",
+      "mdn": "/en-US/docs/Web/CSS/font-weight"
+    }
+  },
+  "grid": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "A shorthand property",
+    "shorthand": [
+      "grid-template-rows",
+      "grid-template-columns",
+      "grid-template-areas",
+      "grid-auto-rows",
+      "grid-auto-columns",
+      "grid-auto-flow"
+    ],
+    "values": [
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid"
+    }
+  },
+  "grid-area": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Either specifies a name for the grid item, or this property is a shorthand property for the grid-row-start, grid-column-start, grid-row-end, and grid-column-end properties",
+    "shorthand": [
+      "grid-row-start",
+      "grid-columns-start",
+      "grid-row-end",
+      "grid-column-end"
+    ],
+    "values": [
+      "GRIDNAME"
+    ],
+    "settings": {
+      "animatable": false,
+      "divider": "/",
+      "divrequired": "betweenEach"
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-area.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-area"
+    }
+  },
+  "grid-auto-columns": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies a default column size",
+    "values": [
+      "LEN",
+      "auto",
+      "max-content",
+      "min-content"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-auto-columns.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-auto-columns"
+    }
+  },
+  "grid-auto-flow": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies how auto-placed items are inserted in the grid",
+    "values": [
+      "row",
+      "columns",
+      "row dense",
+      "column dense"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-auto-flow.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-auto-flow"
+    }
+  },
+  "grid-auto-rows": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies a default row size",
+    "values": [
+      "LEN",
+      "auto",
+      "max-content",
+      "min-content"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-auto-rows.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-auto-rows"
+    }
+  },
+  "grid-column": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "A shorthand property for the grid-column-start and the grid-column-end properties",
+    "shorthand": [
+      "grid-columns-start",
+      "grid-column-end"
+    ],
+    "settings": {
+      "animatable": false,
+      "divider": "/",
+      "divrequired": "betweenEach"
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-column.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-column"
+    }
+  },
+  "grid-column-end": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies where to end the grid item",
+    "values": [
+      "auto",
+      "column-line",
+      "SPAN"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-column-end.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-column-end"
+    }
+  },
+  "grid-column-gap": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies the size of the gap between columns",
+    "values": "LEN",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-column-gap.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-column-gap"
+    }
+  },
+  "grid-column-start": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies where to start the grid item",
+    "values": [
+      "auto",
+      "column-line"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-column-start.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-column-start"
+    }
+  },
+  "grid-gap": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "A shorthand property for the grid-row-gap and grid-column-gap properties",
+    "shorthand": [
+      "grid-row-gap",
+      "grid-column-gap"
+    ],
+    "values": [
+      "CALC"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-gap.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-gap"
+    }
+  },
+  "grid-row": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "A shorthand property for the grid-row-start and the grid-row-end properties",
+    "shorthand": [
+      "grid-row-start",
+      "grid-row-end"
+    ],
+    "settings": {
+      "animatable": false,
+      "divider": "/",
+      "divrequired": "betweenEach"
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-row.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-row"
+    }
+  },
+  "grid-row-end": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies where to end the grid item",
+    "values": [
+      "auto",
+      "row-line",
+      "SPAN"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-row-end.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-row-end"
+    }
+  },
+  "grid-row-gap": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies the size of the gap between rows",
+    "values": "LEN",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-row-gap.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-row-gap"
+    }
+  },
+  "grid-row-start": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies where to start the grid item",
+    "values": [
+      "auto",
+      "NUM"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-row-start.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-row-start"
+    }
+  },
+  "grid-template": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "A shorthand property for the grid-template-rows, grid-template-columns and grid-areas properties",
+    "shorthand": [
+      "grid-template-rows",
+      "grid-template-columns",
+      "grid-template-areas"
+    ],
+    "settings": {
+      "animatable": false,
+      "divider": "/",
+      "divrequired": "after2"
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-template.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-template"
+    }
+  },
+  "grid-template-areas": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies how to display columns and rows, using named grid items",
+    "values": [
+      "none",
+      "GRIDAREA"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-template-areas.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-template-areas"
+    }
+  },
+  "grid-template-columns": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies the size of the columns, and how many columns in a grid layout",
+    "values": [
+      "LEN",
+      "none",
+      "auto",
+      "max-content",
+      "min-content"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-template-columns.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-template-columns"
+    }
+  },
+  "grid-template-rows": {
+    "groups": [
+      "Grid"
+    ],
+    "discription": "Specifies the size of the rows in a grid layout",
+    "values": [
+      "LEN",
+      "none",
+      "auto",
+      "max-content",
+      "min-content"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_grid-template-rows.asp",
+      "mdn": "/en-US/docs/Web/CSS/grid-template-rows"
+    }
+  },
+  "hanging-punctuation": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies whether a punctuation character may be placed outside the line box",
+    "values": [
+      "none",
+      "first",
+      "last",
+      "allow-end",
+      "force-end"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_hanging-punctuation.asp",
+      "mdn": "/en-US/docs/Web/CSS/hanging-punctuation"
+    }
+  },
+  "height": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Sets the height of an element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_height.asp",
+      "mdn": "/en-US/docs/Web/CSS/height"
+    }
+  },
+  "hyphens": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets how to split words to improve the layout of paragraphs",
+    "values": [
+      "none",
+      "auto",
+      "manual"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/hyphens"
+    }
+  },
+  "image-orientation": {
+    "groups": [
+      "Image"
+    ],
+    "discription": "Specifies a rotation in the right or clockwise direction that a user agent applies to an image (This property is likely going to be deprecated and its functionality moved to HTML)",
+    "values": [
+      "DEG",
+      "from-image",
+      "flip"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/image-orientation"
+    }
+  },
+  "image-rendering": {
+    "groups": [
+      "Image"
+    ],
+    "discription": "Gives a hint to the browser about what aspects of an image are most important to preserve when the image is scaled",
+    "values": [
+      "auto",
+      "crisp-edges",
+      "pixelated"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/image-rendering"
+    }
+  },
+  "justify-content": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Specifies the alignment between the items inside a flexible container when the items do not use all available space",
+    "values": [
+      "flex-start",
+      "flex-end",
+      "center",
+      "space-between",
+      "space-around"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_justify-content.asp",
+      "mdn": "/en-US/docs/Web/CSS/justify-content"
+    }
+  },
+  "left": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies the left position of a positioned element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_left.asp",
+      "mdn": "/en-US/docs/Web/CSS/left"
+    }
+  },
+  "letter-spacing": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Increases or decreases the space between characters in a text",
+    "values": [
+      "normal",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_text_letter-spacing.asp",
+      "mdn": "/en-US/docs/Web/CSS/letter-spacing"
+    }
+  },
+  "line-break": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies how/if to break lines",
+    "values": [
+      "auto",
+      "loose",
+      "normal",
+      "strict"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/line-break"
+    }
+  },
+  "line-height": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the line height",
+    "values": [
+      "normal",
+      "NUM",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_line-height.asp",
+      "mdn": "/en-US/docs/Web/CSS/line-height"
+    }
+  },
+  "list-style": {
+    "groups": [
+      "List"
+    ],
+    "discription": "Sets all the properties for a list in one declaration",
+    "shorthand": [
+      "list-style-type",
+      "list-style-position",
+      "list-style-image"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_list-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/list-style"
+    }
+  },
+  "list-style-image": {
+    "groups": [
+      "List"
+    ],
+    "discription": "Specifies an image as the list-item marker",
+    "values": [
+      "URL",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_list-style-image.asp",
+      "mdn": "/en-US/docs/Web/CSS/list-style-image"
+    }
+  },
+  "list-style-position": {
+    "groups": [
+      "List"
+    ],
+    "discription": "Specifies if the list-item markers should appear inside or outside the content flow",
+    "values": [
+      "inside",
+      "outside"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_list-style-position.asp",
+      "mdn": "/en-US/docs/Web/CSS/list-style-position"
+    }
+  },
+  "list-style-type": {
+    "groups": [
+      "List"
+    ],
+    "discription": "Specifies the type of list-item marker",
+    "values": [
+      "disc",
+      "armenian",
+      "circle",
+      "cjk-ideographic",
+      "decimal",
+      "decimal-leading-zero",
+      "georgian",
+      "hebrew",
+      "hiragana",
+      "hiragana-iroha",
+      "katakana",
+      "katakana-iroha",
+      "lower-alpha",
+      "lower-greek",
+      "lower-latin",
+      "lower-roman",
+      "none",
+      "square",
+      "upper-alpha",
+      "upper-greek",
+      "upper-latin",
+      "upper-roman"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_list-style-type.asp",
+      "mdn": "/en-US/docs/Web/CSS/list-style-type"
+    }
+  },
+  "margin": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets all the margin properties in one declaration",
+    "shorthand": [
+      "margin-top",
+      "margin-right",
+      "margin-bottom",
+      "margin-left"
+    ],
+    "values": [
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_margin.asp",
+      "mdn": "/en-US/docs/Web/CSS/margin"
+    }
+  },
+  "margin-bottom": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the bottom margin of an element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_margin-bottom.asp",
+      "mdn": "/en-US/docs/Web/CSS/margin-bottom"
+    }
+  },
+  "margin-left": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the left margin of an element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_margin-left.asp",
+      "mdn": "/en-US/docs/Web/CSS/margin-left"
+    }
+  },
+  "margin-right": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the right margin of an element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_margin-right.asp",
+      "mdn": "/en-US/docs/Web/CSS/margin-right"
+    }
+  },
+  "margin-top": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the top margin of an element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_margin-top.asp",
+      "mdn": "/en-US/docs/Web/CSS/margin-top"
+    }
+  },
+  "max-height": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Sets the maximum height of an element",
+    "values": [
+      "LEN",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_max-height.asp",
+      "mdn": "/en-US/docs/Web/CSS/max-height"
+    }
+  },
+  "max-width": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Sets the maximum width of an element",
+    "values": [
+      "LEN",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_max-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/max-width"
+    }
+  },
+  "min-height": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Sets the minimum height of an element",
+    "values": [
+      "LEN",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_min-height.asp",
+      "mdn": "/en-US/docs/Web/CSS/min-height"
+    }
+  },
+  "min-width": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Sets the minimum width of an element",
+    "values": [
+      "LEN",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_min-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/min-width"
+    }
+  },
+  "object-fit": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Specifies how the contents of a replaced element should be fitted to the box established by its used height and width",
+    "values": [
+      "fill",
+      "contain",
+      "cover",
+      "scale-down",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_object-fit.asp",
+      "mdn": "/en-US/docs/Web/CSS/object-fit"
+    }
+  },
+  "object-position": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies the alignment of the replaced element inside its box",
+    "values": [
+      [
+        "LEN",
+        "left",
+        "center",
+        "right",
+        "top",
+        "bottom"
+      ],
+      [
+        "LEN",
+        "left",
+        "center",
+        "right",
+        "top",
+        "bottom"
+      ]
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/object-position"
+    }
+  },
+  "opacity": {
+    "groups": [
+      "Color"
+    ],
+    "discription": "Sets the opacity level for an element",
+    "values": "SCALAR",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_opacity.asp",
+      "mdn": "/en-US/docs/Web/CSS/opacity"
+    }
+  },
+  "order": {
+    "groups": [
+      "Flex"
+    ],
+    "discription": "Sets the order of the flexible item, relative to the rest",
+    "values": "NUM",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_order.asp",
+      "mdn": "/en-US/docs/Web/CSS/order"
+    }
+  },
+  "orphans": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the minimum number of lines that must be left at the bottom of a page when a page break occurs inside an element",
+    "values": "NUM",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/orphans"
+    }
+  },
+  "outline": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets all the outline properties in one declaration",
+    "shorthand": [
+      "outline-width",
+      "outline-style",
+      "outline-color"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_outline.asp",
+      "mdn": "/en-US/docs/Web/CSS/outline"
+    }
+  },
+  "outline-color": {
+    "groups": [
+      "Border",
+      "Color"
+    ],
+    "discription": "Sets the color of an outline",
+    "values": [
+      "COLOR",
+      "invert"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_outline-color.asp",
+      "mdn": "/en-US/docs/Web/CSS/outline-color"
+    }
+  },
+  "outline-offset": {
+    "groups": [
+      "Border",
+      "Position"
+    ],
+    "discription": "Offsets an outline, and draws it beyond the border edge",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_outline-offset.asp",
+      "mdn": "/en-US/docs/Web/CSS/outline-offset"
+    }
+  },
+  "outline-style": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the style of an outline",
+    "values": [
+      "none",
+      "hidden",
+      "dotted",
+      "dashed",
+      "solid",
+      "double",
+      "groove",
+      "ridge",
+      "inset",
+      "outset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_outline-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/outline-style"
+    }
+  },
+  "outline-width": {
+    "groups": [
+      "Border",
+      "Size"
+    ],
+    "discription": "Sets the width of an outline",
+    "values": [
+      "LEN",
+      "medium",
+      "thin",
+      "thick"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_outline-width.asp",
+      "mdn": "/en-US/docs/Web/CSS/outline-width"
+    }
+  },
+  "overflow": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Specifies what happens if content overflows an element's box",
+    "values": [
+      "visible",
+      "hidden",
+      "scroll",
+      "auto"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_overflow.asp",
+      "mdn": "/en-US/docs/Web/CSS/overflow"
+    }
+  },
+  "overflow-wrap": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Specifies whether or not the browser may break lines within words in order to prevent overflow (when a string is too long to fit its containing box)",
+    "values": [
+      "normal",
+      "break-word"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/overflow-wrap"
+    }
+  },
+  "overflow-x": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Specifies whether or not to clip the left/right edges of the content, if it overflows the element's content area",
+    "values": [
+      "visible",
+      "hidden",
+      "scroll",
+      "auto"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_overflow-x.asp",
+      "mdn": "/en-US/docs/Web/CSS/overflow-x"
+    }
+  },
+  "overflow-y": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Specifies whether or not to clip the top/bottom edges of the content, if it overflows the element's content area",
+    "values": [
+      "visible",
+      "hidden",
+      "scroll",
+      "auto"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_overflow-y.asp",
+      "mdn": "/en-US/docs/Web/CSS/overflow-y"
+    }
+  },
+  "padding": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets all the padding properties in one declaration",
+    "shorthand": [
+      "padding-top",
+      "padding-right",
+      "padding-bottom",
+      "padding-left"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_padding.asp",
+      "mdn": "/en-US/docs/Web/CSS/padding"
+    }
+  },
+  "padding-bottom": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the bottom padding of an element",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_padding-bottom.asp",
+      "mdn": "/en-US/docs/Web/CSS/padding-bottom"
+    }
+  },
+  "padding-left": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the left padding of an element",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_padding-left.asp",
+      "mdn": "/en-US/docs/Web/CSS/padding-left"
+    }
+  },
+  "padding-right": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the right padding of an element",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_padding-right.asp",
+      "mdn": "/en-US/docs/Web/CSS/padding-right"
+    }
+  },
+  "padding-top": {
+    "groups": [
+      "Border"
+    ],
+    "discription": "Sets the top padding of an element",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_padding-top.asp",
+      "mdn": "/en-US/docs/Web/CSS/padding-top"
+    }
+  },
+  "page-break-after": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the page-breaking behavior after an element",
+    "values": [
+      "auto",
+      "always",
+      "avoid",
+      "left",
+      "right"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_print_pageba.asp",
+      "mdn": "/en-US/docs/Web/CSS/page-break-after"
+    }
+  },
+  "page-break-before": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the page-breaking behavior before an element",
+    "values": [
+      "auto",
+      "always",
+      "avoid",
+      "left",
+      "right"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_print_pagebb.asp",
+      "mdn": "/en-US/docs/Web/CSS/page-break-before"
+    }
+  },
+  "page-break-inside": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the page-breaking behavior inside an element",
+    "values": [
+      "auto",
+      "avoid"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_print_pagebi.asp",
+      "mdn": "/en-US/docs/Web/CSS/page-break-inside"
+    }
+  },
+  "perspective": {
+    "groups": [
+      "3D"
+    ],
+    "discription": "Specifies the perspective on how 3D elements are viewed",
+    "values": [
+      "LEN",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_perspective.asp",
+      "mdn": "/en-US/docs/Web/CSS/perspective"
+    }
+  },
+  "perspective-origin": {
+    "groups": [
+      "3D"
+    ],
+    "discription": "Specifies the position that the user is looking at the element",
+    "values": [
+      [
+        "LEN",
+        "left",
+        "center",
+        "right"
+      ],
+      [
+        "LEN",
+        "top",
+        "center",
+        "bottom"
+      ]
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_perspective-origin.asp",
+      "mdn": "/en-US/docs/Web/CSS/perspective-origin"
+    }
+  },
+  "pointer-events": {
+    "groups": [
+      "Event"
+    ],
+    "discription": "The pointer-events property defines whether or not an element reacts to pointer events.",
+    "values": [
+      "auto",
+      "none"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_pointer-events.asp",
+      "mdn": "/en-US/docs/Web/CSS/pointer-events"
+    }
+  },
+  "position": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies the type of positioning method used for an element (static, relative, absolute or fixed)",
+    "values": [
+      "static",
+      "absolute",
+      "fixed",
+      "relative",
+      "sticky"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_class_position.asp",
+      "mdn": "/en-US/docs/Web/CSS/position"
+    }
+  },
+  "quotes": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the type of quotation marks for embedded quotations",
+    "values": [
+      "none",
+      [
+        "QSTRING",
+        "QSTRING",
+        "QSTRING",
+        "QSTRING",
+        "QSTRING"
+      ]
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_gen_quotes.asp",
+      "mdn": "/en-US/docs/Web/CSS/quotes"
+    }
+  },
+  "resize": {
+    "groups": [
+      "Event",
+      "Size"
+    ],
+    "discription": "Specifies whether or not an element is resizable by the user",
+    "values": [
+      "none",
+      "both",
+      "horizontal",
+      "vertical"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_resize.asp",
+      "mdn": "/en-US/docs/Web/CSS/resize"
+    }
+  },
+  "right": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies the right position of a positioned element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_right.asp",
+      "mdn": "/en-US/docs/Web/CSS/right"
+    }
+  },
+  "table-layout": {
+    "groups": [
+      "Table"
+    ],
+    "discription": "Sets the layout algorithm to be used for a table",
+    "values": [
+      "auto",
+      "fixed"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_tab_table-layout.asp",
+      "mdn": "/en-US/docs/Web/CSS/table-layout"
+    }
+  },
+  "tab-size": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the length of the tab-character",
+    "values": [
+      "NUM",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_tab-size.asp",
+      "mdn": "/en-US/docs/Web/CSS/tab-size"
+    }
+  },
+  "text-align": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the horizontal alignment of text",
+    "values": [
+      "left",
+      "right",
+      "center",
+      "justify"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_text_text-align.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-align"
+    }
+  },
+  "text-align-last": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Describes how the last line of a block or a line right before a forced line break is aligned when text-align is \"justify\"",
+    "values": [
+      "auto",
+      "left",
+      "right",
+      "center",
+      "justify",
+      "start",
+      "end"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-align-last.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-align-last"
+    }
+  },
+  "text-combine-upright": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the combination of multiple characters into the space of a single character",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/text-combine-upright"
+    }
+  },
+  "text-decoration": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the decoration added to text",
+    "values": [
+      "none",
+      "underline",
+      "overline",
+      "line-through"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_text_text-decoration.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-decoration"
+    }
+  },
+  "text-decoration-color": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the color of the text-decoration",
+    "values": "COLOR",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-decoration-color.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-decoration-color"
+    }
+  },
+  "text-decoration-line": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the type of line in a text-decoration",
+    "values": [
+      "none",
+      "underline",
+      "overline",
+      "line-through"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-decoration-line.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-decoration-line"
+    }
+  },
+  "text-decoration-style": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the style of the line in a text decoration",
+    "values": [
+      "solid",
+      "double",
+      "dotted",
+      "dashed",
+      "wavy"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-decoration-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-decoration-style"
+    }
+  },
+  "text-indent": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the indentation of the first line in a text-block",
+    "values": "LEN",
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_text_text-indent.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-indent"
+    }
+  },
+  "text-justify": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the justification method used when text-align is \"justify\"",
+    "values": [
+      "auto",
+      "inter-word",
+      "inter-ideograph",
+      "inter-cluster",
+      "distribute",
+      "kashida",
+      "trim"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-justify.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-justify"
+    }
+  },
+  "text-orientation": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Defines the orientation of the text in a line",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/text-orientation"
+    }
+  },
+  "text-overflow": {
+    "groups": [
+      "Text",
+      "Border"
+    ],
+    "discription": "Specifies what should happen when text overflows the containing element",
+    "values": [
+      "clip",
+      "ellipsis",
+      "string"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-overflow.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-overflow"
+    }
+  },
+  "text-shadow": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Adds shadow to text",
+    "values": [
+      "COLOR",
+      "h-shadow v-shadow blur-radius",
+      "none"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_text-shadow.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-shadow"
+    }
+  },
+  "text-transform": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Controls the capitalization of text",
+    "values": [
+      "none",
+      "capitalize",
+      "uppercase",
+      "lowercase"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_text_text-transform.asp",
+      "mdn": "/en-US/docs/Web/CSS/text-transform"
+    }
+  },
+  "text-underline-position": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies the position of the underline which is set using the text-decoration property",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/text-underline-position"
+    }
+  },
+  "top": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Specifies the top position of a positioned element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_top.asp",
+      "mdn": "/en-US/docs/Web/CSS/top"
+    }
+  },
+  "touch-action": {
+    "groups": [
+      "Event"
+    ],
+    "discription": "Sets how an element's region can be manipulated by a touchscreen user (for example, by zooming features built into the browser)",
+    "values": [
+      "auto",
+      "none",
+      "pan-x",
+      "pan-left",
+      "pan-right",
+      "pan-y",
+      "pan-up",
+      "pan-down",
+      "pinch-zoom",
+      "manipulation"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "mdn": "/en-US/docs/Web/CSS/touch-action"
+    }
+  },
+  "transform": {
+    "groups": [
+      "3D",
+      "Size"
+    ],
+    "discription": "Applies a 2D or 3D transformation to an element",
+    "values": [
+      "none",
+      "TRANSFORM"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transform.asp",
+      "mdn": "/en-US/docs/Web/CSS/transform"
+    }
+  },
+  "transform-origin": {
+    "groups": [
+      "3D",
+      "Position"
+    ],
+    "discription": "Allows you to change the position on transformed elements",
+    "values": [
+      "left",
+      "right",
+      "top",
+      "center",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true,
+      "multival": 3
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transform-origin.asp",
+      "mdn": "/en-US/docs/Web/CSS/transform-origin"
+    }
+  },
+  "transform-style": {
+    "groups": [
+      "3D"
+    ],
+    "discription": "Specifies how nested elements are rendered in 3D space",
+    "values": [
+      "flat",
+      "preserve-3d"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transform-style.asp",
+      "mdn": "/en-US/docs/Web/CSS/transform-style"
+    }
+  },
+  "transition": {
+    "groups": [
+      "Animation"
+    ],
+    "discription": "A shorthand property for setting the four transition properties",
+    "shorthand": [
+      "transition-property",
+      "transition-duration",
+      "transition-timing-function",
+      "transition-delay"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transition.asp",
+      "mdn": "/en-US/docs/Web/CSS/transition"
+    }
+  },
+  "transition-delay": {
+    "groups": [
+      "Animation"
+    ],
+    "discription": "Specifies when the transition effect will start",
+    "values": "TIME",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transition-delay.asp",
+      "mdn": "/en-US/docs/Web/CSS/transition-delay"
+    }
+  },
+  "transition-duration": {
+    "groups": [
+      "Animation"
+    ],
+    "discription": "Specifies how many seconds or milliseconds a transition effect takes to complete",
+    "values": "TIME",
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transition-duration.asp",
+      "mdn": "/en-US/docs/Web/CSS/transition-duration"
+    }
+  },
+  "transition-property": {
+    "groups": [
+      "Animation"
+    ],
+    "discription": "Specifies the name of the CSS property the transition effect is for",
+    "values": [
+      "none",
+      "all",
+      "ANIMATABLE"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transition-property.asp",
+      "mdn": "/en-US/docs/Web/CSS/transition-property"
+    }
+  },
+  "transition-timing-function": {
+    "groups": [
+      "Animation"
+    ],
+    "discription": "Specifies the speed curve of the transition effect",
+    "values": [
+      "linear",
+      "ease",
+      "ease-in",
+      "ease-out",
+      "ease-in-out",
+      "step-start",
+      "step-end",
+      "STEPS",
+      "CUBICBEZIER"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_transition-timing-function.asp",
+      "mdn": "/en-US/docs/Web/CSS/transition-timing-function"
+    }
+  },
+  "unicode-bidi": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Used together with the direction property to set or return whether the text should be overridden to support multiple languages in the same document",
+    "values": [
+      "normal",
+      "embed",
+      "bidi-override"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_text_unicode-bidi.asp",
+      "mdn": "/en-US/docs/Web/CSS/unicode-bidi"
+    }
+  },
+  "user-select": {
+    "groups": [
+      "Event",
+      "Text"
+    ],
+    "discription": "Specifies whether the text of an element can be selected",
+    "values": [
+      "auto",
+      "none",
+      "text",
+      "all"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_user-select.asp",
+      "mdn": "/en-US/docs/Web/CSS/user-select"
+    }
+  },
+  "vertical-align": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Sets the vertical alignment of an element",
+    "values": [
+      "baseline",
+      "LEN",
+      "sub",
+      "super",
+      "top",
+      "text-top",
+      "middle",
+      "bottom",
+      "text-bottom"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_vertical-align.asp",
+      "mdn": "/en-US/docs/Web/CSS/vertical-align"
+    }
+  },
+  "visibility": {
+    "groups": [
+      "Color",
+      "Table",
+      "Flex"
+    ],
+    "discription": "Specifies whether or not an element is visible",
+    "values": [
+      "visible",
+      "hidden",
+      "collapse"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_class_visibility.asp",
+      "mdn": "/en-US/docs/Web/CSS/visibility"
+    }
+  },
+  "white-space": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies how white-space inside an element is handled",
+    "values": [
+      "normal",
+      "nowrap",
+      "pre",
+      "pre-line",
+      "pre-wrap"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/pr_text_white-space.asp",
+      "mdn": "/en-US/docs/Web/CSS/white-space"
+    }
+  },
+  "widows": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Sets the minimum number of lines that must be left at the top of a page when a page break occurs inside an element",
+    "values": [
+      "NUM",
+      "unset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/widows"
+    }
+  },
+  "width": {
+    "groups": [
+      "Size"
+    ],
+    "discription": "Sets the width of an element",
+    "values": [
+      "LEN",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_dim_width.asp",
+      "mdn": "/en-US/docs/Web/CSS/width"
+    }
+  },
+  "word-break": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Specifies line breaking rules for non-CJK scripts",
+    "values": [
+      "normal",
+      "break-all",
+      "keep-all"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_word-break.asp",
+      "mdn": "/en-US/docs/Web/CSS/word-break"
+    }
+  },
+  "word-spacing": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Increases or decreases the space between words in a text",
+    "values": [
+      "normal",
+      "LEN"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_text_word-spacing.asp",
+      "mdn": "/en-US/docs/Web/CSS/word-spacing"
+    }
+  },
+  "word-wrap": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "Allows long, unbreakable words to be broken and wrap to the next line",
+    "values": [
+      "normal",
+      "break-word"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "/cssref/css3_pr_word-wrap.asp",
+      "mdn": "/en-US/docs/Web/CSS/word-wrap"
+    }
+  },
+  "writing-mode": {
+    "groups": [
+      "Text"
+    ],
+    "discription": "",
+    "values": [
+      "horizontal-tb",
+      "vertical-rl",
+      "vertical-lr",
+      "inherit",
+      "initial",
+      "unset"
+    ],
+    "settings": {
+      "animatable": false
+    },
+    "help": {
+      "w3": "",
+      "mdn": "/en-US/docs/Web/CSS/writing-mode"
+    }
+  },
+  "z-index": {
+    "groups": [
+      "Position"
+    ],
+    "discription": "Sets the stack order of a positioned element",
+    "values": [
+      "NUM",
+      "auto"
+    ],
+    "settings": {
+      "animatable": true
+    },
+    "help": {
+      "w3": "/cssref/pr_pos_z-index.asp",
+      "mdn": "/en-US/docs/Web/CSS/z-index"
+    }
+  }
+}

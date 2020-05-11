@@ -1,45 +1,54 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
-
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.IconLink = function (options) {
-    let RandId = SI.Tools.String.RandomString(11);
+SI.Widget.IconLink = function (options) {
+    if (!(this instanceof SI.Widget.IconLink)) { return new SI.Widget.IconLink(); }
+    let self = this;
+    this.Random = SI.Tools.String.RandomString(11);
     this.Defaults = {
+        "Parent": null,
+        "ParentIndex": null,
         "IconUrl": "/scripts/widgets/icons/defaultAppIcon.png",
         "Link": "#",
         "Type": "div",
         "Size": 20,
-        "Title": "",
+        "Title": ""
     };
-    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
-    let linkbox = Ele(options.Type, {});
+    this.Container = Ele(this.Options.Type, {
+        id:"si_iconlink_"+this.Random,
+    });
     let img = Ele('img', {
-        width: options.Size,
-        src: options.IconUrl,
+        width: this.Options.Size,
+        src: this.Options.IconUrl,
         data: {
-            url: options.Link,
+            url: this.Options.Link,
         },
     });
-    if (options.Title) {
-        img.title = options.Title;
+    if (this.Options.Title) {
+        img.title = this.Options.Title;
     }
-    if (SI && SI.LoggedInUser && SI.LoggedInUser.Preferences && SI.LoggedInUser.Preferences.OpenLinksIn && SI.LoggedInUser.Preferences.OpenLinksIn != 'window' ) {
+    if (SI.Tools.Object.GetIfExists("SI.LoggedInUser.Preferences.open_links_in") !== 'window') {
         let anc = Ele('a', {
-            href: options.Link,
+            href: this.Options.Link,
             target: '_blank',
             append: img,
-            appendTo: linkbox,
+            appendTo: this.Container,
         });
     } else {
         img.onclick = function () {
-            let url = this.getAttribute('data-url');
+           // let url = this.getAttribute('data-url');
+            let url = self.Options.Link;
             window.open(url, '_blank', 'location=yes,width=1280,height=720,scrollbars=yes,status=yes');
         };
-        linkbox.appendChild(img);
+        this.Container.appendChild(img);
     }
-    return linkbox;
+
+    if (this.Options.Parent) {
+        this.Options.Parent.appendChild(this.Container);
+    }
+
+    return this;
 }
+

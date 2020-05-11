@@ -74,7 +74,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
 		},	
         SetupServer: function (dataobj) {
 
-            let json = { "KEY": "SetupDatabase" };
+            let json = { "KEY": "SetupSuperIntuitive" };
             json = setup.FormatForm(json)
             //debugger;
 
@@ -85,7 +85,14 @@ header("Content-Type: application/javascript; charset: UTF-8");
                           
                     let check = document.getElementById('si_setup_dbsuccess');
                     if (response.outcome) {
-                        location.reload();
+                        //debugger;
+                        //delete the php session cookie, we'll get a new one on reload
+                        document.cookie.split(";").forEach(function (c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
+                        let div = document.createElement('DIV');
+                        div.innerHTML = response.message;
+                        div.style.cssText = "display: block; position: absolute; padding:25px; text-align: center; background-color:white; border:solid 2px black; left:35%; top:25%";
+                        document.body.appendChild(div);
+                        setTimeout(function () { location.reload(); }, response.time);
                     } else {
                         alert(response.outcome);
                     }
@@ -133,13 +140,13 @@ header("Content-Type: application/javascript; charset: UTF-8");
         },
 		DeactivatePages: function(color){
 			var eles = document.getElementsByClassName('menuitem');
-			for(var i = 0; i < eles.length; i++){
+			for(let i = 0; i < eles.length; i++){
 				eles[i].disabled= true;
 			}
         },
         ActivatePages: function (color) {
             var eles = document.getElementsByClassName('menuitem');
-            for (var i = 0; i < eles.length; i++) {
+            for (let i = 0; i < eles.length; i++) {
                 eles[i].disabled = false;
             }
         },
@@ -149,7 +156,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
 		RandPW:function(){
 			var text = '';
 			var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ~[]{}!#%^&*()-_=+';
-			for (var i = 0; i < 24; i++)
+            for (let i = 0; i < 24; i++)
 			text += possible.charAt(Math.floor(Math.random() * possible.length));
 			return text;
 		},

@@ -1,19 +1,6 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-session_start();
-error_reporting(E_ALL ^ E_WARNING);
-$openMethod = isset($_SESSION['USERPREFS']['OPEN_LINK_IN']) ? $_SESSION['USERPREFS']['OPEN_LINK_IN'] : 'window';
-?>
 
 
-//global hack to set page height
-//document.body.style.height = window.innerHeight + 'px';
-
-
-Q = function (selector) {
-    return document.querySelectorAll(selector);
-}
-EleRun= 0;
+EleRun = 0;
 Ele = function (tag, attrs, log) {
     log = typeof log !== 'undefined' ? log : false; //silly IE can handle defaults
     if (typeof tag === 'undefined' || tag === null) { //if the tag is packed in the object for some reason.
@@ -30,17 +17,17 @@ Ele = function (tag, attrs, log) {
     let ele = document.createElement(tag);
     for (let attr in attrs) {
         if (attrs.hasOwnProperty(attr)) {
-            if (attr == 'style') {
+            if (attr === 'style') {
                 let styles = attrs[attr];
                 for (let style in styles) {
                     if (styles.hasOwnProperty(style)) {
-                        if (typeof styles[style] != 'undefined' && styles[style].length > 0) {
+                        if (typeof styles[style] !== 'undefined' && styles[style].length > 0) {
                             ele.style[style] = styles[style];
                         }
                     }
                 }
-            } 
-            else if (attr == 'data') {
+            }
+            else if (attr === 'data') {
                 let data = attrs[attr];
                 if (tag !== 'object') {
                     if (typeof data === 'object') {
@@ -54,51 +41,51 @@ Ele = function (tag, attrs, log) {
                     }
                 } else {
                     //debugger;
-                    ele.setAttribute('data',data);
+                    ele.setAttribute('data', data);
                 }
 
-            } 
-            else if (attr == 'class') {
+            }
+            else if (attr === 'class') {
                 if (attrs[attr].length > 0) {
                     if (ele.classList) {
                         let cs = attrs[attr].trim().replace(/ /g, ',').split(',');
                         for (let c in cs) {
                             ele.classList.add(cs[c]);
-                        } 
+                        }
                     } else {
                         ele.className += ' ' + attrs[attr]; //if old IE is needed
-                    }  
+                    }
                 }
 
             }
-            else if (attr == 'appendTo') {
+            else if (attr === 'appendTo') {
                 if (typeof HTMLElement === "object" ? attrs[attr] instanceof HTMLElement : attrs[attr] && typeof attrs[attr] === "object" && attrs[attr] !== null && attrs[attr].nodeType === 1 && typeof attrs[attr].nodeName === "string") {
                     parent = attrs[attr];
                 }
-                else if (typeof attrs[attr] === 'string') { 
+                else if (typeof attrs[attr] === 'string') {
                     if (attrs[attr].length > 0) {
                         let tmp = document.querySelectorAll(attrs[attr])[0];
-                        if (tmp == null) { tmp = document.getElementById(attrs[attr]);}
-                        if (tmp != null) { parent = tmp; }
-                        else { console.warn("The query string: " + attrs[attr]+" did not return an element")}
+                        if (tmp === null) { tmp = document.getElementById(attrs[attr]); }
+                        if (tmp !== null) { parent = tmp; }
+                        else { console.warn("The query string: " + attrs[attr] + " did not return an element") }
                     }
-                } 
+                }
             }
-            else if (attr == 'append') {
-                 let child = attrs[attr]; 
+            else if (attr === 'append') {
+                let child = attrs[attr];
                 if (typeof child === 'string') {
                     ele.innerHTML += child;
                 } else if (typeof HTMLElement === "object" ? child instanceof HTMLElement : child && typeof child === "object" && child !== null && child.nodeType === 1 && typeof child.nodeName === "string") {
-                    
+
                     ele.appendChild(child);
                 } else {
-                    debugger;
+                    //debugger;
                 }
             }
-            else if (attr == 'innerHTML') {
+            else if (attr === 'innerHTML') {
                 ele[attr] += attrs[attr];
             }
-            else if (attr == 'after') {
+            else if (attr === 'after') {
                 after = attr;
             }
             else {
@@ -106,16 +93,16 @@ Ele = function (tag, attrs, log) {
             }
         }
     }
-    if (parent != null) {
+    if (parent !== null) {
         parent.appendChild(ele);
 
         if (after) {
             if (!Array.isArray(after)) {
                 after = [after];
             }
-            for (e in after) {
+            for (let e in after) {
                 if (e.parent) {
-                    Ele(null, e); 
+                    Ele(null, e);
                 } else {
                     parent.appendChild(Ele(null, e));
                 }
@@ -131,14 +118,13 @@ Ele = function (tag, attrs, log) {
 
     EleRun++;
     return ele;
-}
-
+};
 
 //prototypes
 String.prototype.replaceArray = function (find, replace) {   // so-5069464
     var replaceString = this;
     var regex;
-    for (var i = 0; i < find.length; i++) {
+    for (let i = 0; i < find.length; i++) {
         regex = new RegExp(find[i], "g");
         replaceString = replaceString.replace(regex, replace[i]);
     }
@@ -160,54 +146,44 @@ String.prototype.hexEncode = function () { //21647928
     var hex, i;
 
     var result = "";
-    for (i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
         hex = this.charCodeAt(i).toString(16);
         result += ("000" + hex).slice(-4);
     }
     return result
-}
+};
 String.prototype.hexDecode = function () { //21647928
     var j;
     var hexes = this.match(/.{1,4}/g) || [];
     var back = "";
-    for (j = 0; j < hexes.length; j++) {
+    for (let j = 0; j < hexes.length; j++) {
         back += String.fromCharCode(parseInt(hexes[j], 16));
     }
     return back;
-}
-
+};
 Element.prototype.remove = function () {
     this.parentElement.removeChild(this);
-}
-NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
-    for (var i = this.length - 1; i >= 0; i--) {
-        if (this[i] && this[i].parentElement) {
-            this[i].parentElement.removeChild(this[i]);
-        }
-    }
-}
-
+};
 Element.prototype.hide = function () {
     this.style.display = "none";
-}
-
+};
 Element.prototype.clear = function () {
     this.innerHTML = "";
-}
-
+};
 NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
-    for (var i = this.length - 1; i >= 0; i--) {
+    for (let i = this.length - 1; i >= 0; i--) {
         if (this[i]) {
             this[i].style.display = 'none';
         }
     }
-}
-
-//Array.prototype.unique = function() {
-    //var prev;
-    //return this.sort().filter(e => e !== prev && (prev = e));
-  //  return [...new Set(this)];
- // }
+};
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
+    for (let i = this.length - 1; i >= 0; i--) {
+        if (this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
+};
 
 if (!SI) {
     var SI = {};
@@ -220,13 +196,13 @@ SI.Tools = {
             length = typeof length !== 'undefined' ? length : '7';
             var text = "";
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            for (var i = 0; i < length; i++)
+            for (let i = 0; i < length; i++)
                 text += possible.charAt(Math.floor(Math.random() * possible.length));
             return text;
         },
         TrimR: function (string, chartoRemove) {
             chartoRemove = typeof chartoRemove !== 'undefined' ? chartoRemove : ' ';
-            if (string.substring(string.length - 1) == chartoRemove) {
+            if (string.substring(string.length - 1) === chartoRemove) {
                 return string.substring(0, string.length - 1);
             }
 
@@ -246,9 +222,9 @@ SI.Tools = {
     },
     Object: {
         Loop: function (obj, func) {
-            for (var k in obj) {
+            for (let k in obj) {
 
-                if (typeof obj[k] == "object" && obj[k] !== null) {
+                if (typeof obj[k] === "object" && obj[k] !== null) {
                     SI.Tools.Object.Loop(obj[k]);
                 }
                 else if (typeof obj === "function") {
@@ -264,42 +240,109 @@ SI.Tools = {
 
             //if we dont have a options object
             if (typeof options === "undefined") {
+
                 //use all the defaults
-                //loop through the defaults and get the values. options should never have json. only defaults
+                //loop through the defaults and get the values. options should never have json data. only defaults
                 options = [];
-                for (let def in defaults) {
-                    if (typeof (def.Value) != 'undefined') {
-                        options[def] = defaults[def].value;
-                    } else {
-                        options[def] = defaults[def];
+                for (let name in defaults) {
+
+                    //check sludge
+                    if (name === "SomeBrokenKey") {
+                        debugger;
                     }
+                    if (defaults[name] === null) {
+                        options[name] = null;
+                    }
+                    else if (typeof defaults[name] === 'object') {
+                        if (defaults[name].hasOwnProperty("value")) {
+                            options[name] = defaults[name].value;
+                        } else {
+                            options[name] = defaults[name]; //its a object but has no value key
+                        }
+                    }
+                    //it is not an object, just set it.
+                    else {
+                        options[name] = defaults[name];
+                    }
+
+                    if (name === "Parent") {
+                        let index = typeof options.ParentIndex !== 'undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                        if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
+                            index = index.value;
+                        }
+                        options[name] = SI.Tools.Element.Get(options[name], index);
+                    }
+
                 }
             }
             else {
+
+                //check sludge
+                if (name === "WindowControls") {
+                    debugger;
+                }
+
                 //if the parent has the value set as a default 
                 let checkparentdefault = false;
-                if (typeof options.Defaults != 'undefined') {
+                if (typeof options.Defaults !== 'undefined') {
+                    debugger;
                     checkparentdefault = options.Defaults;
                 }
-                //rifle through the defaults and one by one set the missing options 
-                for (let name in defaults) {
 
+
+                //rifle through the defaults and one by one set the missing options      
+                for (let name in defaults) {
+                    //only set the option to the default if it is undefined.
                     if (typeof options[name] === "undefined") {
-                        let key = defaults[name];
-                        if (key == null) {
+                        //get the default value from the Default object
+                        let defaultValue = defaults[name];
+                        //this is the eventual value to be added to the options object that will be returned
+                        let value;
+                        //if the default value is null, than set the options value to null
+                        if (defaultValue === null) {
                             value = null;
                         }
-                        else if (typeof key.value === 'undefined') {
+                        //We can have a value that is a object with helper properties. One MUST be .value if it is not defined then value can be set
+                        else if (typeof defaultValue === 'object') {
+                            //IF it is meant to be a object it will MUST be a nested object as shown { value:{}, type:'OBJECT' } prefereably with a type, but it will catch it in any event
+                            if (defaultValue.hasOwnProperty("value")) {
+                                value = defaults[name].value;
+                            } else {
+                                value = defaults[name]; //its a object but has no value key
+                            }
+                        }
+                        //it is not an object, just set it.
+                        else {
                             value = defaults[name];
-                        } else {
-                            //debugger;
-                            value = defaults[name].value;
+                        }
+
+                        //the value is now known 
+
+                        //check sludge
+                        if (name === "SomeBrokenKey") {
+                            debugger;
+                        }
+
+                        if (name === "Parent") {
+                            let index = typeof options.ParentIndex !== 'undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                            if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
+                                index = index.value;
+                            }
+                            value = SI.Tools.Element.Get(value, index);
                         }
                         options[name] = value;
+
                     } else {
                         if (checkparentdefault && typeof checkparentdefault[name] !== 'undefined') {
                             //debugger;
                             options[name] = checkparentdefault[name].value;
+                        }
+                        if (name === "Parent") {
+                            let index = typeof options.ParentIndex !== 'undefined' ? options.ParentIndex : null; //We may or may not have an index if the parent is an tag or class.
+                            if (index && typeof index === 'object' && index.hasOwnProperty("value")) {
+                                index = index.value;
+                            }
+                            options[name] = SI.Tools.Element.Get(options[name], index);
                         }
                     }
                 }
@@ -307,14 +350,14 @@ SI.Tools = {
             return options;
         },
         ToDataTree: function (object) {
-        //debugger;
+            //debugger;
             let dir = Ele("ul", {
                 style: {
                     backgroundColor: "#333",
                     listStyleType: 'none',
                 },
             });
-            for (i in object) {
+            for (let i in object) {
                 if (object.hasOwnProperty(i)) {
                     let ot = typeof object[i];
                     switch (ot) {
@@ -323,10 +366,10 @@ SI.Tools = {
                             let color;
                             switch (i) {
                                 case 'domains': color = 'yellow'; break;
-                                default: color = 'white';break;
+                                default: color = 'white'; break;
                             }
                             let btn = Ele("div", {
-                                innerHTML:i,
+                                innerHTML: i,
                                 style: {
                                     height: '22px',
                                     paddingLeft: '20px',
@@ -334,7 +377,7 @@ SI.Tools = {
                                     backgroundImage: 'url(scripts/widgets/icons/minus.png)',
                                     backgroundPosition: 'left',
                                     cursor: 'zoom-out',
-                                    color: color,
+                                    color: color
                                 },
                                 onclick: function (e) {
                                     e.stopPropagation();
@@ -344,25 +387,23 @@ SI.Tools = {
                                         if (children[1].style.display === 'block' || children[1].style.display === '') {
                                             this.style.backgroundImage = 'url(scripts/widgets/icons/plus.png)';
                                             this.style.cursor = 'zoom-in';
-                                            for (var i = 1; i < children.length; i++) {
+                                            for (let i = 1; i < children.length; i++) {
                                                 children[i].style.display = 'none';
                                             }
                                         } else {
-                                            for (var i = 1; i < children.length; i++) {
+                                            for (let i = 1; i < children.length; i++) {
                                                 this.style.backgroundImage = 'url(scripts/widgets/icons/minus.png)';
                                                 this.style.cursor = 'zoom-out';
                                                 children[i].style.display = 'block';
                                             }
                                         }
-
                                     }
-                                },
-
+                                }
                             });
 
                             let li = Ele("li", {
-                                append:btn,
-                                appendTo: dir,
+                                append: btn,
+                                appendTo: dir
                             });
                             li.appendChild(SI.Tools.Object.ToDataTree(object[i]));
                             break;
@@ -373,12 +414,12 @@ SI.Tools = {
                                     backgroundColor: "#888",
                                     color: '#000',
                                     paddingLeft: '5px',
-                                    listStyleType:'none',
+                                    listStyleType: 'none'
                                 },
-                                onclick:function(e){
+                                onclick: function (e) {
                                     e.stopPropagation();
                                 },
-                                appendTo: dir,
+                                appendTo: dir
                             });
                     }
                 }
@@ -388,13 +429,26 @@ SI.Tools = {
         IsEmpty: function (obj) {
             return Object.entries(obj).length === 0 && obj.constructor === Object
         },
-
+        GetIfExists: function (objstring) {
+            let parts = objstring.split(".");
+            if (!window[parts[0]]) {
+                return false;
+            }
+            let test = window[parts[0]]
+            for (let i = 1; i < parts.length; i++) {
+                if (!test.hasOwnProperty(parts[i])) {
+                    return false;
+                }
+                test = test[parts[i]];
+            }
+            return test;
+        },
         GetById: function (current, guid) {  //This function will loop through its 1st gen children looking if at the property 'id' and that id = guid and return that child
-            if (guid.length == 32) { //it does not work yet and I found a quick workaround hack so this needs to be finished and would be very helpfull.
+            if (guid.length === 32) { //it does not work yet and I found a quick workaround hack so this needs to be finished and would be very helpfull.
                 guid = '0x' + guid;
             }
-            for (obj in current) {
-                
+            for (let obj in current) {
+
             }
         }
     },
@@ -457,15 +511,16 @@ SI.Tools = {
             return color;
         },
         ParseToHex: function (rgb) {
-            if (typeof rgb == 'undefined') {
+            if (typeof rgb === 'undefined') {
                 return null;
             }
-            if (rgb.charAt(0) == "#") {
+            if (rgb.charAt(0) === "#") {
                 return rgb;//already hex
             }
-            else if (/\d/.test(rgb)) {
+            else if (/(rgb)/.test(rgb)) {
                 //remove all th text, split it by , and table only the first 3 vals
                 rgb = rgb.replace("rgb(", "").replace("rgba(", '').replace(")", '').split(",").slice(0, 3);
+
                 return SI.Tools.Color.RgbToHex(rgb[0].trim(), rgb[1].trim(), rgb[2].trim());
             } else {
                 //maybe it is a color name
@@ -489,32 +544,52 @@ SI.Tools = {
             }
 
         },
-        Random: function () {
+        Random: function (transparency = null) {
             var letters = '0123456789ABCDEF';
             var color = '#';
-            for (var i = 0; i < 6; i++) {
+            for (let i = 0; i < 6; i++) {
                 color += letters[Math.floor(Math.random() * 16)];
             }
+
+            if (transparency) {
+                color = SI.Tools.Color.HexToRgb(color);
+                if (color) {
+                    color = "rgba(" + color.r + "," + color.g + "," + color.b + "," + transparency + ")";
+                }
+            }
+
             return color;
         },
         NameToHex: function (name) {
             colors = { "aliceblue": "#f0f8ff", "antiquewhite": "#faebd7", "aqua": "#00ffff", "aquamarine": "#7fffd4", "azure": "#f0ffff", "beige": "#f5f5dc", "bisque": "#ffe4c4", "black": "#000000", "blanchedalmond": "#ffebcd", "blue": "#0000ff", "blueviolet": "#8a2be2", "brown": "#a52a2a", "burlywood": "#deb887", "cadetblue": "#5f9ea0", "chartreuse": "#7fff00", "chocolate": "#d2691e", "coral": "#ff7f50", "cornflowerblue": "#6495ed", "cornsilk": "#fff8dc", "crimson": "#dc143c", "cyan": "#00ffff", "darkblue": "#00008b", "darkcyan": "#008b8b", "darkgoldenrod": "#b8860b", "darkgray": "#a9a9a9", "darkgrey": "#a9a9a9", "darkgreen": "#006400", "darkkhaki": "#bdb76b", "darkmagenta": "#8b008b", "darkolivegreen": "#556b2f", "darkorange": "#ff8c00", "darkorchid": "#9932cc", "darkred": "#8b0000", "darksalmon": "#e9967a", "darkseagreen": "#8fbc8f", "darkslateblue": "#483d8b", "darkslategray": "#2f4f4f", "darkslategrey": "#2f4f4f", "darkturquoise": "#00ced1", "darkviolet": "#9400d3", "deeppink": "#ff1493", "deepskyblue": "#00bfff", "dimgray": "#696969", "dimgrey": "#696969", "dodgerblue": "#1e90ff", "firebrick": "#b22222", "floralwhite": "#fffaf0", "forestgreen": "#228b22", "fuchsia": "#ff00ff", "gainsboro": "#dcdcdc", "ghostwhite": "#f8f8ff", "gold": "#ffd700", "goldenrod": "#daa520", "gray": "#808080", "grey": "#808080", "green": "#008000", "greenyellow": "#adff2f", "honeydew": "#f0fff0", "hotpink": "#ff69b4", "indianred�": "#cd5c5c", "indigo�": "#4b0082", "ivory": "#fffff0", "khaki": "#f0e68c", "lavender": "#e6e6fa", "lavenderblush": "#fff0f5", "lawngreen": "#7cfc00", "lemonchiffon": "#fffacd", "lightblue": "#add8e6", "lightcoral": "#f08080", "lightcyan": "#e0ffff", "lightgoldenrodyellow": "#fafad2", "lightgray": "#d3d3d3", "lightgrey": "#d3d3d3", "lightgreen": "#90ee90", "lightpink": "#ffb6c1", "lightsalmon": "#ffa07a", "lightseagreen": "#20b2aa", "lightskyblue": "#87cefa", "lightslategray": "#778899", "lightslategrey": "#778899", "lightsteelblue": "#b0c4de", "lightyellow": "#ffffe0", "lime": "#00ff00", "limegreen": "#32cd32", "linen": "#faf0e6", "magenta": "#ff00ff", "maroon": "#800000", "mediumaquamarine": "#66cdaa", "mediumblue": "#0000cd", "mediumorchid": "#ba55d3", "mediumpurple": "#9370db", "mediumseagreen": "#3cb371", "mediumslateblue": "#7b68ee", "mediumspringgreen": "#00fa9a", "mediumturquoise": "#48d1cc", "mediumvioletred": "#c71585", "midnightblue": "#191970", "mintcream": "#f5fffa", "mistyrose": "#ffe4e1", "moccasin": "#ffe4b5", "navajowhite": "#ffdead", "navy": "#000080", "oldlace": "#fdf5e6", "olive": "#808000", "olivedrab": "#6b8e23", "orange": "#ffa500", "orangered": "#ff4500", "orchid": "#da70d6", "palegoldenrod": "#eee8aa", "palegreen": "#98fb98", "paleturquoise": "#afeeee", "palevioletred": "#db7093", "papayawhip": "#ffefd5", "peachpuff": "#ffdab9", "peru": "#cd853f", "pink": "#ffc0cb", "plum": "#dda0dd", "powderblue": "#b0e0e6", "purple": "#800080", "rebeccapurple": "#663399", "red": "#ff0000", "rosybrown": "#bc8f8f", "royalblue": "#4169e1", "saddlebrown": "#8b4513", "salmon": "#fa8072", "sandybrown": "#f4a460", "seagreen": "#2e8b57", "seashell": "#fff5ee", "sienna": "#a0522d", "silver": "#c0c0c0", "skyblue": "#87ceeb", "slateblue": "#6a5acd", "slategray": "#708090", "slategrey": "#708090", "snow": "#fffafa", "springgreen": "#00ff7f", "steelblue": "#4682b4", "tan": "#d2b48c", "teal": "#008080", "thistle": "#d8bfd8", "tomato": "#ff6347", "turquoise": "#40e0d0", "violet": "#ee82ee", "wheat": "#f5deb3", "white": "#ffffff", "whitesmoke": "#f5f5f5", "yellow": "#ffff00", "yellowgreen": "#9acd32" };
             let hex = colors[name.toLowerCase()];
-            if (typeof hex != 'undefined') {
+            if (typeof hex !== 'undefined') {
                 return hex;
             } else {
                 return null;
             }
         },
         GetTheme: function () {
+            let theme = 'dark'
             si_theme = document.getElementById('si_colorscheme');
             if (si_theme) {
-                document.body.appendChild(si_theme);
+                //document.body.appendChild(si_theme);
                 let compStyles = window.getComputedStyle(si_theme);
                 let color = compStyles.getPropertyValue('color');
-                return (color === 'rgb(255, 255, 255)') ? 'light' : 'dark';
+                color = SI.Tools.Color.ParseToHex(color); //try to capture as many computed colors as possible
+                theme = (color === '#ffffff') ? 'light' : 'dark';
             }
-            return 'dark';
+            if (!SI.Theme) {
+                SI.Theme = {};
+            }
+            SI.Theme.UserPreference = theme;
+            SI.Theme.BackColor = (theme === "light") ? 'white' : 'black';
+            SI.Theme.BackgroundColor = (theme === "light") ? '#AAA' : 'rgb(72, 75, 87)';
+            SI.Theme.TextColor = (theme === "light") ? '#111' : 'rgb(172, 175, 187)';
+            SI.Theme.MenuColor = (theme === "light") ? '#777' : 'slategrey';
+            SI.Theme.ButtonColor = (theme === "light") ? '#345' : '#9A9';
+            SI.Theme.DraggerColor = (theme === "light") ? '#234' : '#99A';
+            return theme;
         },
     },
     Style: {
@@ -532,8 +607,9 @@ SI.Tools = {
             },
         },
         FadeOut: function (id, ms) {
+            let ele;
             if (typeof (ms) === "undefined") { ms = 1000; }
-            else if (typeof ms == "number") {
+            else if (typeof ms === "number") {
 
             }
             else if (ms.toLowerCase() === 'fast') {
@@ -542,11 +618,11 @@ SI.Tools = {
                 ms = 2500;
             }
             if (SI.Tools.Is.Element(id)) {
-                var ele = id;
+                ele = id;
             } else {
-                var ele = document.getElementById(id);
+                ele = document.getElementById(id);
             }
-            if (ele != null) {
+            if (ele !== null) {
                 if (ele.animate) {
                     ele.animate({
                         opacity: [1, 0],
@@ -562,8 +638,9 @@ SI.Tools = {
             }
         },
         FadeIn: function (id, ms) {
+            let ele;
             if (typeof (ms) === "undefined") { ms = 1000; }
-            else if (typeof ms == "number") {
+            else if (typeof ms === "number") {
 
             }
             else if (ms.toLowerCase() === 'fast') {
@@ -572,12 +649,12 @@ SI.Tools = {
                 ms = 2000;
             }
             if (SI.Tools.Is.Element(id)) {
-                var ele = id;
+                ele = id;
             } else {
-                var ele = document.getElementById(id);
+                ele = document.getElementById(id);
             }
 
-            if (ele != null) {
+            if (ele !== null) {
                 if (ele.animate) {
                     ele.animate({
                         opacity: [0, 1],
@@ -613,7 +690,7 @@ SI.Tools = {
     Class: {
         Loop: function (c, func) {
             var eles = document.getElementsByClassName(c);
-            for (var i = 0; i < eles.length; ++i) {
+            for (let i = 0; i < eles.length; ++i) {
                 func(eles[i]);
             }
         },
@@ -638,16 +715,16 @@ SI.Tools = {
             //   }
             //return allClasses;
         },
-        Hide: function(myclass){
+        Hide: function (myclass) {
             let eles = document.getElementsByClassName(myclass);
-            for (ele of eles) {
+            for (let ele of eles) {
                 ele.style.display = 'none';
             }
         },
         Show: function (myclass, display = 'block') {
             display = typeof display === 'undefined' ? 'block' : display;
             let eles = document.getElementsByClassName(myclass);
-            for (ele of eles) {
+            for (let ele of eles) {
                 ele.style.display = display;
             }
         },
@@ -658,9 +735,9 @@ SI.Tools = {
         },
         JsArray2HtmlSelect: function (array) {
             let sel = Ele("select", {});
-            for (i in array) {
+            for (let i in array) {
                 let option = array[i];
-                if (option != null) {
+                if (option !== null) {
                     Ele("option", {
                         innerHTML: option,
                         appendTo: sel,
@@ -679,7 +756,7 @@ SI.Tools = {
             var p = ["webkit", "mdn", "ms", "o"],
                 s = "scale(" + zoom + ")",
                 oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
-            for (var i = 0; i < p.length; i++) {
+            for (let i = 0; i < p.length; i++) {
                 el.style[p[i] + "Transform"] = s;
                 el.style[p[i] + "TransformOrigin"] = oString;
             }
@@ -729,17 +806,17 @@ SI.Tools = {
                     if (test.match(/^\d/)) {
                         test = "_" + test;
                     }
-                    return test;
                     break;
                 case "email": break;
             }
+            return test;
         },
         Match: function (flag, test) {
             switch (flag.toLowerCase()) {
                 case "guid": return test.match(/0[xX][0-9a-fA-F]{32}|[0-9a-fA-F]{32}/);
                 case "email": return test.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
             }
-           
+
         }
     },
     Meta: {
@@ -844,13 +921,13 @@ SI.Tools = {
 
     },
     Is: {
-        Visible: function (ele) {  
-            if (typeof (ele) == 'string') {
+        Visible: function (ele) {
+            if (typeof (ele) === 'string') {
                 ele = document.getElementById(ele);
             }
-            if(ele){
+            if (ele) {
                 disp = ele.currentStyle ? ele.currentStyle.display : getComputedStyle(ele, null).display;
-                return disp == 'none' ? false : true;
+                return disp === 'none' ? false : true;
             } else {
 
                 //console.warn("Tried to determine if "+ele+" IsVisable. The element was null");
@@ -860,17 +937,17 @@ SI.Tools = {
             return (
                 typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
                     o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
-            );
+            );  //SO-384286
         },
         InlineElement: function (ele) {
             const inlines = ['a', 'abbr', 'acronym', 'b', 'bdo', 'big', 'br', 'button', 'cite', 'code', 'dfn', 'em', 'i', 'img', 'input', 'kbd', 'label', 'map', 'object', 'q', 'samp', 'script', 'select', 'small', 'span', 'strong', 'sub', 'sup', 'textarea', 'time', 'tt', 'var']
             let inOf = null;
-            if (typeof ele == 'string') {
+            if (typeof ele === 'string') {
                 inOf = inlines.indexOf(ele.toLowerCase());
             } else if (SI.Tools.Is.Element(ele)) {
                 inOf = inlines.indexOf(ele.tagName.toLowerCase());
             }
-            if (inOf == -1) {
+            if (inOf === -1) {
                 return false;
             } else {
                 return true;
@@ -880,19 +957,19 @@ SI.Tools = {
         EmptyElement: function (ele) {
             let inOf = null;
             const emptyElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
-            if (typeof ele == 'string') {
+            if (typeof ele === 'string') {
                 inOf = emptyElements.indexOf(ele.toLowerCase());
             } else if (SI.Tools.Is.Element(ele)) {
                 inOf = emptyElements.indexOf(ele.tagName.toLowerCase());
             }
-            if (inOf == -1) {
+            if (inOf === -1) {
                 return false;
             } else {
                 return true;
             }
         },
         EmptyObject: function (obj) {
-            for (var key in obj) {
+            for (let key in obj) {
                 if (obj.hasOwnProperty(key))
                     return false;
             }
@@ -917,7 +994,14 @@ SI.Tools = {
                     o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
             );
         },
-        Guid: function (test) { return SI.Tools.RegEx.Match('guid', test);},
+        Guid: function (test) { return SI.Tools.RegEx.Match('guid', test); },
+        Tag: function (test) {
+            alltags = ["a", "abbr", "acronym", "address", "applet", "area", "article", "aside", "audio", "b", "base", "basefont", "bb", "bdo", "big", "blockquote", "body", "br", "button", "canvas", "caption", "center", "cite", "code", "col", "colgroup", "command", "datagrid", "datalist", "dd", "del", "details", "dfn", "dialog", "dir", "div", "dl", "dt", "em", "embed", "eventsource", "fieldset", "figcaption", "figure", "font", "footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "keygen", "label", "legend", "li", "link", "map", "mark", "menu", "meta", "meter", "nav", "noframes", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "section", "select", "small", "source", "span", "strike", "strong", "style", "sub", "sup", "table", "tbody", "td", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "tt", "u", "ul", "var", "video", "wbr"];
+            if (alltags.indexOf(test) > -1) {
+                return true;
+            }
+            return false;
+        }
     },
     Storage: {
         AppendToStorage: function (name, data) {
@@ -949,16 +1033,14 @@ SI.Tools = {
         if (typeof obj.Url === "undefined") { this.url = '/delegate.php'; } else { this.url = obj.Url; }
         if (typeof obj.ContentType === "undefined") { this.contentType = 'application/json'; } else { this.contentType = obj.ContentType; }
         if (typeof obj.Async === "undefined") { this.async = true; } else { this.async = obj.Async; }
-        //debugger;
-        
+
         var xhr = new XMLHttpRequest();
         xhr.open(this.method, this.url, this.async);
         xhr.setRequestHeader("Content-Type", this.contentType);
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                //debugger;
                 try {
-                    if (xhr.responseText != null && xhr.responseText.length > 0) {
+                    if (xhr.responseText !== null && xhr.responseText.length > 0) {
                         SI.Tools.Success(xhr.responseText);
                     }
                 } catch (ex) {
@@ -975,12 +1057,11 @@ SI.Tools = {
     Success: function (response) {
         json = JSON.parse(response.trim());
         json = json[0];
-        for (var prop in json) {
+        for (let prop in json) {
             if (json.hasOwnProperty(prop)) {
-                //debugger;
                 switch (prop) {
                     case "EXCEPTION": alert(response); break;
-                    case "REFRESH": setTimeout(function () { location.reload(); }, 3000); break; //jus give it a second
+                    case "REFRESH": setTimeout(function () { location.reload(); }, 500); break; //jus give it a second
                     case "LOGINFAIL": alert("Username or password is incorrect"); break;
                     case "PLUGIN": SI.Tools.ProcessPlugin(json);
                 }
@@ -988,10 +1069,64 @@ SI.Tools = {
         }
     },
     ProcessPlugin: function (data) {
-         //plugin ajax returns will be processed here. we will return them to their respective plugin functions here. 
-         
+        //plugin ajax returns will be processed here. we will return them to their respective plugin functions here. 
+
     },
     Element: {
+        Get: function (search, index = null) {
+            //debugger;
+            //this search should be pretty robust. it can handle existing elements, queryselectors, qsAlls, and ids. 
+            //You should be able to throw the kitchen sink at it but it will be slower that a getbyid so use that whe psooible.
+            //This should be used for one offs.not drawing UIs. It is used to find the parents of widgets. 
+            let retval = null;
+            if (search) {
+                if (SI.Tools.Is.Element(search)) {   //If it is a element
+                    retval = search;
+                }
+                else if (SI.Tools.Is.Tag(search)) {   //if it is a tag
+                    let eles = document.querySelectorAll(search);
+                    if (eles) {
+                        if (index && index.isInteger() && eles[index]) {
+                            retval = eles[index];
+                        } else {
+                            retval = eles[0];
+                        }
+                    }
+                    console.warn(search + " could not be found in the document");
+                    return null;
+                }
+                else if (search.charAt(0) === '.') {  //If it is a class
+                    let eles = document.querySelectorAll(search);
+                    if (eles) {
+                        if (index && index.isInteger() && eles[index]) {
+                            retval = eles[index];
+                        } else {
+                            retval = eles[0];
+                        }
+                    }
+                    console.warn(search + " could not be found in the document");
+                    return null;
+                }
+                else if (search.charAt(0) === '#') {   //If it is a ID
+                    retval = document.querySelector(search);
+                }
+                else {
+                    retval = document.getElementById(search);
+                }
+                if (SI.Tools.Is.Element(retval)) {
+                    if (retval.tagName.length > 0 && !SI.Tools.Is.EmptyElement(retval.tagName)) {
+                        return retval;
+                    } else {
+                        console.warn(search + " is an empty element and does not allow children");
+                        return null;
+                    }
+                }
+
+            }
+            else {
+                return null;
+            }
+        },
         SetParent: function (el, newParent) {
             newParent.appendChild(el);
         },
@@ -1000,14 +1135,14 @@ SI.Tools = {
             var p2 = n2.parentNode;
             var i1, i2;
             if (!p1 || !p2 || p1.isEqualNode(n2) || p2.isEqualNode(n1)) return;
-            for (var i = 0; i < p1.children.length; i++) {
+            for (let i = 0; i < p1.children.length; i++) {
                 if (p1.children[i].isEqualNode(n1)) {
                     i1 = i;
                 }
             }
-            for (var i = 0; i < p2.children.length; i++) {
-                if (p2.children[i].isEqualNode(n2)) {
-                    i2 = i;
+            for (let j = 0; j < p2.children.length; j++) {
+                if (p2.children[j].isEqualNode(n2)) {
+                    i2 = j;
                 }
             }
             if (p1.isEqualNode(p2) && i1 < i2) {
@@ -1023,10 +1158,10 @@ SI.Tools = {
             //first loop to inspect
             obj = {};
             for (let style in endstyle) {
-                if (style == "width") {
+                if (style === "width") {
                     obj.width = element.offsetWidth;
                 }
-                else if (style == "height") {
+                else if (style === "height") {
                     obj.height = element.offsetHeight;
                 }
                 //get the beginning, get the end, find out the delta and divid by 1000
@@ -1041,12 +1176,12 @@ SI.Tools = {
                 if (checking.classList.contains('si-block')) {
                     foundBlock = true;
                 }
-                else{
+                else {
                     checking = checking.parentElement;
                     generations++;
-                }  
+                }
 
-                if(generations > 100){
+                if (generations > 100) {
                     return null;
                 }
             }
@@ -1058,13 +1193,13 @@ SI.Tools = {
             } else {
                 referenceNode.parentNode.appendChild(el);
             }
-            
+
         },
-        Tags:{
-            Input:{
-                AddData:function(input, data){     
-                    dl = document.createElement('datalist');       
-                    dl.id = input.id+"_dl";
+        Tags: {
+            Input: {
+                AddData: function (input, data) {
+                    dl = document.createElement('datalist');
+                    dl.id = input.id + "_dl";
                     for (let i = 0; i < data.length; i += 1) {
                         var option = document.createElement('option');
                         option.value = data[i];
@@ -1075,22 +1210,19 @@ SI.Tools = {
             }
         },
         GetBlock: function (element) {
-            while (true) {
-                //debugger;
-                let pop = element.parentElement;
-                if (pop.tagName == 'BODY') {
-                    return false;
-                } else if (pop.classList.contains('si-block')) {
-                    return pop;
-                } else {
-                    return SI.Tools.Element.GetBlock(pop);
-                }
+            let pop = element.parentElement;
+            if (pop.tagName === 'BODY') {
+                return false;
+            } else if (pop.classList.contains('si-block')) {
+                return pop;
+            } else {
+                return SI.Tools.Element.GetBlock(pop);
             }
         },
         SafeId: function (id) {
             //debugger;
             //we cant have spaces in ids
-            id = id.replace(/\s/g, "_"); 
+            id = id.replace(/\s/g, "_");
             //make sure the id is unique to the doc or else increment it
             let i = 1;
             let len = id.length;
@@ -1113,7 +1245,7 @@ SI.Tools = {
                 off.top += par.offsetTop;
                 par = par.parentElement;
                 //bail if we hit the desired top
-                if (stopid && par.id == stopid) {
+                if (stopid && par.id === stopid) {
                     break;
                 }
             }
@@ -1124,31 +1256,54 @@ SI.Tools = {
         let allfunctions = [];
         let blacklist = ['webkitStorageInfo'];
         //debugger;
-        for (var i in obj) {
-            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() == "function" ) {
+        for (let i in obj) {
+            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() === "function") {
                 allfunctions.push(obj[i].name);
             }
         }
         return allfunctions;
     },
     StopOverscroll: function (element) { //NEEDS WORKS. Locks up on anthing with some size
-        element.onwheel= function (e) {
+        element.onwheel = function (e) {
             if ((this.scrollTop > parseInt(this.style.height) - 120 && e.deltaY > 0) || (this.scrollTop < 2 && e.deltaY < 0)) {
                 e.preventDefault();
                 e.stopPropagation();
             }
         }
     },
-
     AddPhp: function (php) {
         document.body.appendChild(document.createComment("<?php " + php + " ?>"));
+    },
+    SuperAlert: function (msg, duration = 5000) //si 15466802
+    {
+        let alert = Ele("div", {
+            innerHTML: msg,
+            style: {
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                padding: '20px',
+                backgroundColor: "#aaa",
+                color: '#222',
+                zIndex: '99999',
+                border: '2px solid #FFF',
+                borderRadius: '4px'
+            },
+            appendTo: 'body'
+        });    //9862167
+
+        setTimeout(function () {
+            alert.parentNode.removeChild(alert);
+        }, duration);
+
     },
     GetSubdomain: function (hostname) {
         hostname = typeof hostname !== 'undefined' ? hostname : window.location.hostname;
         //debugger;
         var regexParse = new RegExp('[a-z\-0-9]{2,63}\.[a-z\.]{2,5}$');
         var urlParts = regexParse.exec(hostname);
-        if (urlParts != null && urlParts.length > 0) {
+        if (urlParts !== null && urlParts.length > 0) {
             return hostname.replace(urlParts[0], '').slice(0, -1);
         }
     },
@@ -1158,11 +1313,11 @@ SI.Tools = {
 
         loc = loc.replace('https://', '').replace('http://', '');
 
-        if (loc.charAt(0) == '/') {
+        if (loc.charAt(0) === '/') {
             loc = loc.substr(1);
         }
-   
-        if (loc.indexOf("?")>-1) {
+
+        if (loc.indexOf("?") > -1) {
             retval = loc.split('?')[0];
             return retval;
         } else {
@@ -1171,8 +1326,8 @@ SI.Tools = {
 
     },
     GetQueryString: function () {
-        return <?php echo $_SERVER['QUERY_STRING']; ?>;
-        
+        return window.location.search;
+
     },
     CreateCSSSelector: function (selector, style, stylesheet) {
         if (stylesheet === undefined) {
@@ -1180,12 +1335,12 @@ SI.Tools = {
         }
         if (!document.styleSheets) return; //no style sheets?
 
-        if (document.getElementsByTagName('head').length == 0) return; //no head? 
+        if (document.getElementsByTagName('head').length === 0) return; //no head? 
 
         var styleSheet, mediaType;
         //  L(document.styleSheets);
         if (document.styleSheets.length > 0) {
-            for (var i = 0, l = document.styleSheets.length; i < l; i++) {
+            for (let i = 0, l = document.styleSheets.length; i < l; i++) {
                 if (document.styleSheets[i].href.indexOf(stylesheet) > -1) {
 
                     if (document.styleSheets[i].disabled)
@@ -1198,7 +1353,7 @@ SI.Tools = {
                             styleSheet = document.styleSheets[i];
                         }
                     }
-                    else if (mediaType == 'object') {
+                    else if (mediaType === 'object') {
                         if (media.mediaText === '' || (media.mediaText.indexOf('screen') !== -1)) {
                             styleSheet = document.styleSheets[i];
                         }
@@ -1215,7 +1370,7 @@ SI.Tools = {
             styleSheetElement.type = 'text/css';
             document.getElementsByTagName('head')[0].appendChild(styleSheetElement);
 
-            for (i = 0; i < document.styleSheets.length; i++) {
+            for (let i = 0; i < document.styleSheets.length; i++) {
                 if (document.styleSheets[i].disabled) {
                     continue;
                 }
@@ -1226,8 +1381,8 @@ SI.Tools = {
         }
 
         if (mediaType === 'string') {
-            for (var i = 0, l = styleSheet.rules.length; i < l; i++) {
-                if (styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+            for (let i = 0, l = styleSheet.rules.length; i < l; i++) {
+                if (styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() === selector.toLowerCase()) {
                     styleSheet.rules[i].style.cssText = style;
                     return;
                 }
@@ -1236,8 +1391,8 @@ SI.Tools = {
         }
         else if (mediaType === 'object') {
             var styleSheetLength = (styleSheet.cssRules) ? styleSheet.cssRules.length : 0;
-            for (var i = 0; i < styleSheetLength; i++) {
-                if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+            for (let i = 0; i < styleSheetLength; i++) {
+                if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() === selector.toLowerCase()) {
                     styleSheet.cssRules[i].style.cssText = style;
                     return;
                 }
@@ -1248,20 +1403,20 @@ SI.Tools = {
     RandomColor: function () {
         var letters = '0123456789ABCDEF';
         var color = '#';
-        for (var i = 0; i < 6; i++) {
+        for (let i = 0; i < 6; i++) {
             color += letters[Math.floor(Math.random() * 16)];
         }
         return color;
     },
     ToFixed: function (x) {
         if (Math.abs(x) < 1.0) {
-            var e = parseInt(x.toString().split('e-')[1]);
+            let e = parseInt(x.toString().split('e-')[1]);
             if (e) {
                 x *= Math.pow(10, e - 1);
                 x = '0.' + (new Array(e)).join('0') + x.toString().substring(2);
             }
         } else {
-            var e = parseInt(x.toString().split('+')[1]);
+            let e = parseInt(x.toString().split('+')[1]);
             if (e > 20) {
                 e -= 20;
                 x /= Math.pow(10, e);
@@ -1271,24 +1426,24 @@ SI.Tools = {
         return x;
     },
     GetElementOffset: function (element, property) {
-        if (property == "offsetLeft" || property == "offsetTop") {
+        if (property === "offsetLeft" || property === "offsetTop") {
             var actualOffset = element[property];
             var current = element.offsetParent;
             //Look up the node tree to add up all the offset value
-            while (current != null) {
+            while (current !== null) {
                 actualOffset += current[property];
                 current = current.offsetParent;
             }
             return actualOffset;
-        } else if (property == "offsetHeight" || property == "offsetWidth") {
+        } else if (property === "offsetHeight" || property === "offsetWidth") {
             return element[property];
         }
         return false;
     },
-    GetComputedStyle:function (tag) {
+    GetComputedStyle: function (tag) {
         var cStyle,
-        t = document.createElement(tag),
-        gcs = "getComputedStyle" in window;
+            t = document.createElement(tag),
+            gcs = "getComputedStyle" in window;
 
         document.body.appendChild(t);
         cStyle = (gcs ? window.getComputedStyle(t, "") : t.currentStyle).display;
@@ -1332,6 +1487,8 @@ SI.Tools = {
                     break;
                 default: path = null;
             }
+            path = window.location.origin + path;
+
             if (brackets) {
                 path = 'url("' + path + '")';
             }
@@ -1348,15 +1505,15 @@ SI.Tools = {
             }
 
             options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-            
+
             var ajax = new XMLHttpRequest();
             ajax.open("POST", "/api.v1.php", true);
             ajax.setRequestHeader("Content-Type", "application/json");
             ajax.onreadystatechange = function () {
                 if (ajax.readyState === 4 && ajax.status === 200) {
                     try {
-                        if (ajax.responseText != null && ajax.responseText.length > 0) {
-                           //debugger;
+                        if (ajax.responseText !== null && ajax.responseText.length > 0) {
+                            //debugger;
                             json = JSON.parse(ajax.responseText.trim());
                             options.Callback(json, options);
                         }
@@ -1374,27 +1531,25 @@ SI.Tools = {
         },
         Returned: function (response) {
             //debugger;
-            if (typeof response['Return'] != 'undefined') {
+            if (typeof response['Return'] !== 'undefined') {
                 let queryElements = null;
                 let retEntity = null;
 
-                if (typeof response['Return']['Query'] != 'undefined') {                  
+                if (typeof response['Return']['Query'] !== 'undefined') {
                     queryElements = document.querySelectorAll(response['Return']['Query']);
                 }
-                if (typeof response['Return']['Entity']['Name'] != 'undefined') {
+                if (typeof response['Return']['Entity']['Name'] !== 'undefined') {
                     retEntity = response['Return']['Entity']['Name'];
                 }
 
             }
 
         },
-
     },
-
     Select: {
-        Sort: function(selElem) {
+        Sort: function (selElem) {
             var tmpAry = new Array();
-            for (var i = 0; i < selElem.options.length; i++) {
+            for (let i = 0; i < selElem.options.length; i++) {
                 tmpAry[i] = new Array();
                 tmpAry[i][0] = selElem.options[i].text;
                 tmpAry[i][1] = selElem.options[i].value;
@@ -1403,15 +1558,13 @@ SI.Tools = {
             while (selElem.options.length > 0) {
                 selElem.options[0] = null;
             }
-            for (var i = 0; i < tmpAry.length; i++) {
+            for (let i = 0; i < tmpAry.length; i++) {
                 var op = new Option(tmpAry[i][0], tmpAry[i][1]);
                 selElem.options[i] = op;
             }
             return;
         }
     }
-
 };
-
-
-
+//try to set ColorTheme
+SI.Tools.Color.GetTheme();

@@ -340,7 +340,7 @@ Items = {
                 this.Count--;
             }
             var reset = 0;
-            for (var key in this) {
+            for (let key in this) {
                 if (this.hasOwnProperty(key)) {
                     if (!isNaN(key)) {
                         if (key != reset) {
@@ -362,7 +362,7 @@ Items = {
             }
         },
         Index: function (tabname) {
-            for (var i = 0; i < this.Count; i++) {
+            for (let i = 0; i < this.Count; i++) {
                 if (this[i] != null && this[i][tabname] != null) {
                     return i;
                 }

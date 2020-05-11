@@ -3,7 +3,7 @@
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen
  * @license   Licensed under GPLv2 license
- *            See https://github.com/disscombobilated/SuperIntuitive/blob/master/LICENSE
+ *            See https://github.com/SuperIntuitive/SuperIntuitive/blob/master/LICENSE
  * @version   v0.8
  */
 session_start();

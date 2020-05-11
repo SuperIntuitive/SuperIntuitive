@@ -1,17 +1,10 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
-
-if (!SI) { var SI = {}; }
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
 
 SI.Editor.Objects.Elements = {
     //Loops through all elements and makes them editable 
     Init: function () {
         document.querySelectorAll('*').forEach(function (node) {
             let tn = node.tagName;
-            let excludedElements = ['HEAD', 'BODY', 'HTML'];
+            let excludedElements = ['HEAD', 'BODY', 'HTML','META','STYLE','SCRIPT'];
             if (excludedElements.indexOf(tn) === -1) {
                 if (!node.classList.contains("si-block") && !node.classList.contains("si-deployment-control"))
                     node = SI.Editor.Objects.Elements.Editable(node);
@@ -40,7 +33,7 @@ SI.Editor.Objects.Elements = {
         //debugger;
         var selecteds = document.getElementsByClassName("si-editor-selected");
         if (selecteds.length > 0) {
-            for (node in selecteds) {
+            for (let node in selecteds) {
                 let ele = selecteds[node];
                 if (SI.Tools.Is.Element(ele)) {
                     //remove its selected events
@@ -51,7 +44,7 @@ SI.Editor.Objects.Elements = {
                     if (typeof ele.classList !== 'undefined' && ele.classList.contains("si-editor-selected")) {
                         ele.classList.remove("si-editor-selected");
                         // Cycle over each attribute on the element
-                        for (var i = 0; i < ele.attributes.length; i++) {
+                        for (let i = 0; i < ele.attributes.length; i++) {
                             // Store reference to current attr
                             attr = ele.attributes[i];
                             // If attribute nodeName starts with 'data-'
@@ -202,13 +195,13 @@ SI.Editor.Objects.Elements = {
 
 
                 //setup datalists
-                if (SI.Editor.Code.DataLists.AnimationNames === null) {
-                    SI.Editor.Code.DataLists.AnimationNames = [];
+                if (SI.Editor.Data.DataLists.AnimationNames === null) {
+                    SI.Editor.Data.DataLists.AnimationNames = [];
                 } 
                 //fill up our style lists
                 var compstyle = window.getComputedStyle(ele);
-                if (compstyle.animationName !== 'none' && SI.Editor.Code.DataLists.AnimationNames.indexOf(compstyle.animationName) === -1) {
-                    SI.Editor.Code.DataLists.AnimationNames.push(compstyle.animationName);
+                if (compstyle.animationName !== 'none' && SI.Editor.Data.DataLists.AnimationNames.indexOf(compstyle.animationName) === -1) {
+                    SI.Editor.Data.DataLists.AnimationNames.push(compstyle.animationName);
                 }
                 
 
@@ -357,10 +350,10 @@ SI.Editor.Objects.Elements = {
                     let a;
                     if (options.Group === null) {
                         //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? 
-                        a = SI.Editor.Code.Tools.GetAttributeByName(options.Property);
+                        a = SI.Editor.Data.Tools.GetAttributeByName(options.Property);
                     } else {
                         //if we dont have an index but do have a group name, guarentee the correct attr
-                        a = SI.Editor.Code.Tools.GetAttributeByName(options.Property, options.Group);
+                        a = SI.Editor.Data.Tools.GetAttributeByName(options.Property, options.Group);
                     }
 
                     options.Group = a.group;
@@ -368,7 +361,7 @@ SI.Editor.Objects.Elements = {
                 }
             }
 
-            let attrobj = SI.Editor.Code.html_attributes[options.Group][options.Index];
+            let attrobj = SI.Editor.Data.html_attributes[options.Group][options.Index];
             let attrrow = document.createElement('tr');
 
             let getEffected = function () {
@@ -824,7 +817,7 @@ SI.Editor.Objects.Elements = {
                 let blank = document.createElement('option');
                 blank.innerText = '';
                 attrInput.appendChild(blank);
-                attrInput.innerHTML += SI.Editor.Code.OptionSets.Language.All;
+                attrInput.innerHTML += SI.Editor.Data.OptionSets.Language.All;
                 attrInput.onchange = function (e) {
                     let ele = getEffected();
                     if (ele !== null) {
@@ -846,7 +839,7 @@ SI.Editor.Objects.Elements = {
                 let blank = document.createElement('option');
                 blank.innerHTML = "";
                 attrInput.appendChild(blank);
-                for (var i = 0; i < myoptions.length; i++) {
+                for (let i = 0; i < myoptions.length; i++) {
                     let option = document.createElement('option');
                     option.innerHTML = myoptions[i];
                     attrInput.appendChild(option);
@@ -914,6 +907,7 @@ SI.Editor.Objects.Elements = {
 
             return attrrow;
         }
+
     },
     Styles: {
         Widget: function (options) {
@@ -943,7 +937,7 @@ SI.Editor.Objects.Elements = {
                     return null;
                 }
                 else {
-                    let s = SI.Editor.Code.Tools.GetStyleByName(options.Property);
+                    let s = SI.Editor.Data.Tools.GetStyleByName(options.Property);
                     if (s) {
                         options.Group = s.group;
                         options.Index = s.index;
@@ -959,7 +953,7 @@ SI.Editor.Objects.Elements = {
                 return unsupportedRow;
             }
             else {
-                styleobj = SI.Editor.Code.css_properties[options.Group][options.Index];
+                styleobj = SI.Editor.Data.css_properties[options.Group][options.Index];
             }
 
             if (typeof styleobj === 'undefined' || styleobj.n.startsWith('@') || styleobj.n.startsWith(':')) {
@@ -1019,7 +1013,6 @@ SI.Editor.Objects.Elements = {
                 },
                 onclick: function (e) {
                     //debugger;
-                    if (options.Effected) { };
                     var tableid = this.id.replace("si_edit_style_", "si_edit_style_table_");
                     var display = document.getElementById(tableid);
                     if (display.style.display === 'none') {
@@ -1069,7 +1062,7 @@ SI.Editor.Objects.Elements = {
                 appendTo: container,
             });
 
-            var AssignStyle = function (val) {
+            var AssignStyle = function (val,shnum=null) {
                 //debugger;
                 val = val.trim();
                 //sets the values of the read only input
@@ -1087,7 +1080,7 @@ SI.Editor.Objects.Elements = {
                 else if (SI.Editor.Objects.Elements.Selected !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
-                    for (var i = 0; i < classes.length; i++) {
+                    for (let i = 0; i < classes.length; i++) {
                         classes[i].value = val;
                     }
                     ele = SI.Editor.Objects.Elements.Selected;
@@ -1131,16 +1124,16 @@ SI.Editor.Objects.Elements = {
                 if (options.Effected) {
                     let ele = document.querySelector(options.Effected);
                     if (ele) {
-                        ele.style[Tools.CssProp2JsKey(styleobj.n)] = null;
+                        ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
                     }
                 }
                 ///     else if (options.OnChange != null) {
                 //        options.OnChange(val);
                 //     }
-                else if (SI.Editor.Objects.Elements.Selected != null) {
+                else if (SI.Editor.Objects.Elements.Selected !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
-                    for (var i = 0; i < classes.length; i++) {
+                    for (let i = 0; i < classes.length; i++) {
                         classes[i].value = null;
                     }
                     SI.Editor.Objects.Elements.Selected.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
@@ -1358,7 +1351,7 @@ SI.Editor.Objects.Elements = {
                     style: {
                         width: '120px',
                     },
-                    innerHTML: SI.Editor.Code.OptionSets.CSS.Colors,
+                    innerHTML: SI.Editor.Data.OptionSets.CSS.Colors,
                     onchange: function () {
                         //debugger;
                         var colorname = document.getElementById("si_edit_style_color_name_" + styleobj.n + "_" + RandId).value;
@@ -1397,7 +1390,10 @@ SI.Editor.Objects.Elements = {
                 var box = Ele('div', {});
                 let url = Ele('input', {
                     id: "si_edit_style_url_" + styleobj.n + "_" + RandId,
-                    type: 'url',
+                    type: "lookup",
+                    data: {
+                        type: "media"
+                    },
                     placeholder: 'url',
                     style: {
                         color: 'blue',
@@ -1440,35 +1436,75 @@ SI.Editor.Objects.Elements = {
 
                 return box;
             }
+            this.KEYFRAMENAMES = function () {          
+                var box = Ele('div', {});
+                let keyframenames = Ele("input", {
+                    id: "si_edit_style_keyframename_" + styleobj.n + "_" + RandId,
+                    
+                    onchange: function () {
+                        AssignStyle(this.value);
+                    },
+                    appendTo: box,
+                });
+                keyframenames.setAttribute('list', "si_edit_style_keyframenamelist_" + styleobj.n + "_" + RandId);
+                let datalist = Ele("datalist", {
+                    id: "si_edit_style_keyframenamelist_" + styleobj.n + "_" + RandId,
+                    appendTo: box
+                });
+                function getAllKeyframeNames() {
+
+                    names = SI.Editor.Data.DataLists.AnimationNames;
+                    for (let name of names) {
+                        Ele("option", {
+                            value: name,
+                            appendTo: datalist
+                        });
+                    }
+
+                }
+                getAllKeyframeNames();
+                return box;
+            }
             //function to build the caller for the above builder functions
-            this.BuildFunction = function (opts = "", label = null) {
-                let val = null;
-                if (typeof this[opts] == 'function') {
-                    val = this[opts]();
+            this.BuildFunction = function (func, color = null) {
+
+                if (typeof func !== 'undefined') {
+                    let val = null;
+                    if (typeof this[func] === 'function') {
+                        val = this[func]();
+                    }
+                    let row = document.createElement('tr');
+                    //  if (label) {
+                    //      Ele('td');
+                    //   }
+                    let data = document.createElement('td');
+
+                    if (val !== null) {
+                        data.appendChild(val);
+                    } else {
+                        data.innerHTML = func;
+                    }
+                    if (color) {
+                        data.style.backgroundColor = color;
+                        row.style.backgroundColor = color;
+                    }
+                    row.appendChild(data);
+                    return row;
                 }
-                let row = document.createElement('tr');
-                if (label) {
-                    Ele('td');
-                }
-                let data = document.createElement('td');
-                if (val != null) {
-                    data.appendChild(val);
-                } else {
-                    data.innerHTML = opts;
-                }
-                row.appendChild(data);
-                return row;
             }
 
-            this.BuildOptionset = function (achoices) {
+            this.BuildOptionset = function (optionset, color=null) {
                 let stylize = ['cursor'];
-                for (let i in achoices) {
-                    let opt = achoices[i];
+
+                for (let i in optionset) {
+                    let opt = optionset[i];
                     let row = document.createElement('tr');
                     let data = document.createElement('td');
+                    if (color) {
+                        data.style.backgroundColor = color;
+                    }
                     if (SI.Tools.String.IsUpperCase(opt)) {
-                        row = this.BuildFunction(opt);
-
+                        row = this.BuildFunction(opt,color);
                     } else {
                         data.innerHTML = opt;
                         data.onclick = function () {
@@ -1478,6 +1514,7 @@ SI.Editor.Objects.Elements = {
                     }
                     if (stylize.indexOf(styleobj.n) !== -1) {
                         row.style[styleobj.n] = opt;
+
                     }
                     this.css_table.appendChild(row);
                 }
@@ -1496,52 +1533,53 @@ SI.Editor.Objects.Elements = {
                 } else {
                     let choices = styleobj.v.replace('OS(').replace('undefined', '');
                     choices = SI.Tools.String.TrimR(choices, ')');
-                    if (choices != undefined) {
-                        let achoices = choices.split('|');
-                        this.BuildOptionset(achoices);
+                    if (choices !== undefined) {
+                        let optionset = choices.split('|');
+                        this.BuildOptionset(optionset);
                     }
                 }
 
             }
             else if (styleobj.t === 'SH') { //if we have an optionset full of build options...
-                //debugger;
-                if (styleobj.v.indexOf('OS(') === -1) {
-                    let psv = styleobj.v.replace('SH(', '').replace(')', '').split("|");
-                    let row = Ele('tr', {});
-                    let data = Ele('td', {
-                        appendTo: row,
-                    });
+                let val = SI.Tools.String.TrimR(styleobj.v.replace('SH(', ''), ")");
+                let psv = val.split("|");
+                let row = Ele('tr', {});
+                let data = Ele('td', {
+                    appendTo: row,
+                });
 
-                    let shorthandBox = Ele('table', {
-                        appendTo: data,
-                    });
-
-                    for (let prop of psv) {
-                        let s = SI.Editor.Code.Tools.GetStyleByName(prop);
-                        if (typeof s !== 'undefined') {
-                            let sh;
-                            if (s.v.indexOf('OS(') === -1) {
-                                sh = this.BuildFunction(s.v);
-                                this.css_table.appendChild(sh);
-                            } else {
-                                //  sh = this.BuildOptionset(s.v);
-                            }
-
+                let shorthandBox = Ele('table', {
+                    appendTo: data
+                });
+                for (let i = 0; i < psv.length; i++) {
+                    let color = SI.Tools.Color.Random(0.1); 
+                    let prop = psv[i];
+                    if (prop === 'LEN' || prop === 'NUM') {
+                        //debugger;
+                    }
+                    let s = SI.Editor.Data.Tools.GetStyleByName(prop);
+                    if (typeof s !== 'undefined') {
+                        let sh;
+                        if (s.v.indexOf('OS(') === -1) {
+                       
+                            sh = this.BuildFunction(s.v, color);
+                            this.css_table.appendChild(sh);
                         } else {
-                            console.warn("Style: " + prop + " not obtainable from SI.Editor.Code.Tools.GetStyleByName()");
+                            let os = SI.Tools.String.TrimR(s.v.replace('OS(', ''), ")");
+                            let osa = os.split("|");
+                     
+                            this.BuildOptionset(osa,color);
                         }
 
-
-                        //  let val = SI.Editor.Code.css_properties.
-                        //  shorthandBox.appendChild(stylerow);
+                    } else {
+                        console.warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
                     }
-                    //   this.css_table.appendChild(row);
 
-                } else {
-                    //debugger;
-                    //this has a OS in the SH case senario deal with after
+
+                    //  let val = SI.Editor.Data.css_properties.
+                    //  shorthandBox.appendChild(stylerow);
                 }
-
+                //   this.css_table.appendChild(row);
 
                 this.css_value.readOnly = false;
             }
@@ -1606,6 +1644,6 @@ SI.Editor.Objects.Elements = {
 
             return cssrow;
 
-        }
+        },
     },
 }

@@ -3,16 +3,17 @@ header("Content-Type: application/javascript; charset: UTF-8");
 ?>
 
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.Menu = function(options) {
-    //debugger;
+SI.Widget.Menu = function(options) {
+    if (!(this instanceof SI.Widget.Menu)) { return new SI.Widget.Menu(); }
     this.Defaults = {
+        "Parent": null,
+        "ParentIndex": null,
         "ContainerClass": "",
         "Direction": "h",
         "Type": 'text',
         "Text": "Text Me",
-        "ContainerParentID": "",
         "ContainerPosition": "relative",
         "ContainerTop": "200px",
         "ContainerBottom": "",
@@ -21,24 +22,23 @@ SI.Widgets.Menu = function(options) {
         "TextColor": "white",
         "Items": {},
     };
-    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    let randId = SI.Tools.String.RandomString(11);
-    let container = Ele('div', {
-        id: "si_menu_" + randId,
-        class: options.ContainerClass,
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Random = SI.Tools.String.RandomString(11);
+    this.Container = Ele('div', {
+        id: "si_menu_" + this.Random ,
+        class: this.Options.ContainerClass,
         style: {
-            minHeight: options.MinHeight,
-            fontSize: options.FontSize,
-            color: options.TextColor,
-            position: options.ContainerPosition,
-            top: options.ContainerTop,
-            bottom: options.ContainerBottom,
-            left: options.ContainerLeft,
-            right: options.ContainerRight,
+            minHeight: this.Options.MinHeight,
+            fontSize: this.Options.FontSize,
+            color: this.Options.TextColor,
+            position: this.Options.ContainerPosition,
+            top: this.Options.ContainerTop,
+            bottom: this.Options.ContainerBottom,
+            left: this.Options.ContainerLeft,
+            right: this.Options.ContainerRight,
             cursor: 'pointer',
             backgroundColor: 'green',
         },
-        appendTo:options.ContainerParentID,
     });
     let level = 0;
 
@@ -116,18 +116,14 @@ SI.Widgets.Menu = function(options) {
 
     }
 
-    if (Object.keys(options.Items).length > 0) {
-        CreateMenu(options.Items, container);
+    if (Object.keys(this.Options.Items).length > 0) {
+        this.CreateMenu(this.Options.Items, this.Container);
     }
 
-    this.Container = container;
-    if (typeof container.parentElement === 'undefined') {
-        var par = document.getElementById(options.ContainerParentID);
-        if (par != null) {
-            par.appendChild(container);
-        } 
-    } 
-    return container;
+    if (this.Options.Parent) {
+        this.Options.Parent.appendChild(this.Container);
+    }
+    return this;
 }
 
 

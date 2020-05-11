@@ -3,38 +3,50 @@ header("Content-Type: application/javascript; charset: UTF-8");
 ?>
 
 if (!SI) { var SI = {}; }
-if (!SI.Widgets) { SI.Widgets = {}; }
+if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widgets.DataGrid = function (obj) {
-    if (typeof obj === "undefined") {
-        obj = {};
-    }
+SI.Widget.DataGrid = function (options) {
+    if (!(this instanceof SI.Widget.DataGrid)) { return new SI.Widget.DataGrid(); }
 
-    this.randomid = SI.Tools.String.RandomString(11);
-    var randId = this.randomid;
+    this.Defaults = {
+        "Parent": null,
+        "ParentIndex": null,
+        "Columns": [],
+        "Rows": [], 
+    };
+    let self = this;
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    this.Random = SI.Tools.String.RandomString();
 
+    this.Container = Ele("table", {
+        id: "si_datagrid_" + this.Random,
+        class:"si-widget",
+        style: {
+            width : '100%',
+            height : '100%',
+            backgroundColor : 'green'
+        }
+    });
+    
 
-
-    let base = document.createElement('table');
-    base.style.width = '100%';
-    base.style.height = '100%';
-    base.style.backgroundColor = 'green';
-
-    for (var i = 0; i < 12; i++) {
+    for (let i = 0; i < 12; i++) {
         let r = document.createElement('tr');
-        r.id = 'tr-' + i + '_' + id;
-        for (var j = 0; j < 12; j++) {
+        r.id = 'si_row_' + i + '_' + this.Random;
+        for (let j = 0; j < 12; j++) {
             let c = document.createElement('td');
-            c.id = 'td-' + i + '-' + j + '_' + id;
+            c.id = 'si_'+ i + '_' + j + '_' + this.Random;
 
             r.appendChild(c);
         }
-        base.appendChild(r);
+        this.Container.appendChild(r);
     }
 
-    return base;
+    if (this.Options.Parent) {
+        this.Options.Parent.appendChild(container);
+    }
+    return this;
 };
-SI.Widgets.DataGrid.Instances = {};
+
 
 /*
     var id_ = 'columns-full';
