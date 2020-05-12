@@ -1071,22 +1071,89 @@ SI.Editor = {
             },
             Widgetbox: function () {
                 let widgetscontainer = Ele('div', {
-                    innerHTML: "Widgets",
                     style: {
-                        backgroundImage: "url('/editor/media/images/underconstruction.png')",
-                        backgroundSize: "contain",
                         width: '100%',
                         height:'100%',
                     },
                 });
+
+                let widgettable = Ele('table', {
+                    style: { backgroundColor: SI.Editor.Style.BackgroundColor, width: '100%' }
+                });
                 //debugger;
                 let widgets = SI.Widget;
                 for (let widget in widgets) {
-                    Ele('div', {
-                        innerHTML: widget,
-                        appendTo: widgetscontainer
+
+                    let widgetrow = document.createElement('tr');
+                    let tddragger = document.createElement('td');
+
+                    var widgetDragger = Ele('div', {
+                        id: "si_edit_widgetdragger" + widget,
+                        style: {
+                            backgroundImage: "url('/editor/media/icons/dragaround.png')",
+                            backgroundSize: "cover",
+                            width: '24px',
+                            height: '24px'
+                        },
+                        data: {
+                            type: widget,
+                        },
+                        draggable: true,
+                        ondragstart: function (ev) {
+                            //  this.dragging = true;
+                            ev.effectAllowed = "copyMove";
+                            ev.dataTransfer.setData("Text", widget);
+                        },
+                        ondrag: function (ev) {
+                            SI.Editor.UI.MainMenu.IsDragging = false;
+                            //console.log(e);
+                            if (ev.buttons === 3) { //both buttons down
+                                ev.preventDefault();
+                                return false;
+                            }
+
+                        },
+                        ondragtransfer: function (ev) {
+                            ev.dataTransfer.dropEffect = "copy";
+                        },
+                        ondragend: function (e) {
+
+                            e.stopPropagation();
+                            //debugger;
+                            if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent)) {
+                                //debugger;
+                                let widget = e.target.dataset.type;
+                                let parent = SI.Editor.Objects.Elements.DropParent;
+                                let options = { "Parent": parent }
+
+                                new SI.Widget[widget](options);
+                                //make block dirty so that we can tell the user to save it before leaving
+                                let block = SI.Tools.Element.GetBlock(parent).id.replace("si_block_", "");
+                                if (block) {
+                                    SI.Editor.Data.Objects.Blocks[block].IsDirty = true;
+                                }
+
+                            }
+                            else {
+                                alert("Please make sure you drop on a block. Go to the Page tool to make blocks");
+                            }
+                        }
                     });
+
+
+                    tddragger.appendChild(widgetDragger);
+                    var tddata = document.createElement('td');
+                    tddata.innerHTML = widget;
+
+                    widgetrow.appendChild(tddragger);
+                    widgetrow.appendChild(tddata);
+
+                    widgettable.appendChild(widgetrow);
+
+
+
                 }
+                widgetscontainer.appendChild(widgettable);
                 return widgetscontainer;
             },
             TagScroller: function() {
@@ -2000,9 +2067,9 @@ SI.Editor = {
                     groupObject[g] = groupbox;
                 }
              //   debugger;
-                let options = { Sections: groupObject };
+                let options = { Parent: styleviewgroups, Sections: groupObject };
                 let accordion = new SI.Widget.Accordion(options);
-                styleviewgroups.appendChild(accordion);
+ 
                 return styleview
             },
             DrawSortedStyles: function() {

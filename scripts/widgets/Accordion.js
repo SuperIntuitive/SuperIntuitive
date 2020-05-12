@@ -5,7 +5,6 @@ SI.Widget.Accordion = function (options) {
     if (!(this instanceof SI.Widget.Accordion)){return new SI.Widget.Accordion();}
     this.Defaults = {
         "Parent": null,
-        "ParentIndex":null,
         "Sections": null,
         "Duration": null,
         "Width": '100%',
@@ -111,7 +110,7 @@ SI.Widget.Accordion = function (options) {
     }
 
     if (this.Options.Parent) {
-        this.Options.Parent.appendChild(container);
+        this.Options.Parent.appendChild(this.Container);
     }
 
     return this;
