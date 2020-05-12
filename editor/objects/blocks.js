@@ -1,4 +1,4 @@
-﻿
+
 SI.Editor.Objects.Blocks = {
     //Creates a Block UI Element as seen in Tools/Page/Blocks
     UI: function (name, options) {

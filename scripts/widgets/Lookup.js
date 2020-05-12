@@ -1,4 +1,4 @@
-﻿if (!SI) { var SI = {}; }
+if (!SI) { var SI = {}; }
 if (!SI.Widget) { SI.Widget = {}; }
 
 SI.Widget.Lookup = function (options) {
