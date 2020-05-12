@@ -1034,7 +1034,7 @@ SI.Editor = {
                 SI.Editor.UI.MainMenu.Element.appendChild(tagMenu);
             },
             SetupTabs: function (newMenu) {
-                let tabs = SI.Widget.Tabs();
+                let tabs = new SI.Widget.Tab();
                 //create the tabbox
                 let tabTags = Ele('div', {
                     id: 'si_edit_add_tabs',
@@ -1080,12 +1080,12 @@ SI.Editor = {
                     },
                 });
                 //debugger;
-                if (SI.Widget) {
-                    for (let widget in SI.Widget) {
-                        let w = new SI.Widget[widget]();
-                        let def = w.Defaults;
-                        //debugger;
-                    }
+                let widgets = SI.Widget;
+                for (let widget in widgets) {
+                    Ele('div', {
+                        innerHTML: widget,
+                        appendTo: widgetscontainer
+                    });
                 }
                 return widgetscontainer;
             },
@@ -1258,7 +1258,7 @@ SI.Editor = {
                     },
 
                 });
-                var tabs = new SI.Widget.Tabs({ Height: '100%' });
+                var tabs = new SI.Widget.Tab({ Height: '100%' });
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
@@ -2058,32 +2058,33 @@ SI.Editor = {
                         }
                         if (fields) {
                             for (let field in fields) {
-                                //debugger;
-                                if (attrib.name.startsWith('data-')) {
-                                    //add the elements styles here
-                                }
-                                //Handle showing the inline styles
-                                else if (attrib.name == 'style') {
+                                if (fields.hasOwnProperty(field)) {
+                                    if (attrib.name.startsWith('data-')) {
+                                        //add the elements styles here
+                                    }
+                                    //Handle showing the inline styles
+                                    else if (attrib.name == 'style') {
                                     
-                                    var parts = attrib.value.split(";");
-                                    for (let j = 0; j < parts.length; j++) {
-                                        let kvp = parts[j].split(':');
-                                        if (kvp.length > 1) {
-                                            //debugger;
-                                            let sty = kvp[0];
-                                            //    var inputs = document.querySelectorAll("." + "si-edit-style-" + sty);
-                                            let inputs = document.getElementsByClassName("si-edit-style-" + kvp[0].trim());
-                                            for (let k = 0; k < inputs.length; k++) {
-                                                inputs[k].value = kvp[1];
+                                        var parts = attrib.value.split(";");
+                                        for (let j = 0; j < parts.length; j++) {
+                                            let kvp = parts[j].split(':');
+                                            if (kvp.length > 1) {
+                                                //debugger;
+                                                let sty = kvp[0];
+                                                //    var inputs = document.querySelectorAll("." + "si-edit-style-" + sty);
+                                                let inputs = document.getElementsByClassName("si-edit-style-" + kvp[0].trim());
+                                                for (let k = 0; k < inputs.length; k++) {
+                                                    inputs[k].value = kvp[1];
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                else if (attrib.name == 'class') {
-                                    fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editor-selected", "");
-                                }
-                                else {
-                                    fields[field].value = attrib.value;
+                                    else if (attrib.name == 'class') {
+                                        fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editor-selected", "");
+                                    }
+                                    else {
+                                        fields[field].value = attrib.value;
+                                    }
                                 }
                             }
                         }
@@ -2271,23 +2272,12 @@ SI.Editor = {
         },
         Widgets: {
             Window: null,
-                Init: function () {
-                    var obj = { Name: "Widgets", Parent: 'si_edit_container', Title: "Widgets", Width: '800px', Height: '600px' };
-                    SI.Editor.UI.Widgets.Window = new SI.Widget.Window(obj);
-                    SI.Editor.UI.Widgets.Draw();
-                },
-            Draw: function () {
-                let base = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: '#111',
-                        overflow: "scroll",
-                        color: SI.Editor.Style.TextColor,
-                    },
-                });
-                SI.Editor.UI.Widgets.Window.Append(base);
+            Init: function () {
+                var obj = { Name: "Widgets", Parent: 'si_edit_container', Title: "Widgets", Width: '800px', Height: '600px' };
+                SI.Editor.UI.Widgets.Window = new SI.Widget.Window(obj);
+                SI.Editor.Objects.Widgets.Draw();
             },
+
         },
         Language: {
             Window: null,
@@ -2337,7 +2327,7 @@ SI.Editor = {
                     },
                 });
 
-                let tabs = new SI.Widget.Tabs({
+                let tabs = new SI.Widget.Tab({
                     OnChange: function (self) {
                         tab = self.dataset.tabname;
                         let pis = SI.Editor.Objects.Plugins.Repo.Plugins;
@@ -3542,7 +3532,7 @@ SI.Editor = {
                     appendTo: tsLabel,
                 });
 
-                let langtabs =new SI.Widget.Tabs({
+                let langtabs =new SI.Widget.Tab({
                     Width: '90%',
                     Height: '70%',
                     OnChange: function (ele) {

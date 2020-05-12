@@ -3,7 +3,7 @@ SI.Editor.Objects.Media = function (window) {
     let self = this;
     this.Window = window;
     this.Draw = function () {
-        var tabs = new SI.Widget.Tabs({});
+        var tabs = new SI.Widget.Tab({});
 
         tabs.Items.Add('Images', this.MediaTab('Images'));
         tabs.Items.Add('Audio', this.MediaTab('Audio'));

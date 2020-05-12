@@ -1,8 +1,8 @@
 if (!SI) { var SI = {}; }
 if (!SI.Widget) { SI.Widget = {}; }
 
-SI.Widget.Tabs = function (options) {
-    if (!(this instanceof SI.Widget.Tabs)) { return new SI.Widget.Tabs(); }
+SI.Widget.Tab = function (options) {
+    if (!(this instanceof SI.Widget.Tab)) { return new SI.Widget.Tab(); }
     this.Defaults = {
         "ContainerClass": "",
         "Position": "absolute",
@@ -32,8 +32,8 @@ SI.Widget.Tabs = function (options) {
         "OnChange": null,
         "Selected": null
     };
-    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    let hWin = this;
+
+    options = this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     //private members
     let randId = SI.Tools.String.RandomString(11);
     let SelectedId = '';
@@ -51,7 +51,7 @@ SI.Widget.Tabs = function (options) {
             this.Count++;
         },
         Remove: function (tab) {
-            if (typeof tab == 'number'){
+            if (typeof tab === 'number'){
                 delete this[tab];
                 this.Count--;
             }else{
@@ -74,7 +74,7 @@ SI.Widget.Tabs = function (options) {
             }
         },
         Contents: function (tab, content) {
-            if (typeof tab == 'number') {
+            if (typeof tab === 'number') {
                 
             } else {
 
@@ -82,7 +82,7 @@ SI.Widget.Tabs = function (options) {
         },
         Index: function (tabname) {
             for (let i = 0; i < this.Count; i++) {
-                if(this[i] != null && this[i][tabname] != null){
+                if(this[i] !== null && this[i][tabname] !== null){
                     return i;
                 }
             }
@@ -106,14 +106,14 @@ SI.Widget.Tabs = function (options) {
         let container = Ele('div', {
             class: "si-tabs-container",
             style: {
-                position: this.options.Position,
-                top: this.options.Top,
-                left: this.options.Left,
-                right: this.options.Right,
-                bottom: this.options.Bottom,
-                height: this.options.Height,
-                width: this.options.Width,
-                overflow: this.options.Overflow,
+                position: this.Options.Position,
+                top: this.Options.Top,
+                left: this.Options.Left,
+                right: this.Options.Right,
+                bottom: this.Options.Bottom,
+                height: this.Options.Height,
+                width: this.Options.Width,
+                overflow: this.Options.Overflow,
             }
         });
         //debugger;
@@ -122,12 +122,12 @@ SI.Widget.Tabs = function (options) {
             style: {
                 listStyle: 'none',
                 whiteSpace: 'nowrap',
-                height: (parseInt(this.options.TabHeight) + (parseInt(this.options.TabPadding) - 3)) + 'px',
-                backgroundColor: this.options.BackgroundColor,
+                height: (parseInt(this.Options.TabHeight) + (parseInt(this.Options.TabPadding) - 3)) + 'px',
+                backgroundColor: this.Options.BackgroundColor,
                 margin: '0px',
                 //  verticalAlign: 'center',
-                width: this.options.Width,
-                paddingLeft: this.options.LeftOfTabsSpace,
+                width: this.Options.Width,
+                paddingLeft: this.Options.LeftOfTabsSpace,
             },
             appendTo: container,
         });
@@ -149,9 +149,9 @@ SI.Widget.Tabs = function (options) {
             //if this is the first tab it is selected
             let filter = "";
             if (first) {
-                filter = this.options.SelectedTabFilter;
+                filter = this.Options.SelectedTabFilter;
             } else {
-                filter = this.options.TabFilter;
+                filter = this.Options.TabFilter;
             }
 
             let tabitem = Ele("li", {
@@ -159,12 +159,12 @@ SI.Widget.Tabs = function (options) {
                 class: "si-tabitem-" + randId,
                 style: {
                     display: 'inline',
-                    border: this.options.Border,
-                    height: this.options.TabHeight,
-                    padding: this.options.TabPadding,
+                    border: this.Options.Border,
+                    height: this.Options.TabHeight,
+                    padding: this.Options.TabPadding,
                     marginLeft: '0px',
                     cursor: 'pointer',
-                    backgroundColor: this.options.TabBackgroundColor,
+                    backgroundColor: this.Options.TabBackgroundColor,
                     filter: filter,
                 },
                 data: {
@@ -174,15 +174,15 @@ SI.Widget.Tabs = function (options) {
                 onclick: function() {
                         //Hide all the tabs and contents
                     SI.Tools.Class.Loop("si-tabitem-" + randId, function (item) {
-                        item.style.backgroundColor = hWin.options.TabBackgroundColor;
-                        item.style.filter = hWin.options.TabFilter;
+                        item.style.backgroundColor = options.TabBackgroundColor;
+                        item.style.filter = options.TabFilter;
                     });
                     SI.Tools.Class.Loop("si-tabcontent-" + randId, function (item) {
                         item.style.display = 'none';
                     });
 
-                    this.style.backgroundColor = hWin.options.SelectedTabBackgroundColor;
-                    this.style.filter = hWin.options.SelectedTabFilter;
+                    this.style.backgroundColor = options.SelectedTabBackgroundColor;
+                    this.style.filter = options.SelectedTabFilter;
 
                     let contentid = this.id.replace('si_tabitem_', 'si_tabcontent_');
                     //    console.log(contentid);
@@ -192,18 +192,17 @@ SI.Widget.Tabs = function (options) {
                     options.Selected = this.dataset.tabname;
                     //debugger;
                     //run passed handeler
-                    if (hWin.options.OnChange !== null) {
-                        hWin.options.OnChange(this);
+                    if (options.OnChange !== null) {
+                        options.OnChange(this);
                     }
-
                 }, 
                 onmouseenter: function () {
                     if (this.id !== SelectedId)
-                        this.style.filter = hWin.options.HoverTabFilter;
+                        this.style.filter = options.HoverTabFilter;
                 },
                 onmouseleave: function () {
                     if (this.id !== SelectedId)
-                        this.style.filter = hWin.options.TabFilter;
+                        this.style.filter = options.TabFilter;
                 },
             });
 
@@ -216,7 +215,7 @@ SI.Widget.Tabs = function (options) {
                 style: {
                     position: 'relative',
                     userSelect: 'none',
-                    top: ((parseInt(this.options.TabPadding) / 2) - 2) + 'px',
+                    top: ((parseInt(this.Options.TabPadding) / 2) - 2) + 'px'
                 },
                 appendTo:tabitem,
             });
@@ -237,7 +236,7 @@ SI.Widget.Tabs = function (options) {
                     minHeight: '100%',
                     backgroundColor: '#DDD',
                     position: 'absolute',
-                    top: this.options.TabHeight,
+                    top: this.Options.TabHeight,
                     width: '100%',
                     display: disp,
                 }
@@ -259,8 +258,8 @@ SI.Widget.Tabs = function (options) {
         }
         this.Container = container;
 
-        if (this.options.Selected) {
-            SelectTab(this.options.Selected);
+        if (this.Options.Selected) {
+            SelectTab(this.Options.Selected);
         }
 
         var par = document.getElementById(parentId);

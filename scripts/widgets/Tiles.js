@@ -36,10 +36,11 @@ SI.Widget.Tile = function(options) {
         "NameChanged": function () { }
     };
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-
+    this.Random = SI.Tools.String.RandomString(11);
+    options = this.Options;
     let self = this;
 
-    this.Random = SI.Tools.String.RandomString(11);
+    
 
     let height, width, labelH, labelW, pos;
     switch (this.Options.Type) {

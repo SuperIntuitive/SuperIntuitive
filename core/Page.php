@@ -157,6 +157,17 @@ class Page {
 			//If the user is logged in, set up a javacript object for them.
 			//Tools::Log("Logging user");
 			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
+
+				$head.= 
+"		<script>
+if (!SI) { var SI = {}; }
+	SI.Page = {};
+	SI.Page.Settings = { $settings };
+	SI.Widget = {};
+	SI.User = {};
+";
+
+
 			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
 				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
 				$prefs = "{}";
@@ -164,15 +175,15 @@ class Page {
 					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences']);
 				}
 				$head.= 
-"		<script>
-	if (!SI) { var SI = {}; }
-	SI.LoggedInUser = {'name':'$name'};
-	SI.LoggedInUser.Preferences = $prefs;
-	SI.Page = {};
-	SI.Page.Settings = { $settings };
-		</script>\n";
+"	SI.User.Name = '$name';
+	SI.User.Preferences = $prefs;";
+	
+			}else{
+				$head.= 
+"	SI.User.Name = 'guest';";
 			}
 
+			$head.= "</script>\n";
 			
 			$head .= "
 		<style id='si_htmlstyle'>html{width: 100%; height:1vh; overflow-x: hidden;}</style>

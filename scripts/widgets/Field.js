@@ -74,8 +74,6 @@ SI.Widget.Field = function (options) {
     }
 
 
-    
-
     //make a input object. 
     let input = {
         tag:"input",
@@ -87,7 +85,7 @@ SI.Widget.Field = function (options) {
                 self.options.OnChange(ev, this);
             }
             if (self.Options.Entity && this.name.length>0) {
-                if (SI.Tools.Object.GetIfExists("SI.LoggedInUser.Preferences.autosave")) {
+                if (SI.Tools.Object.GetIfExists("SI.User.Preferences.autosave")) {
                     //do a api save here. 
                 }
             }

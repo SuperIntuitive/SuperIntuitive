@@ -59,7 +59,7 @@
         let randmenuId = Tools.String.RandomString(11);
         let display = "";
         let position = '';
-        if (createoptions.Direction == 'h' && level == 0) {
+        if (createoptions.Direction === 'h' && level === 0) {
 
             display = "inline-block";
             position = 'relative';
@@ -91,14 +91,14 @@
         if (options.SelectMech === 'hover') {
             menuitemcontainer.onmouseover = function (e) {
                 var kid = this.getElementsByTagName('div')[0];
-                if (kid != null) {
+                if (kid !== null) {
                     kid.style.display = "block";
                 }
                 e.stopPropagation();
             };
             menuitemcontainer.onmouseout = function (e) {
                 var kid = this.getElementsByTagName('div')[0];
-                if (kid != null) {
+                if (kid !== null) {
                     kid.style.display = "none";
                 }
                 e.stopPropagation();
@@ -137,7 +137,7 @@
     this.Container = container;
 
     var par = document.getElementById(options.ContainerParentID);
-    if (par != null) {
+    if (par !== null) {
         par.appendChild(container);
     } else {
         return container;

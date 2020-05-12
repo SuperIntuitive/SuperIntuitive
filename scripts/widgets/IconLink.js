@@ -29,7 +29,7 @@ SI.Widget.IconLink = function (options) {
     if (this.Options.Title) {
         img.title = this.Options.Title;
     }
-    if (SI.Tools.Object.GetIfExists("SI.LoggedInUser.Preferences.open_links_in") !== 'window') {
+    if (SI.Tools.Object.GetIfExists("SI.User.Preferences.open_links_in") !== 'window') {
         let anc = Ele('a', {
             href: this.Options.Link,
             target: '_blank',
