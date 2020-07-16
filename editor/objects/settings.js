@@ -98,6 +98,142 @@ SI.Editor.Objects.Settings = {
 
             }
         });
+
+        let allowedMimesBox = Ele('fieldset', {
+            style: {
+                width: '90%',
+                borderRadius: '10px',
+
+            },
+            append: Ele('legend', { innerHTML: 'Allowed File Types' }),
+            appendTo: container,
+        });
+
+        let mimetypes = SI.Editor.Data.Objects.MimeTypes;   
+        let categories = [];
+        for (let ext in mimetypes) {
+            let data = mimetypes[ext].split("|");
+            let mime = data[0];
+            let cat = data[1];
+            if (!(cat in categories)) {
+                categories[cat] = [];
+            }
+            categories[cat][ext] = mime;
+        }
+        let allowedFileTypes = [];
+        for (let i in SI.Editor.Data.Objects.Settings) {
+            if (SI.Editor.Data.Objects.Settings[i].hasOwnProperty("settingname") && SI.Editor.Data.Objects.Settings[i]["settingname"] === "AllowedFileTypes") {
+                allowedFileTypes = SI.Editor.Data.Objects.Settings[i]["settingvalue"].split(',');
+                break;
+            }
+        }
+       
+        for (let cat in categories) {
+            if (categories.hasOwnProperty(cat)) {
+                let cattitle = Ele("div", {
+                    innerHTML: cat,
+                    
+                    style: {
+                        color:'black',
+                        backgroundColor: "darkgrey",
+                        paddingLeft: "4px",
+                        paddingRight: "4px",
+                        border: "solid 1px black"
+                    },
+                    onclick: function () {
+                        let box = document.getElementById('si_edit_settings_categories_' + cat);
+                        if (box.style.display === 'none') {
+                            box.style.display = 'flex';
+                        } else {
+                            box.style.display = 'none';
+                        }
+                    },
+                    appendTo: allowedMimesBox
+                });
+                let catbox = Ele("div", {
+                    id: 'si_edit_settings_categories_' + cat,
+                    style: {
+                        color: 'black',
+                        backgroundColor: "grey",
+                        display: 'none',
+                        flexWrap: 'wrap',
+                        justifyContent:'space-around'
+                    },
+                    appendTo: allowedMimesBox
+                });
+                for (let ext in categories[cat]) {
+                    if (categories[cat].hasOwnProperty(ext)) {
+                        let check = false;
+                        if (allowedFileTypes.indexOf(ext)>-1) {
+                            check = true;
+                        }
+                        let mimebox = Ele("span", {
+                            appendTo: catbox,
+                            style: {
+                                display:'inline',
+                                paddingLeft: "4px",
+                                paddingRight: "4px",
+                                border: "solid 1px black",
+                                borderRadius:'3px',
+                                backgroundColor: "darkgrey",
+                                margin:'1px'
+                            }
+                        });
+                        let cb = Ele("input", {
+                            type: 'checkbox',
+                            class:"si-edit-settings-allowedfiletypes",
+                            data: {
+                                extension: ext
+                            },
+                            appendTo: mimebox,
+                            checked: check,
+                            onchange: function () {
+                               
+                                let cbs = document.getElementsByClassName("si-edit-settings-allowedfiletypes");
+                                let fncsv = "";
+                                
+                                for (let i in cbs) {
+                                    let cb = cbs[i];
+                                    if (cb.checked) {
+                                        fncsv += cb.dataset.extension+",";
+                                    }
+                                }
+                                if (fncsv.length > 0) {
+                                    fncsv = SI.Tools.String.TrimR(fncsv, ','); //lose the last comma.
+                                }
+
+                                let options = {
+                                    Data: {
+                                        KEY: "UpdateSetting",
+                                        settingname: "AllowedFileTypes",
+                                        settingvalue: fncsv
+                                    }
+                                };
+
+                                SI.Editor.Ajax.Run(options);
+                            }
+                        });
+                        
+                        Ele("span", {
+                            innerHTML: ext +"&nbsp;-&nbsp;",
+                            style: {
+                                color:"blue",
+                            },
+                            appendTo: mimebox
+                        });
+                        Ele("span", {
+                            innerHTML: categories[cat][ext],
+                            appendTo: mimebox
+                        });
+
+                    }
+                }
+
+
+            }
+        }
+
+
         Ele('br', { appendTo: container, });
         let newbox = Ele('fieldset', {
             style: {
@@ -139,7 +275,7 @@ SI.Editor.Objects.Settings = {
             id: 'si_edit_settings_table',
             appendTo: existingbox,
         });
-        let settings = SI.Editor.Data.Objects.Settings2;
+        let settings = SI.Editor.Data.Objects.Settings;
 
         for (let index in settings) {
             
@@ -147,8 +283,9 @@ SI.Editor.Objects.Settings = {
                 let setting = settings[index];
                 let name = setting.settingname;
                 let value = setting.settingvalue;
-
-                SI.Editor.Objects.Settings.Add(name, value, settingstable);
+                if (name !== 'AllowedFileTypes') {
+                    SI.Editor.Objects.Settings.Add(name, value, settingstable);
+                }
             }
         }
 

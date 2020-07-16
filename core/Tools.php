@@ -201,7 +201,28 @@ class Tools{
 		if(!empty($dbt))
 		file_put_contents($_SERVER["DOCUMENT_ROOT"].'/logs/dev.log',$funcpath."\n\r", FILE_APPEND);
 	}
-	static function GetFileMimeType($file) {
+	static function GetFileTypeData($ext) {
+	    $allowedFileTypes = explode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['AllowedFileTypes']);
+		Tools::Log($allowedFileTypes);
+		if($allowedFileTypes == null){
+			Tools::Log("AllowedFileTypes Setting cannot be found. please try loggin in again.");
+			return false;
+		}
+		if(!in_array ($ext,  $allowedFileTypes)){
+			Tools::Log($ext." is not a allowed file type");
+			return false;
+		}
+
+		$md = new MiscData();
+		$mimes = $md->MimeTypes;
+		Tools::Log($ext);
+		if (array_key_exists($ext,$mimes))
+		{
+		    $filedata = $mimes[$ext];
+			return explode('|',$filedata);
+		}
+		return false;
+		/*
 		if (function_exists('finfo_file')) {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			$type = finfo_file($finfo, $file);
@@ -219,6 +240,7 @@ class Tools{
 		}
 		
 		return $type;
+		*/
 	}
 	static function GetIpAddress(){
 		if (!empty($_SERVER['HTTP_CLIENT_IP']))   //check ip from share internet
@@ -445,15 +467,15 @@ class Tools{
 		//allow the user to make replacements with Settings
 		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'])){
 			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'];
-			Tools::Log($settings);		
+			//Tools::Log($settings);		
 			foreach($settings as $k=>$v){
 
 			    $match = preg_match('/^(__\w*__)$/', $k, $matches, PREG_UNMATCHED_AS_NULL);
-				Tools::Log("match");
-				Tools::Log($match);
+				//Tools::Log("match");
+				//Tools::Log($match);
 				if($match > 0){
-					Tools::Log($k." ".$v);
-					Tools::Log($text);
+					//Tools::Log($k." ".$v);
+					//Tools::Log($text);
 					$text = str_replace($k,$v, $text);
 				}
 
@@ -572,9 +594,9 @@ class Tools{
 				   $filtLanArr[] = $lan;
 				}
 			}
-			Tools::Log($localtextattr);
-			Tools::Log($lanarr);
-			Tools::Log($filtLanArr);
+			//Tools::Log($localtextattr);
+			//Tools::Log($lanarr);
+			//Tools::Log($filtLanArr);
 
 			$cols = implode("`,`",$filtLanArr);
 
@@ -588,7 +610,7 @@ class Tools{
 				$placeholders = str_repeat ('?, ',  count ($inset) - 1) . '?';
 				$pdo = $db->DBC();
 				$sql = "SELECT `$cols`,`name` FROM `localtext` WHERE `name` IN($placeholders);";
-				Tools::Log($sql);
+				//Tools::Log($sql);
 				$query = $pdo->prepare($sql);
 				if ($query->execute($inset)) {
 					$data = $query->fetchAll();

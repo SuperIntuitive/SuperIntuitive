@@ -1,4 +1,10 @@
-﻿SI.Widget.Tree = function (options) {
+﻿<?php 
+header("Content-Type: application/javascript; charset: UTF-8");
+?>
+
+
+
+SI.Widget.Tree = function (options) {
     if (!(this instanceof SI.Widget.Tile)) { return new SI.Widget.Tile(); }
     this.Defaults = {
         "Leaves": {},

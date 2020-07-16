@@ -45,7 +45,8 @@ class Block {
 							//Tools::Log($html,true);
 							$html = str_replace('/dev_','/',$html);
 
-
+							$html = str_replace('class="si-editable-element"','',$html);
+							$html = str_replace('si-editable-element','',$html);
 
 
 							//Tools::Log($html.true);

@@ -1,5 +1,8 @@
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+<?php 
+header("Content-Type: application/javascript; charset: UTF-8");
+?>
+
+
 
 SI.Widget.Lookup = function (options) {
     if (!(this instanceof SI.Widget.Lookup)) { return new SI.Widget.Lookup(); }
@@ -22,15 +25,13 @@ SI.Widget.Lookup = function (options) {
         "FontColor": "black",
         "TextAlign": "left"
     };
-    var self = this;
-    this.Random = SI.Tools.String.RandomString();
-    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    let self = this;
+    random = SI.Tools.String.RandomString();
+    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
     //The window that holds the advanced lookup search
     this.LookupWindow = null;
-
     this.EntityTypeWindow = null;
-
     this.InitTimer = function () {
         //debugger;
         let initLoopTime = 1000;
@@ -122,12 +123,12 @@ SI.Widget.Lookup = function (options) {
             }
         }
         Ele("option", {
-            innerHTML: "LOOK IT UP!",
+            innerHTML: "Database Lookup",
             data: {
                 id: "LookItUp"
             },
             style: {
-                backgroundColor: 'yellow',
+                color: 'yellow',
             },
             appendTo: datalist,
         });
@@ -137,11 +138,11 @@ SI.Widget.Lookup = function (options) {
     this.ChangeOptions = function () {
         this.style.color = 'black';
         this.removeAttribute('title');
-        if (this.value === "LOOK IT UP!") {
+        if (this.value === "Database Lookup") {
             if (self.LookupWindow === null) {
                 //debugger;
                 var obj = { Name: "Lookup", Title: "Lookup", "WindowControls": "CLOSE", StartWidth: '500px', StartHeight: '300px', StartTop: (window.pageYOffset + window.innerHeight / 2) + "px", StartLeft: (window.innerWidth / 2 - 250) + "px" };
-                self.LookupWindow = new Window(obj);
+                self.LookupWindow = new SI.Widget.Window(obj);
             }
             this.value = '';
             self.LookupWindow.Append(self.DrawLookupWindow());

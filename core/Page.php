@@ -154,15 +154,40 @@ class Page {
 				$settings = json_decode($settings,true);
 			}
 
+			$blocks = $this->pageobjects['blocks'];
+            Tools::Log('blocks');
+			
 			//If the user is logged in, set up a javacript object for them.
 			//Tools::Log("Logging user");
 			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
+			$pageblocks = array();
+			foreach($blocks as $block=>$val){
+				if(!isset($pageblocks[$block])){
+					$pageblocks[$block]=array();
+				}
+				if(isset($val['options'])){
+					$blockOptions = json_decode($val['options'], true);
+					
+					 Tools::Log($blockOptions);
+					if(isset($blockOptions['settings'])){
+						$pageblocks[$block]['Settings'] = array();
+						$pageblocks[$block]['Settings']= $blockOptions['settings'];
+					}
+					if(isset($blockOptions['widgets'])){
+						$pageblocks[$block]['Widgets'] = array();
+						$pageblocks[$block]['Widgets'] = $blockOptions['widgets'];
+					}
+				}
+			}
+			$blocksjson = json_encode($pageblocks);
+
 
 				$head.= 
 "		<script>
 if (!SI) { var SI = {}; }
 	SI.Page = {};
 	SI.Page.Settings = { $settings };
+	SI.Page.Blocks = $blocksjson;
 	SI.Widget = {};
 	SI.User = {};
 ";
@@ -190,7 +215,8 @@ if (!SI) { var SI = {}; }
 		<link rel='stylesheet' type='text/css' id='si_plugins_style' href='/style/plugins.css?$t'>
 		<link rel='stylesheet' type='text/css' id='si_page_style' href='/style/page.css?$lastModified'>
 		<link rel='stylesheet' type='text/css' href='/style/libraries.css?$t'>
-		<style>
+		<link rel='stylesheet' type='text/css' href='/style/widgets.css?$t'>
+		<style id='si_page_media'>
 			@media (prefers-color-scheme: light) {#si_colorscheme {color:white}}
 			@media (prefers-color-scheme: dark) {#si_colorscheme {color:black}}
 		</style>
@@ -199,7 +225,7 @@ if (!SI) { var SI = {}; }
 		<script src='/scripts/tools.js?$t' defer ></script>\n";
 
 		$widgetfiles = scandir('scripts/widgets');
-		Tools::Log($widgetfiles);
+		//Tools::Log($widgetfiles);
 		foreach($widgetfiles as $widget){
 			if(!is_dir('scripts/widgets/'.$widget)){
 				$moded = filemtime('scripts/widgets/'.$widget);
@@ -207,14 +233,10 @@ if (!SI) { var SI = {}; }
 			}
 		}
 
-			$head .= "
-		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
-		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
-		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script>
-		";
 
 
-			if(Tools::UserHasRole("SuperAdmin,Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']=='dev'){
+
+			if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']=='dev'){
 				$admin = new Admin();
 				//$head.=$admin->PopulateEditorMediaFiles($this->pageobjects['admin']['media']);
 				//$head.=$admin->PopulateEditorAllPages($this->pageobjects['admin']['allpages']);
@@ -234,6 +256,13 @@ if (!SI) { var SI = {}; }
 			if($bodystyle != null){
 				$head.=$bodystyle;
 			}
+
+						$head .= "
+		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
+		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script>
+		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
+		";
+
 			//Replace any constants or variables with their values
 			//this needs more work. If the head item is saved with the constants it will lose the replacement token
 			$head = Tools::ReplaceConstants($head);
@@ -270,33 +299,47 @@ if (!SI) { var SI = {}; }
 					if(isset($v['order'])){
 						$order =" data-order='{$v['order']}'";
 						if(isset($v['options'])){
-							$options = json_decode($v['options']);
-							if(gettype($options) == 'object' && $options->tag != null){
-								$block = "<".$options->tag." id='si_block_$id' class='si-block' $order ";
+							$options = json_decode($v['options'],true);
+							if(isset($options['tag'])){
+							    $html = "";
+								$tag = $options['tag'];
+								$block = "<$tag id='si_block_$id' class='si-block' $order ";
+								Tools::Log($options);
 								foreach($options as $attr=>$value){
-									if($attr == 'tag'){
+								
+									switch($attr){
+										case 'tag':
+										case 'settings':
+										case 'widgets':
+											break;
+										case 'style':
+											$block.= "style='";
+											foreach($value as $style=>$prop){
+												$block.= $style.":".$prop."; ";
+											}
+											$block.= "' ";
+											break;
+										default:
+											Tools::Log($attr);
+										    Tools::Log($value);
+										    break;
 									}
-									else if($attr == 'style'){
-										$block.= "style='";
-										foreach($value as $style=>$prop){
-											$block.= $style.":".$prop."; ";
-										}
-										$block.= "' ";
-									}
-									else if($attr == 'options'){
 
-									}
-									else{
-										$block.= $attr."=".$value.' ';
-									}
 								}
-								$html = "";
 								if(isset($v['html'])){
 									$html =  $v['html'];
 								}
-								$block .= ">$html</".$options->tag.">";
+								$block .= ">$html</$tag>";
 								$body.=$block;
+							}else{
+								Tools::Log("Block failed to be created without a tag");
 							}
+
+							/*
+								else if( gettype($attr)=="string" && gettype($value)=="string" ){
+									$block.= $attr."=".$value.' ';
+								}
+							*/
 						}
 					}
 				}

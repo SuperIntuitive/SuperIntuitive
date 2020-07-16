@@ -2,8 +2,7 @@
 header("Content-Type: application/javascript; charset: UTF-8");
 ?>
 
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+
 
 SI.Widget.Tab = function (options) {
     if (!(this instanceof SI.Widget.Tab)) { return new SI.Widget.Tab(); }

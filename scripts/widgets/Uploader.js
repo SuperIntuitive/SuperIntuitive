@@ -1,9 +1,8 @@
+
 <?php 
 header("Content-Type: application/javascript; charset: UTF-8");
 ?>
 
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
 
 
 SI.Widget.Uploader = function (options) {
@@ -121,8 +120,8 @@ SI.Widget.Uploader = function (options) {
                         }
                     }
                 } catch (ex) {
-                    console.warn(xhr.responseText);
-                    console.warn(ex);
+                    SI.Tools.Warn(xhr.responseText);
+                    SI.Tools.Warn(ex);
                 }
             }
         };
@@ -207,7 +206,7 @@ SI.Widget.Uploader = function (options) {
     }
 
     if (this.Options.Parent) {
-        this.Options.Parent.appendChild(container);
+        this.Options.Parent.appendChild(this.Container);
     }
 
     return this;

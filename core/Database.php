@@ -523,9 +523,13 @@ class Database extends DbCreds
 		$delete;
 		//Tools::Log($bu['user']);
 		//Check the security of the planned operation against that of the users permissions
+
+
 	    if(empty( $bu['user']['permissions'][strtolower("$entityId")])){
 			//no ticket?
-			Tools::Log("User does not have $name $action permission");
+			if(strlen($entityId)){
+				Tools::Log("User does not have $name $action permission ".$entityId);
+			}
 			//Tools::Log($bu['user']['permissions']);
 			return null;
 		}else{
@@ -903,6 +907,7 @@ class Database extends DbCreds
 
 			try{
 				//Tools::Log("Prepairing succeeded");
+				//Tools::Log($params);
 				if(count($params) >0){
 					$data->execute( $params );
 				}else{
@@ -1075,8 +1080,8 @@ class Database extends DbCreds
 			//Tools::Log('In GetPageData: Logging Roles');
 		    //Tools::Log( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'] );
 			$rolesneeded = $this->GetRelatedEntities('pages',$mypage[0]['id'],'securityroles');
-			Tools::Log("roles needed");
-			Tools::Log($rolesneeded);
+			//Tools::Log("roles needed");
+			//Tools::Log($rolesneeded);
 
 
 
@@ -1183,8 +1188,8 @@ class Database extends DbCreds
 
 		//for now just dont make dupes. I need to fix retireves parameters
 		$dupe = new Entity('relations');
-		$dupe->Attributes->Add('parent_id',$entityId);
-		$dupe->Attributes->Add('child_id',$relatedEntityId);
+		$dupe->Attributes->Add(new Attribute('parent_id',$entityId));
+		$dupe->Attributes->Add(new Attribute('child_id',$relatedEntityId));
 	    //	$dupes = $dupe->Retrieve();
 
 	    //	Tools::Log("Logging Dupes:",true);
@@ -1598,7 +1603,8 @@ class Database extends DbCreds
 						`name`, 
 					   `path`,
 					   HEX(hash) AS hash,
-					   mime
+					   `mime`,
+					   `category`
 				FROM media
 				WHERE entity_id=$mediaEntityId");
 			$data->execute(null );//,':pageEnt'=>$pageEntityId ) );

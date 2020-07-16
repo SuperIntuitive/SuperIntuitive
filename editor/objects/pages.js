@@ -3,7 +3,6 @@ SI.Editor.Objects.Page = {
     Draw: function () {
         SI.Editor.UI.BlockTemplates.Init();
         SI.Editor.UI.ImportBlock.Init();
-
         let base = Ele('div', {
             style: {
                 width: '100%',
@@ -15,7 +14,6 @@ SI.Editor.Objects.Page = {
         });
         let sub = SI.Tools.GetSubdomain();
         let dir = SI.Tools.GetPathDirectory();
-
         //Path Section
         let pageContainer = Ele('section', {
             innerHTML: 'Page',
@@ -27,7 +25,6 @@ SI.Editor.Objects.Page = {
             },
             appendTo: base
         });
-
         //
         //Save Page Button
         //
@@ -46,7 +43,6 @@ SI.Editor.Objects.Page = {
             }
 
         });
-
         let pathFieldset = Ele("fieldset", {
             style: {
                 margin: '6px',
@@ -67,7 +63,6 @@ SI.Editor.Objects.Page = {
                 }
             })
         });
-
         let pathTable = Ele("table", {
             style: {
                 margin: '6px',
@@ -77,7 +72,6 @@ SI.Editor.Objects.Page = {
             },
             appendTo: pathFieldset
         });
-
         let pathHeaderRow = Ele('tr', { appendTo: pathTable, style: { color: SI.Editor.Style.TextColor } });
         let subHeader = Ele('th', { innerHTML: "Business Unit", appendTo: pathHeaderRow, userSelect: 'none' });
         let domainHeader = Ele('th', { innerHTML: "Domain", appendTo: pathHeaderRow, userSelect: 'none' });
@@ -93,7 +87,7 @@ SI.Editor.Objects.Page = {
             id: 'si_page_directory_field',
             pattern:"^([A-z0-9\-\/~\._]+)$",
             data: { name: dir },
-            style: { width: '90%' },
+            style: { width: '90%' }, 
             value: dir,
             onblur: function (evt) {
                 if (!evt.target.checkValidity()) {
@@ -106,8 +100,6 @@ SI.Editor.Objects.Page = {
 
         //Redirect
         let pageredirectrow = Ele('tr', { appendTo: pathTable });
-
-
         let pageredirectto = Ele('td', {
             style: {
                 paddingTop: '15px'
@@ -121,16 +113,17 @@ SI.Editor.Objects.Page = {
             type: "lookup",
             appendTo: pageredirectto,
             enabled: 'false',
+            style: {
+                width: '300px'
+            },
             data: {
                 type: "pages",
                 column: 'path'
-            }, style: {
-                width: '300px'
             }
         });
         redirectLu.addEventListener('change',
             function () {
-                if (this.value !== "LOOK IT UP!") {
+                if (this.value !== "Database Lookup") {
                     if (!confirm('If you redirect this page, you will only be able to remove the redirect from the Site tool. Are you sure you want to redirect it?')) {
                         this.value = null;
                     }
@@ -139,9 +132,8 @@ SI.Editor.Objects.Page = {
             false);
 
         //End Path Section
-
         //Meta Section
-        let bodyFieldset = Ele("fieldset", {
+        let metaFieldset = Ele("fieldset", {
             style: {
                 margin: '6px',
                 backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -161,19 +153,30 @@ SI.Editor.Objects.Page = {
                 }
             })
         });
-
         let metaTable = Ele("table", {
             style: {
                 margin: '6px',
                 backgroundColor: SI.Editor.Style.BackgroundColor,
                 width: "99%"
             },
-            appendTo: bodyFieldset
+            appendTo: metaFieldset
         });
-
-        let metaPageTitleRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor } });
-        let metaPageTitle = Ele('td', { innerHTML: "Title", appendTo: metaPageTitleRow, style: { width: '150px' } });
-        let metaPageTitleCell = Ele('td', { appendTo: metaPageTitleRow });
+        let metaPageTitleRow = Ele('tr', {
+            appendTo: metaTable,
+            style: {
+                color: SI.Editor.Style.TextColor
+            }
+        });
+        let metaPageTitle = Ele('td', {
+            innerHTML: "Title",
+            appendTo: metaPageTitleRow,
+            style: {
+                width: '150px'
+            }
+        });
+        let metaPageTitleCell = Ele('td', {
+            appendTo: metaPageTitleRow
+        });
         let cleantitle = document.title.replace("dev - ", "");
         let metaPageTitleInput = Ele('input', {
             placeholder: "The Page Title that appears in the tab",
@@ -188,7 +191,6 @@ SI.Editor.Objects.Page = {
             }
         });
         //Favicon
-        //debugger;
         var nodeList = document.getElementsByTagName("link");
         var favicon = null;
         for (let i = 0; i < nodeList.length; i++) {
@@ -539,8 +541,12 @@ SI.Editor.Objects.Page = {
                 }
             })
         });
-        for (let setting in SI.Editor.Data.Objects.Settings) {
-            SI.Editor.Objects.Page.AddSetting(setting, pageSettings);
+        for (let s in SI.Editor.Data.Objects.Settings) {
+            let setting = SI.Editor.Data.Objects.Settings[s].settingname;
+            if (setting !== "AllowedFileTypes") {
+                SI.Editor.Objects.Page.AddSetting(setting, pageSettings);
+            }
+            
         }
 
         //BLOCKS Initially created here:
@@ -558,7 +564,7 @@ SI.Editor.Objects.Page = {
             }
         });
         base.appendChild(blocklib);
-        SI.Editor.UI.Page.Window.Append(base);
+        
         let blocklabel = Ele('span', {
             innerHTML: "Blocks",
             style: {
@@ -653,6 +659,10 @@ SI.Editor.Objects.Page = {
                 }
             }
         }
+
+        return base;
+
+       // SI.Editor.UI.Page.Window.Append(base);
     },
     New: function (page) {
         let data = { "KEY": "PageNew", "page": page };
@@ -831,9 +841,6 @@ SI.Editor.Objects.Page = {
             onchange: function (ev) {
                 if (this.checked) {
                     value = SI.Editor.Data.Objects.Settings[this.name];
-
-                } else {
-
                 }
             },
             appendTo: settingBox

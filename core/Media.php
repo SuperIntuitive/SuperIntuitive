@@ -80,11 +80,19 @@ class Media {
 			//Tools::Log($id." ".$type." ".$url);
 
 			//The 4 images to move to the recycl bin
-			$path =  dirname($_SERVER['DOCUMENT_ROOT'].'/domains/'.$_SERVER['HTTP_HOST'].'/'.$url).'/';
+			$path =  dirname($_SERVER['DOCUMENT_ROOT'].'/domains/'.$_SERVER['HTTP_HOST'].$url).'/';
 
 			$rBin = dirname($path).'/recycle/';
+
+			//If the recycle folder does not exist, make it
+			if (!file_exists($rBin)) {
+				mkdir($rBin,0777);
+				chmod($rBin,0777);
+				Tools::Log("The directory $rBin was successfully created.");	
+			} 
+
 			$filename = basename($url);
-			
+			Tools::Log('Attemptine to move: '.$path."dev_".$filename. ' to: '.$rBin."dev_".$filename );
 			if(file_exists($path."dev_".$filename)){
 				rename($path."dev_".$filename, $rBin."dev_".$filename);
 				Tools::Log('Moved: '.$path."dev_".$filename. ' to: '.$rBin."dev_".$filename );
@@ -101,15 +109,12 @@ class Media {
 				rename($path.$filename, $rBin.$filename);
 				Tools::Log('Moved: '.$path.$filename.' to: '.$rBin.$filename );
 			}
-
-			
+		
 			//drop it from the database;
 			$db = new Database();
 			$sql = "DELETE FROM `media` WHERE id = $id";
 			Tools::Log('SQL: '.$sql);
 			$db->Execute($sql);
-
-
 
 
 		}

@@ -172,7 +172,6 @@ class Entity{
 		}
 	}
 
-
 	private function ProcessEntity($operatrion){
 		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME])){
 			$unit = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME];
@@ -201,8 +200,9 @@ class Entity{
 		else{
 			//The Session has expired so make sure to handle this.
 		}
-
 	}
+
+
 }
 
 class EntityCollection{
@@ -289,6 +289,10 @@ class AttributeCollection{
 	{
 	    if(gettype($attribs)==='array'){
 			$this->Attributes = array_merge($this->Attributes, $attribs);
+		}
+		else if(gettype($attribs)==='string'){
+			//$this->Attributes = array_merge($this->Attributes, $attribs);
+			Tools::Log($attribs);
 		}
 		else if($attribs!=null){
 		    if(get_class($attribs)==='Attribute')

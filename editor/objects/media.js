@@ -258,18 +258,31 @@ SI.Editor.Objects.Media = function (window) {
             },
             appendTo: container
         });
-       // debugger;
 
         //clear spacer to keep icons off the toolbar
         Ele('div', { style: { position: 'relative', width: '100%', height: "20px", pointerEvents: 'none' }, appendTo: mediascroller });
         //Populate the Meida Icons
         let medialibrary = SI.Editor.Data.Objects.Media;
-        for (let media in medialibrary) {
+        for (let media in medialibrary) {        
             if (medialibrary.hasOwnProperty(media)) {
                 let data = medialibrary[media];
                 if (data.hasOwnProperty('mime')) {
                     if (SI.Editor.Data.DataLists.AcceptedMimeTypes[tabname].indexOf(data.mime) > -1) {
                         let validPath = SI.Tools.GetMediaFilePath("dev_" + data['path']);
+                        //debugger;
+                        if (validPath.indexOf("/media/fonts/")>-1) {
+                            //if we have a font, hack in the font @ style 
+                            
+                            let fontpath = SI.Tools.GetMediaFilePath("dev_" + data['path'],true);
+                            let fontname = validPath.replace(/^.*(\\|\/|\:)/, '');
+                            fontname = fontname.substring(fontname.lastIndexOf('.') + 1);
+                            let fontstyle = document.getElementById('si_font_style');
+                            if (!fontstyle) {
+                                fontstyle = Ele('style', { id:"si_font_style", appendTo: document.head });
+                            }
+                            let fontface = document.createTextNode("@font-face {\n\tfont-family:" + fontname + ";\n\tsrc:" + fontpath + "\n}");    
+                            fontstyle.appendChild(fontface);
+                        }
                         if (validPath !== null) {
                             let options = {
                                 Type: tabname,
@@ -284,7 +297,7 @@ SI.Editor.Objects.Media = function (window) {
                             let tile = new SI.Widget.Tile(options);
                             mediascroller.appendChild(tile.Container);
                         } else {
-                            console.warn("Unknown file could not be loaded into media viewer: " + data['path']);
+                            SI.Tools.Warn("Unknown file could not be loaded into media viewer: " + data['path']);
                         }
                     }
                 }
@@ -394,6 +407,8 @@ SI.Editor.Objects.Media = function (window) {
             let deploy = deploys[ittr];
             let deployC = deploy.charAt(0).toUpperCase() + deploy.slice(1)
             let media = document.getElementById('si_media_' + tabname + '_' + deployC + 'Preview');
+
+            //no prefix for live but an underscore after dev and test
             if (deploy === 'live') {
                 deploy = "";
             } else {
@@ -403,49 +418,16 @@ SI.Editor.Objects.Media = function (window) {
 
             if (media !== null) {
                 media.src = SI.Tools.GetMediaFilePath(deploy + filename);
+                media.type = mime;
                 switch (tabname) {
                     case "Images":
-                        let imgt = 10;
-                        var imgpoll = setInterval(function () {
-                            if (media.naturalWidth) {
-                                clearInterval(imgpoll);
-                                media.title = deployC + " image   Width: " + media.naturalWidth + " Height: " + media.naturalHeight;
-                            } else {
-                                imgt = imgt + 10;
-                            }
-                            if (imgt > 100) {
-                                clearInterval(imgpoll);
-                            }
-                        }, imgt);
+                        media.title = deployC + " image   Width: " + media.naturalWidth + " Height: " + media.naturalHeight;
                         break;
                     case "Audio":
-                        let audt = 10;
-                        var audpoll = setInterval(function () {
-                            if (media.duration) {
-                                clearInterval(audpoll);
-                                media.load();
-                            } else {
-                                audt = audt + 10;
-                            }
-                            if (audt > 100) {
-                                clearInterval(audpoll);
-                            }
-                        }, audt);
+                        media.parentElement.load();
                         break;
                     case "Video":
-                        let vidt = 10;
-                        var vidpoll = setInterval(function () {
-                            if (media.naturalWidth) {
-                                clearInterval(vidpoll);
-                                media.title = deployC + " video   Width: " + media.naturalWidth + " Height: " + media.naturalHeight;
-                                media.load();
-                            } else {
-                                vidt = vidt + 10;
-                            }
-                            if (vidt > 100) {
-                                clearInterval(vidpoll);
-                            }
-                        }, vidt);
+                        media.parentElement.load();
                         break;
                     case "Documents":
                         break;
@@ -476,7 +458,7 @@ SI.Editor.Objects.Media = function (window) {
         document.getElementById(preview).src = source;
     };
     this.Recycle = function () {
-        debugger;
+
         var r = confirm("Are you sure you would like to delete this file?");
         if (r === false) {
             return;

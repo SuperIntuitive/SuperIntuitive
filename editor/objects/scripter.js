@@ -5,6 +5,9 @@ SI.Editor.Objects.Scripter = {
     SyntaxLoaded: false,
     Draw: function () {
 
+        
+
+
         //debugger;
         let container = Ele("div", {
             id: "si_scripter_container",
@@ -279,7 +282,7 @@ SI.Editor.Objects.Scripter = {
     LoadScriptCode: function (script) {
         debugger;
         let codepad = document.getElementById("si_scripter_codepad");
-        codepad.innerHTML = script.replace(/</g, "&lt;").replace(/>/g, "&gt;"); //lose the html breakers
+        codepad.innerHTML = script.replaceAll(">", "&gt;").replaceAll("<", "&lt;");//lose the html breakers
         //this functino will run through a codepad and highlight the syntax of the javascript
         //Nice to see how long the script takes
         let rand = SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
@@ -313,437 +316,437 @@ SI.Editor.Objects.Scripter = {
     },
     HighlightSyntax: function (codepad) {
 
-        //This is a destructuve process. for now, the whole pad is completly rebuilt on every run. 
-        //That being said it would bee nice to save the mouse position so that we can put it back for the user rather than drop them back at the beginning each time.
-        let curele = null;  //The index of the selected element from the codepad
-        let curoff = null;  //the cursor position in chars from the left
-        //debugger;
-        //does not work yet
-        if (document.activeElement.id === codepad.id) {
-            let selected = window.getSelection();
-            curoff = selected.anchorOffset;
-            let myNode = selected.anchorNode.parentElement;
-            if (myNode) {
-                if (myNode !== codepad) {
-                    curele = Array.from(myNode.parentNode.childNodes).indexOf(myNode);
-                } else {
-                    curele = Array.from(codepad.childNodes).indexOf(myNode);
-                }
-            }
-
-        }
-
-        //To be less verbos make our own tags
-        if (!SI.Editor.Objects.Scripter.SyntaxLoaded) { //only do this once
-            SI.Editor.Objects.Scripter.SyntaxLoaded = true;
-            //create html elements for all of the script types that we can pick
-            window.customElements.define('si-jsur', class extends HTMLElement { //url
-                constructor() {
-                    super();
-                    this.addEventListener('dblclick', e => {
-                        if (!this.disabled) {
-                            window.open(this.innerHTML, '_blank');
-                        }
-                    });
-                }
-            });
-            window.customElements.define('si-jsrx', class extends HTMLElement { //Regular Expression
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-linm', class extends HTMLElement { //comment
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jscom', class extends HTMLElement { //comment
-                constructor() {
-                    super();
-                }
-            });
-
-            window.customElements.define('si-jssym', class extends HTMLElement {//symbol
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jskw', class extends HTMLElement { //keywords
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jssq', class extends HTMLElement { //single quotes
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsdq', class extends HTMLElement { //double quotes
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsnu', class extends HTMLElement { //methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsmet', class extends HTMLElement { //methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsdom', class extends HTMLElement { //dom elements
-                constructor() {
-                    super();
-                    //this.addEventListener('click', e => { if (!this.disabled) { this.WinEvent(e); } });
-                    this.addEventListener('mouseup', e => { if (!this.disabled) { this.WinEvent(e); } });
-                    this.addEventListener('keyup', e => { if (!this.disabled) { this.WinEvent(e); } });
-                }
-                WinEvent(e) {
-                    console.log(e);
-                    //debugger;
-                }
-            });
-
-            //capture built in js function with granularity. 
-            //Array functions and properties
-            window.customElements.define('si-jsarf', class extends HTMLElement { //array methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsarp', class extends HTMLElement { //array properyies
-                constructor() {
-                    super();
-                }
-            });
-
-            //Date functions and properties
-            window.customElements.define('si-jsdtf', class extends HTMLElement { //date methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsdtp', class extends HTMLElement { //date props
-                constructor() {
-                    super();
-                }
-            });
-            //String functions and properties
-            window.customElements.define('si-jsstf', class extends HTMLElement { //string methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jsstp', class extends HTMLElement { //string properties
-                constructor() {
-                    super();
-                }
-            });
-            //Element functions and properties
-            window.customElements.define('si-jself', class extends HTMLElement { //Element methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jselp', class extends HTMLElement { //Element Properties
-                constructor() {
-                    super();
-                }
-            });
-            //Error functions and properties
-            window.customElements.define('si-jserf', class extends HTMLElement { //Error methods
-                constructor() {
-                    super();
-                }
-            });
-            window.customElements.define('si-jserp', class extends HTMLElement { //Error Properties
-                constructor() {
-                    super();
-                }
-            });
-
-            SI.Editor.Objects.Scripter.SyntaxLoaded = true;
-
-        }
 
 
-        //get the text of the codepad
-        let script = codepad.innerText;
-
-        script = script.replace(/>/g, '&gt;').replace(/</g, '&lt;');
-
-
-        //Substitutions: we need to sub out comments and strings first so thaat we dont parse inside of them. we will replace them with their color tags and values at the bottom
-        /* turns out these must be done in a first in last out fasion */
-        /* Sub out Comments */
-
-        let flags = ['UR', 'CM', 'CS', 'DQ', 'SQ', 'RX', 'ARF', 'ARP', 'STF', 'STP', 'DTF', 'DTP', 'ELF', 'ELP'];
-        let indexes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let replacements = {};
-        let jstrack = ''; //this has all the function names. many classes has funcitons with the same name. we will need to tune this later but we dont want dupes. 
-
-        //get all of the javascript methods into a regex and add tehm all to custom tags on a group basis
-        let jsMethods = {};
-        let jsProps = {};
-
-        let topKeys = {
-            'ARF': "Array",
-            'ARP': "Array",
-            'DTF': "Date",
-            'DTP': "Date",
-            'STF': "String",
-            'STP': "String",
-            'ELF': "Element",
-            'ELP': "Element"
-        };
-
-        let toRemove = ['constructor'];
-
-
-        for (let k in topKeys) {
-            if (topKeys.hasOwnProperty(k)) {
-                let flg = k;
-
-                var type = flg[flg.length - 1];
-                switch (type) {
-                    case 'F': type = 'function'; break;
-                    case 'P': type = 'property'; break;
-                }
-                //    let flg = topKeys[category];
-                //debugger;
-                let index = flags.indexOf(flg);
-                let count = 0;
-                if (index > -1 && typeof indexes[index] !== 'undefined') {
-                    count = indexes[index];
-                }
-                else {
-                    indexes.push(0);
-                    count = indexes[index];
-                }
-
-                // if (!jsMethods[flg]) {
-                //     jsMethods[flg] = [];
-                //  }
-                let category = topKeys[flg];
-                let tmp = [];
-                for (let name in SI.Editor.Data.js_methods[category]) {
-                    let rem = toRemove.indexOf(name);
-                    if (rem === -1) { //the blacklist
-                        if (SI.Editor.Data.js_methods[category].hasOwnProperty(name)) {
-                            if (SI.Editor.Data.js_methods[category][name].type === type) {
-                                tmp.push(name);
-                            }
-                        }
+            //This is a destructuve process. for now, the whole pad is completly rebuilt on every run. 
+            //That being said it would bee nice to save the mouse position so that we can put it back for the user rather than drop them back at the beginning each time.
+            let curele = null;  //The index of the selected element from the codepad
+            let curoff = null;  //the cursor position in chars from the left
+            //debugger;
+            //does not work yet
+            if (document.activeElement.id === codepad.id) {
+                let selected = window.getSelection();
+                curoff = selected.anchorOffset;
+                let myNode = selected.anchorNode.parentElement;
+                if (myNode) {
+                    if (myNode !== codepad) {
+                        curele = Array.from(myNode.parentNode.childNodes).indexOf(myNode);
+                    } else {
+                        curele = Array.from(codepad.childNodes).indexOf(myNode);
                     }
-
                 }
 
-                jsMethods[flg] = tmp.join('|');
-
-
-            }
-        }
-
-
-
-
-        //
-
-        for (let f = 0; f < flags.length; f++) {
-            let flag = flags[f];
-            let index = indexes[f];
-            if (!replacements[flag]) {
-                replacements[flag] = [];
-            }
-            let reg = '';
-            switch (flag) {
-                case 'UR': reg = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g; break; //URL
-                case 'RX': reg = /\/((?![*+?])(?:[^\r\n\[/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/()/g; break; //Regular Expression
-                case 'SQ': reg = /(?<!\\)('[\s\S]*?(?<!\\)')/g; break; //Single Quote
-                case 'DQ': reg = /(?<!\\)("[\s\S]*?(?<!\\)")/g; break; //Double Quote
-                case 'CM': reg = /(\/\*[\s\S]*?\*\/)/g; break; //Multiline Comment
-                case 'CS': reg = /(?<!"|')(\/\/.*)/g; break; //Singleline Comment 
-                // case 'NU': reg = /[0-9]+([,.0-9]+)?/g; break;
-                case 'ARF':
-                case 'ARP':
-                case 'DTF':
-                case 'DTP':
-                case 'STF':
-                case 'STP':
-                case 'ELF':
-                case 'ELP':
-                    //debugger;
-                    reg = new RegExp('(?<=[\.])(' + jsMethods[flag] + ")(?![0-9a-zA-Z])", 'g'); break;
             }
 
-            script = script.replace(reg, (matched) => {
-
-                let token = '_REPLACE_' + flag + '_' + index + "_";
-
-                //if any tags need custom finagling
-                //switch (flag) {
-
-                //}
-
-
-                replacements[flag][index] = matched;
-                index++;
-                return token;
-            });
-
-            indexes[f] = index;
-        }
-
-
-
-        let tokens = /(?<![0-9a-zA-Z])(function|var|let|const|typeof|this|class|delete|return|if|else|for|while|new|try|catch|throw|true|false|g)(?![0-9a-zA-Z])/g;
-        let symbols = /(:|;|\{|\}|\(|\)|\.|=|\[|\]|\+|\-|\!|\,|\&)/g;  //:|;|\{|\}|\(|\)|\.|===|==|=|
-        let squote = true; //true is odd
-        let dquote = true;
-
-        //   script = script.replace(/(^| |.|)[A-Z]+[a-z]+[A-Z]?[a-z]*/g, function (s) { return "<span style='color:teal' >" + s + "</span>"; });
-
-        script = script.replace(symbols, function (symbol, x, y) {
-            switch (symbol) {
-                case ":":
-                case ";":
-                case "{":
-                case "}":
-                case "(":
-                case ")":
-                case ".":
-                case "=":
-                case "[":
-                case "]":
-                case "+":
-                case "-":
-                case "!":
-                case "&":
-                case ",":
-                    let sym = Ele('si-jssym', {
-                        innerHTML: symbol
-                    });
-                    return sym.outerHTML;
-            }
-        });
-
-        script = script.replace(tokens, function (token, x, y) {
-
-            let randid = 'si_sytax_' + SI.Tools.String.RandomString();
-            switch (token) {
-                case "function":
-                case "var":
-                case "let":
-                case "const":
-                case "typeof":
-                case "this":
-                case "if":
-                case "else":
-                case "for":
-                case "while":
-                case "return":
-                case "new":
-                case "class":
-                case "try":
-                case "catch":
-                case "throw":
-                case "true":
-                case "false":
-                case "g":
-                    let kw = Ele('si-jskw', {
-                        innerHTML: token
-                    });
-                    return kw.outerHTML;
-                case "document":
-                case "window":
-                    let win = Ele('si-jswin', {
-                        innerHTML: token
-                    });
-                    return win.outerHTML;
-                case "getElementById":
-                    let met = Ele('si-jsmet', {
-                        innerHTML: token
-                    });
-                    return met.outerHTML;
-            }
-        });
-
-
-        //put the comments and strings back
-        for (let f = flags.length - 1; f > -1; f--) {
-            let flag = flags[f];
-
-            let tag = '';
-            let reg = null;
-            switch (flag) {
-                case 'UR': tag = 'si-jsur'; reg = /(_REPLACE_UR_\d+_)+/g; break;
-                case 'RX': tag = 'si-jsrx'; reg = /(_REPLACE_RX_\d+_)+/g; break;
-                case 'CS': tag = 'si-jscom'; reg = /(_REPLACE_CS_\d+_)+/g; break;
-                case 'CM': tag = 'si-jscom'; reg = /(_REPLACE_CM_\d+_)+/g; break;
-                case 'SQ': tag = 'si-jssq'; reg = /(_REPLACE_SQ_\d+_)+/g; break;
-                case 'DQ': tag = 'si-jsdq'; reg = /(_REPLACE_DQ_\d+_)+/g; break;
-                //  case 'NU': tag = 'si-jsnu'; reg = /(_REPLACE_NU_\d+_)+/g; break;
-                case 'ARF': tag = 'si-jsarf'; reg = /(_REPLACE_ARF_\d+_)+/g; break;
-                case 'ARP': tag = 'si-jsarp'; reg = /(_REPLACE_ARP_\d+_)+/g; break;
-                case 'DTF': tag = 'si-jsdtf'; reg = /(_REPLACE_DTF_\d+_)+/g; break;
-                case 'DTP': tag = 'si-jsdtp'; reg = /(_REPLACE_DTP_\d+_)+/g; break;
-                case 'STF': tag = 'si-jsstf'; reg = /(_REPLACE_STF_\d+_)+/g; break;
-                case 'STP': tag = 'si-jsstp'; reg = /(_REPLACE_STP_\d+_)+/g; break;
-                case 'ELF': tag = 'si-jself'; reg = /(_REPLACE_ELF_\d+_)+/g; break;
-                case 'ELP': tag = 'si-jselp'; reg = /(_REPLACE_ELP_\d+_)+/g; break;
-            }
-
-            script = script.replace(reg, (matched) => {
-
-                let parts = matched.split('_');
-                let type = parts[2];
-                let index = parts[3];
-
-                let replace = replacements[flag][index];
-
-
-
-
-                let met = Ele(tag, {
-                    innerHTML: replace
+            //To be less verbos make our own tags
+            if (!SI.Editor.Objects.Scripter.SyntaxLoaded) { //only do this once
+                SI.Editor.Objects.Scripter.SyntaxLoaded = true;
+                //create html elements for all of the script types that we can pick
+                window.customElements.define('si-jsur', class extends HTMLElement { //url
+                    constructor() {
+                        super();
+                        this.addEventListener('dblclick', e => {
+                            if (!this.disabled) {
+                                window.open(this.innerHTML, '_blank');
+                            }
+                        });
+                    }
+                });
+                window.customElements.define('si-jsrx', class extends HTMLElement { //Regular Expression
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-linm', class extends HTMLElement { //comment
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jscom', class extends HTMLElement { //comment
+                    constructor() {
+                        super();
+                    }
                 });
 
-                //final modifications to the replaces
-                switch (flag) {
-                    case 'UR': met.title = "Double Click to go to: " + met.innerHTML; break;
+                window.customElements.define('si-jssym', class extends HTMLElement {//symbol
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jskw', class extends HTMLElement { //keywords
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jssq', class extends HTMLElement { //single quotes
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsdq', class extends HTMLElement { //double quotes
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsnu', class extends HTMLElement { //methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsmet', class extends HTMLElement { //methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsdom', class extends HTMLElement { //dom elements
+                    constructor() {
+                        super();
+                        //this.addEventListener('click', e => { if (!this.disabled) { this.WinEvent(e); } });
+                        this.addEventListener('mouseup', e => { if (!this.disabled) { this.WinEvent(e); } });
+                        this.addEventListener('keyup', e => { if (!this.disabled) { this.WinEvent(e); } });
+                    }
+                    WinEvent(e) {
+                        console.log(e);
+                        //debugger;
+                    }
+                });
+
+                //capture built in js function with granularity. 
+                //Array functions and properties
+                window.customElements.define('si-jsarf', class extends HTMLElement { //array methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsarp', class extends HTMLElement { //array properyies
+                    constructor() {
+                        super();
+                    }
+                });
+
+                //Date functions and properties
+                window.customElements.define('si-jsdtf', class extends HTMLElement { //date methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsdtp', class extends HTMLElement { //date props
+                    constructor() {
+                        super();
+                    }
+                });
+                //String functions and properties
+                window.customElements.define('si-jsstf', class extends HTMLElement { //string methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jsstp', class extends HTMLElement { //string properties
+                    constructor() {
+                        super();
+                    }
+                });
+                //Element functions and properties
+                window.customElements.define('si-jself', class extends HTMLElement { //Element methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jselp', class extends HTMLElement { //Element Properties
+                    constructor() {
+                        super();
+                    }
+                });
+                //Error functions and properties
+                window.customElements.define('si-jserf', class extends HTMLElement { //Error methods
+                    constructor() {
+                        super();
+                    }
+                });
+                window.customElements.define('si-jserp', class extends HTMLElement { //Error Properties
+                    constructor() {
+                        super();
+                    }
+                });
+
+                SI.Editor.Objects.Scripter.SyntaxLoaded = true;
+
+            }
+
+
+            //get the text of the codepad
+            let script = codepad.innerText;
+
+            script = script.replaceAll('>', '&gt;').replaceAll('<', '&lt;');
+
+            //Substitutions: we need to sub out comments and strings first so thaat we dont parse inside of them. we will replace them with their color tags and values at the bottom
+            /* turns out these must be done in a first in last out fasion */
+            /* Sub out Comments */
+
+            let flags = ['UR', 'CM', 'CS', 'DQ', 'SQ', 'RX', 'ARF', 'ARP', 'STF', 'STP', 'DTF', 'DTP', 'ELF', 'ELP'];
+            let indexes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            let replacements = {};
+            let jstrack = ''; //this has all the function names. many classes has funcitons with the same name. we will need to tune this later but we dont want dupes. 
+
+            //get all of the javascript methods into a regex and add tehm all to custom tags on a group basis
+            let jsMethods = {};
+            let jsProps = {};
+
+            let topKeys = {
+                'ARF': "Array",
+                'ARP': "Array",
+                'DTF': "Date",
+                'DTP': "Date",
+                'STF': "String",
+                'STP': "String",
+                'ELF': "Element",
+                'ELP': "Element"
+            };
+
+            let toRemove = ['constructor'];
+
+
+            for (let k in topKeys) {
+                if (topKeys.hasOwnProperty(k)) {
+                    let flg = k;
+
+                    var type = flg[flg.length - 1];
+                    switch (type) {
+                        case 'F': type = 'function'; break;
+                        case 'P': type = 'property'; break;
+                    }
+                    //    let flg = topKeys[category];
+                    //debugger;
+                    let index = flags.indexOf(flg);
+                    let count = 0;
+                    if (index > -1 && typeof indexes[index] !== 'undefined') {
+                        count = indexes[index];
+                    }
+                    else {
+                        indexes.push(0);
+                        count = indexes[index];
+                    }
+
+                    // if (!jsMethods[flg]) {
+                    //     jsMethods[flg] = [];
+                    //  }
+                    let category = topKeys[flg];
+                    let tmp = [];
+                    for (let name in SI.Editor.Data.js_methods[category]) {
+                        let rem = toRemove.indexOf(name);
+                        if (rem === -1) { //the blacklist
+                            if (SI.Editor.Data.js_methods[category].hasOwnProperty(name)) {
+                                if (SI.Editor.Data.js_methods[category][name].type === type) {
+                                    tmp.push(name);
+                                }
+                            }
+                        }
+
+                    }
+
+                    jsMethods[flg] = tmp.join('|');
+
 
                 }
+            }
 
-                return met.outerHTML;
 
+
+
+            //
+
+            for (let f = 0; f < flags.length; f++) {
+                let flag = flags[f];
+                let index = indexes[f];
+                if (!replacements[flag]) {
+                    replacements[flag] = [];
+                }
+                let reg = '';
+                switch (flag) {
+                    case 'UR': reg = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g; break; //URL
+                    case 'RX': reg = /\/((?![*+?])(?:[^\r\n\[/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/()/g; break; //Regular Expression
+                    case 'SQ': reg = /(?<!\\)('[\s\S]*?(?<!\\)')/g; break; //Single Quote
+                    case 'DQ': reg = /(?<!\\)("[\s\S]*?(?<!\\)")/g; break; //Double Quote
+                    case 'CM': reg = /(\/\*[\s\S]*?\*\/)/g; break; //Multiline Comment
+                    case 'CS': reg = /(?<!"|')(\/\/.*)/g; break; //Singleline Comment 
+                    // case 'NU': reg = /[0-9]+([,.0-9]+)?/g; break;
+                    case 'ARF':
+                    case 'ARP':
+                    case 'DTF':
+                    case 'DTP':
+                    case 'STF':
+                    case 'STP':
+                    case 'ELF':
+                    case 'ELP':
+                        //debugger;
+                        reg = new RegExp('(?<=[\.])(' + jsMethods[flag] + ")(?![0-9a-zA-Z])", 'g'); break;
+                }
+
+                script = script.replace(reg, (matched) => {
+
+                    let token = '_REPLACE_' + flag + '_' + index + "_";
+
+                    //if any tags need custom finagling
+                    //switch (flag) {
+
+                    //}
+
+
+                    replacements[flag][index] = matched;
+                    index++;
+                    return token;
+                });
+
+                indexes[f] = index;
+            }
+
+
+
+            let tokens = /(?<![0-9a-zA-Z])(function|var|let|const|typeof|this|class|delete|return|if|else|for|while|new|try|catch|throw|true|false|g)(?![0-9a-zA-Z])/g;
+            let symbols = /(:|;|\{|\}|\(|\)|\.|=|\[|\]|\+|\-|\!|\,|\&)/g;  //:|;|\{|\}|\(|\)|\.|===|==|=|
+            let squote = true; //true is odd
+            let dquote = true;
+
+            //   script = script.replace(/(^| |.|)[A-Z]+[a-z]+[A-Z]?[a-z]*/g, function (s) { return "<span style='color:teal' >" + s + "</span>"; });
+
+            script = script.replace(symbols, function (symbol, x, y) {
+                switch (symbol) {
+                    case ":":
+                    case ";":
+                    case "{":
+                    case "}":
+                    case "(":
+                    case ")":
+                    case ".":
+                    case "=":
+                    case "[":
+                    case "]":
+                    case "+":
+                    case "-":
+                    case "!":
+                    case "&":
+                    case ",":
+                        let sym = Ele('si-jssym', {
+                            innerHTML: symbol
+                        });
+                        return sym.outerHTML;
+                }
             });
 
-        }
+            script = script.replace(tokens, function (token, x, y) {
 
-        //script = script.replace(/<\<\/si-jssym>\s<si-jssym>/g, "");
+                let randid = 'si_sytax_' + SI.Tools.String.RandomString();
+                switch (token) {
+                    case "function":
+                    case "var":
+                    case "let":
+                    case "const":
+                    case "typeof":
+                    case "this":
+                    case "if":
+                    case "else":
+                    case "for":
+                    case "while":
+                    case "return":
+                    case "new":
+                    case "class":
+                    case "try":
+                    case "catch":
+                    case "throw":
+                    case "true":
+                    case "false":
+                    case "g":
+                        let kw = Ele('si-jskw', {
+                            innerHTML: token
+                        });
+                        return kw.outerHTML;
+                    case "document":
+                    case "window":
+                        let win = Ele('si-jswin', {
+                            innerHTML: token
+                        });
+                        return win.outerHTML;
+                    case "getElementById":
+                        let met = Ele('si-jsmet', {
+                            innerHTML: token
+                        });
+                        return met.outerHTML;
+                }
+            });
 
-        codepad.innerHTML = script + "\n\n\n";
-        //debugger;
 
-        if (curele) {
+            //put the comments and strings back
+            for (let f = flags.length - 1; f > -1; f--) {
+                let flag = flags[f];
+
+                let tag = '';
+                let reg = null;
+                switch (flag) {
+                    case 'UR': tag = 'si-jsur'; reg = /(_REPLACE_UR_\d+_)+/g; break;
+                    case 'RX': tag = 'si-jsrx'; reg = /(_REPLACE_RX_\d+_)+/g; break;
+                    case 'CS': tag = 'si-jscom'; reg = /(_REPLACE_CS_\d+_)+/g; break;
+                    case 'CM': tag = 'si-jscom'; reg = /(_REPLACE_CM_\d+_)+/g; break;
+                    case 'SQ': tag = 'si-jssq'; reg = /(_REPLACE_SQ_\d+_)+/g; break;
+                    case 'DQ': tag = 'si-jsdq'; reg = /(_REPLACE_DQ_\d+_)+/g; break;
+                    //  case 'NU': tag = 'si-jsnu'; reg = /(_REPLACE_NU_\d+_)+/g; break;
+                    case 'ARF': tag = 'si-jsarf'; reg = /(_REPLACE_ARF_\d+_)+/g; break;
+                    case 'ARP': tag = 'si-jsarp'; reg = /(_REPLACE_ARP_\d+_)+/g; break;
+                    case 'DTF': tag = 'si-jsdtf'; reg = /(_REPLACE_DTF_\d+_)+/g; break;
+                    case 'DTP': tag = 'si-jsdtp'; reg = /(_REPLACE_DTP_\d+_)+/g; break;
+                    case 'STF': tag = 'si-jsstf'; reg = /(_REPLACE_STF_\d+_)+/g; break;
+                    case 'STP': tag = 'si-jsstp'; reg = /(_REPLACE_STP_\d+_)+/g; break;
+                    case 'ELF': tag = 'si-jself'; reg = /(_REPLACE_ELF_\d+_)+/g; break;
+                    case 'ELP': tag = 'si-jselp'; reg = /(_REPLACE_ELP_\d+_)+/g; break;
+                }
+
+                script = script.replace(reg, (matched) => {
+
+                    let parts = matched.split('_');
+                    let type = parts[2];
+                    let index = parts[3];
+
+                    let replace = replacements[flag][index];
+
+
+
+
+                    let met = Ele(tag, {
+                        innerHTML: replace
+                    });
+
+                    //final modifications to the replaces
+                    switch (flag) {
+                        case 'UR': met.title = "Double Click to go to: " + met.innerHTML; break;
+
+                    }
+
+                    return met.outerHTML;
+
+                });
+
+            }
+
+            //script = script.replace(/<\<\/si-jssym>\s<si-jssym>/g, "");
+
+            codepad.innerHTML = script + "\n\n\n";
             //debugger;
-            let node = codepad.childNodes[curele];
-            let range = document.createRange();
-            var sel = window.getSelection();
-            //debugger;
-            var childNode = codepad.childNodes[curele];
-            range.setStart(childNode, childNode);
-            range.setEnd(node, curoff);
-            sel.removeAllRanges();
-            sel.addRange(range);
-            sel = window.getSelection();
 
-            //   sel.modify('move', 'forward', curoff);
+            if (curele) {
+                //debugger;
+                let node = codepad.childNodes[curele];
+                let range = document.createRange();
+                var sel = window.getSelection();
+                //debugger;
+                var childNode = codepad.childNodes[curele];
+                range.setStart(childNode, childNode);
+                range.setEnd(node, curoff);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                sel = window.getSelection();
 
-        }
+                //   sel.modify('move', 'forward', curoff);
 
+            }
 
 
 

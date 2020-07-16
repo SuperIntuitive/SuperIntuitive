@@ -20,7 +20,6 @@ class Guid {
 	}
 	public function IsGuid($test){
 		$rx = new RegX();
-		//return rx.Match($test,"/^(\{)?[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}(?(1)\})$/i");
 		return rx.Match($test,$rx->guid);
 	}
 	public function ToString(){

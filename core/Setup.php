@@ -65,7 +65,7 @@ class Setup {
 		require_once "MiscData.php";
 		$miscdata = new MiscData();
 		//Get Languages
-		$langs = $miscdata->languages;
+		$langs = $miscdata->Languages;
 		$langoptions = "";
 		$detectedlang = strtolower(explode(",",$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]);
 		foreach($langs as $k=>$v){
@@ -73,14 +73,14 @@ class Setup {
 			$langoptions.="<option value='$k' $selected >$v</option>";
 		}
 		//Get timezones
-		$timezones = $miscdata->timezones;
+		$timezones = $miscdata->TimeZones;
 		$timezonesoptions = "<option disabled selected value> -- select a timezone -- </option>";
 		foreach($timezones as $k=>$v){
 			$selected = (strtolower($k) == $detectedlang ? "selected='selected'" : "");
 			$timezonesoptions.="<option value='$k' $selected >$k</option>";
 		}	
 		//Get timezones
-		$currencies = $miscdata->currencies;
+		$currencies = $miscdata->Currencies;
 		$currenciesoptions = "<option disabled selected value> -- select a currency -- </option>";
 		foreach($currencies as $k=>$v){
 		//	$selected = (strtolower($k) == $detectedlang ? "selected='selected'" : "");

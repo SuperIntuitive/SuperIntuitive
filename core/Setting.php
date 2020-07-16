@@ -29,9 +29,9 @@ class Setting {
 	//settingname:name, settingvalue:value
 	}
 
-	function Update($name=null, $value=null){
+	function Update($name=null, $value=null, $post=null){
 		Tools::Log("IN Settings Update");
-		
+		Tools::Log($post);
 		if(isset($post['settingname']) ){
 			    $name = $post['settingname'];
 		}
@@ -39,7 +39,7 @@ class Setting {
 			    $value = $post['settingvalue'];
 		}
 		if($name){
-		
+		Tools::Log($name.":".$value);
 			$ent = new Entity('settings');
 			$ent->Attributes->Add(new Attribute("settingname", $name));
 			$found = $ent->Select();

@@ -1,5 +1,8 @@
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+<?php 
+header("Content-Type: application/javascript; charset: UTF-8");
+?>
+
+
 
 SI.Widget.IconLink = function (options) {
     if (!(this instanceof SI.Widget.IconLink)) { return new SI.Widget.IconLink(); }

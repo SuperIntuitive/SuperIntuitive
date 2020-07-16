@@ -1,5 +1,7 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+﻿<?php 
+header("Content-Type: application/javascript; charset: UTF-8");
+?>
+
 
 SI.Widget.Accordion = function (options) {
     if (!(this instanceof SI.Widget.Accordion)){return new SI.Widget.Accordion();}

@@ -34,7 +34,7 @@ SI.Editor.Objects.Blocks = {
         //debugger;
         //The safe id will be a unique incremented blockname
         let safeid = SI.Tools.Element.SafeId("si_bid_" + options.BlockName);
-        var fixedkey = SI.Tools.RegEx.Fix("OkId", safeid).replace("si_bid_", '');
+        let fixedkey = SI.Tools.RegEx.Fix("OkId", safeid).replace("si_bid_", '');
 
         //If this is new we will need to make the block and put it in the current lists. if old those two will be done, just make the ui.
         if (options.New) {
@@ -179,15 +179,15 @@ SI.Editor.Objects.Blocks = {
         //first get the non attrs or styles
         let blockControls = {};
         let blockStyles = {};
-        let blockOptions = {};
+        let blockSettings = {};
 
         if (blockData.style) {
             blockStyles = blockData.style;
             delete blockData.style;
         }
-        if (blockData.options) {
-            blockOptions = blockData.options;
-            delete blockData.options;
+        if (blockData.settings) {
+            blockSettings = blockData.settings;
+            delete blockData.settings;
         }
 
         blockControls = blockData;
@@ -200,6 +200,9 @@ SI.Editor.Objects.Blocks = {
         blockControls = ordered;
         //The dynamic properties field.
         for (let control in blockControls) {
+            if (control === "widgets") {
+                continue;
+            }
             let val = blockControls[control];
             //Make a div for the field 
             let fieldbox = Ele('div', {
@@ -311,6 +314,66 @@ SI.Editor.Objects.Blocks = {
         //if we bring this back well fix this
         saveAll.style.display = 'none';
 
+        //Top Right Buttons
+
+        let HidePanels = function (disregard) {
+            let panels = ['deployment', 'settings', 'widgets'];
+
+            for (panel of panels) {
+                if (panel !== disregard) {
+                    document.getElementById('si_block_' + panel + '_window_' + fixedkey).style.display = 'none';
+                }
+            } 
+        };
+        let ShowPanel = function (panel, event) {
+            HidePanels(panel);
+            var win = document.getElementById('si_block_' + panel + '_window_' + fixedkey);
+            if (win !== null && win.style.display === "none") {
+                win.style.display = "block";
+            } else {
+                win.style.display = "none";
+            }
+            event.stopPropagation();
+        };
+        let deleteBlock = Ele("button", {
+            style: {
+                display: "inline-block",
+                margin: '4px',
+                width: '20px',
+                height: '20px',
+                float: 'right',
+                backgroundSize: 'cover',
+                backgroundImage: "url('/editor/media/icons/deleteButton.png')",
+            },
+            title: "Remove Block",
+            data: {
+                block: 'si_block_' + fixedkey,
+                guid: options.Guid,
+                fkey: fixedkey,
+            },
+            onclick: function (e) {
+                var retVal = confirm("This block will be removed from the page and all custom block data will be lost. This will not affect the block itself. Proceed?");
+                if (retVal === true) {
+                    //SI.Editor.Objects.Blocks.SelectNone();
+                    //debugger;
+                    //remove all the html
+                    let me = document.getElementById('si_bid_' + fixedkey);
+                    let relayid = me.dataset.relationsid;
+                    me.parentElement.removeChild(me);
+                    let bl = document.getElementById('si_block_' + fixedkey);
+                    bl.parentElement.removeChild(bl);
+                    if (SI.Editor.Data.Objects.Blocks[fixedkey]) {
+                        delete SI.Editor.Data.Objects.Blocks[fixedkey];
+                    }
+
+                    SI.Editor.Objects.Blocks.Remove(relayid);
+
+                    //send Ajax to remove this block from the database.
+                }
+                e.stopPropagation();
+            },
+            appendTo: blockui,
+        });
         let openScripter = Ele("button", {
             style: {
                 display: "inline-block",
@@ -363,45 +426,6 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui,
         });
-        let deleteBlock = Ele("button", {
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/deleteButton.png')",
-            },
-            title: "Remove Block",
-            data: {
-                block: 'si_block_' + fixedkey,
-                guid: options.Guid,
-                fkey: fixedkey,
-            },
-            onclick: function (e) {
-                var retVal = confirm("This block will be removed from the page and all custom block data will be lost. This will not affect the block itself. Proceed?");
-                if (retVal === true) {
-                    //SI.Editor.Objects.Blocks.SelectNone();
-                    //debugger;
-                    //remove all the html
-                    let me = document.getElementById('si_bid_' + fixedkey);
-                    let relayid = me.dataset.relationsid;
-                    me.parentElement.removeChild(me);
-                    let bl = document.getElementById('si_block_' + fixedkey);
-                    bl.parentElement.removeChild(bl);
-                    if (SI.Editor.Data.Objects.Blocks[fixedkey]) {
-                        delete SI.Editor.Data.Objects.Blocks[fixedkey];
-                    }
-
-                    SI.Editor.Objects.Blocks.Remove(relayid);
-
-                    //send Ajax to remove this block from the database.
-                }
-                e.stopPropagation();
-            },
-            appendTo: blockui,
-        });
         let openDeployment = Ele("button", {
             id: 'si_block_deployment_button_' + fixedkey,
             style: {
@@ -420,20 +444,12 @@ SI.Editor.Objects.Blocks = {
                 fkey: fixedkey,
             },
             onclick: function (e) {
-                let retId = this.id.replace("_button_", "_window_");
-                var win = document.getElementById(retId);
-                if (win !== null && win.style.display === "none") {
-                    win.style.display = "block";
-                } else {
-                    win.style.display = "none";
-                }
-                document.getElementById(retId.replace('deployment', 'options')).style.display = 'none';
-                e.stopPropagation();
+                ShowPanel('deployment', e);
             },
             appendTo: blockui,
         });
-        let openOptions = Ele("button", {
-            id: 'si_block_options_button_' + fixedkey,
+        let openSettings = Ele("button", {
+            id: 'si_block_settings_button_' + fixedkey,
             style: {
                 display: "inline-block",
                 margin: '4px',
@@ -441,26 +457,40 @@ SI.Editor.Objects.Blocks = {
                 height: '20px',
                 float: 'right',
                 backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/options.png')",
+                backgroundImage: "url('/editor/media/icons/options.png')"
             },
-            title: "Manage custom block options",
+            title: "Manage custom block settings",
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
-                fkey: fixedkey,
+                fkey: fixedkey
             },
             onclick: function (e) {
-                let retId = this.id.replace("_button_", "_window_");
-                var win = document.getElementById(retId);
-                if (win !== null && win.style.display === "none") {
-                    win.style.display = "block";
-                } else {
-                    win.style.display = "none";
-                }
-                document.getElementById(retId.replace('options', 'deployment')).style.display = 'none';
-                e.stopPropagation();
+                ShowPanel('settings', e);
             },
-            appendTo: blockui,
+            appendTo: blockui
+        });
+        let openWidgets = Ele("button", {
+            id: 'si_block_widgets_button_' + fixedkey,
+            style: {
+                display: "inline-block",
+                margin: '4px',
+                width: '20px',
+                height: '20px',
+                float: 'right',
+                backgroundSize: 'cover',
+                backgroundImage: "url('/editor/media/icons/widgets.png')"
+            },
+            title: "Manage block widgets",
+            data: {
+                block: 'si_block_' + fixedkey,
+                guid: options.Guid,
+                fkey: fixedkey
+            },
+            onclick: function (e) {
+                ShowPanel('widgets', e);
+            },
+            appendTo: blockui
         });
         let saveHtml = Ele("button", {
             style: {
@@ -470,93 +500,162 @@ SI.Editor.Objects.Blocks = {
                 height: '20px',
                 float: 'right',
                 backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/save.png')",
+                backgroundImage: "url('/editor/media/icons/save.png')"
             },
             title: "Save the Block",
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
-                fkey: fixedkey,
+                fkey: fixedkey
             },
-
             onclick: function (e) {
                 //debugger;
                 e.stopPropagation(); //keep from clicking through
                 SI.Editor.Objects.Blocks.Save(this.parentElement, 'html'); //save the block div, which is this save buttons parent
             },
-            appendTo: blockui,
+            appendTo: blockui
         });
-        Ele("br", { appendTo: blockui, });
-        //Blocks Custom Options
-        let optionsContainer = Ele('div', {
-            id: 'si_block_options_window_' + fixedkey,
+        Ele("br", { appendTo: blockui});
+
+        //WIDGETS CONTROLS
+        let widgetsContainer = Ele('div', {
+            id: 'si_block_widgets_window_' + fixedkey,
             style: {
                 display: 'none',
                 float: 'right',
-
-                width: '200px',
+                width: '38%',
+                height: '150px',
                 overflowY: 'auto',
                 overflowX: 'hidden',
+                border: '1px solid black'
             },
-            appendTo: blockui,
+            appendTo: blockui
         });
-        //Name Value pairs. 
+        let widgetsTable = Ele('table', {
+            id: 'si_block_widgets_table_' + fixedkey,
+            style: {
+                width: '100%',
+                borderCollapse: 'collapse'
+            },
+            appendTo: widgetsContainer
+        });
+        let blockwidgets = SI.Tools.Object.GetIfExists("SI.Page.Blocks." + fixedkey + ".Widgets");
+        if (blockwidgets) {
+          
+            //SI.Editor.Objects.Blocks.AddWidget(fixedkey, , ,widgetsTable);
+        }
+
+
+
+        //SETTING CONTROLS
+        let settingsContainer = Ele('div', {
+            id: 'si_block_settings_window_' + fixedkey,
+            style: {
+                display: 'none',
+                float: 'right',
+                width: '38%',
+                overflowY: 'auto',
+                overflowX: 'hidden'
+            },
+            appendTo: blockui
+        });
+        let AddSetting = function (key, value, table = null) {
+            if (table === null) {
+                table = document.getElementById('si_block_settings_table_' + fixedkey);
+            }
+
+            let tr = Ele('tr', { appendTo: table });
+            let tdname = Ele('td', { style: { width: "43%" }, appendTo: tr });
+            let inname = Ele('input', {
+                style: { width: '94%' },
+                value: key,
+                ondragstart: function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    return false;  
+                },
+                onchange: function () {
+                    let oldval = this.value;
+                    if (this.value.length === 0) {
+                        if (confirm("Do you want to delete this block setting?")) {
+                            //input  -> td      ->   tr
+                            let tr = this.parentElement.parentElement;
+                            tr.parentElement.removeChild(tr);
+                        }
+                        else {
+                            this.value = oldval;
+                        }
+                    }
+                    else {
+                        this.style.backgroundColor = "lightyellow";
+                    }
+                },
+                appendTo: tdname
+            });
+            let tdval = Ele('td', { appendTo: tr });
+            let inval = Ele('input', {
+                style: { width: '92%' },
+                ondragstart: function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    return false;
+                },
+                value: value,
+                onchange: function () {
+                    this.style.backgroundColor = "lightyellow";
+                },
+                appendTo: tdval
+            });
+        };
         Ele("input", {
             placeholder: 'Name',
-            appendTo: optionsContainer,
+            appendTo: settingsContainer,
             style: {
-                display: "inline-block",
+                display: "inline",
                 width: '40%'
-            },
+            }
         });
         Ele("input", {
             placeholder: 'Value',
-            appendTo: optionsContainer,
+            appendTo: settingsContainer,
             style: {
-                display: "inline-block",
+                display: "inline",
                 width: '40%'
-            },
+            }
         });
         Ele("button", {
             innerHTML: '+',
-            appendTo: optionsContainer,
+            appendTo: settingsContainer,
             style: {
-                display: "inline-block",
+                display: "inline",
                 width: '12%'
             },
             onclick: function (e) {
-                let name = this.previousSibling.previousSibling;
-                let val = this.previousSibling;
-                if (name.value.length > 0 && val.value.length > 0) {
+                let setting = this.previousSibling.previousSibling.value;
+                let val = this.previousSibling.value;
+                let table = this.nextSibling;
+                AddSetting(setting, val, table);
+                this.previousSibling.previousSibling.value = "";
+                this.previousSibling.value = "";
+            }
 
-
-                    let table = this.nextSibling;
-                    let tr = Ele('tr', { appendTo: table });
-                    let tdname = Ele('td', { appendTo: tr });
-                    let inname = Ele('input', { style: { width: '78px' }, value: name.value, appendTo: tdname });
-                    let tdval = Ele('td', { appendTo: tr });
-                    let inval = Ele('input', { style: { width: '103px' }, value: val.value, appendTo: tdval });
-                    name.value = '';
-                    val.value = '';
-                    //debugger;
-                }
-                else {
-                    alert("You will need both a name and a value to create an option");
-                }
-            },
         });
-        let optionsTable = Ele('table', {
-            id: 'si_block_options_table_' + fixedkey,
+        let settingsTable = Ele('table', {
+            id: 'si_block_settings_table_' + fixedkey,
             style: {
                 width: '100%',
-                borderCollapse: 'collapse',
+                borderCollapse: 'collapse'
             },
-            appendTo: optionsContainer,
+            appendTo: settingsContainer
         });
+        for (let setting in blockSettings) {
+            if (blockSettings.hasOwnProperty(setting)) {
+                AddSetting(setting, blockSettings[setting], settingsTable);
+            }
+        }
 
 
-
-
+        //DEPLOYMENT CONTROLS
         let deploymentsContainer = Ele('div', {
             id: 'si_block_deployment_window_' + fixedkey,
             style: {
@@ -566,7 +665,6 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui,
         });
-        //PROMOTE CONTROLS  field:entity
         let dFields = {
             "html": {
                 saveto: "blocks",
@@ -616,19 +714,8 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
-        for (let options in blockOptions) {
-            if (blockOptions.hasOwnProperty(options)) {
-                //debugger;
-                let tr = Ele('tr', { appendTo: optionsTable });
-                let tdname = Ele('td', { appendTo: tr });
-                let inname = Ele('input', { style: { width: '78px' }, value: options, appendTo: tdname });
-                let tdval = Ele('td', { appendTo: tr });
-                let inval = Ele('input', { style: { width: '103px' }, value: blockOptions[options], appendTo: tdval });
-            }
-        }
 
-
-        //Style Table
+        //STYLE CONTROLS
         let styletable = Ele('table', {
             id: "si_edit_page_blocks_styles_" + fixedkey,
             style: {
@@ -637,8 +724,6 @@ SI.Editor.Objects.Blocks = {
             draggable: false,
             appendTo: blockui,
         });
-
-        //Block Styles
         for (let style in blockStyles) {
             let val = blockStyles[style];
             //debugger;
@@ -653,11 +738,6 @@ SI.Editor.Objects.Blocks = {
             let stylebox = SI.Editor.Objects.Elements.Styles.Widget(styleobj);// "Group": style.group, "Index": style.index, "Effect": 'body' });
             styletable.appendChild(stylebox);
         }
-
-
-
-
-        //Add a style
         let addBlockStyle = Ele("button", {
             innerHTML: 'Add Style',
             style: {
@@ -711,9 +791,6 @@ SI.Editor.Objects.Blocks = {
         }
 
 
-        //END Block UI
-        //    block.innerHTML = key + " left:" + blockLib[key]['left'] + " top:" + blockLib[key]['top'] + " position:" + blockLib[key]['position'];
-        //    console.log(key + " -> " + blockLib[key]);
         return blockui;
     },
     BabyBlock: function (blockname) {
@@ -926,22 +1003,38 @@ SI.Editor.Objects.Blocks = {
             }
         }
         //debugger;
-        let blockOptions = document.querySelectorAll('#si_block_options_table_' + safeid + " tr");
-        if (blockOptions) {
-            options['options'] = {};
-            for (let i in blockOptions) {
-                if (blockOptions.hasOwnProperty(i)) {
-                    let row = blockOptions[i];
+        let blockSettings = document.querySelectorAll('#si_block_settings_table_' + safeid + " tr");
+        if (blockSettings) {
+            options['settings'] = {};
+            for (let i in blockSettings) {
+                if (blockSettings.hasOwnProperty(i)) {
+                    let row = blockSettings[i];
                     let name = row.children[0].firstChild.value;
                     let val = row.children[1].firstChild.value;
                     if (name.length && val.length) {
-                        options.options[name] = val;
+                        options.settings[name] = val;
                     }
                 }
             }
         }
 
-
+        let blockWidgets = document.querySelectorAll('#si_block_widgets_table_' + safeid + " tr");
+        if (blockWidgets) {
+            options['widgets'] = {};
+            //debugger;
+            for (let i in blockWidgets) {
+                if (blockWidgets.hasOwnProperty(i)) {
+                    let row = blockWidgets[i];
+                    let widgettype = row.children[0].firstChild.value;
+                    let widgetoptions = row.children[1].firstChild.value;
+                    //allow multiple widgets of same type without overwriting. put in a array and let the key be the order
+                    if (typeof options.widgets[widgettype] === 'undefined') {
+                        options.widgets[widgettype] = [];
+                    }
+                    options.widgets[widgettype].push(widgetoptions);
+                }
+            }
+        }
         //debugger;
         data['options'] = options;
 
@@ -1023,5 +1116,87 @@ SI.Editor.Objects.Blocks = {
             document.getElementById(orderid).value = order;
             order++;
         }
+    },
+    AddWidget: function (block, widgettype, options, table = null) {
+        //debugger;
+        if (table === null) {
+            table = document.getElementById('si_block_widgets_table_' + block);
+        }
+        let tr = Ele('tr', {
+            style: {
+                backgroundColor:"rgba(0,0,0,.3)"
+            },
+            appendTo: table
+        });
+        let tdtype = Ele('td', { appendTo: tr });
+
+        let indelete = Ele('button', {
+            style: {
+                width: '24px',
+                height: '24px',
+                backgroundSize: 'cover',
+                backgroundImage: "url('/editor/media/icons/eraser.png')"
+            },
+            title:"Delete",
+            onclick: function () {
+                if (confirm("Do you want to delete this widget?")) {
+                    let wig = document.getElementById(options.Id);
+                    if (wig) {
+                        wig.remove();
+                    }
+                    let tr = this.parentElement.parentElement;
+                    tr.parentElement.removeChild(tr);
+                    //delete all the widget related stuff.
+                }
+            },
+            appendTo: tdtype
+        });
+        let inedit = Ele('button', {
+            style: {
+                width: '24px',
+                height: '24px',
+                backgroundSize: 'cover',
+                backgroundImage: "url('/editor/media/icons/widgets.png')",
+
+            },
+            title: "Open in Widget Editor",
+            onclick: function () {
+                // Open the widget editor to this widget.
+
+
+            },
+            appendTo: tdtype
+        });
+
+        Ele('br', {
+            appendTo: tdtype
+        });
+
+        let intype = Ele('input', {
+            style: { width: '75px'},
+            value: widgettype,
+            disabled: true,
+            appendTo: tdtype
+        });
+        let tdoptions = Ele('td', { appendTo: tr });
+        let stroptions = JSON.stringify(options);
+
+        let lineoptions = stroptions.trimChar('{').trimChar('}').replaceAll(',', ',\n');
+        
+        let inoptions = Ele('textarea', {
+            style: {
+                width: '204px',
+                height: "45px",
+                overflow: 'auto',
+            },
+            innerHTML: lineoptions,
+            title: stroptions,
+            disabled: true,
+
+            appendTo: tdoptions
+        });
+
+
     }
+
 }

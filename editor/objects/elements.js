@@ -336,7 +336,8 @@ SI.Editor.Objects.Elements = {
                 "Attribute": null,
                 "Effected": null,
                 "AccessClass": null,
-                "Preserve": false
+                "Preserve": false,
+                "OnChange": null,
             };
             options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
@@ -349,19 +350,24 @@ SI.Editor.Objects.Elements = {
                 else {
                     let a;
                     if (options.Group === null) {
-                        //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? 
+                        //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? but as long as the choices are the same its fine
                         a = SI.Editor.Data.Tools.GetAttributeByName(options.Property);
                     } else {
                         //if we dont have an index but do have a group name, guarentee the correct attr
                         a = SI.Editor.Data.Tools.GetAttributeByName(options.Property, options.Group);
                     }
-
                     options.Group = a.group;
                     options.Index = a.index;
                 }
             }
 
+            if (typeof options.Group === 'undefined' || typeof options.Index === 'undefined') {
+                SI.Tools.Warn(options.Property + " is not found in the Attributes table");
+                return false;
+            }
+
             let attrobj = SI.Editor.Data.html_attributes[options.Group][options.Index];
+
             let attrrow = document.createElement('tr');
 
             let getEffected = function () {
@@ -884,6 +890,11 @@ SI.Editor.Objects.Elements = {
             attrInput.setAttribute("data-si-preserve", options.Preserve);
             attrInput.id = "si_edit_attribute_" + options.Group + "_" + attrobj.n + "_" + RandId;
 
+            if (options.OnChange) {
+                attrInput.addEventListener("change", function (ev) {
+                    options.OnChange(ev, this);
+                });
+            }
 
            let attroptionbox = Ele('td', {
                 style: {
@@ -1572,7 +1583,7 @@ SI.Editor.Objects.Elements = {
                         }
 
                     } else {
-                        console.warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
+                        SI.Tools.Warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
                     }
 
 

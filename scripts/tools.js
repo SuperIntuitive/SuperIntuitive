@@ -1,3 +1,91 @@
+//prototypes
+String.prototype.replaceArray = function (find, replace) {   // so-5069464
+    var replaceString = this;
+    var regex;
+    for (let i = 0; i < find.length; i++) {
+        regex = new RegExp(find[i], "g");
+        replaceString = replaceString.replace(regex, replace[i]);
+    }
+    return replaceString;
+};
+String.prototype.replaceObj = function (replaceValues) {
+
+    var replaceString = this;
+    var regex;
+    for (let replace in replaceValues) {
+        if (replaceValues.hasOwnProperty(replace)) {
+            regex = new RegExp(replace, 'g');
+            replaceString = replaceString.replace(regex, replaceValues[replace]);
+        }
+    }
+    return replaceString;
+};
+if (!String.replaceAll) {
+    String.prototype.replaceAll = function (find, replace) {
+        return this.split(find).join(replace);
+      //  let str = this;
+      //  while (str.indexOf(find) > -1) {
+      //      str = str.replace(find, replace);
+      //  }
+     //   return str;
+    };
+}
+String.prototype.trimChar = function (char=' '){
+    let string = this;
+    while (string.charAt(0) === char) {
+            string = string.substring(1);
+    }
+    while (string.charAt(string.length - 1) === char) {
+        string = string.substring(0, string.length - 1);
+    }
+    return string;
+}
+String.prototype.hexEncode = function () { //21647928
+    var hex, i;
+    var result = "";
+    for (let i = 0; i < this.length; i++) {
+        hex = this.charCodeAt(i).toString(16);
+        result += ("000" + hex).slice(-4);
+    }
+    return result;
+};
+String.prototype.hexDecode = function () { //21647928
+    var j;
+    var hexes = this.match(/.{1,4}/g) || [];
+    var back = "";
+    for (let j = 0; j < hexes.length; j++) {
+        back += String.fromCharCode(parseInt(hexes[j], 16));
+    }
+    return back;
+};
+Element.prototype.remove = function () {
+    this.parentElement.removeChild(this);
+};
+Element.prototype.hide = function () {
+    this.style.display = "none";
+};
+Element.prototype.clear = function () {
+    this.innerHTML = "";
+};
+Element.prototype.childNumber = function () {
+    let self = this;
+    for (var i = 0; (self = self.previousSibling); i++);
+    return i;
+}
+NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
+    for (let i = this.length - 1; i >= 0; i--) {
+        if (this[i]) {
+            this[i].style.display = 'none';
+        }
+    }
+};
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
+    for (let i = this.length - 1; i >= 0; i--) {
+        if (this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
+};
 
 
 EleRun = 0;
@@ -5,7 +93,7 @@ Ele = function (tag, attrs, log) {
     log = typeof log !== 'undefined' ? log : false; //silly IE can handle defaults
     if (typeof tag === 'undefined' || tag === null) { //if the tag is packed in the object for some reason.
         if (typeof attrs.tag === 'undefined') {
-            console.warn("Error tag name is missing. data:");
+            SI.Tools.Warn("Error tag name is missing. data:");
             console.log(attrs);
             return null; //cant make a tag without a tag
         } else {
@@ -56,7 +144,6 @@ Ele = function (tag, attrs, log) {
                         ele.className += ' ' + attrs[attr]; //if old IE is needed
                     }
                 }
-
             }
             else if (attr === 'appendTo') {
                 if (typeof HTMLElement === "object" ? attrs[attr] instanceof HTMLElement : attrs[attr] && typeof attrs[attr] === "object" && attrs[attr] !== null && attrs[attr].nodeType === 1 && typeof attrs[attr].nodeName === "string") {
@@ -67,7 +154,7 @@ Ele = function (tag, attrs, log) {
                         let tmp = document.querySelectorAll(attrs[attr])[0];
                         if (tmp === null) { tmp = document.getElementById(attrs[attr]); }
                         if (tmp !== null) { parent = tmp; }
-                        else { console.warn("The query string: " + attrs[attr] + " did not return an element") }
+                        else { SI.Tools.Warn("The query string: " + attrs[attr] + " did not return an element") }
                     }
                 }
             }
@@ -95,7 +182,6 @@ Ele = function (tag, attrs, log) {
     }
     if (parent !== null) {
         parent.appendChild(ele);
-
         if (after) {
             if (!Array.isArray(after)) {
                 after = [after];
@@ -109,87 +195,20 @@ Ele = function (tag, attrs, log) {
             }
         }
     }
-
-
-
     if (log) {
         console.log(ele);
     }
-
     EleRun++;
     return ele;
 };
 
-//prototypes
-String.prototype.replaceArray = function (find, replace) {   // so-5069464
-    var replaceString = this;
-    var regex;
-    for (let i = 0; i < find.length; i++) {
-        regex = new RegExp(find[i], "g");
-        replaceString = replaceString.replace(regex, replace[i]);
-    }
-    return replaceString;
-};
-String.prototype.replaceObj = function (replaceValues) {
-
-    var replaceString = this;
-    var regex;
-    for (let replace in replaceValues) {
-        if (replaceValues.hasOwnProperty(replace)) {
-            regex = new RegExp(replace, 'g');
-            replaceString = replaceString.replace(regex, replaceValues[replace]);
-        }
-    }
-    return replaceString;
-};
-String.prototype.hexEncode = function () { //21647928
-    var hex, i;
-
-    var result = "";
-    for (let i = 0; i < this.length; i++) {
-        hex = this.charCodeAt(i).toString(16);
-        result += ("000" + hex).slice(-4);
-    }
-    return result
-};
-String.prototype.hexDecode = function () { //21647928
-    var j;
-    var hexes = this.match(/.{1,4}/g) || [];
-    var back = "";
-    for (let j = 0; j < hexes.length; j++) {
-        back += String.fromCharCode(parseInt(hexes[j], 16));
-    }
-    return back;
-};
-Element.prototype.remove = function () {
-    this.parentElement.removeChild(this);
-};
-Element.prototype.hide = function () {
-    this.style.display = "none";
-};
-Element.prototype.clear = function () {
-    this.innerHTML = "";
-};
-NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
-    for (let i = this.length - 1; i >= 0; i--) {
-        if (this[i]) {
-            this[i].style.display = 'none';
-        }
-    }
-};
-NodeList.prototype.remove = HTMLCollection.prototype.remove = function () {
-    for (let i = this.length - 1; i >= 0; i--) {
-        if (this[i] && this[i].parentElement) {
-            this[i].parentElement.removeChild(this[i]);
-        }
-    }
-};
-
-if (!SI) {
-    var SI = {};
-}
-
 SI.Tools = {
+    Debug: false,
+    Warn: function (msg) {
+        if (SI.Tools.Debug) {
+            SI.Tools.Warn(msg);
+        }
+    },
     String: {
         RandomString: function (length) {
             //stupid IE11 cant do defaults. //will be glad when it is dead
@@ -634,7 +653,7 @@ SI.Tools = {
                 }
 
             } else {
-                console.warn('FadeOut elemnent is null')
+                SI.Tools.Warn('FadeOut elemnent is null');
             }
         },
         FadeIn: function (id, ms) {
@@ -666,7 +685,7 @@ SI.Tools = {
             }
 
             else {
-                console.warn('FadeIn elemnent is null')
+                SI.Tools.Warn('FadeIn elemnent is null')
             }
 
         },
@@ -791,7 +810,7 @@ SI.Tools = {
                     el.dispatchEvent(evObj);
                 }
             } else {
-                console.warn("Error firing event on non element");
+                SI.Tools.Warn("Error firing event on non element");
                 //debugger;
             }
 
@@ -929,8 +948,7 @@ SI.Tools = {
                 disp = ele.currentStyle ? ele.currentStyle.display : getComputedStyle(ele, null).display;
                 return disp === 'none' ? false : true;
             } else {
-
-                //console.warn("Tried to determine if "+ele+" IsVisable. The element was null");
+                SI.Tools.Warn("Tried to determine if "+ele+" IsVisable. The element was null");
             }
         },
         Element: function (o) {
@@ -940,12 +958,12 @@ SI.Tools = {
             );  //SO-384286
         },
         InlineElement: function (ele) {
-            const inlines = ['a', 'abbr', 'acronym', 'b', 'bdo', 'big', 'br', 'button', 'cite', 'code', 'dfn', 'em', 'i', 'img', 'input', 'kbd', 'label', 'map', 'object', 'q', 'samp', 'script', 'select', 'small', 'span', 'strong', 'sub', 'sup', 'textarea', 'time', 'tt', 'var']
+            const inlines = ['A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TEXTAREA', 'TIME', 'TT', 'VAR'];
             let inOf = null;
             if (typeof ele === 'string') {
-                inOf = inlines.indexOf(ele.toLowerCase());
+                inOf = inlines.indexOf(ele.toUpperCase());
             } else if (SI.Tools.Is.Element(ele)) {
-                inOf = inlines.indexOf(ele.tagName.toLowerCase());
+                inOf = inlines.indexOf(ele.tagName);
             }
             if (inOf === -1) {
                 return false;
@@ -956,11 +974,11 @@ SI.Tools = {
         },
         EmptyElement: function (ele) {
             let inOf = null;
-            const emptyElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+            const emptyElements = ['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
             if (typeof ele === 'string') {
-                inOf = emptyElements.indexOf(ele.toLowerCase());
+                inOf = emptyElements.indexOf(ele.toUpperCase());
             } else if (SI.Tools.Is.Element(ele)) {
-                inOf = emptyElements.indexOf(ele.tagName.toLowerCase());
+                inOf = emptyElements.indexOf(ele.tagName);
             }
             if (inOf === -1) {
                 return false;
@@ -1045,8 +1063,8 @@ SI.Tools = {
                     }
                 } catch (ex) {
                     //debugger;
-                    console.warn(xhr.responseText);
-                    console.warn(ex);
+                    SI.Tools.Warn(xhr.responseText);
+                    SI.Tools.Warn(ex);
                 }
             }
         };
@@ -1092,7 +1110,7 @@ SI.Tools = {
                             retval = eles[0];
                         }
                     }
-                    console.warn(search + " could not be found in the document");
+                    SI.Tools.Warn(search + " could not be found in the document");
                     return null;
                 }
                 else if (search.charAt(0) === '.') {  //If it is a class
@@ -1104,7 +1122,7 @@ SI.Tools = {
                             retval = eles[0];
                         }
                     }
-                    console.warn(search + " could not be found in the document");
+                    SI.Tools.Warn(search + " could not be found in the document");
                     return null;
                 }
                 else if (search.charAt(0) === '#') {   //If it is a ID
@@ -1117,7 +1135,7 @@ SI.Tools = {
                     if (retval.tagName.length > 0 && !SI.Tools.Is.EmptyElement(retval.tagName)) {
                         return retval;
                     } else {
-                        console.warn(search + " is an empty element and does not allow children");
+                        SI.Tools.Warn(search + " is an empty element and does not allow children");
                         return null;
                     }
                 }
@@ -1452,6 +1470,10 @@ SI.Tools = {
         return cStyle;
     },
     GetMediaFilePath: function (filename, brackets) {
+        if (filename.indexOf("/scripts/widgets/") > -1) {
+            return filename;
+        }
+
         if (typeof filename !== 'undefined' && filename.length > 0) {
             filename = filename.replace('url("', '').replace('")', '').replace('"', '');
             filename = filename.substring(filename.lastIndexOf('/') + 1);
@@ -1519,8 +1541,8 @@ SI.Tools = {
                         }
                     } catch (ex) {
                         //debugger;
-                        console.warn(ajax.responseText);
-                        console.warn(ex);
+                        SI.Tools.Warn(ajax.responseText);
+                        SI.Tools.Warn(ex);
                     }
                 }
             };

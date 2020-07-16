@@ -2,8 +2,6 @@
 header("Content-Type: application/javascript; charset: UTF-8");
 ?>
 
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
 
 SI.Widget.DataGrid = function (options) {
     if (!(this instanceof SI.Widget.DataGrid)) { return new SI.Widget.DataGrid(); }
