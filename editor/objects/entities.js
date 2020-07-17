@@ -155,7 +155,8 @@ SI.Editor.Objects.Entity = {
             let entityTable = Ele("table", {
                 id: "si_edit_entity_table_" + e,
                 style: {
-                    backgroundColor: "rgba(43,87,79,1)",
+                    backgroundColor: SI.Editor.Style.FavoriteColor,
+                    color: SI.Editor.Style.TextColor,
                     borderCollapse: 'collapse',
                 },
                 appendTo: tabView,

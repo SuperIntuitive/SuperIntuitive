@@ -7,7 +7,7 @@ SI.Editor.Objects.Page = {
             style: {
                 width: '100%',
                 height: '100%',
-                backgroundColor: "teal",
+                backgroundColor: SI.Editor.Style.FavoriteColor,
                 overflowY: 'scroll'
             }
 
@@ -16,7 +16,6 @@ SI.Editor.Objects.Page = {
         let dir = SI.Tools.GetPathDirectory();
         //Path Section
         let pageContainer = Ele('section', {
-            innerHTML: 'Page',
             style: {
                 backgroundColor: 'black',
                 color: SI.Editor.Style.TextColor,

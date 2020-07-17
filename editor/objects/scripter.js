@@ -145,7 +145,7 @@ SI.Editor.Objects.Scripter = {
                 position: 'absolute',
                 width: '100%',
                 height: '95%',
-                backgroundColor: 'silver',
+                backgroundColor: SI.Editor.Style.FavoriteColor,
                 overflow: 'auto',
             },
             ondragenter: function (e) { e.preventDefault(); },

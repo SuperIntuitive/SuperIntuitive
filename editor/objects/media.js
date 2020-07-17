@@ -231,10 +231,10 @@ SI.Editor.Objects.Media = function (window) {
             class: 'si-edit-mediatoolbar',
             style: {
                 position: 'absolute',
-                width: '538px',
+                width: '540px',
                 height: "24px",
                 top: '0px',
-                backgroundColor: '#011',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
                 left: '260px'
             },
             appendTo: container,
@@ -253,7 +253,7 @@ SI.Editor.Objects.Media = function (window) {
                 top: '24px',
                 width: '538px',
                 height: '100%',
-                backgroundColor: '#708080',
+                backgroundColor: SI.Editor.Style.FavoriteColor,
                 paddingRight: '0px'
             },
             appendTo: container
