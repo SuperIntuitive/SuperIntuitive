@@ -82,18 +82,17 @@ if(Tools::UserHasRole('Admin')){
 					$media->Recycle($post); 
 					break;
 
-
+				//ZRelate two entities
 				case "RelationNew":
 					$relation = new Relations();
 					$relation->New($post);
 					break;
 
-
+				//User
 				case "ChangePassword":
 					$admin = new Admin();
 					$admin->SetPassword($post);
 					break;
-
 				case "NewUser":
 					$admin = new Admin();
 					$admin->NewUser($post);
@@ -102,22 +101,25 @@ if(Tools::UserHasRole('Admin')){
 					$admin = new Admin();
 					$admin->DeleteUser($post);
 					break;
-				
+				//Security
 				case "GetUserRoles":
 					$admin = new Admin();
 					$admin->GetUserRoles($post);
 					break;
-
 				case "AddUserRole":
 					$user = new User();
 					$user->AddRole($post);
 					break;
-			
 				case "RemoveUserRole":
 					$user = new User();
 					$user->RemoveRole($post);
 					break;
+				case "DeleteRole":
+					$sec = New Role();
+					$sec->Delete($post);
+					break;
 
+				//Language
 				case "AddLanguage":
 					$localT = new Localtext();
 					$localT->AddLanguage($post);
@@ -135,12 +137,9 @@ if(Tools::UserHasRole('Admin')){
 					$ent->NewEntity($post);
 					break;
 
-				case "BuildInstallerFile":
-					$db = new Database();
-					$db->BuildInstallerFile();
-					 break;
 
 
+				//Plugins
 				case "GetMorePlugins":
 					$pi = new Plugins();
 					$pi->GetMorePlugins();
@@ -158,10 +157,7 @@ if(Tools::UserHasRole('Admin')){
 					$pi->UninstallPlugin($post);
 					 break;
 
-				case "DeleteRole":
-				    $sec = New Role();
-					$sec->Delete($post);
-					break;
+
 
 				case "NewSetting":
 					$set = new Setting();
@@ -175,6 +171,15 @@ if(Tools::UserHasRole('Admin')){
 					$set = new Setting();
 					$set->Delete(null,$post);
 					break;
+				case "BuildBackupFile":
+					$db = new Database();
+					$db->BackupDatabase();
+					break;	
+				case "BuildInstallerFile":
+					$db = new Database();
+					$db->BuildInstallerFile();
+					break;
+
 
 				default: 
 					break;

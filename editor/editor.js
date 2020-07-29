@@ -91,13 +91,14 @@ if (Tools::UserHasRole('Admin'))
     $settings = $settingsentities -> Retrieve('id,settingname,settingvalue');
     $settings2 = json_encode($settings);
     $tmpSetting = array();
+    /*
     foreach($settings as $setting){
         $tmpSetting[$setting['settingname']] = $setting['settingvalue'];
     }
     $settings = $tmpSetting;
     //Tools::Log($settings);
     $settingsjson = json_encode($settings);
-
+*/
     //colornames
     $colors = $miscdata->ColorNames;
     $coloroptions = "<option value=''>Color Names</option>";
@@ -775,11 +776,13 @@ SI.Editor = {
                 SI.Editor.UI[title].Init();
             }
             //Initialize Windows
+            setTimeout(function(){ //this set timeout fixes a timing issue in xDebug and is not needed otherwise
             for (let i in SI.Editor.UI.Windows) {
                 let title = SI.Editor.UI.Windows[i];
                 SI.Editor.UI[title].Init();
             }
             SI.Editor.UI.SetDocumentEvents();
+            },200);
         },
         SetDocumentEvents: function(ev) {
             //if the rott si menu is open, spawn the browser context menu. if not open the root si menu
@@ -3081,6 +3084,9 @@ SI.Editor = {
                         case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
                         case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
                         case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
+                        //Security
+                        case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
+                        case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
                         //Plugins
                         case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
                         case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
@@ -3091,9 +3097,8 @@ SI.Editor = {
                         //Settings
                         case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
                         case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;
-                        //Security
-                        case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
-                        case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
+                        case 'BUILDINSTALLER': SI.Tools.SuperAlert(value, 2000); break;
+                        case 'BACKUPDATABASE': SI.Tools.SuperAlert(value, 2000); break;
                     }
                 }
             }

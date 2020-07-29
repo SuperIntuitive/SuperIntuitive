@@ -1,169 +1,8 @@
 <?php
 
+class test{
 
-class Entity{
-    //An entity represents a type of database table that meets specific requirements. 
-	public $Name = null; //the name of the table
-	public $Id = null; //The id of the record
-	public $Attributes = null; //a grouping of the columns in the table
-	public $Order = null;
-	public $Limit = 20;
-	public $Filter = null;
-	
-
-    public function __construct($entity=null, $id=null){
-		$this->Attributes = new AttributeCollection();
-		//$this->SearchGroups = new SearchGroupCollection();
-		if( gettype($entity) ==='object'){
-			$cn = get_class($entity);
-			if($cn === 'EntityReference' )
-			{
-				$this->Name = $entity->Name;
-		        $this->Id = $entity->Id;
-			}
-			elseif($cn === 'Entity'){
-			   	$this->Name = $entity->Name;
-		        $this->Id = $entity->Id;
-				$this->$Attributes = $entity->$Attributes;
-			}
-		}	
-		else if (Tools::IsJson($entity) ){
-		   $json = Tools::JsonValidate($entity);
-		   if(isset($json['Name'])){
-				$this->Name = $json['Name'];
-		   }
-		   if(isset($json['Id'])){
-				$this->Id = $json['Id'];
-		   }
-		   if(isset($json['Attributes'])){
-				$this->Attributes = $json['Attributes'];
-		   }
-		   if(isset($json['Order'])){
-				$this->Order = $json['Order'];
-		   }
-		   if(isset($json['Limit'])){
-				$this->Limit = $json['Limit'];
-		   }
-		   if(isset($json['Filter'])){
-				$this->Filter = $json['Filter'];
-		   }
-		}
-		else{
-			if($entity!=null)
-			{
-				$this->Name = $entity;
-			}
-			if($id!=null)
-			{
-				$this->Id = $id;
-			}
-		}	
-		$this->Filter = new Filter();
-	}
-
-	public function Create(){
-		return $this->EntityAction($this,'create');
-	}
-	public function Retrieve( $columns = null){
-		//$db = new Database();
-		if($columns===null){
-			return $this->EntityAction($this,'select');
-		}else{
-			return $this->EntityAction($this,'select', $columns);
-		}
-	}
-	public function Update(){
-		return $this->EntityAction($this,'update');
-	}
-	public function Delete(){
-	    $db = new Database();
-		return $db->EntityAction($this,'delete');
-	}
-
-	public function NewEntity($post){	
-		Tools::Log($post);
-		if(!empty($post['sname'])){
-			$sname = $post['sname'];
-			$pname;
-			if(!empty($post['pname'])){
-				$pname = $post['pname'];
-			}else{
-			    $pname=$sname.'s';
-			}
-			//Tools::Log(get_class_methods(Database) );
-			$attrsql = '';
-			Tools::Log("Logging Attrs");
-			if(!empty($post['attributes'])){
-				foreach( $post['attributes'] as $k=>$v){
-					$type= null;
-					if(isset($v['name']) && isset($v['type'])){
-						$type = $v['type'];
-						$name = $v['name'];
-
-						$def= '';
-						if(isset($v['def'])){
-							$def = " DEFAULT '".$v['def']."'";
-						}
-
-						if(isset($v['size'])){
-							$size = $v['size'];
-							$type.="($size)";
-						}
-
-						if($v['deploy'] === 'false'){
-							Tools::Log('deploy is false see:'.$v['deploy']);
-							//only make on column
-							$attrsql .= "`$name` $type$def,";
-						}else{
-							$attrsql .= "`$name` $type$def, dev_$name $type$def, test_$name $type$def, rollback_$name $type$def,";
-						}		
-				    }
-				}
-			}
-			$attrsql = rtrim($attrsql,',');
-			
-			$entity = '';
-			$global = "true";
-			if(isset($post['global']) && $post['global'] ==="1"){
-
-			}else{
-				$global = "false";
-				$entity =  "`entity_id` binary(16) NOT NULL COMMENT 'entity:entities',";
-			}
-
-			$createtable = "		
-			CREATE TABLE IF NOT EXISTS `$pname` (
-			  `id` binary(16) NOT NULL,
-			  `status` enum('active','inactive') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'active',
-			  `statusreason` enum('live','test','dev') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'dev',
-			  `createdon` datetime NOT NULL DEFAULT current_timestamp(),
-			  `modifiedon` datetime DEFAULT NULL ON UPDATE current_timestamp(),
-			  $entity
-			  `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-			  $attrsql
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='{\"EN\":\"$pname\", \"SN\":\"$sname\",\"global\":\"$global\"}';
-			";
-			$setKeys = "ALTER TABLE `$pname`
-			  ADD PRIMARY KEY (`id`),
-			  ADD KEY `name` (`name`),
-			  ADD KEY `entityid` (`entity_id`);
-			";
-			$const = $pname."_ibfk_1";
-			$constraints = "ALTER TABLE `$pname`  ADD CONSTRAINT `$const` FOREIGN KEY (`entity_id`) REFERENCES `entities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;";
-
-			$db = new Database();
-			
-			$db->Execute($createtable);
-	    	$db->Execute($setKeys);
-			$db->Execute($constraints);
-			$db->Execute("COMMIT");
-
-
-		}
-	}
-
-
-	private function EntityAction($entity, $action, $columns = '_ALL_'){
+public function EntityAction($entity, $action, $columns = '_ALL_'){
 		/*
 			EntityAction can complete any entity database transaction. 
 			It preforms the work for Entity create,update,select so far.
@@ -218,6 +57,13 @@ class Entity{
 			//Tools::Log($bu['user']['permissions']);
 			return null;
 		}else{
+			//switch the action
+			switch($action){
+				case 'select':
+
+
+			}
+
 
 			$entitypermissions =  isset($bu['user']['permissions'][strtolower("$entityId")]) ? $bu['user']['permissions'][strtolower("$entityId")]:false;
 			$create = isset($entitypermissions['create']) ? $entitypermissions['create'] :false;
@@ -566,8 +412,7 @@ class Entity{
 			//Tools::Log($params);
 	        //Prepare the SQL transaction
 			try{
-				$db = new Database();
-				$data = $db->DBC()->prepare($sql);
+				$data = $this->pdo->prepare($sql);
 			}
 			catch(PDOException $ex)
 			{
@@ -606,150 +451,6 @@ class Entity{
 			}
 		}
 	}
-
-
 }
 
-class EntityCollection{
-	public $Entities = array();
-    public function __construct($entitys=null){
-	 
-	    if(gettype($entitys)==='array'){
-			$this->$Entities = $entitys;
-		}else if($entitys!=null){
-		    if(get_class($entitys)==='Entity')
-			$this->$Entities[] = $entitys;
-		}
-	}
-	public function Add($entity)
-	{
-		$this->Entities[] = $entity;	
-	}
-}
-
-class EntityReference{
-	public $Name = null;
-	public $Id = null;
-
-    public function __construct($entity=null, $guid=null){
-	    if($entity){
-			$this->Name = $entity;
-		    $this->Id = $guid;
-		}
-	}
-}
-
-class Attribute{
-//this needs to be smarter
-	public $Name = null;
-	public $Value = null;
-	public $Type = null;
-
-    public function __construct($name, $value, $type=null)
-	{
-	    if($name != null || $value != null){
-			$this->Name = $name;
-			$ctype=null;
-			if(is_object($value)){
-				$ctype = get_class($value);
-			}
-			if($ctype =='Entity' || $ctype =='EntityReference')
-			{
-				$er = new EntityReference();
-				$er->Name = $value->Name;
-				$er->Id = $value->Id;
-				$this->Value = $er;
-			}
-			else{
-			    $this->Value = $value;
-			}
-
-		    
-			if($type != null){
-				$this->Type = $type; 
-			}
-		}
-	}
-}
-
-class AttributeCollection{
-	public $Attributes;
-	public $Count=0;	
-    public function __construct($attribs=null){
-	    $this->Attributes = array();
-	    if(gettype($attribs)==='array' && count($attribs) > 0){
-			if(get_class( current($attribs) )==='Attribute')
-			{
-				$this->Attributes = $attrib;
-			}
-		}
-		else if($attribs!=null){
-		    if(get_class($attribs)==='Attribute')
-			{
-				$this->Attributes[] = $attribs;
-			}
-		}
-	}
-	public function Add($attribs)
-	{
-	    if(gettype($attribs)==='array'){
-			$this->Attributes = array_merge($this->Attributes, $attribs);
-		}
-		else if(gettype($attribs)==='string'){
-			//$this->Attributes = array_merge($this->Attributes, $attribs);
-			Tools::Log($attribs);
-		}
-		else if($attribs!=null){
-		    if(get_class($attribs)==='Attribute')
-			{
-				$this->Attributes[] = $attribs;
-			}
-		}
-		$this->Count = count($this->Attributes);
-	}
-	public function Get(){
-		return $this->Attributes;
-	}
-}
-
-
-//The Filter class maintains a list of items.
-//An Item can either be a search Condition or another Filter
-class Filter{
-	public $Items = array();
-	public $Type = 'and';
-	public $Count = 0;
-    public function __construct()
-	{
-
-	}
-
-	public function AddCondition($condition)
-	{
-		if(get_class($condition)==='Condition')
-		{
-			$this->Items[] = $condition;
-		}
-		$this->Count = count($this->Items);
-	}
-
-	public function AddFilter($filter)
-	{
-		if(get_class($filter)==='Filter')
-		{
-			$this->Items[] = $filter;
-		}
-		$this->Count = count($this->Items);
-	}
-
-}
-
-class Condition{
-	public $Attribute;
-	public $Operator;
-	public function __construct($attr, $op)
-	{
-		$this->Attribute = $attr;
-		$this->Operator = $op;
-	}
-}
+?>

@@ -175,7 +175,7 @@ class Login {
 				$user = new Entity("users");
 				$user->Attributes->Add(new Attribute("email",$post['email']) );
 				$user->Attributes->Add(new Attribute("status",'active') );
-				$users = $db->Select($user, "id,name,email,password");
+				$users = $user->Retrieve($user, "id,name,email,password");
 				//	Tools::Log($users, true);
 				if(count($users)==1){
 				    $ouruser = $users[0];

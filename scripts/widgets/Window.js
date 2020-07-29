@@ -250,6 +250,7 @@ SI.Widget.<?= $widgetType ?> = function (options) {
             left: this.Options.StartLeft,
             padding: '0px',
             margin: '0px',
+            marginBottom: '5px',
             display: 'none',
             boxShadow: this.Options.Shadow,
             pointerEvents: 'auto',
@@ -609,7 +610,7 @@ SI.Widget.<?= $widgetType ?> = function (options) {
             , options.MinMaxSpeed);
         self.Titlebar.animate([
             {
-                'width': "32px",
+                'width': "38px",
             }, {
                 'width': lastNormalDims.w,
             }]
@@ -620,7 +621,6 @@ SI.Widget.<?= $widgetType ?> = function (options) {
             self.Container.style.height = lastNormalDims.h;
             self.Container.style.top = lastNormalDims.t;
             self.Container.style.left = lastNormalDims.l;
-            self.Container.style.margin = '';
             FixResizers();
             hWinDrag = null;
             dragOffset = null;
@@ -655,7 +655,7 @@ SI.Widget.<?= $widgetType ?> = function (options) {
             }, {
                 'top': dock.offsetTop+"px",
                 'left': dock.offsetLeft + "px",
-                'width': "32px",
+                'width': "38px",
                 'height': self.Options.TitleBarHeight,
             }]
             , options.MinMaxSpeed);
@@ -664,7 +664,7 @@ SI.Widget.<?= $widgetType ?> = function (options) {
             {
                 'width': self.Titlebar.style.width,
             }, {
-                'width': "32px",
+                'width': "38px",
             }]
             , options.MinMaxSpeed);
         setTimeout(function () {
@@ -672,8 +672,7 @@ SI.Widget.<?= $widgetType ?> = function (options) {
             container.style.position = 'relative';
             container.style.top = '0px';
             container.style.left = '0px';
-            container.style.width = '32px';
-            container.style.margin = '2px';
+            container.style.width = '38px';
             container.style.height = self.Options.TitleBarHeight;
             self.Content.style.display = 'none';
             self.Statebox.style.display = 'none';
@@ -797,8 +796,10 @@ SI.Widget.<?= $widgetType ?> = function (options) {
                     if (hasIframe || document.querySelectorAll('#'+this.Id + ' iframe').length > 0) {
                         HandleIframes();
                     }
-                    startResize = { left: container.style.left, top: container.style.top, width: container.style.width, height: container.style.height };
-                    resizeSensor = this;
+                    if(windowState !== 'minimized'){
+                        startResize = { left: container.style.left, top: container.style.top, width: container.style.width, height: container.style.height };
+                        resizeSensor = this;
+                    }
                 },
                 appendTo: container
             });

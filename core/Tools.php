@@ -111,15 +111,15 @@ class Tools{
 	static function IsLocalhost($whitelist = ['127.0.0.1', '::1']) {
 		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
 	}
-	static function Log($data,$tofile=false){
-		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.log';
+	static function Log($data,$filetype='log'){
+		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.'.$filetype;
 		if(file_exists($log)){
 			if (time() - filemtime($log) > 5) {
 				unlink($log);
 			} 
 		}else{
 		    mkdir($_SERVER["DOCUMENT_ROOT"].'/logs', 0755, true);
-			fopen($_SERVER["DOCUMENT_ROOT"].'/logs/dev.log', "w");
+			fopen($log, "w");
 		}
 	    $back = debug_backtrace(2);
 		$debuginfo='';
@@ -128,7 +128,7 @@ class Tools{
 				if( $i===0){ //dont care about the tracking the Tools::Log function. 
 				}else{
 					if( isset($bt['class']) && isset($bt['function'])&& isset($back[$i-1]['line']) ){
-						$debuginfo .= "line:".$back[$i-1]['line']." ".$bt['class'].'->'.$bt['function'].'()'."\r\n";
+						$debuginfo .= "line:".$back[$i-1]['line']." ".$bt['class'].'->'.$bt['function'].'()';
 					}
 				}
 			}
@@ -137,7 +137,7 @@ class Tools{
 			$data = print_r($data, true);
 		}
 		$milliseconds = round(microtime(true) * 1000);
-		$output =  date("Y-m-d H:i:s").":$milliseconds\r\n$data \r\n$debuginfo---------------------------------\r\n";
+		$output =  "/*\r\n".date("Y-m-d H:i:s").":$milliseconds\r\n$debuginfo\r\n-----------------------------------------------------------------------\r\n*/\r\n$data\r\n/*-------------------------------------------------------------------*/\r\n";
 
 		file_put_contents($log,$output,FILE_APPEND);
 	}

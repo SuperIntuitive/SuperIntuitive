@@ -4,7 +4,6 @@ $widgetType = "Template";
 ?>
 
 
-
     SI.Widget.<?= $widgetType ?> = function (options) {
         if (!(this instanceof SI.Widget.<?= $widgetType ?>)) { return new SI.Widget.<?= $widgetType ?>(); }
         this.Input = options;

@@ -63,7 +63,7 @@ SI.Editor.Objects.Settings = {
             id: 'si_edit_settings_phpinfo',
             innerHTML: "PHP Info",
             appendTo: toolsbox,
-            title: "VIew php info",
+            title: "View php info",
             style: {
                 marginRight: '10px',
             },
@@ -77,6 +77,9 @@ SI.Editor.Objects.Settings = {
         let checkBadImages = Ele('button', {
             id: 'si_edit_settings_checkbadimages',
             innerHTML: "Look for Image problems",
+            style: {
+                marginRight: '10px',
+            },
             appendTo: toolsbox,
             title: 'Some browsers can try to load a page twice+ if there is a missing image. \nMake sure you have images at the end of all your image urls!\nThis will search the document for all invalid images and return their ids.',
             onclick: function () {
@@ -98,6 +101,42 @@ SI.Editor.Objects.Settings = {
 
             }
         });
+
+        let createInstallerFile = Ele('button', {
+            id: 'si_edit_settings_createinstaller',
+            innerHTML: "Create Installer",
+            appendTo: toolsbox,
+            title: "Build a installer file from the existing database",
+            style: {
+                marginRight: '10px',
+            },
+            onclick: function (e) {
+                let options = {
+                    Data: {
+                        KEY: "BuildInstallerFile",
+                    }
+                };  
+                SI.Editor.Ajax.Run(options);
+            }
+        });
+        let createBackupFile = Ele('button', {
+            id: 'si_edit_settings_createbackup',
+            innerHTML: "Backup Database",
+            appendTo: toolsbox,
+            title: "Make a backup file from the existing database",
+            style: {
+                marginRight: '10px',
+            },
+            onclick: function (e) {
+                let options = {
+                    Data: {
+                        KEY: "BuildBackupFile",
+                    }
+                };  
+                SI.Editor.Ajax.Run(options);
+            }
+        });
+
 
         let allowedMimesBox = Ele('fieldset', {
             style: {
@@ -438,5 +477,6 @@ SI.Editor.Objects.Settings = {
 
         }
 
-    }
+    },
+
 };

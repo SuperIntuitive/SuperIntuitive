@@ -42,7 +42,7 @@ class Setting {
 		Tools::Log($name.":".$value);
 			$ent = new Entity('settings');
 			$ent->Attributes->Add(new Attribute("settingname", $name));
-			$found = $ent->Select();
+			$found = $ent->Retrieve();
 
 			if(isset($found[0]['id'])){
 				$id = $found[0]['id'];

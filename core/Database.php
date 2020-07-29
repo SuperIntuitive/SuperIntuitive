@@ -23,7 +23,6 @@ class Database extends DbCreds
 		$this->Connect();
 	}
 	public function __destruct(){
-
 	}
 	public function DBC(){
 		return $this->pdo;
@@ -59,8 +58,12 @@ class Database extends DbCreds
 			return true;
 		}
 	}	
-
-
+	public function Execute($sql){
+		$exc = $this->pdo->prepare($sql);
+		//Tools::Log("In Execute after prep");
+		$fetch =  $exc->execute();
+		Tools::Log($fetch);
+	}	
 	public function GetDomainInstance(){
 		//When the page is called to load, this looks at the domain and subdomain(bu) to 
 		//get a list of entities from the entities table. This list is a key as to which entities belong to the sub.domain combo. 
@@ -136,7 +139,6 @@ class Database extends DbCreds
 			return $pageobjects;		
 		}
 	}
-
 	public function GetDatabaseSchema($pageobjects){
 		//Add these items to the SI data array
 		if(isset($pageobjects['domain']['id'])){
@@ -424,7 +426,6 @@ class Database extends DbCreds
 		}
 		return null;
 	}
-	//CRUD
 	public function Query(string $table, array $parameters, string $columns = '_ALL_', $join = ""){
         $columns = ($columns == '_ALL_'? "*":$columns);
 		$where = "";
@@ -451,491 +452,6 @@ class Database extends DbCreds
 		$d = $stmt->fetchAll();
 		return $d;
 	}
-	public function Create($entity){
-		return $this->EntityAction($entity,'create');
-	}
-	public function Retrieve($entity, $columns = null){
-		if($columns===null){
-			return $this->EntityAction($entity,'select');
-		}else{
-			return $this->EntityAction($entity,'select', $columns);
-		}
-	}
-	public function Read($entity, $columns = null){
-		if($columns===null){
-			return $this->EntityAction($entity,'read');
-		}else{
-			return $this->EntityAction($entity,'read', $columns);
-		}
-	}
-	public function Update($entity){
-		$this->EntityAction($entity,'update');
-	}
-	public function Select($entity, $columns = null){
-		if($columns===null){
-			return $this->EntityAction($entity,'select');
-		}else{
-			return $this->EntityAction($entity,'select', $columns);
-		}
-	}
-	public function EntityAction($entity, $action, $columns = '_ALL_'){
-		/*
-			EntityAction can complete any entity database transaction. 
-			It preforms the work for Entity create,update,select so far.
-			Obviously this started as different function but as they all seemed quite similar I decided to create a master entity action function. 
-
-			IF 
-				* Creating: P1 is an Entity object with all of the Attributes required to create the new entity. if an ID is provided it is ignored.The Entity Name property is required.
-				* Updating: P1 is an Entity object with all of the Attributes required to update an existing entity. The Entity Name and Id properties are required. Clearing a value can be done by passing _CLEAR_ as the value;
-				* Selecting: P1 is an entity object with all of the Attributes that must match the return results. TODO Grouping needs to be done on an Attribute level. Hopefully it can be setup there. 
-		*/
-		//Tools::Log("EntityAction");
-		//Tools::Log("action: ".$action);
-		//Tools::Log($entity);
-		
-		//Get the entity name eg: blocks
-		$name = $entity->Name;
-		if(!$name){
-			Tools::Log("The entity has no name. Action cannot continue");
-			Tools::Log($entity);
-			return false;
-		}
-
-		$bu = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME];
-		$deployment = $bu['deployment'];
-		
-		//If we cant find the Entity data than scram	
-		if(empty( $bu['entities'][$name])){
-		    //Tools::Log("MADE IT HERE");
-			return null;
-		}
-		//Get the id of this entity for this domain/bu
-		$entitydef = $bu['entities'][$name];
-		
-		$entityId = !isset($entitydef['instanceguid']) ? null : $entitydef['instanceguid']; 
-		//Tools::Log($bu['user'],true);
-		//security
-		$create;
-		$read;
-		$write;
-		$append;
-		$appendTo;
-		$delete;
-		//Tools::Log($bu['user']);
-		//Check the security of the planned operation against that of the users permissions
-
-
-	    if(empty( $bu['user']['permissions'][strtolower("$entityId")])){
-			//no ticket?
-			if(strlen($entityId)){
-				Tools::Log("User does not have $name $action permission ".$entityId);
-			}
-			//Tools::Log($bu['user']['permissions']);
-			return null;
-		}else{
-			$entitypermissions =  isset($bu['user']['permissions'][strtolower("$entityId")]) ? $bu['user']['permissions'][strtolower("$entityId")]:false;
-			$create = isset($entitypermissions['create']) ? $entitypermissions['create'] :false;
-			$read = isset($entitypermissions['read']) ? $entitypermissions['read'] :false;
-			$write = isset($entitypermissions['write']) ? $entitypermissions['write'] :false;
-			$append = isset($entitypermissions['append']) ? $entitypermissions['append'] :false;
-			$appendTo = isset($entitypermissions['appendTo']) ? $entitypermissions['appendTo'] :false;
-			$delete = isset($entitypermissions['delete']) ? $entitypermissions['delete'] :false;
-			//Tools::Log("create: ".$create.", read: ".$read.", write: ".$write.", append: ".$append.", appendTo: ".$appendTo.", delete: ".$delete);
-			if($action == "select" && $read == false){   //this could be turned into a big multi condition if, but i think in the long run this might be quicker.
-			
-				Tools::Log("User does not have $name read permission $read ");
-
-				return null;
-			}
-			else if($action == "create" && $create == false){
-				Tools::Log("User does not have $name create permission");
-				return null;
-			}
-			else if($action == "update" && $write == false){
-				Tools::Log("User does not have $name update permission");
-				return null;
-			}
-			else if($action == "delete" && $delete == false){
-				Tools::Log("User does not have $name delete permission");
-				return null;
-			}
-		}
-		//Tools::Log("User has permission", true);
-		//Tools::Log("Name: ".$name.'  EntityID: '.$entityId.'  EntityIDlength: '.count($entityId),true);
-
-		$deployable = !isset($entitydef['deployable']) ? null : $entitydef['deployable'];  
-		//Tools::Log($deployable."  ".$entityId, true);
-		//Handle the selected Columns
-		//Thell be no wildcard searches for ALL. This will get all the applicable columns to send back. 
-		if($action == "select"){
-			$allcolumns;
-			if($columns == "_ALL_"){
-				$allcolumns = array_keys($entitydef['attributes']);
-			}
-			else{
-				$allcolumns = (is_array($columns))? $columns : explode(',',$columns);
-			}			
-			$allcolumnscsv = "";
-			foreach($allcolumns as $colname){
-				if($colname != 'instanceguid' && $colname != 'deployable' && $colname != 'p_id' && $colname != 'sum'){
-					//Tools::Log("AllCols: ".$colname ,true);
-					if(isset($entitydef['attributes'][$colname]['deployable'])){
-						$allcolumnscsv .= $deployment.'-'.$colname.",";
-					}else{
-						$allcolumnscsv .= $colname.",";
-					}
-				}
-			}
-			$columns = trim( $allcolumnscsv, ',');
-			//Tools::Log("Columns: ".$columns);
-		}
-
-		$entIdId ='';		
-		$attrs = $entity->Attributes->Get();
-		$set = ' SET ';
-		$fields = ' (';
-		$values = ' VALUES(';
-		$params = array();
-		$where = 'WHERE ';
-					
-		if($action == 'create' || $action == 'select' || $action == 'delete' ){
-		    //Create a entity_id entity reference to populate this field with its entity id. 
-			$orgId = null;
-			if(!empty($entity->Id)){
-				$orgId = $entity->Id;
-				$where.=  "`id` = ".$orgId;
-			}
-			
-			$guid = new Guid(true);
-			$entIdId = $guid->ToString();
-			//add the prefix if needed
-			if(!Tools::StartsWith($entIdId,"0x")){
-				$entIdId = '0x'.strtolower($entIdId);
-			}
-
-			//we dont need an entity reference for this. we need the entity
-			$entity->Id = $entIdId;
-
-			$fields.="`id`,";
-			$values.= strtolower($entIdId).',';
-		
-		    //Make sure to add the EntityID to the create and select sqls. //update will have the guid so it should be fine.. but to prevent shananagans mabe require it too.
-			if($entityId !=null && strlen($entityId) === 34 ){
-			
-				$entNameAttr = new Attribute('entity_id',strtolower($entityId) );
-				$entity->Attributes->Add($entNameAttr);
-				$fields.="`entity_id`,";
-				$values.= strtolower($entityId).','; 
-
-				if($orgId != null){
-					$where.=  " AND `entity_id` = ".$entityId;
-				}else{
-					$where.=  " `entity_id` = ".$entityId;
-				}
-			}
-		}
-
-		//ATTRIBUTE PROCESSING
-		$allattrs = $bu['entities'][$name]['attributes'];	
-		foreach($attrs as $attr){
-			//Get the attributes properties.
-		    $attrname = null;
-			$type = null;
-			$optional = null;
-			$maxchars = null;
-			$deployable = null;
-			$attrvalue = null;
-
-			if($attr->Name != null){
-				//get rid of any deployment prefixes to the attribute name. we will put them back before the sql
-				$attrname =  Tools::CleanDeployableField($attr->Name);
-				$attrdata = null;
-				if($allattrs != null && isset($allattrs[$attrname])){
-					$attrdata = $allattrs[$attrname];
-				} 
-				if($attrdata != null){
-					if( isset($attrdata['type'])){
-					$type = $attrdata['type'];
-					}
-					if( isset($attrdata['deployable'])){
-						$deployable = $attrdata['deployable'];
-					}
-					if( isset($attrdata['optional'])){
-						$optional = $attrdata['optional'];
-					} 
-					if( isset($attrdata['maxchars'])){
-						$maxchars = $attrdata['maxchars'];
-					}
-				    //Tools::Log('attrdata');
-					//Tools::Log($attrname);
-				    //Tools::Log($attrdata);
-				}
-				else{Tools::Log($name."->$attrdata is null for an attribute");}
-			}else{Tools::Log($name."->Name is null for an attribute");}
-
-			$fieldName = $attr->Name;
-			$val = $attr->Value;
-			//$atype = $attr->
-			$fieldtype = gettype($val);
-			$safefieldname = $fieldName; // safefieldname does not have a dev or text prefix even if it the field does.
-
-			if($deployable==true){ //if deployable make sure there is no prefix before searching entities
-			    $safefieldname = Tools::CleanDeployableField($fieldName);
-		    }
-
-			if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['attributes'][$safefieldname])){
-				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['attributes'][$safefieldname]['type'])){
-				$fieldtype = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['attributes'][$safefieldname]['type'];
-			    }
-			}
-
-			if($where !='WHERE '){
-				$where.= " AND ";	
-			}
-
-			if($fieldName== 'hash'){
-				Tools::Log("Hash type", true);
-				Tools::Log($fieldtype, true);
-			}
-
-		    $isnull;
-			if(strtolower($val) === 'null'){$val = 'NULL';}
-
-			//if were trying to set this to null, we need to fix it.	
-			switch($fieldtype){
-
-				case "boolean":
-				case "integer":
-				case "number":
-				case "double":
-					$fields.="`$fieldName`,";
-					$values.="$val,"; 
-					$set.="`$fieldName`=$val, ";
-					$where.="`$fieldName`=$val ";
-					break;
-				case 'optionset':
-					$fields.="`$fieldName`,";
-					$values.="$val,"; 
-					$set.="`$fieldName`='$val', ";
-					$where.="`$fieldName`='$val' ";
-					break;
-				case "string": 
-				case "text":
-					$fields.="`$fieldName`,";
-					if(!Tools::EndsWith($fieldName,"_id")){
-						$sfield =preg_replace("/[^A-Za-z0-9]/", '', $fieldName);
-						$values.=":$sfield,"; 
-						$set.="`$fieldName`=:$sfield, ";
-						$where.="`$fieldName`=:$sfield ";
-						$params[":$sfield"]=$val;
-					}else{
-						if(!Tools::StartsWith($val,"0x")){
-							$val = '0x'.$val;
-						}
-						$values.="$fieldName,"; 
-						$set.="`$fieldName`=$val, ";
-						$where.="`$fieldName`= $val ";
-					}
-					break;			
-				case "array":break;
-				case "object": 
-				case "primary": 
-				case "lookup": 
-					//Tools::Log(gettype($val),true);
-					if($val === 'NULL'){			    
-						$fields.="`$fieldName`,";
-						$values.=" NULL,"; 
-						$set.="`$fieldName`= NULL, ";
-						$where.="`$fieldName`= NULL ";	
-					}else{
-						$guid = null;
-						if( get_class($val) === "EntityReference" && (Tools::EndsWith($fieldName,"_id")|| $fieldName == 'id' ) ){
-							$guid = $val->Id;
-						}
-						else if(gettype($val) === "string"  && (Tools::EndsWith($fieldName,"_id"))){
-							$guid = $val;
-						}
-						if(!Tools::StartsWith($guid,"0x")){
-								$guid = '0x'.$guid;
-						}
-
-						else if($guid != null && strlen($guid) === 34){
-							$fields.="`$fieldName`,";
-							$values.="$guid,"; 
-							$set.="`$fieldName`=$guid, ";
-							$where.="`$fieldName`=$guid ";			
-						}
-					}
-
-
-					break;	
-				case "sha1":
-					if($val !=='0x'){
-						//$fields.="HEX($fieldName) AS `$fieldName`,";
-						$fields.="`$fieldName`,";
-						$values.="$val,"; 
-						$set.="`$fieldName`='$val', ";
-						$where.="`$fieldName`='$val' ";
-					}
-
-					break;
-				case "NULL":break;
-				default:
-			}
-		}
-		
-		$set = trim($set);
-		$set = rtrim($set,',');
-		$fields = rtrim($fields,',').')';
-		$values = rtrim($values,',').')';
-		//END ATTRIBUTE PROCESSING
-
-		
-		//Declare the database statement
-		$sql = null;
-
-		//Tools::Log($fields, true);
-		//Tools::Log($values, true);
-
-		if($action == 'update'){
-		    if($entity->Id != null){
-				$entid = $entity->Id;
-				//Tools::Log($entid);
-			   	if(!Tools::StartsWith($entity->Id,"0x")){
-					$entity->Id = '0x'.$entity->Id;
-				}
-
-				if(strlen($set)>2){
-					$sql = "UPDATE `$name` $set WHERE `id` = ".$entity->Id;
-					Tools::Log($sql);
-				}
-
-			}else{
-				Tools::Log("Trying to update with no ID???",  true);
-				return false;
-			}
-		}
-		else if($action == 'select' || $action == 'delete'){
-			if(strpos($columns, ',') != FALSE){
-				$cols = explode(',',$columns);
-				$newCols = "";
-				foreach($cols as $col){
-				    $pos = strrpos($col, ".");
-					if ($pos === false) { // note: three equal signs
-						$newcol = Tools::NeedsHex($col);
-
-						if(Tools::StartsWith($newcol ,"HEX(") === true){
-							 $newCols .= $newcol." AS $col,";
-						}
-						else if(Tools::StartsWith($newcol ,$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'].'-') === true ){
-							$as = str_replace($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'].'-',"",$newcol);
-							$newCols .=  '`'.$newcol."` AS `$as`,";
-						}
-						else{
-							 $newCols .= '`'.$newcol.'`,';
-						}
-					}else{
-						//we need a JOIN.
-						//fisrt lest get the entity and requested property
-						$entprop = explode('.',$col);
-						$ent = $entprop[0];
-					}
-				}
-				$columns = rtrim($newCols,',');
-				//echo $columns;
-			}else{
-				$columns = '`'.Tools::NeedsHex($columns).'`';
-			}
-		    //echo $columns;
-		    //Tools::Log($columns,true);
-			$where = preg_replace('/AND $/', '', $where);
-			if(trim($where)=='WHERE'){
-				$where='';
-			}
-
-			if($action == 'select'|| $action == 'read'){
-				//$limit = ' LIMIT '+ $entity->Limit;
-
-
-				$sql = "SELECT $columns FROM `$name` $where ";
-			}
-			else if ($action == 'delete'){
-			    //Make this somewhat safe for now. should not be able to delete whole busnesses table. needs the bu id @ something else
-				if(strlen($where)> 35){ 
-					$sql = "DELETE FROM `$name` $where";
-				}else{
-			 	    //Tools::Log('where');
-				    //Tools::Log($where);
-					Tools::Log("$action entity prepair failed for: ".print_r($entity,true). ' Either an if or attribute is required. cannot delete the whole table from here');
-				}
-			}
-		    //Tools::Log($params, true);
-		}
-		else if($action == 'create'){
-		    $sql = "INSERT INTO `$name` $fields $values";
-		}
-
-		//Tools::Log($sql);
-		if($sql !== null){
-			//Tools::Log($sql);
-			//Tools::Log($params);
-	        //Prepare the SQL transaction
-			try{
-				//Tools::Log("Prepairing");
-				$data = $this->pdo->prepare($sql);
-				//Tools::Log("Prepairing succeeded");
-			}
-			catch(PDOException $ex)
-			{
-				Tools::Log("$action entity prepair failed for: ".print_r($entity,true). ' with Exception: '.$ex ,true);
-				return false;
-			}
-			
-			//One last check of the permission. we may be able to remove this as it is redundant
-			if($action == "select" && $read == false){
-				return null;
-			}
-			else if($action == "create" && $create == false){
-				return null;
-			}
-			else if($action == "update" && $write == false){
-				return null;
-			}
-			else if($action == "delete" && $delete == false){
-				return null;
-			}
-
-			try{
-				//Tools::Log("Prepairing succeeded");
-				//Tools::Log($params);
-				if(count($params) >0){
-					$data->execute( $params );
-				}else{
-					$data->execute();
-				}
-			}
-			catch(PDOException $ex)
-			{
-				Tools::Log("$action entity failed for: ".print_r($entity,true). ' with Exception: '.$ex ,true);
-				return false;
-			}
-
-			if($action =='create'){
-				return $entIdId;
-			}else if($action =='select'){
-			    //echo $select;
-				//$data->setFetchMode(PDO::FETCH_ASSOC); 
-				$mydata = $data->fetchAll(PDO::FETCH_ASSOC);
-			    if(count($mydata)===0){
-					return null;
-				}
-				//Tools::Log($mydata );
-				return $mydata;
-			}else if($action =='update'){
-				return true;
-			}
-		}
-	}
 	public function LogSession(){
 
 	    $ip = Tools::GetIpAddress();
@@ -944,18 +460,13 @@ class Database extends DbCreds
 			$entityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['sessions']['instanceguid'];	
 		//	Tools::Log("logging session");
 		//	Tools::Log($entityId);
-			$serverCols = "";
-			$serverVals = "";
-			$binds = array(":sessionid"=>$sid,":ipaddress"=>$ip);
-			foreach($_SERVER as $k=>$v){
-				$serverCols.=",`$k`";
-				$serverVals.=",:$k";
-				$binds[":$k"]=$v;
-			}
+			$session = json_encode($_SESSION);
+			$server = json_encode($_SERVER);
+			$binds = array(":sessionid"=>$sid,":session"=>$session,":ipaddress"=>$ip,":server"=>$server);
 			$guid = new Guid(true);
 			$g = $guid->ToString();
-			$insert = "INSERT INTO `sessions`(`id`,`entity_id`,`sessionid`,`ipaddress` $serverCols ) 
-						VALUES ($g,$entityId,:sessionid,:ipaddress $serverVals ) ON DUPLICATE KEY UPDATE count = count + 1;";
+			$insert = "INSERT INTO `sessions`(`id`,`entity_id`,`sessionid`,`sessiondata`,`ipaddress`, `server` ) 
+						VALUES ($g,$entityId,:sessionid,:session,:ipaddress,:server ) ON DUPLICATE KEY UPDATE count = count + 1;";
 			//echo $insert;
 			try{
 				$sql = $this->pdo->prepare($insert);
@@ -966,12 +477,6 @@ class Database extends DbCreds
 			}
 		}
 	}
-	public function Execute($sql){
-			$exc = $this->pdo->prepare($sql);
-			//Tools::Log("In Execute after prep");
-			$fetch =  $exc->execute();
-			Tools::Log($fetch);
-	}	
 
 	//Admin only
 	public function CreateInstance($domain, $businessunit){
@@ -1017,28 +522,314 @@ class Database extends DbCreds
 			}
 		}
 	}
-	public function BuildInstallerFile(){
-	    $creds = new DbCreds();
-		ini_set('display_errors', 1);
-		ini_set('display_startup_errors', 1);
-		error_reporting(E_ALL);
-		$database =  $creds->database;
-		$user = $creds->username;
-		$pass = $creds->password;
-		$host = $creds->servername;
+	public function BackupDatabase(){
+		$this->BuildInstallerFile(true);
+	}
+	public function BuildInstallerFile($backup = false){
+
 		$filename = date("d_H-i-s")."_SiBackup.sql";
 		$datepath = date("Y/m/");
-		$dir = $_SERVER['DOCUMENT_ROOT'] . "/sql/backups/$datepath";
+		if($backup){
+			$filename = date("d_H-i-s")."_SiBackup.sql";
+			$dir = $_SERVER['DOCUMENT_ROOT'] . "/sql/backups/$datepath";
+		}
+		else{$filename = date("d_H-i-s")."_SiBackup.sql";
+			$dir = $_SERVER['DOCUMENT_ROOT'] . "/sql/installer/$datepath";
+		}
+		
 		Tools::Log($dir);
 		if (!file_exists($dir)) {
 			mkdir($dir, 0777, true);
 		}
 		$fpath = "$dir$filename";
 		Tools::Log($fpath);
+	
 		try{
-			exec("mysqldump -u $user -p $pass $database > $fpath");
+
+			$schema = "SELECT   tbl.table_comment,
+								cols.table_name, 
+								cols.is_nullable, 
+								cols.column_name, 
+								cols.character_set_name,
+								cols.collation_name,
+								cols.column_type, 
+								cols.column_comment,
+								cols.column_default,
+								cols.column_key,
+								cols.extra,
+								cols.numeric_scale
+			FROM INFORMATION_SCHEMA.COLUMNS cols
+			JOIN INFORMATION_SCHEMA.TABLES tbl ON cols.table_name = tbl.table_name AND cols.table_schema = tbl.table_schema
+			WHERE cols.table_schema = '$this->databaseName'
+			ORDER BY table_name, ordinal_position";
+
+
+			$dbrows = $this->pdo->prepare($schema);
+			//print_r($data);
+			$dbrows->execute( );
+
+			$tables = array();
+			foreach ($dbrows as $dbrow) {
+
+				$tablename = $dbrow['table_name'];
+				$tablecomment = $dbrow['table_comment'];
+				$columnname = $dbrow['column_name'];
+
+				if(!isset($tables[$tablename])){
+					$tables[$tablename] = array();
+					$tables[$tablename]['comment']= $tablecomment;
+					$tables[$tablename]['columns']= array();
+				}
+				
+				$tables[$tablename]['columns'][$columnname]= array();
+				$tables[$tablename]['columns'][$columnname]['type']= $dbrow['column_type'];;
+				$tables[$tablename]['columns'][$columnname]['default']= $dbrow['column_default'];
+				$tables[$tablename]['columns'][$columnname]['key']= $dbrow['column_key'];
+				$tables[$tablename]['columns'][$columnname]['nullable']= $dbrow['is_nullable'];
+				$tables[$tablename]['columns'][$columnname]['comment']= $dbrow['column_comment'];
+				$tables[$tablename]['columns'][$columnname]['collation']= $dbrow['collation_name'];
+				$tables[$tablename]['columns'][$columnname]['charset']= $dbrow['character_set_name'];
+				$tables[$tablename]['columns'][$columnname]['extra']= $dbrow['extra'];
+				$tables[$tablename]['columns'][$columnname]['numeric']= $dbrow['numeric_scale'];
+
+			}
+
+			$script = "SET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\r\nSET AUTOCOMMIT = 0;\r\nSTART TRANSACTION;\r\nSET time_zone = \"+00:00\"; \r\n\r\n";
+
+			$guidLookup = array();
+
+			foreach ($tables as $table=>$tabledata) {
+				$tablecomment = $tabledata['comment'];
+				$columns = $tabledata['columns'];
+				$script .= "CREATE TABLE "."`".$table."` (\r\n";
+				$columntext ="";
+				$i = 0;
+				$len = count($columns);
+				$insert = "INSERT INTO `".$table."` (";
+				$select = "SELECT ";
+				$typeLookup = array();
+				foreach ($columns as $column=>$columndata) {
+					$insert .=  "`".$column."`";
+					$type = $columndata['type'];
+
+					if (strpos($type, "binary") !== false){
+						$select .=  "HEX(".$column.")";
+						$typeLookup["HEX(".$column.")"]=$type;
+					}else{
+						$select .=  "`".$column."`";
+						$typeLookup[$column]=$type;
+					}
+
+					$default = $columndata['default'] == null? "": $columndata['default'];
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					$nullable = $columndata['nullable'] == null? "": $columndata['nullable'];
+					$comment = $columndata['comment'] == null? "": $columndata['comment'];
+					$collation = $columndata['collation'] == null? "": $columndata['collation'];
+					$charset = $columndata['charset'] == null? "": $columndata['charset'];
+					$extra = $columndata['extra'] == null? "": $columndata['extra'];
+					$numeric = $columndata['numeric'] == null? "": $columndata['numeric'];
+
+					$columntext.= "\t`".$column."` ".$type;
+					if($charset){
+						$columntext.= " CHARACTER SET ".$charset;
+					}
+					if($collation){
+						$columntext.= " COLLATE ".$collation;
+					}
+					if($nullable == "NO"){
+						$columntext.= " NOT NULL";
+					}
+					if($default){
+
+					    if($default == "NULL"){
+							$columntext.= " DEFAULT NULL";
+						}
+						else if($default == "current_timestamp()"){
+							$columntext.= " DEFAULT current_timestamp()";
+						}
+						else if($numeric != "NULL"){
+							$columntext.= " DEFAULT ".$default;
+						}
+						else{
+							$columntext.= " DEFAULT '".$default."'";
+						}
+					}
+					if($extra){
+						$extra = str_replace("on update","ON UPDATE",$extra);
+						$columntext.= " ".$extra;
+					}
+					if($comment){
+						$columntext.= " COMMENT '".$comment."'";
+					}
+					if ($i != $len - 1) {
+						$insert .=", ";
+						$select .=", ";
+						$columntext.= ",\r\n";
+					}else{
+						$insert .=") VALUES\r\n";
+						$select .=" FROM ".$table;
+						$columntext.= "\r\n";
+					}
+					$i++;
+				}
+
+				if(!$backup){
+					if($table ==="domains" || $table ==="businessunits" || $table ==="users"){
+						$select.= " LIMIT 1";
+					}
+				}
+
+				$script.=$columntext;
+				$script.=") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ";
+				if($tablecomment){
+					$script.=" COMMENT='".$tablecomment."'";
+				}
+				$script.=";\r\n";
+				$script.="\r\n";
+			//	$sql = "SELECT * FROM `".$table."`"
+				$tdata = $this->pdo->prepare($select);
+				//print_r($data);
+				$tdata->execute( );
+
+				if($table == "emails"){
+					$x=1;
+				}
+
+				foreach($tdata as $trow){
+					$j = 0;
+					$jlen = count($trow);
+					$insert  .= "(";
+
+					if(!$backup){
+
+						$trow["createdon"]="_SI_NOWTIME_";
+						$trow["modifiedon"]=NULL;
+
+						if($table === "domains"){
+							$trow["name"]='__SI_DOMAIN_NAME__';
+						}
+						if($table === "buisnessunits"){
+							$trow["name"]='';
+						}
+						if($table === "users"){
+							$trow["name"]='__SI_USER_NAME__';
+							$trow["email"]='__SI_USER_EMAIL__';
+							$trow["password"]='__SI_USER_Password__';
+						}
+						if($table === "settings"){
+							switch($trow["settingname"]){
+								case 'DefaultLanguage': $trow["settingvalue"] = '__SI_DEFAULT_LANGUAGE__';break;
+								case 'DefaultCurrency': $trow["settingvalue"] = '__SI_DEFAULT_CURRENCY__';break;
+								case 'DefaultTimeZone': $trow["settingvalue"] = '__SI_DEFAULT_TIMEZONE__';break;
+								case 'NotificationEmail': $trow["settingvalue"] = '__SI_DEFAULT_NOTEEMAIL__';break;
+
+								default:break;
+							}
+							
+						}
+					}
+					foreach ($trow as $cname=>$cell) {
+						if($cell===NULL){
+							$insert .="NULL";
+						}else{						
+							$ctype = $typeLookup[$cname];
+							$stype = substr($ctype, 0, strpos($ctype, "("));
+							switch($stype){
+								case "binary": 
+									$bin = "0x".$cell;
+									if($ctype === "binary(16)"){
+										if(!$backup){
+											$foundInd = array_search($bin, $guidLookup);
+											if (false !== $foundInd){
+												$bin = "_SI_GUID_".$foundInd;
+											}else{
+												$bin = "_SI_GUID_".count($guidLookup);
+												$guidLookup[] = "0x".$cell;
+												
+											}
+										}
+									}
+									$insert .=$bin;
+									break;
+								case "int": $insert .=$cell; break;
+								case "enum": $insert .="'".$cell."'"; break;
+								default:
+								    $cell = addslashes($cell); 
+									$cell = preg_replace('/(\r\n|\r|\n)+/', "\n", $cell);
+									$cell = preg_replace('/\s+/', ' ', $cell);
+									$insert .="'".$cell."'"; 
+								    break;
+							}
+						}
+
+						if ($j !== $jlen - 1) {
+							$insert .=", ";
+						}else{
+							$insert .="),\r\n";
+						}
+						$j++;
+					}
+
+				}
+				if($tdata->rowCount() > 0){
+					$insert = rtrim(trim($insert),',');
+					$script.=$insert.";\r\n\r\n";
+				}
+				
+			}
+
+			$indexes = "";
+			foreach ($tables as $table=>$tabledata) {
+				$columns = $tabledata['columns'];
+				$index ="";
+				foreach ($columns as $column=>$columndata) {
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					if($key){
+						if($key === "PRI"){
+							$index.="    ADD PRIMARY KEY (`".$column."`),\r\n";
+						}
+					}
+				}
+				foreach ($columns as $column=>$columndata) {
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					if($key){
+						if($key === "UNI"){
+							$index.="    ADD UNIQUE KEY(`".$column."`),\r\n";
+						}
+					}
+				}
+				foreach ($columns as $column=>$columndata) {
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					if($key){
+						if($key === "MUL"){
+							$index.="    ADD KEY (`".$column."`),\r\n";
+						}
+					}
+				}
+				if($index){
+					$index="ALTER TABLE `".$table."`\r\n".$index;
+					$index=trim($index);
+					$index=rtrim($index,',').";\r\n\r\n";
+					$indexes.=$index;
+				}
+			}
+
+			$script.=$indexes;
+
+			file_put_contents($fpath, $script);
+			
+			if(!$backup){
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Built Successfully";
+			}else{
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Successfully";
+			}
 		}
 		catch(Exception $e){
+			if(!$backup){
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Built Failed: ".$e;
+			}else{
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
+			}
 		   Tools::Error($e);
 		}
 	}
@@ -1047,9 +838,7 @@ class Database extends DbCreds
 			return  $pageobjects;
 		}
 
-
 		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
-
 		$page = new Entity("pages");
 		$page->Attributes->Add(new Attribute("path",SI_URI));
 	    $mypage = $page->Retrieve();
@@ -1126,12 +915,6 @@ class Database extends DbCreds
 			For now I will just redirect them to the 404 page and the editor will know because of the address.
 			*/
 		}
-
-
-
-
-
-
 		return $pageobjects;
 	}
 	public function GetBlockTemplates($pageobjects){
