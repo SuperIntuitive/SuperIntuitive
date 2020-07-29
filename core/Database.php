@@ -132,10 +132,6 @@ class Database extends DbCreds
 			//unset($_SESSION['SI']['domains'][SI_DOMAIN_ID]['businessunits'][SI_BUSINESSUNIT_ID]['entities']);
 			$this->entityLookup = $entityLookup;
 
-			//Tools::Log("pageobjects");
-			//Tools::Log($pageobjects);
-			//Tools::Log("entityLookup");
-			//Tools::Log($entityLookup);
 			return $pageobjects;		
 		}
 	}
