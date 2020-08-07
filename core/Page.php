@@ -189,6 +189,7 @@ if (!SI) { var SI = {}; }
 	SI.Page.Settings = { $settings };
 	SI.Page.Blocks = $blocksjson;
 	SI.Widget = {};
+	SI.Widgets = {};
 	SI.User = {};
 ";
 

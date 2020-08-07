@@ -32,6 +32,7 @@ si-linm {
     display: block;
     width: 100%;
     cursor: pointer;
+    color: #3c5252;
 }
 
 si-linm:hover {

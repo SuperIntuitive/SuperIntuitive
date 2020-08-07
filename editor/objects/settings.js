@@ -33,6 +33,8 @@ SI.Editor.Objects.Settings = {
                 marginRight: '30px',
             },
             onchange: function () {
+                si_edit_hud_window
+
                 if (this.checked) {
                     SI.Editor.UI.HUD.Window.Show();
                 } else {
@@ -68,6 +70,13 @@ SI.Editor.Objects.Settings = {
                 marginRight: '10px',
             },
             onclick: function (e) {
+             //   let phpinfo;
+             //   if(SI.Widgets.Window.HUD){
+            //        phpinfo = SI.Widgets.Window.HUD;
+           //     }else{
+           //         phpinfo = SI.Editor.UI.Phpinfo.Init();
+            //    }
+
                 SI.Editor.UI.Phpinfo.Window.SetPosition(e.pageY + 25, e.pageX - 250);
                 SI.Editor.UI.Phpinfo.Window.Show();
 
@@ -328,7 +337,7 @@ SI.Editor.Objects.Settings = {
             }
         }
 
-        SI.Editor.UI.Settings.Window.Append(container);
+        return container;
     },
     New: function (name, value) {
     //Creates a new Setting in the table settings
@@ -478,5 +487,156 @@ SI.Editor.Objects.Settings = {
         }
 
     },
+};
 
+SI.Editor.Objects.HUD={
+    Init: function () {
+        var obj = {
+            Id: "si_edit_hud_window",
+            Trigger: '#si_edit_hud_trigger',
+            Title: "HUD",
+            StartWidth: '200px',
+            StartHeight: '150px',
+            StartTop: '30%',
+            StartLeft: '1%',
+            Overflow: "hidden",
+            Position: "fixed",
+            WindowControls: "CLOSE",
+            IconImg: '/editor/media/icons/hud.png',
+            OnClose: function () {  //sync the cb in settings
+                document.getElementById('si_edit_settings_hudcb').checked = false;
+            },
+            Populate: SI.Editor.Objects.HUD.Draw,
+        };
+        new SI.Widget.Window(obj);
+    },
+    Draw: function () {
+        let container = Ele('div', {
+            style: {
+                width: "100%",
+                height: "100%",
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
+                fontSize: '10px',
+            },
+        });
+
+        Ele('span', {
+            innerHTML: "Mouse X:",
+            appendTo: container,
+        });
+        Ele('span', {
+            id: 'si_edit_hud_xpos',
+            appendTo: container,
+        });
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Mouse Y:",
+            appendTo: container,
+        });
+        Ele('span', {
+            id: 'si_edit_hud_ypos',
+            appendTo: container,
+        });
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Selected Element:",
+            appendTo: container,
+        });
+        Ele('span', {
+            id: 'si_edit_hud_selectedelement',
+            appendTo: container,
+        });
+
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Dragging Element:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_draggingelement',
+            appendTo: container,
+        });
+        //offparent
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Offset Parent:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_offsetparent',
+            appendTo: container,
+        });
+        //parent elementid
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Parent Id:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_parentid',
+            appendTo: container,
+        });
+        //offsetX
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Offest X:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_offsetx',
+            appendTo: container,
+        });
+        //offsetY
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Offset Y:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_offsety',
+            appendTo: container,
+        });
+
+        //DropParent
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Drop Parent:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_dropparent',
+            appendTo: container,
+        });
+        //DropParent
+        Ele('br', { appendTo: container });
+        Ele('span', {
+            innerHTML: "Editor Is Dragging:",
+            appendTo: container,
+
+        });
+        Ele('span', {
+            id: 'si_edit_hud_editisdragging',
+            appendTo: container,
+        });
+
+      //  this.dataset.offsetparent = this.offsetParent;
+      //  this.dataset.parentid = this.parentElement.id;
+      //  this.dataset.mOffX = ev.offsetX;
+      //  this.dataset.mOffY = ev.offsetY;
+
+
+        document.body.addEventListener("mousemove", function (ev) {
+            document.getElementById("si_edit_hud_xpos").innerHTML = ev.pageX;
+            document.getElementById("si_edit_hud_ypos").innerHTML = ev.pageY;
+        });
+        return container;
+        //SI.Editor.UI.HUD.Window.Append(container);
+    },
 };

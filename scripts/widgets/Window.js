@@ -3,7 +3,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
 $widgetType = "Window";
 ?>
 
-
+SI.Widgets.<?= $widgetType ?> = {};
 
 SI.Widget.<?= $widgetType ?> = function (options) {
     if (!(this instanceof SI.Widget.<?= $widgetType ?>)) { return new SI.Widget.<?= $widgetType ?>(); }
@@ -831,7 +831,7 @@ SI.Widget.<?= $widgetType ?> = function (options) {
         }
     }
 
-
+    SI.Widgets.<?= $widgetType ?>[this.Id] = this;
 
     return this;
 

@@ -362,6 +362,7 @@ SI.Editor.Objects.Scripter = {
                         super();
                     }
                 });
+                
                 window.customElements.define('si-jscom', class extends HTMLElement { //comment
                     constructor() {
                         super();
@@ -766,6 +767,5 @@ SI.Editor.Objects.Scripter = {
         for (let i = 1; i < linebox.children.length + count; i++) {
             linebox.appendChild(Ele('si-linm', { innerHTML: i }));
         }
-
     }
 };

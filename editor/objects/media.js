@@ -1,30 +1,30 @@
 
-SI.Editor.Objects.Media = function (window) {
-    let self = this;
-    this.Window = window;
-    this.Draw = function () {
+SI.Editor.Objects.Media = {
+    Draw : function(){
+        let container = Ele("div", {});
         var tabs = new SI.Widget.Tab({});
 
-        tabs.Items.Add('Images', this.MediaTab('Images'));
-        tabs.Items.Add('Audio', this.MediaTab('Audio'));
-        tabs.Items.Add('Video', this.MediaTab('Video'));
-        tabs.Items.Add('Documents', this.MediaTab('Docs'));
-        tabs.Items.Add('Data', this.MediaTab('Data'));
-        tabs.Items.Add('Fonts', this.MediaTab('Fonts'));
+        tabs.Items.Add('Images', SI.Editor.Objects.Media.MediaTab('Images'));
+        tabs.Items.Add('Audio', SI.Editor.Objects.Media.MediaTab('Audio'));
+        tabs.Items.Add('Video', SI.Editor.Objects.Media.MediaTab('Video'));
+        tabs.Items.Add('Documents', SI.Editor.Objects.Media.MediaTab('Docs'));
+        tabs.Items.Add('Data', SI.Editor.Objects.Media.MediaTab('Data'));
+        tabs.Items.Add('Fonts', SI.Editor.Objects.Media.MediaTab('Fonts'));
 
-        this.Window.Append(tabs.Draw());
+        container.appendChild(tabs.Draw());
 
         //want the uploader to be fixed to the lower left on all tabs.
-        var uploader = new SI.Widget.Uploader({ Bottom: '20px', Left: '20px', OnComplete: this.OnComplete });
-        this.Window.Append(uploader.Container);
+        var uploader = new SI.Widget.Uploader({ Bottom: '20px', Left: '20px', OnComplete: SI.Editor.Objects.Media.OnComplete });
+        container.appendChild(uploader.Container);
 
         //try to load the first image so we dont have blanks...  ...lol this silly hack works ..at least it used to
         let tiles = document.getElementsByClassName('si_media_Images');
         if (tiles !== null) {
             SI.Tools.Events.Fire(tiles[0], 'click');
         }
-    };
-    this.MediaTab = function (tabname) {
+        return container;
+    },
+    MediaTab : function (tabname) {
         this.CurrentMediaPath = "",
         tabname = tabname.replace(/ /g, '');
         let container = Ele('div', {
@@ -137,9 +137,8 @@ SI.Editor.Objects.Media = function (window) {
                 display: 'block',
             },
             appendTo: fileOpsBox,
-            onclick: self.Recycle,
+            onclick: SI.Editor.Objects.Media.Recycle,
         });
-
 
         var deployments = ['dev', 'test', 'live'];
         for (let d in deployments) {
@@ -151,7 +150,7 @@ SI.Editor.Objects.Media = function (window) {
                 case "test": bgcolor = "yellow"; break;
                 case "dev": bgcolor = "green"; break;
             }
-            var previewbox = Ele('fieldset', {
+            let previewbox = Ele('fieldset', {
                 style: {
                     float: 'left'
                 },
@@ -220,7 +219,7 @@ SI.Editor.Objects.Media = function (window) {
                     Deployment: deployment,
                 },
                 onclick: function (e) {
-                    self.Promote(this, e);
+                    SI.Editor.Objects.Media.Promote(this, e);
                 },
                 appendTo: previewbox,
             });
@@ -292,7 +291,7 @@ SI.Editor.Objects.Media = function (window) {
                                 BackgroundColor: 'silver',
                                 Text: data['name'],
                                 Mime: data['mime'],
-                                OnChange: self.OnChange,
+                                OnChange: SI.Editor.Objects.Media.OnChange,
                             };
                             let tile = new SI.Widget.Tile(options);
                             mediascroller.appendChild(tile.Container);
@@ -306,15 +305,13 @@ SI.Editor.Objects.Media = function (window) {
 
         return container;
 
-    };
-    this.ResizeWindow = function () {
-        //this is an event handeler so self must be used instead of this.
-        let w = self.Window.GetWidth();
-        let h = self.Window.GetHeight();
+    },
+    Resize: function () {
+        let w = SI.Widgets.Window.si_edit_media_window.GetWidth();
+        let h = SI.Widgets.Window.si_edit_media_window.GetHeight();
         SI.Tools.Class.Loop("si-edit-mediascroller", function (ele) {
             ele.style.width = (w - 265) + "px";
             ele.style.height = (h - 56) + "px";
-
         }); 
         SI.Tools.Class.Loop('si-edit-mediatoolbar', function (ele) {
             ele.style.width = (w - 260) + "px";
@@ -322,13 +319,11 @@ SI.Editor.Objects.Media = function (window) {
         SI.Tools.Class.Loop("si-media-menu", function (ele) {
             ele.style.height = (h - 320) + "px";
         });
-    };
-    this.Save = function (input) {
+    },
+    Save : function (input) {
         // console.log(input);
-    };
-
-
-    this.OnComplete = function (files, responseText) {
+    },
+    OnComplete : function (files, responseText) {
         let response = JSON.parse(responseText);
         for (let file in files) {
             if (files.hasOwnProperty(file)) {
@@ -347,7 +342,7 @@ SI.Editor.Objects.Media = function (window) {
                         BackgroundColor: 'silver',
                         Text: name,
                         Mime: moredata['mime'],
-                        OnChange: self.OnChange,
+                        OnChange: SI.Editor.Objects.Media.OnChange,
                     };
                     let tile = new SI.Widget.Tile(options);
 
@@ -360,8 +355,8 @@ SI.Editor.Objects.Media = function (window) {
         }
 
         
-    };
-    this.OnChange = function (ev,self) {
+    },
+    OnChange : function (ev,self) {
         let deploys = ["dev", "test", "live"];
         let filename = self.getAttribute('data-path');
         let name = self.getAttribute('data-name');
@@ -440,8 +435,8 @@ SI.Editor.Objects.Media = function (window) {
                 }
             }
         }
-    };
-    this.Promote = function (self, e) {
+    },
+    Promote : function (self, e) {
         let img = document.getElementById(self.id.replace("Promote", "Preview"));
         let obj = {};
         obj.Data = {};
@@ -449,15 +444,15 @@ SI.Editor.Objects.Media = function (window) {
         obj.Data.Url = img.src;
         obj.Data.Deployment = self.dataset.deployment;
         SI.Editor.Ajax.Run(obj);
-    };
-    this.Promoted = function (ok) {
+    },
+    Promoted : function (ok) {
         let previewSource = ok.split("|");
         let preview = previewSource[0];
         let category = previewSource[1];
         let source = previewSource[2];
         document.getElementById(preview).src = source;
-    };
-    this.Recycle = function () {
+    },
+    Recycle : function () {
 
         var r = confirm("Are you sure you would like to delete this file?");
         if (r === false) {
@@ -472,9 +467,9 @@ SI.Editor.Objects.Media = function (window) {
         let data = { "KEY": 'MediaRecycle', 'mediaId': id, 'url': url, 'type': type };
         options.Data = data;
         SI.Editor.Ajax.Run(options);
-    };
-    this.Recycled = function () {
+    },
+    Recycled : function () {
 
-    };
+    }
 
 }

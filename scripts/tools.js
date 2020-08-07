@@ -67,6 +67,7 @@ Element.prototype.hide = function () {
 Element.prototype.clear = function () {
     this.innerHTML = "";
 };
+
 Element.prototype.childNumber = function () {
     let self = this;
     for (var i = 0; (self = self.previousSibling); i++);

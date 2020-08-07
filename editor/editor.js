@@ -542,6 +542,7 @@ SI.Editor = {
                 Roles: <?= $rolesdata ?>,
             },
             Settings: <?= $settings2 ?>,
+            PhpInfo : `<?php echo Tools::GetPhpInfo() ?>`,
             MimeTypes: <?= $allmimetypes ?>
         },
         User: {
@@ -2300,16 +2301,16 @@ SI.Editor = {
         //Tool windows
         Page: {
             Window: null,
-                Init: function () { //ParentId: 'si_edit_container',
-                    let options = {
-                        Id: "si_edit_page_window",
-                        Title: "Page",
-                        Populate: SI.Editor.Objects.Page.Draw,
-                        Trigger: '#si_edit_page_trigger',
-                        IconImg: '/editor/media/icons/page.png'
-                    }
-                    SI.Editor.UI.Page.Window = new SI.Widget.Window(options);
-                },
+            Init: function () { //ParentId: 'si_edit_container',
+                let options = {
+                    Id: "si_edit_page_window",
+                    Title: "Page",
+                    Populate: SI.Editor.Objects.Page.Draw,
+                    Trigger: '#si_edit_page_trigger',
+                    IconImg: '/editor/media/icons/page.png'
+                }
+                SI.Editor.UI.Page.Window = new SI.Widget.Window(options);
+            },
         },
         Media: {
             Window: null,
@@ -2319,12 +2320,12 @@ SI.Editor = {
                     Trigger: '#si_edit_tools_media',
                     Title: "Media",
                     Trigger: '#si_edit_media_trigger',
-                    IconImg: '/editor/media/icons/window-media.png'
+                    IconImg: '/editor/media/icons/window-media.png',
+                    Populate: SI.Editor.Objects.Media.Draw,
+                    Resize:SI.Editor.Objects.Media.Resize,
                 }; 
-                SI.Editor.UI.Media.Window = new SI.Widget.Window(obj);
-                let media = new SI.Editor.Objects.Media(SI.Editor.UI.Media.Window);
-                media.Draw();
-                SI.Editor.UI.Media.Window.Resize = media.ResizeWindow;
+                SI.Editor.UI.Media.Window = new SI.Widget.Window(obj); 
+               // SI.Editor.UI.Media.Window.Resize = media.ResizeWindow;
             }
         },
         Styler: {
@@ -2335,15 +2336,10 @@ SI.Editor = {
                     Trigger: '#si_edit_styler_trigger',
                     Title: "Styler",
                     IconImg: '/editor/media/icons/stylebutton.png',
-                    Overflow: "hidden"
+                    Overflow: "hidden",
+                    Populate:SI.Editor.Objects.Styler.Draw
                 };
                 SI.Editor.UI.Styler.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Styler.Draw();
-            },
-            Draw: function (content) {
-
-                let styler = new SI.Editor.Objects.Styler();
-                SI.Editor.UI.Styler.Window.Append(styler.Init());
             }
         },
         Scripter: {
@@ -2630,11 +2626,11 @@ SI.Editor = {
                 var obj = {
                     Id: "si_edit_settings_window",
                     Trigger: '#si_edit_settings_trigger',
-                    Title: "Settings"
+                    Title: "Settings",
+                    Populate: SI.Editor.Objects.Settings.Draw
                 };
                 SI.Editor.UI.Settings.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Settings.Draw();
-            },
+            }
         },
         //Tool Sub-Windows
         BlockTemplates: {
@@ -3002,7 +2998,7 @@ SI.Editor = {
                 },
             Draw: function () {
                 let container = Ele('div', {
-                    innerHTML: `<?php echo Tools::GetPhpInfo() ?>`,
+                    innerHTML: SI.Editor.Data.Objects.PhpInfo,
                 });
                 SI.Editor.UI.Phpinfo.Window.Append(container);
             },
