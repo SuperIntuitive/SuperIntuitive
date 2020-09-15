@@ -1,11 +1,12 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+if(!SI.Widgets.Tab){SI.Widgets.Tab = {}};
+SI.Widget.Tab = function  (options) { 
+    if (!(this instanceof SI.Widget.Tab)) { return new SI.Widget.Tab(options); }
 
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Tab");}
+    this.Input = {...options};
+    SI.Widgets.Tab[this.Id] = this;
 
-
-SI.Widget.Tab = function (options) {
-    if (!(this instanceof SI.Widget.Tab)) { return new SI.Widget.Tab(); }
     this.Defaults = {
         "ContainerClass": "",
         "Position": "absolute",
@@ -21,9 +22,9 @@ SI.Widget.Tab = function (options) {
         "FontColor": "black",
         "TextAlign": "center",
         "Border": 'solid 1px rgba(64,64,64,.5)',
-        "BackgroundColor": "#6a739c",
+        "BackgroundColor": SI.Theme.BackgroundColor,
         "TabTextColor": "white",
-        "TabBackgroundColor": "slategrey",
+        "TabBackgroundColor": SI.Theme.MenuColor,
         "SelectedTabBackgroundColor": "slategrey",
         "TabFilter": "brightness(100%)",
         "HoverTabFilter": "brightness(110%)",
@@ -37,12 +38,15 @@ SI.Widget.Tab = function (options) {
     };
 
     options = this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+
     //private members
-    let randId = SI.Tools.String.RandomString(11);
     let SelectedId = '';
+    let self = this;
+
     //public vars
-    this.RandomId = randId;
     this.Container = null;
+    this.BaseClass= this.Id.replaceAll("_","-");
+
     //Items Object
     this.Items = {
         Count:0,
@@ -101,12 +105,12 @@ SI.Widget.Tab = function (options) {
         this.container.style.display = 'none';
     };   
     this.SelectTab = function (tabname) {
-        //debugger;
+        
 
     };
     this.Draw = function (parentId) {
-        //debugger;
         let container = Ele('div', {
+            id:this.Id, 
             class: "si-tabs-container",
             style: {
                 position: this.Options.Position,
@@ -121,7 +125,7 @@ SI.Widget.Tab = function (options) {
         });
         //debugger;
         let tabs = Ele("ul", {
-            class: "tabmenu_" + randId,
+            class: this.BaseClass+"-tabmenu",
             style: {
                 listStyle: 'none',
                 whiteSpace: 'nowrap',
@@ -158,8 +162,8 @@ SI.Widget.Tab = function (options) {
             }
 
             let tabitem = Ele("li", {
-                id: 'si_tabitem_' + key.replace(' ', '_') + '_' + randId,
-                class: "si-tabitem-" + randId,
+                id: this.Id+'_tabitem_' + key.replace(' ', '_'),
+                class: this.BaseClass+"-tabitem",
                 style: {
                     display: 'inline',
                     border: this.Options.Border,
@@ -176,18 +180,18 @@ SI.Widget.Tab = function (options) {
                 },
                 onclick: function() {
                         //Hide all the tabs and contents
-                    SI.Tools.Class.Loop("si-tabitem-" + randId, function (item) {
+                    SI.Tools.Class.Loop(self.BaseClass+"-tabitem", function (item) {
                         item.style.backgroundColor = options.TabBackgroundColor;
                         item.style.filter = options.TabFilter;
                     });
-                    SI.Tools.Class.Loop("si-tabcontent-" + randId, function (item) {
+                    SI.Tools.Class.Loop(self.BaseClass+"-tabcontent", function (item) {
                         item.style.display = 'none';
                     });
 
-                    this.style.backgroundColor = options.SelectedTabBackgroundColor;
+                    //this.style.backgroundColor = options.SelectedTabBackgroundColor;
                     this.style.filter = options.SelectedTabFilter;
 
-                    let contentid = this.id.replace('si_tabitem_', 'si_tabcontent_');
+                    let contentid = this.id.replace('_tabitem_', '_tabcontent_');
                     //    console.log(contentid);
                     //debugger;
                     document.getElementById(contentid).style.display = 'block';
@@ -233,8 +237,8 @@ SI.Widget.Tab = function (options) {
             } 
             //Create the element
             let content = Ele('div', {
-                id: 'si_tabcontent_' + key.replace(' ', '_') + '_' + randId,
-                class: "si-tabcontent-" + randId,
+                id: this.Id+'_tabcontent_' + key.replace(' ', '_'),
+                class: this.BaseClass+"-tabcontent",
                 style: {
                     minHeight: '100%',
                     backgroundColor: '#DDD',

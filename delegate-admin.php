@@ -173,11 +173,11 @@ if(Tools::UserHasRole('Admin')){
 					break;
 				case "BuildBackupFile":
 					$db = new Database();
-					$db->BackupDatabase();
+					$db->BackupDatabase($post);
 					break;	
 				case "BuildInstallerFile":
 					$db = new Database();
-					$db->BuildInstallerFile();
+					$db->BuildInstallerFile($post);
 					break;
 
 

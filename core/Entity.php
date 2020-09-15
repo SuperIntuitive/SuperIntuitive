@@ -76,8 +76,7 @@ class Entity{
 		return $this->EntityAction($this,'update');
 	}
 	public function Delete(){
-	    $db = new Database();
-		return $db->EntityAction($this,'delete');
+		return $this->EntityAction($this,'delete');
 	}
 
 	public function NewEntity($post){	

@@ -20,7 +20,7 @@ class Login {
 						//if remember me is set, then make a guid and the time and set it in the database
 						$this->Verified($ouruser,$post);
 						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
-						sleep(1); //help make the page load right the first time.
+						sleep(2); //help make the page load right the first time.
 						return true;
 					} 
 				}

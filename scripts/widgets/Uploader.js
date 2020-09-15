@@ -1,12 +1,12 @@
+if(!SI.Widgets.Uploader){SI.Widgets.Uploader = {}};
+SI.Widget.Uploader = function  (options) { 
+    if (!(this instanceof SI.Widget.Uploader)) { return new SI.Widget.Uploader(options); }
 
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Uploader");}
+    this.Input = {...options};
+    SI.Widgets.Uploader[this.Id] = this;
 
-
-
-SI.Widget.Uploader = function (options) {
-    if (!(this instanceof SI.Widget.Uploader)) { return new SI.Widget.Uploader(); }
     this.Defaults = {
         "Name": { "value": "Window", "type": "TEXT" },
         "Parent": { "value": "", "type": "ELE" },
@@ -25,15 +25,16 @@ SI.Widget.Uploader = function (options) {
         "FontColor": "silver",
         "Text": '<br />Drag files here to upload',
         "TextAlign": "center",
+        "AllowedFileTypes":"jpg,png,mp3,mp4",
         "ServerScript": "/filehandeler.php",
         "OnComplete": null
     };
-    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    this.Random = SI.Tools.String.RandomString(11);
-    let self = this;
 
+    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    
+    let self = this;
     this.Container = Ele('div', {
-        id: "si_uploader_container_" + this.Random,
+        id:this.Id,
         innerHTML: this.Options.Text,
         style:
         {
@@ -51,12 +52,10 @@ SI.Widget.Uploader = function (options) {
             "userSelect": "none"
         },
         ondragover: function (e) {
-            //debugger;
-            // this.className = 'SI_hover';
+
             return false;
         },
         ondragend: function (e) {
-            //  this.className = '';
             return false;
         },
         ondragenter: function (e) {
@@ -70,15 +69,18 @@ SI.Widget.Uploader = function (options) {
             this.style.border = self.Options.Border;
         },
         ondrop: function (e) {
-            // this.className = '';
-            //debugger;
+            debugger;
             e.preventDefault();
-            self.UploadFiles(e.dataTransfer.files);
+            if(e.dataTransfer.files>0){
+                self.UploadFiles(e.dataTransfer.files);
+            }else{
+                this.style.border = self.Options.Border;
+            }
         }
     });
 
     this.ProgressBar = Ele('progress', {
-        id: "si_uploader_progressbar_" + this.Random,
+        id:this.Id+'_progressbar',
         style: {
             "width": '70%',
             "height": '16px',
@@ -89,6 +91,7 @@ SI.Widget.Uploader = function (options) {
         },
         appendTo: this.Container
     });
+
     this.UploadFiles = function (files) {
         //create the form object
         var formData = new FormData();
@@ -128,18 +131,24 @@ SI.Widget.Uploader = function (options) {
         if (self.Tests.progress) {
             xhr.upload.onprogress = function (event) {
                 if (event.lengthComputable) {
-                    //debugger;
+                   
                     var complete = event.loaded / event.total * 100 | 0;
                     self.ProgressBar.value = self.ProgressBar.innerHTML = complete;
                     setTimeout(function () {
-                        SI.Tools.Style.FadeOut("si_uploader_preview_" + self.Random, 1000);
+                        SI.Tools.Style.FadeOut(self.Id+"_preview", 1000);
                         let interval = setInterval(function () {
-                            var preview = document.getElementById("si_uploader_preview_" + self.Random);
-                            if (preview.style.display === 'none') {
-                                preview.parentElement.removeChild(preview);
+                            var preview = document.getElementById(self.Id+"_preview");
+                            if(preview){
+                                if (preview.style.display === 'none') {
+                                    preview.parentElement.removeChild(preview);
+                                    self.ProgressBar.value = 0;
+                                    self.ProgressBar.style.display = 'none';
+                                    clearInterval(interval);
+                                }
+                            }else{
+                                self.ProgressBar.value = 0;
                                 self.ProgressBar.style.display = 'none';
                                 clearInterval(interval);
-
                             }
                         }, 500);
                     }, 1000);
@@ -149,11 +158,13 @@ SI.Widget.Uploader = function (options) {
         }
         xhr.send(formData);
     };
+
     this.Tests = {
         filereader: typeof FileReader !== 'undefined',
         formdata: !!window.FormData,
         progress: "upload" in new XMLHttpRequest
     };
+
     this.PreviewFile = function (file) {
 
         var reader = new FileReader();
@@ -184,8 +195,10 @@ SI.Widget.Uploader = function (options) {
                     });
                     obj.currentTime += 5;
                     break;
-                case "text": break;
-                default: break;
+                case "text": 
+                    break;
+                default: 
+                    break;
 
             }
 
@@ -193,8 +206,8 @@ SI.Widget.Uploader = function (options) {
                 obj = new Image();
                 obj.src = 'editor/media/images/nopreviewavailable.jpg';
             }
-
-            obj.id = "si_uploader_preview_" + self.Random;
+            
+            obj.id = this.Id+"_preview";
             obj.width = 250; // a fake resize
             obj.style.position = "absolute";
             obj.style.top = '-28px';
@@ -208,6 +221,8 @@ SI.Widget.Uploader = function (options) {
     if (this.Options.Parent) {
         this.Options.Parent.appendChild(this.Container);
     }
+
+    SI.Widgets.Uploader[this.Id] = this;
 
     return this;
 };

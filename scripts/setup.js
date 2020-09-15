@@ -1,9 +1,8 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+﻿
+    "use strict";
+    if(!SI){ var SI = {};}
 
-
-	var setup = {
+	SI.Setup = {
         Init: function () {
             //to prevent whitescreen if exists
             localStorage.clear();
@@ -11,14 +10,9 @@ header("Content-Type: application/javascript; charset: UTF-8");
             document.getElementById('si_setup_timezone').value = userTimezone;
             //this is too hard to determine now but from what I hear everybody loves USD
             document.getElementById('si_setup_currency').value = "usd";
-
         },
-        requiredFilled: {
-            domain: false,
-
-        },
-		selectedArticle: 'sysinfo',
-		installing : false,
+		SelectedArticle: 'sysinfo',
+		Installing : false,
         ChangeMenu: function (menuitem) {
                  
             //For this choice
@@ -36,7 +30,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
                 acl.style.display = "none";
             });
 
-            setup.selectedArticle = id;
+            SI.Setup.SelectedArticle = id;
             document.getElementById(id).style.display = 'block';
             //debugger;
             let backbtn = document.getElementById("btnback");

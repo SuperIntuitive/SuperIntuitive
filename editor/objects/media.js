@@ -14,7 +14,13 @@ SI.Editor.Objects.Media = {
         container.appendChild(tabs.Draw());
 
         //want the uploader to be fixed to the lower left on all tabs.
-        var uploader = new SI.Widget.Uploader({ Bottom: '20px', Left: '20px', OnComplete: SI.Editor.Objects.Media.OnComplete });
+        uploaderOptions = {
+            Id:'si_edit_media_uploader',
+            Bottom: '20px', 
+            Left: '20px', 
+            OnComplete: SI.Editor.Objects.Media.OnComplete
+        };
+        var uploader = new SI.Widget.Uploader(uploaderOptions);
         container.appendChild(uploader.Container);
 
         //try to load the first image so we dont have blanks...  ...lol this silly hack works ..at least it used to

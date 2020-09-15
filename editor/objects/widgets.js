@@ -2,10 +2,11 @@
 SI.Editor.Objects.Widgets = {
     SelectedWidget : null,
     Draw: function () {
+        let container = Ele('div', {});
         let tabs = new SI.Widget.Tab();
         tabs.Items.Add("Instances", SI.Editor.Objects.Widgets.Instances());
         tabs.Items.Add("Widget Editor", SI.Editor.Objects.Widgets.Editor());
-        SI.Editor.UI.Widgets.Window.Append(tabs.Draw());
+        container.appendChild(tabs.Draw());
 
         //make the window
         var obj = {
@@ -14,8 +15,9 @@ SI.Editor.Objects.Widgets = {
             Trigger: "#si_edit_widget_editor_open_button"
         };
         new SI.Widget.Window(obj);
-    },
 
+        return container;
+    },
     //for managing current instances of widgets.
     Instances: function () {
         let base = Ele('div', {
@@ -85,7 +87,11 @@ SI.Editor.Objects.Widgets = {
                 id: "si_edit_widgeteditselector_" + block + "_" + widget,
                 label: block + "-" + widget
             });
-            document.getElementById("si_edit_widget_instance_selector").appendChild(og);
+            let selector = document.getElementById("si_edit_widget_instance_selector");
+            if(selector){
+                selector.appendChild(og);
+            }
+            
         }
         let opt = Ele("option", {
             value: block + "-" + widget + "-" + id,
@@ -114,41 +120,53 @@ SI.Editor.Objects.Widgets = {
         let id = parts[2];
         let widget = SI.Page.Blocks[block].Widgets[id];
         let defaults = widget.Defaults;
+        let input = widget.Input;
+
+        Ele("label",{
+            for:"si_edit_widget_instance_valsinput",
+            innerHTML:"Input Values",
+            appendTo:optionsBox
+        });
+        Ele("input",{
+            id:"si_edit_widget_instance_valsinput",
+            value:JSON.stringify(input),
+            appendTo:optionsBox
+        });
 
         for (let d in defaults) {
             if (defaults.hasOwnProperty(d)) {
                 let data = defaults[d];
-                let val = data.value;
+                let defval = data.value;
                 let types = data.type.split('.');
-                let effect = data.effect;
-                let type1; //attr or style
-                let type2;
+                let affected = data.affected;
+                let type; //attr or style
+                let property;
                 if (types.length > 1) {
-                    type1 = types[0];
-                    type2 = types[1];
+                    type = types[0];
+                    value = types[1];
                 }
 
                 let control = null;
 
-                if (type1 === "style") {
+                if (type === "style") {
                     let styleobj = {
-                        "Property": type2,
-                        "Effected": '#' + effect,
-                        "InitialValue": val
+                        "Property": value,
+                        "Affected":  affected,
+                        "InitialValue": defval
                     };
                     control = SI.Editor.Objects.Elements.Styles.Widget(styleobj);
                 }
 
-                if (type1 === "attr") {
+                if (type === "attr") {
                     let attrobj = {
-                        "Attribute": type2,
-                        "Effected": '#' + effect,
-                        "InitialValue": val
+                        "Attribute": value,
+                        "Affected": affected,
+                        "InitialValue": defval
                     };
                     control = SI.Editor.Objects.Elements.Attributes.Widget(attrobj);
                 }
 
-                // "Group": style.group, "Index": style.index, "Effect": 'body' });
+                // "Group": style.group, "Index": style.index, "Affect": 'body' });
                 if (control) {
                     optionsBox.appendChild(control);
                 }
@@ -161,7 +179,6 @@ SI.Editor.Objects.Widgets = {
     DeleteInstance: function (block, widgetid) {
         
     },
-
     //for editing widget scripts / styles. will effect all Instances
     Editor: function(){
         let base = Ele('div', {
@@ -236,13 +253,144 @@ SI.Editor.Objects.Widgets = {
         return base;
     },
     SelectWidget: function (widget) {
-
-
     },
     DeleteWidget: function (widget) {
-
     },
 
+    Tools:{
+        AllowedFileTypes: function(container, current){
+            let allowedMimesBox = Ele('fieldset', {
+                style: {
+                    width: '90%',
+                    borderRadius: '10px',
+                    marginLeft:'3%',
+                },
+                append: Ele('legend', { innerHTML: 'Allowed File Types' }),
+                appendTo: container,
+            });
+    
+            let mimetypes = SI.Editor.Data.Objects.MimeTypes;   
+            let categories = [];
+            for (let ext in mimetypes) {
+                let data = mimetypes[ext].split("|");
+                let mime = data[0];
+                let cat = data[1];
+                if (!(cat in categories)) {
+                    categories[cat] = [];
+                }
+                categories[cat][ext] = mime;
+            }
 
+            let allowedFileTypes = current.split(',');
+          
+            for (let cat in categories) {
+                if (categories.hasOwnProperty(cat)) {
+                    let cattitle = Ele("div", {
+                        innerHTML: cat,
+                        
+                        style: {
+                            color:'black',
+                            backgroundColor: "darkgrey",
+                            paddingLeft: "4px",
+                            paddingRight: "4px",
+                            border: "solid 1px black"
+                        },
+                        onclick: function () {
+                            let box = document.getElementById('si_edit_settings_categories_' + cat);
+                            if (box.style.display === 'none') {
+                                box.style.display = 'flex';
+                            } else {
+                                box.style.display = 'none';
+                            }
+                        },
+                        appendTo: allowedMimesBox
+                    });
+                    let catbox = Ele("div", {
+                        id: 'si_edit_settings_categories_' + cat,
+                        style: {
+                            color: 'black',
+                            backgroundColor: "grey",
+                            display: 'none',
+                            flexWrap: 'wrap',
+                            justifyContent:'space-around'
+                        },
+                        appendTo: allowedMimesBox
+                    });
+                    for (let ext in categories[cat]) {
+                        if (categories[cat].hasOwnProperty(ext)) {
+                            let check = false;
+                            if (allowedFileTypes.indexOf(ext)>-1) {
+                                check = true;
+                            }
+                            let mimebox = Ele("span", {
+                                appendTo: catbox,
+                                style: {
+                                    display:'inline',
+                                    paddingLeft: "4px",
+                                    paddingRight: "4px",
+                                    border: "solid 1px black",
+                                    borderRadius:'3px',
+                                    backgroundColor: "darkgrey",
+                                    margin:'1px'
+                                }
+                            });
+                            let cb = Ele("input", {
+                                type: 'checkbox',
+                                class:"si-edit-settings-allowedfiletypes",
+                                data: {
+                                    extension: ext
+                                },
+                                appendTo: mimebox,
+                                checked: check,
+                                onchange: function () {
+                                   
+                                    let cbs = document.getElementsByClassName("si-edit-settings-allowedfiletypes");
+                                    let fncsv = "";
+                                    
+                                    for (let i in cbs) {
+                                        let cb = cbs[i];
+                                        if (cb.checked) {
+                                            fncsv += cb.dataset.extension+",";
+                                        }
+                                    }
+                                    if (fncsv.length > 0) {
+                                        fncsv = SI.Tools.String.TrimR(fncsv, ','); //lose the last comma.
+                                    }
+    
+                                    let options = {
+                                        Data: {
+                                            KEY: "UpdateSetting",
+                                            settingname: "AllowedFileTypes",
+                                            settingvalue: fncsv
+                                        }
+                                    };
+    
+                                    SI.Editor.Ajax.Run(options);
+                                }
+                            });
+                            
+                            Ele("span", {
+                                innerHTML: ext +"&nbsp;-&nbsp;",
+                                style: {
+                                    color:"blue",
+                                },
+                                appendTo: mimebox
+                            });
+                            Ele("span", {
+                                innerHTML: categories[cat][ext],
+                                appendTo: mimebox
+                            });
+    
+                        }
+                    }
+    
+    
+                }
+            }
+    
+            return allowedMimesBox;
+        }
+
+    }
 
 }

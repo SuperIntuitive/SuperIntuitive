@@ -160,6 +160,12 @@ SI.Editor.Objects.Blocks = {
             },
 
         });
+        if(SI.Editor.Objects.Blocks.Selected){
+            if(SI.Editor.Objects.Blocks.Selected.id === 'si_block_' + fixedkey){
+                blockui.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
+            }
+        }
+
 
         //draw the block controls
         let blockData = "";
@@ -394,7 +400,7 @@ SI.Editor.Objects.Blocks = {
 
             onclick: function (e) {
                 let blockname = this.dataset.fkey;
-                SI.Editor.UI.Scripter.Window.Show();
+                SI.Editor.UI.ToolsPanel.ToolsItemClick("Scripter");
                 SI.Editor.Objects.Scripter.OpenScript(blockname, "Block");
                 e.stopPropagation(); //keep from clicking through
             },
@@ -420,9 +426,8 @@ SI.Editor.Objects.Blocks = {
             onclick: function (e) {
                 //debugger;
                 let blockname = this.dataset.fkey;
-
-                SI.Editor.UI.Styler.Window.Show();
-                SI.Editor.UI.Styler.LoadStyleByBlock(blockname);
+                SI.Editor.UI.ToolsPanel.ToolsItemClick("Styler");
+                SI.Editor.Objects.Styler.LoadStyleByBlock(blockname);
                 e.stopPropagation(); //keep from clicking through
             },
             appendTo: blockui,
@@ -546,8 +551,6 @@ SI.Editor.Objects.Blocks = {
             //SI.Editor.Objects.Blocks.AddWidget(fixedkey, , ,widgetsTable);
         }
 
-
-
         //SETTING CONTROLS
         let settingsContainer = Ele('div', {
             id: 'si_block_settings_window_' + fixedkey,
@@ -655,7 +658,6 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
-
         //DEPLOYMENT CONTROLS
         let deploymentsContainer = Ele('div', {
             id: 'si_block_deployment_window_' + fixedkey,
@@ -715,7 +717,6 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
-
         //STYLE CONTROLS
         let styletable = Ele('table', {
             id: "si_edit_page_blocks_styles_" + fixedkey,
@@ -730,7 +731,7 @@ SI.Editor.Objects.Blocks = {
             //debugger;
             let styleobj = {
                 "Property": style,
-                "Effected": '#si_block_' + fixedkey,
+                "Affected": '#si_block_' + fixedkey,
                 "InitialValue": val,
                 "AccessClass": "si-editor-page-blockstyle-" + fixedkey,
                 "Removable": true,
@@ -757,7 +758,7 @@ SI.Editor.Objects.Blocks = {
                     let block = '#' + this.dataset.block;
                     let styleobj = {
                         "Property": style,
-                        "Effected": block,
+                        "Affected": block,
                         "AccessClass": "si-editor-page-blockstyle-" + fixedkey,
                         "Removable": true,
                     };
@@ -790,8 +791,6 @@ SI.Editor.Objects.Blocks = {
                 }
             }
         }
-
-
         return blockui;
     },
     BabyBlock: function (blockname) {
@@ -1088,10 +1087,14 @@ SI.Editor.Objects.Blocks = {
         SI.Tools.Class.Loop("si-bids", function (ele) {
             ele.style.boxShadow = "none";
         });
-
         if (block) {
             block.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
-            document.getElementById(block.id.replace("si_block_", "si_bid_")).style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
+           
+            let bid =  document.getElementById(block.id.replace("si_block_", "si_bid_"))
+            if(bid){
+                bid.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
+            }
+
             SI.Editor.Objects.Blocks.Selected = block;
         } else {
             SI.Editor.Objects.Blocks.Selected = null;

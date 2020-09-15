@@ -17,7 +17,7 @@ class Database extends DbCreds
 	private $pageStatusReason = null;
 	private $dbSchema = null;
 	private $entityTables = array();
-	private $databaseName = null;
+	public  $databaseName = null;
 
 	public function __construct(){
 		$this->Connect();
@@ -518,19 +518,29 @@ class Database extends DbCreds
 			}
 		}
 	}
-	public function BackupDatabase(){
-		$this->BuildInstallerFile(true);
+	public function BackupDatabase($post){
+		$this->BuildInstallerFile($post, true);
 	}
-	public function BuildInstallerFile($backup = false){
+	public function BuildInstallerFile($post, $backup = false){
 
-		$filename = date("d_H-i-s")."_SiBackup.sql";
-		$datepath = date("Y/m/");
+		$filename;
+
 		if($backup){
-			$filename = date("d_H-i-s")."_SiBackup.sql";
+			$datepath = date("Y/m/");
+			if(isset($post['Name'])){
+				$filename = $post['Name'].".sql";
+			}else{
+				$filename = date("d_H-i-s")."_SiBackup.sql";
+			}
 			$dir = $_SERVER['DOCUMENT_ROOT'] . "/sql/backups/$datepath";
 		}
 		else{$filename = date("d_H-i-s")."_SiBackup.sql";
-			$dir = $_SERVER['DOCUMENT_ROOT'] . "/sql/installer/$datepath";
+			if(isset($post['Name'])){
+				$filename = $post['Name'].".sql";
+			}else{
+				$filename = date("d_H-i-s")."_SiInstaller.sql";
+			}
+			$dir = $_SERVER['DOCUMENT_ROOT'] . "/sql/installer/";
 		}
 		
 		Tools::Log($dir);
@@ -822,7 +832,7 @@ class Database extends DbCreds
 		}
 		catch(Exception $e){
 			if(!$backup){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Built Failed: ".$e;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Build Failed: ".$e;
 			}else{
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
 			}

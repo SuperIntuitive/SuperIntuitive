@@ -3,8 +3,9 @@
         let base = Ele('div', {
             style: {
                 width: '100%',
+                height: '100%',
                 backgroundColor: SI.Editor.Style.FavoriteColor,
-                padding: '15px'
+                overflowY: 'scroll'
             }
         });
 

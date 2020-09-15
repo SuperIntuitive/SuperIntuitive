@@ -1,17 +1,11 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+﻿if(!SI.Widgets.Map){SI.Widgets.Map = {}};
+SI.Widget.Map = function  (options) { 
+    if (!(this instanceof SI.Widget.Map)) { return new SI.Widget.Map(options); }
 
-
-
-SI.Widget.Map = function (options) {
-    if (!(this instanceof SI.Widget.Map)) { return new SI.Widget.Map(); }
-    this.Input = options;
-    if ("Id" in options) {
-        this.Id = options.Id;
-    } else {
-        this.Id = SI.Tools.Element.SafeId("map");
-    }
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Map");}
+    this.Input = {...options};
+    SI.Widgets.Map[this.Id] = this;
 
     this.Defaults = {
         "Parent": {"value": null, "type": "attr.parentElement", "effect": this.Id},

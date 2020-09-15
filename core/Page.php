@@ -462,6 +462,8 @@ if (!SI) { var SI = {}; }
 			    $ret = array();
 				$ret[$pageid]=$post['page'];
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGECREATED'] = $ret;
+				//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['CALLBACK'] = $post['CALLBACK'];
+				//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PARAMETER'] = $ret;
 			}else{
 				Tools::Log('That page already exists.');	
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = 'Cannot make that page. It already exists.';

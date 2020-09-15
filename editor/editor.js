@@ -12,7 +12,8 @@ error_reporting(E_ALL ^ E_WARNING);
    // echo $siobj;
 if (Tools::UserHasRole('Admin')) 
 {
-   
+
+
     $notsuperadmin = "true";
     $notdomainadmin = "true";
     if (Tools::UserHasRole('SuperAdmin')) { $notsuperadmin = "false"; $notdomainadmin = "false"; } 
@@ -157,7 +158,6 @@ if (Tools::UserHasRole('Admin'))
     $dt->Numbered = true;
     $dt->Selectable = true;
 
-
     $dt->LoadArray($users);
 
     $usrconfstyle = 'height:28px; width:28px; margin:3px; background-size:contain;';
@@ -186,14 +186,9 @@ if (Tools::UserHasRole('Admin'))
 
     $EasyPassword = '/^(?=.*\d)(?=.*[a-zA-Z]).{6,}$/gm';
     $HardPassword = '/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm';
-
     $PasswordStrength = $HardPassword;
 
-    //Build Mime interface to allow admin to pick allowed mimes
-
- 
     $allmimetypes = json_encode($miscdata->MimeTypes);
-
     $mimes = "{
         'Images': ['image/png', 'image/bmp', 'image/jpeg', 'image/svg', 'image/gif'],
         'Audio': ['audio/wav', 'audio/x-wav', 'audio/mpeg', 'audio/mp3', 'audio/midi', 'audio/ogg', 'audio/flac','audio/webm'],
@@ -203,14 +198,7 @@ if (Tools::UserHasRole('Admin'))
         'Fonts': ['application/x-font-ttf', 'application/x-font-otf']
         }";
 
-
-
-
-
     $sessionPageData = json_encode($_SESSION['SI']);
-
-    //  $sessionPageData = str_replace('":{"', '":{<br />&nbsp;&nbsp;&nbsp;&nbsp;"', $sessionPageData);
-
 
     $htmlElementsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/html_elements.json');
     $htmlAttributesAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/html_attributes.json');
@@ -220,7 +208,6 @@ if (Tools::UserHasRole('Admin'))
     $sqlMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/sql_methods.json');
     $cssNew = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_new.json');
     $cssPseudo = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_pseudo.json');
-
 
     $dataage = "html_elements: $htmlElementsAge,
             html_attributes: $htmlAttributesAge,
@@ -245,8 +232,8 @@ if (Tools::UserHasRole('Admin'))
 ?> 
 "use strict";
 if(!SI){ var SI = {};}
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
+if(!SI.Editor) { SI.Editor = {}; }
+if(!SI.Editor.Objects) { SI.Editor.Objects = {}; }
 
 SI.Editor = {
     Style: {
@@ -294,6 +281,11 @@ SI.Editor = {
         }, 50);
         console.timeEnd('EditorLoadTime');
         console.log(SI.Editor);
+        //check for lookups
+        let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
+        if(lookup){
+            lookup.CheckLookups();
+        }
     },
     Data: {
         loaded : false,
@@ -323,7 +315,7 @@ SI.Editor = {
             AnimationNames: [],
         },
         Init: function () {
-            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods", "css_new","css_pseudo"];
+            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"];
             let loadedcount = 0;
             codes.forEach(function (codetype) {
                 let lastmoddate = codetype + "_last_modified";
@@ -354,16 +346,7 @@ SI.Editor = {
                 } else {
                     if (jsonstring != null && jsonstring.length > 0) {
                         try {
-                            if (codetype === "css_new") {
-                                SI.Editor.Data.Code.Styles = JSON.parse(jsonstring);
-                            }
-                            else if (codetype === "css_pseudo") {
-                                SI.Editor.Data.Code.PseudoStyles = JSON.parse(jsonstring);
-                            }
-                            else {
-                                SI.Editor.Data[codetype] = JSON.parse(jsonstring);
-                            }
-                            
+                            SI.Editor.Data[codetype] = JSON.parse(jsonstring);
                             loadedcount++;
                             if (loadedcount == codes.length) {       
                                 SI.Editor.Data.loaded = true;
@@ -646,6 +629,7 @@ SI.Editor = {
                     }
                 };
                 this.StyleData = function () {
+                    /*
                     if (SI.Editor.Data.Code.Styles) {
                         SI.Editor.Data.DataLists.StyleGroups = {};
                         let styleGroupOrder = "";
@@ -677,6 +661,7 @@ SI.Editor = {
                             }
                         }
                     }
+                    */
                 };
                 this.AtData = function () {
                     //@keyframenames are the same as animation names. find them and set them. too bad there isnt a window object that holds all Animation Names.
@@ -765,7 +750,6 @@ SI.Editor = {
     },
     UI:{
         Container: null,
-        Windows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Scenegraph", "Security", "Users","Settings"],
         Init: function (){
             //Initialize main visible panel
             SI.Editor.UI.DrawAppContainer();
@@ -777,13 +761,13 @@ SI.Editor = {
                 SI.Editor.UI[title].Init();
             }
             //Initialize Windows
-            setTimeout(function(){ //this set timeout fixes a timing issue in xDebug and is not needed otherwise
-            for (let i in SI.Editor.UI.Windows) {
-                let title = SI.Editor.UI.Windows[i];
-                SI.Editor.UI[title].Init();
-            }
+           // setTimeout(function(){ //this set timeout fixes a timing issue in xDebug and is not needed otherwise
+          //  for (let i in SI.Editor.UI.Windows) {
+          //      let title = SI.Editor.UI.Windows[i];
+          //      SI.Editor.UI[title].Init();
+          //  }
             SI.Editor.UI.SetDocumentEvents();
-            },200);
+ 
         },
         SetDocumentEvents: function(ev) {
             //if the rott si menu is open, spawn the browser context menu. if not open the root si menu
@@ -820,7 +804,7 @@ SI.Editor = {
                 }             
             };
 
-            var map = {}; //  so-5203407
+            let map = {}; //  so-5203407
             onkeydown = onkeyup = function (e) {
                 let selected = SI.Editor.Objects.Elements.Selected;
                 let isFocused = (document.activeElement === selected);      //so-36430561
@@ -868,7 +852,7 @@ SI.Editor = {
         },
         DrawAppContainer: function () {
             //create the container that all visible editor.js items will be containd in.
-            var editorContainer = Ele('div', {
+            let editorContainer = Ele('div', {
                 class: 'lgn-editor',
                 id: 'si_edit_container',
                 style: {
@@ -877,7 +861,6 @@ SI.Editor = {
                 },
                 appendTo:document.body,
             });
-
             SI.Editor.UI.Container = editorContainer;  
         },
         MainMenu: {
@@ -906,7 +889,10 @@ SI.Editor = {
                     onmouseleave: function () {
                         //debugger;
                         SI.Editor.UI.MainMenu.IsDragging = false;
-                        document.getElementById('si_edit_hud_editisdragging').innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
                     },
                     ondragstart: function (e) {
                         //Need to add the mouse to menu offset so that it can be determined below.
@@ -916,7 +902,10 @@ SI.Editor = {
                         this.dataset.mOffY = e.offsetY;
                         SI.Editor.UI.MainMenu.IsDragging = true;
                         e.dataTransfer.setData("Text", e.target.id);
-                        document.getElementById('si_edit_hud_editisdragging').innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
                     },
                     ondragover: function (e) { e.preventDefault(); },
                     ondragend: function (e) {
@@ -928,7 +917,10 @@ SI.Editor = {
                         //change the menu position to be the mouse minus the original mouse offset
                         this.style.left = e.pageX - moX + 'px';
                         this.style.top = e.pageY - moY + 'px';
-                        document.getElementById('si_edit_hud_editisdragging').innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
                         //console.log(e);
                     }
                 });
@@ -1051,7 +1043,7 @@ SI.Editor = {
                 SI.Editor.UI.MainMenu.Element.appendChild(tagMenu);
             },
             SetupTabs: function (newMenu) {
-                let tabs = new SI.Widget.Tab();
+                let tabs = new SI.Widget.Tab({Id:"si_edit_add_tab"});
                 //create the tabbox
                 let tabTags = Ele('div', {
                     id: 'si_edit_add_tag',
@@ -1134,6 +1126,7 @@ SI.Editor = {
                         },
                         ondragend: function (e) {
                             e.stopPropagation();
+                            //debugger;
                             if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent)) {
                                 let widget = e.target.dataset.type;
                                 let parent = SI.Editor.Objects.Elements.DropParent;
@@ -1329,7 +1322,7 @@ SI.Editor = {
                     },
 
                 });
-                var tabs = new SI.Widget.Tab({ Height: '100%' });
+                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab' });
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
@@ -1927,7 +1920,7 @@ SI.Editor = {
                 //Loop through all of the groups of styles
                 for (let group in SI.Editor.Data.css_properties) {
                     if (SI.Editor.Data.css_properties.hasOwnProperty(group)) {
-                        if (!group.startsWith("Pseudo")) {
+                        if (!group.startsWith("Pseudo") && group!=="At Selectors" ) {
                             //Make the group box
                             let stylebox = Ele('div', {
                                 innerHTML: group,
@@ -1961,135 +1954,7 @@ SI.Editor = {
                 Ele("div",{style: {height:"18px",}, appendTo:styleview });//hack to fix the bottom of the scrolls. This is probably a tabs issue. further investigate.
                 return styleview;
             },
-            //future use
-            DrawStyles2: function() {
-                //create a box for the groups
-                var styleview = Ele('div', {
-                    id: 'si_edit_style_view',
-                    style: {
-                        backgroundColor: SI.Editor.Style.BackColor,
 
-                    },
-                });
-                //create the menubar for controls
-                var styleviewctrls = Ele('div', {
-                    id: 'si_edit_style_view_controls',
-                    style: {
-                        backgroundColor: SI.Editor.Style.MenuColor,
-                        height:'20px',
-                    },
-                    appendTo: styleview
-                });
-                //add the Group radio box
-                var styleviewradiogrouplabel = Ele('label', {
-                    for: 'si_edit_style_view_controls_radio_group',
-                    innerHTML: "Group",
-                    style: {
-                        marginLeft: '10px',
-                    },
-                    appendTo: styleviewctrls
-                });
-                var styleviewradiogroup = Ele('input', {
-                    type: "radio",
-                    checked:"checked",
-                    name:'si_edit_style_view_controls_sort',
-                    id: 'si_edit_style_view_controls_radio_group',
-                    style: {marginRight:'10px'},
-                    appendTo: styleviewctrls,
-                    onchange: function () {
-                        document.getElementById('si_edit_style_view_groups').style.display = 'block';
-                        document.getElementById('si_edit_style_view_alpha').style.display = 'none';
-                    }
-                });
-                //add the Alpha radio box
-                var styleviewradioalphalabel = Ele('label', {
-                    for: 'si_edit_style_view_controls_radio_alpha',
-                    innerHTML: "A-Z",
-                    appendTo: styleviewctrls
-                });
-                var styleviewradioalpha = Ele('input', {
-                    type: "radio",
-                    name: 'si_edit_style_view_controls_sort',
-                    id: 'si_edit_style_view_controls_radio_alpha',
-                    data: {
-                        'si-loaded': false
-                    },
-                    appendTo: styleviewctrls,
-                    onchange: function () {
-                        alert("alpha");
-                        document.getElementById('si_edit_style_view_groups').style.display = 'none';
-                        let sortedbox = document.getElementById('si_edit_style_view_alpha');
-                        if (!sortedbox.dataset.loaded === true) {
-                            SI.Editor.UI.EditPanel.DrawSortedStyles();
-                        }
-                        sortedbox.style.display = 'block';
-                    }
-                });
-                //The Groups Box
-                var styleviewgroups = Ele('div', {
-                    id: 'si_edit_style_view_groups',
-                    style: {
-                        height: '290px',
-                        overflowX: 'hidden',
-                        overflowY: 'scroll',
-                    },
-                    appendTo: styleview
-                });
-                //The Alphabatized Box
-                var styleviewalpha = Ele('div', {
-                    id: 'si_edit_style_view_alpha',
-                    style: {
-                        height: '290px',
-                        overflowX: 'hidden',
-                        overflowY: 'scroll',
-                        display:'none'
-                    },
-                    appendTo: styleview
-                });
-
-                let groups = SI.Editor.Data.DataLists.StyleGroups;
-                let groupObject = {};
-                for (let g in groups) {
-
-                    let groupbox = Ele("div", { });
-
-                    let props = groups[g];
-                    for (let p in props) {
-                        let prop = props[p];
-                        let style = SI.Editor.Data.Code.Styles[prop];
-
-                        Ele("div", {
-                            innerHTML:prop,           
-                            appendTo:groupbox
-                        });
-
-                    }
-
-                    groupObject[g] = groupbox;
-                }
-             //   debugger;
-                let options = { Parent: styleviewgroups, Sections: groupObject };
-                let accordion = new SI.Widget.Accordion(options);
- 
-                return styleview
-            },
-            DrawSortedStyles: function() {
-                //only draw this if the user selected it.
-                let box = document.getElementById('si_edit_style_view_alpha');
-                
-                let styles = SI.Editor.Data.Code.Styles;
-                let styleObject = {};
-
-                for (let s in styles) {
-
-                   
-                }
-
-                let options = { Sections: styleObject };
-                let accordion = new SI.Widget.Accordion(options);
-                debugger;
-                box.dataset.loaded = true;
-            },
             //When a element is selected, update ALL the Attributes and styles UIs to reflect the elements values.
             SetSelectedElementValues: function (element) {
                 //debugger;
@@ -2244,6 +2109,8 @@ SI.Editor = {
                 },
             }
         },
+
+
         ToolsPanel: {
             Init: function () {
                 //Tools Menu	
@@ -2267,8 +2134,10 @@ SI.Editor = {
                     }
                 });
 
-                for (let i in SI.Editor.UI.Windows) {
-                    let title = SI.Editor.UI.Windows[i];
+                for (let i in SI.Editor.UI.ToolsPanel.ToolWindows) {
+                 //   debugger;
+                    let title = SI.Editor.UI.ToolsPanel.ToolWindows[i];
+
                     var menuRow = toolsMenuTable.insertRow(i);
                     var menuItem = menuRow.insertCell(0);
                     menuItem.style.border = 'solid 1px #000';
@@ -2278,742 +2147,157 @@ SI.Editor = {
                     menuItem.style.cursor = 'pointer';
                     menuItem.style.paddingLeft = '5px';
                     menuItem.style.paddingRight = '5px';
-                    if (title !== "Page") {
-                        menuItem.onclick = function (ev) {
-                            //debugger;
-                            //if the window is showing, hide it and bail
-                            if (SI.Editor.UI[title].Window.IsVisible()) {
-                                SI.Editor.UI[title].Window.Hide();
-                                return;
-                            }
-                            //if not. position it to the right of the mouse and show it. 
-                            let left = (ev.pageX + 100) + "px";
-                            let top = ev.pageY + "px";
-                            SI.Editor.UI[title].Window.SetPosition(top, left);
-                            SI.Editor.UI[title].Window.Show();
-                        };
-                    }
+                    menuItem.onclick = SI.Editor.UI.ToolsPanel.ToolsItemClick;
                 }
                 toolsMenu.appendChild(toolsMenuTable);
                 SI.Editor.UI.MainMenu.Element.appendChild(toolsMenu);          
-            }
-        },
-        //Tool windows
-        Page: {
-            Window: null,
-            Init: function () { //ParentId: 'si_edit_container',
-                let options = {
-                    Id: "si_edit_page_window",
-                    Title: "Page",
-                    Populate: SI.Editor.Objects.Page.Draw,
-                    Trigger: '#si_edit_page_trigger',
-                    IconImg: '/editor/media/icons/page.png'
+            },
+            ToolWindows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Security", "Users","Settings"],
+            ToolsItemClick:function(title = null){        
+                if(title.target){
+                    title = this.innerHTML;
                 }
-                SI.Editor.UI.Page.Window = new SI.Widget.Window(options);
-            },
-        },
-        Media: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_media_window",
-                    Trigger: '#si_edit_tools_media',
-                    Title: "Media",
-                    Trigger: '#si_edit_media_trigger',
-                    IconImg: '/editor/media/icons/window-media.png',
-                    Populate: SI.Editor.Objects.Media.Draw,
-                    Resize:SI.Editor.Objects.Media.Resize,
-                }; 
-                SI.Editor.UI.Media.Window = new SI.Widget.Window(obj); 
-               // SI.Editor.UI.Media.Window.Resize = media.ResizeWindow;
-            }
-        },
-        Styler: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_styler_window",
-                    Trigger: '#si_edit_styler_trigger',
-                    Title: "Styler",
-                    IconImg: '/editor/media/icons/stylebutton.png',
-                    Overflow: "hidden",
-                    Populate:SI.Editor.Objects.Styler.Draw
-                };
-                SI.Editor.UI.Styler.Window = new SI.Widget.Window(obj);
-            }
-        },
-        Scripter: {
-            Window: null,
-            Init: function () {               
-                var obj = {
-                    Id: "si_edit_scripter_window",
-                    Trigger: '#si_edit_scripter_trigger',
-                    IconImg: '/editor/media/icons/scripter-code.png',
-                    Title: "Scripter"
-                };
-                SI.Editor.UI.Scripter.Window = new SI.Widget.Window(obj);
-                try {
-                    SI.Editor.UI.Scripter.Window.Append(SI.Editor.Objects.Scripter.Draw());
-                }
-                catch (e) {
-                   let scriptorErrorMsg = Ele("H2", {
-                       innerHTML: "The Scriptor is not compatable with this browser. It has been tested to work with:<ul> <li>Chrome</li><li>Opera</li><li>Edge based on Chromium</li> </ul>It does not work with:<ul><li>Firefox</li></ul>"
-                    });
-                    SI.Editor.UI.Scripter.Window.Append(scriptorErrorMsg);
-                }
-            }
-        },
-        Widgets: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_widgets_window",
-                    Trigger: '#si_edit_widgets_trigger',
-                    IconImg: '/editor/media/icons/widgets.png',
-                    Title: "Widgets"
-                };
-                SI.Editor.UI.Widgets.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Widgets.Draw();
-            },
-
-        },
-        Language: {
-            Window: null,
-            Init: function () {               
-                var obj = {
-                    Id: "si_edit_language_window",
-                    Trigger: '#si_edit_language_trigger',
-                    IconImg: '/editor/media/icons/language.png',
-                    Title: "Language"
-                };
-                SI.Editor.UI.Language.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Language.Draw();
-            },
-        },
-        Entities: {
-            Window: null,
-            Init: function() {
-                var obj = {
-                    Id: "si_edit_entities_window",
-                    Trigger: '#si_edit_entities_trigger',
-                    Title: "Entities",
-                    Resize: function(win){
-                        win.Container.height = win.GetHeight();
-                        win.Container.width = win.GetWidth();
-                    },
-                };
-                SI.Editor.UI.Entities.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Entity.Draw();
-            }
-        },
-        Plugins: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_plugins_window",
-                    Trigger: '#si_edit_plugins_trigger',
-                    Title: "Plugins",
-                    IconImg: '/editor/media/icons/plugins.png',
-                    ResizeThickness: 5,
-                    Resize: function (win) {
-                        document.getElementById('si_edit_plugins_repo_content').style.height = win.Container.clientHeight - 127 + "px";                       
-                    },
-                };
-                SI.Editor.UI.Plugins.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Plugins.Draw();
-
-            },
-            Draw: function () {
-                let container = Ele("div",{
-                    style:{
-                        width:"100%",
-                        height:"100%",
-                        backgroundColor:'green',
-
-                    },
-                });
-
-                let tabs = new SI.Widget.Tab({
-                    OnChange: function (self) {
-                        let tab = self.dataset.tabname;
-                        let pis = SI.Editor.Objects.Plugins.Repo.Plugins;
-                        //if we have no plugins, we should probably try to get some
-                        if ( pis.length === 0 ) {
-                            SI.Editor.Objects.Plugins.Repo.GetMorePlugins();
+                let winid = "si_edit_"+title.toLowerCase()+"_window";   //"si_edit_media_window"
+                if(!SI.Widgets.Window[winid]){
+                    let options;
+                    switch(title){
+                        case "Page":
+                            options = {
+                            Id: "si_edit_page_window",
+                            Title: "Page",
+                            Populate: SI.Editor.Objects.Page.Draw,
+                            Trigger: '#si_edit_page_trigger',
+                            IconImg: '/editor/media/icons/page.png'
+                            };
+                            break;
+                        case  "Media":
+                            options = {
+                                Id: "si_edit_media_window",
+                                Trigger: '#si_edit_tools_media',
+                                Title: "Media",
+                                Trigger: '#si_edit_media_trigger',
+                                IconImg: '/editor/media/icons/window-media.png',
+                                Populate: SI.Editor.Objects.Media.Draw,
+                                Resize:SI.Editor.Objects.Media.Resize,
+                            };
+                            break;
+                        case  "Site":
+                            options = {
+                                Id: "si_edit_site_window",
+                                Trigger: '#si_edit_site_trigger',
+                                Title: "Site",
+                                IconImg: '/editor/media/icons/site.png',
+                                Populate: SI.Editor.Objects.Site.Draw
+                            };
+                            break;
+                        case "Styler":
+                            options = {
+                                Id: "si_edit_styler_window",
+                                Trigger: '#si_edit_styler_trigger',
+                                Title: "Styler",
+                                IconImg: '/editor/media/icons/stylebutton.png',
+                                Overflow: "hidden",
+                                Populate:SI.Editor.Objects.Styler.Draw
+                            };
+                            break;
+                        case "Scripter":
+                            options = {
+                                Id: "si_edit_scripter_window",
+                                Trigger: '#si_edit_scripter_trigger',
+                                IconImg: '/editor/media/icons/scripter-code.png',
+                                Title: "Scripter",
+                                Error: "This tool has issues with some browsers. It works fine in Chrome and Edge based on Chromium, Firefox has trouble parsing some of the regular expresions used.",
+                                Populate:SI.Editor.Objects.Scripter.Draw                                    };
+                            break;
+                        case "Widgets":
+                            options = {
+                                Id: "si_edit_widgets_window",
+                                Trigger: '#si_edit_widgets_trigger',
+                                IconImg: '/editor/media/icons/widgets.png',
+                                Title: "Widgets",
+                                Populate:SI.Editor.Objects.Widgets.Draw
+                            };
+                            break;
+                        case "Language":
+                            options = {
+                                Id: "si_edit_language_window",
+                                Trigger: '#si_edit_language_trigger',
+                                IconImg: '/editor/media/icons/language.png',
+                                Title: "Language",
+                                Populate:SI.Editor.Objects.Language.Draw
+                            };
+                            break;
+                        case "Entities":
+                            options = {
+                                Id: "si_edit_entities_window",
+                                Trigger: '#si_edit_entities_trigger',
+                                Title: "Entities",
+                                Resize: SI.Editor.Objects.Entity.Resize,
+                                Populate:SI.Editor.Objects.Entity.Draw
+                            };
+                            break;
+                        case "Plugins":
+                            options = {
+                                Id: "si_edit_plugins_window",
+                                Trigger: '#si_edit_plugins_trigger',
+                                Title: "Plugins",
+                                IconImg: '/editor/media/icons/plugins.png',
+                                ResizeThickness: 5,
+                                Resize:  SI.Editor.Objects.Plugins.Resize,
+                                Populate: SI.Editor.Objects.Plugins.Draw,
+                            };
+                            break;
+                        case "Security":
+                            options = {
+                                Id: "si_edit_security_window",
+                                Trigger: '#si_edit_security_trigger',
+                                Title: "Security",
+                                IconImg: '/editor/media/icons/securityroles.png',
+                                Populate: SI.Editor.Objects.Security.Draw
+                            };
+                            break;
+                        case "Users":
+                            options = {
+                                Id: "si_edit_users_window",
+                                Trigger: '#si_edit_users_trigger',
+                                Title: "Users",
+                                Width: '900px',
+                                Populate: SI.Editor.Objects.User.Draw
+                            };
+                            break;
+                        case "Settings":
+                            options = {
+                                Id: "si_edit_settings_window",
+                                Trigger: '#si_edit_settings_trigger',
+                                Title: "Settings",
+                                Populate: SI.Editor.Objects.Settings.Draw
+                            };
+                            break;
+                    }
+                    if(options){
+                        try{
+                        new SI.Widget.Window(options);
+                        SI.Widgets.Window[winid].Show();
+                        }catch(er){
+                            SI.Tools.SuperAlert("Error loading "+title+": "+er.message, 4000);
+                            if(options.Error){
+                                setTimeout(function(){
+                                    SI.Tools.SuperAlert(options.Error, 4000);
+                                },4500)
+                            }
                         }
                     }
-                });
-
-                //Currently Installed plugins
-                let localPlugins = Ele("div", {
-                    style: {
-                        display: 'flex',
-                        flexWrap:'wrap',
-                    }
-                });
-
-                for (let i = 0; i < 100; i++) {
-                    Ele("div", {
-                        style: {  
-                            backgroundColor: 'blue',
-                            height: '100px',
-                            width: '100px',
-                            margin:'8px',
-                        },
-                        appendTo: localPlugins,
-                    });
                 }
-
-                tabs.Items.Add("Local Plugins", SI.Editor.Objects.Plugins.Local.Build() );
-                tabs.Items.Add("Plugins Repo", SI.Editor.Objects.Plugins.Repo.Build());
-                tabs.Items.Add("Plugin Editor", SI.Editor.Objects.Plugins.Editor.Build());
- 
-                container.appendChild(tabs.Draw());
-                SI.Editor.UI.Plugins.Window.Append(container); 
-                SI.Editor.Objects.Plugins.Repo.AddCategory("All");
-            },
-        },
-        Site: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_site_window",
-                    Trigger: '#si_edit_site_trigger',
-                    Title: "Site",
-                    IconImg: '/editor/media/icons/site.png',
-                    Populate: SI.Editor.Objects.Site.Draw
-                };
-                SI.Editor.UI.Site.Window = new SI.Widget.Window(obj);
-            },
-
-        },
-        Scenegraph: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_scenegraph_window",
-                    Trigger: '#si_edit_scenegraph_trigger',
-                    Title: "Scenegraph",
-                    IconImg: '/editor/media/icons/scenegraph.png',
-                };
-                SI.Editor.UI.Scenegraph.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Scenegraph.Draw();
-            },
-            Draw: function () {
-                let base = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor:'#111',
-                        overflow: "scroll",
-                        color:SI.Editor.Style.TextColor,
-                    },
-                });
-                //debugger;
-                let ul =  SI.Tools.Object.ToDataTree(SI.Editor.Data.Site.SessionPageData);
-
-                let pre = Ele('div', {
-                    style: {
-                        tabSize: '0',
-                        color:'white',
-                    },
-                    append: ul,
-                    appendTo:base,
-                })
-                SI.Editor.UI.Scenegraph.Window.Append(base);
-            },
-        },
-        Security: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_security_window",
-                    Trigger: '#si_edit_security_trigger',
-                    Title: "Security",
-                    IconImg: '/editor/media/icons/securityroles.png',
-                };
-                SI.Editor.UI.Security.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Security.Draw();
-            },
-        },
-        Users: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_users_window",
-                    Trigger: '#si_edit_users_trigger',
-                    Title: "Users",
-                    StartWidth: '900px'
-                };
-                SI.Editor.UI.Users.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Users.Draw();
-            },
-            Draw: function () {
-                let base = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        overflow: "scroll",
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        color: SI.Editor.Style.TextColor,
-                    },
-                });
-
-                let newuser = Ele('button', {
-                    innerHTML: "New",
-                    style: {
-                    },
-                    onclick: function () {
-
-                        SI.Editor.Objects.User.New();
-                    },
-                    appendTo: base,
-                });
-
-                let rolewindow = Ele('div', {
-                    id: 'si_edit_users_rolewindow',
-                    innerHTML: "",
-                    style: {
-                        backgroundColor: SI.Editor.Style.MenuColor,
-                        top: '0px',
-                        left: '0px',
-                        position: 'relative',
-                        padding: '5px',
-                        display:'none',
-                    },
-                    appendTo: base,
-                })
-                let currentroles = SI.Editor.Data.Objects.Security.Roles;
-                //debugger;
-                for (let role of currentroles) {
-
-                    let rolebox = Ele('div', {
-
-                        appendTo: rolewindow,
-                    })
-                    let rolename = role.name;
-                    let label = Ele('label', {
-                        for: 'si_edit_users_rolecb_' + role.id,
-                        innerHTML:role.name,
-                        appendTo: rolebox,
-                    });
-
-                    let cb = Ele('input', {
-                        id: 'si_edit_users_rolecb_' + role.id,
-                        class: 'si-edit-users-rolecb-' + role.name,
-                        type: 'checkbox',
-                        style: {
-                            float:'right',
-                        },
-                        onchange: SI.Editor.Objects.User.UpdateRoles,
-                        appendTo: rolebox,
-                    });
+                if (SI.Widgets.Window[winid].IsVisible()) {
+                    SI.Widgets.Window[winid].Hide();
+                    return;
                 }
-                let pre = Ele('div', {
-                    innerHTML: "",
-                    style: {
-                        tabSize: '0',
-                    },
-                    appendTo: base,
-                })
-                pre.insertAdjacentHTML('beforeend', SI.Editor.Data.Objects.Users);
-                SI.Editor.UI.Users.Window.Append(base);
-            },
-        },
-        Settings: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_settings_window",
-                    Trigger: '#si_edit_settings_trigger',
-                    Title: "Settings",
-                    Populate: SI.Editor.Objects.Settings.Draw
-                };
-                SI.Editor.UI.Settings.Window = new SI.Widget.Window(obj);
-            }
-        },
-        //Tool Sub-Windows
-        BlockTemplates: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_blocktemplates_window",
-                    Trigger: '#si_edit_blocktemplates_trigger',
-                    Title: "Block Templates",
-                    IconImg: '/editor/media/icons/blocktemplates.png',
-                };
-                SI.Editor.UI.BlockTemplates.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.BlockTemplates.Window.Append(SI.Editor.UI.BlockTemplates.Draw());
-                SI.Editor.UI.BlockTemplates.Draw(SI.Editor.UI.BlockTemplates.Window.GetContentId());
-            },
-            Draw: function (content) {
-                let draw = document.createElement('div');
-
-                
-                let blockTemplateBox = document.createElement('div');
-                for (let key in SI.Editor.Data.Objects.Blocks) {
-                    if (SI.Editor.Data.Objects.Blocks.hasOwnProperty(key)) {
-
-                        if (typeof (SI.Editor.Data.Objects.Blocks[key]) != "undefined") {
-                            blockTemplateBox.appendChild(SI.Editor.UI.BlockTemplates.Add(SI.Editor.Data.Objects.Blocks[key]));
-                        }
-
-                    }
-                }
-
-                draw.appendChild(blockTemplateBox);
-                return draw;
-            },
-            Add: function (template) {
-                //debugger;
-                let table = Ele('table', {
-                    style: {
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        margin : '5px',
-                    },
-                });
-
-                let tr = document.createElement('tr');
-
-                let pic = document.createElement('td');
-                let data = document.createElement('td');
-
-                let frame = Ele('div',{
-                    style: {
-                        position : 'relative',
-                        height : '150px',
-                        width : '150px',
-                    },
-                    appendTo:pic,
-                });
-                //                    src: '/editor/media/images/blockthumbs/' + template['thumb'] + '.jpg',
-                let thumb = Ele('img', {
-
-                    style: {
-                        position : 'absolute',
-                        maxWidth : '100%',
-                        width : '100%',
-                        maxHeight : 'auto',
-                        heigth : 'auto',
-                        margin : 'auto',
-                        top : "0",
-                        bottom : "0",
-                        left : "0",
-                        right : "0",
-                    },
-                    appendTo:frame,
-                });
-
-                tr.appendChild(pic);
-
-               // console.log(Template);
-                //debugger;
-                let options = null;
-                try {
-                    options = JSON.parse(template['options']);
-                }
-                catch (error) {
-                    console.log(error);
-                }
-                if (options) {
-                    for (let s in options.style) {
-                        options[s] = options.style[s];
-                    }
-
-                    for (let option in options) {
-
-
-                        if (option != 'order' && option != 'category' && option != 'style') {
-                            let box = Ele('div', {
-                                style: {
-                                    display: 'inline-block',
-                                    margin: '5px',
-                                },
-                            });
-                            let label = Ele('span', {
-                                innerHTML: option,
-                                style: {
-                                    margin: '5px',
-                                },
-                                appendTo: box,
-                            });
-
-                            let input = Ele('input', {
-                                value: options[option],
-                                size: "5",
-                                appendTo: box,
-                            });
-
-                            data.appendChild(box);
-
-                        }
-                    }
-
-                }
-             //   console.log(options);
-                let btn = document.createElement('button');
-                btn.innerHTML = 'Add Block Template';
-                btn.style.float = 'right';
-                btn.style.marginTop = '40px';
-                btn.style.marginRight = '10px';
-                data.appendChild(btn);
-                tr.appendChild(data);
-                table.appendChild(tr);
-                return table;
-            }
-        },
-        ImportBlock: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Name: "ImportBlock", BackgroundColor: 'CadetBlue', Parent: 'si_edit_container',
-                    Title: "Import Block", StartWidth: '268px', StartHeight: '75px',
-                    StartTop: "400px", StartLeft: "300px", Resizable: false, WindowControls:"CLOSE",
-                };
-                SI.Editor.UI.ImportBlock.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.ImportBlock.Window.Append(SI.Editor.UI.ImportBlock.Draw());
-
-
-            },
-            Draw: function () {
-                let container = document.createElement('div');
-                let blSelect = Ele("select", {
-                    id: 'si_edit_importblock_select',
-                    style: {
-                        margin: '20px',
-                    },
-                    onchange: function (ev) {
-                        let val = this.value;
-                        let name = this.innerHTML;
-                    },
-                    appendTo: container,
-                });
-                let blButton = Ele("input", {
-                    type:'button',
-                    id: 'si_edit_importblock_button',
-                    style: {
-                        margin: '20px',
-                    },
-                    value:'Import',
-                    onclick: function (ev) {
-                        let sel = document.getElementById('si_edit_importblock_select');
-                        //debugger;
-                        SI.Editor.Objects.Blocks.Relate(sel.value);
-                    },
-                    appendTo: container,
-                });
-                let options = {};
-                options.Data = {
-                    Operation: "Retrieve",
-                    Entity: {
-                        Name: 'blocks',
-                    },
-                    Columns: "id,name",
-                };
-                options.Callback = SI.Editor.UI.ImportBlock.PopulateBlocks;
-                //debugger;
-                SI.Tools.Api.Send(options); 
-                return container;
-            },
-            PopulateBlocks: function(blocks) {
-              
-                let sel = document.getElementById('si_edit_importblock_select');
-                for (let b in blocks) {
-                    if (blocks.hasOwnProperty(b) && b !== 'Return') {
-                        //debugger;
-                        Ele("option", {
-                            innerHTML: blocks[b].name,
-                            value: '0x' + blocks[b].id,
-                            title: '0x' + blocks[b].id,
-                            appendTo: sel,
-                        });
-                    }
-                }
-            },
-        },
-        HUD: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_hud_window",
-                    Trigger: '#si_edit_hud_trigger',
-                    Title: "HUD",
-                    StartWidth: '200px',
-                    StartHeight: '150px',
-                    StartTop: '30%',
-                    StartLeft: '1%',
-                    Overflow: "hidden",
-                    Position: "fixed",
-                    WindowControls: "CLOSE",
-                    IconImg: '/editor/media/icons/hud.png',
-                    OnClose: function () {  //sync the cb in settings
-                        document.getElementById('si_edit_settings_hudcb').checked = false;
-                    }
-                };
-                SI.Editor.UI.HUD.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.HUD.Draw();
-            },
-            Draw: function () {
-                let container = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        color: SI.Editor.Style.TextColor,
-                        fontSize: '10px',
-                    },
-                });
-
-                Ele('span', {
-                    innerHTML: "Mouse X:",
-                    appendTo: container,
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_xpos',
-                    appendTo: container,
-                });
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Mouse Y:",
-                    appendTo: container,
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_ypos',
-                    appendTo: container,
-                });
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Selected Element:",
-                    appendTo: container,
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_selectedelement',
-                    appendTo: container,
-                });
-
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Dragging Element:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_draggingelement',
-                    appendTo: container,
-                });
-                //offparent
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Offset Parent:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_offsetparent',
-                    appendTo: container,
-                });
-                //parent elementid
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Parent Id:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_parentid',
-                    appendTo: container,
-                });
-                //offsetX
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Offest X:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_offsetx',
-                    appendTo: container,
-                });
-                //offsetY
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Offset Y:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_offsety',
-                    appendTo: container,
-                });
-
-                //DropParent
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Drop Parent:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_dropparent',
-                    appendTo: container,
-                });
-                //DropParent
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Editor Is Dragging:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_editisdragging',
-                    appendTo: container,
-                });
-
-              //  this.dataset.offsetparent = this.offsetParent;
-              //  this.dataset.parentid = this.parentElement.id;
-              //  this.dataset.mOffX = ev.offsetX;
-              //  this.dataset.mOffY = ev.offsetY;
-
-
-                document.body.addEventListener("mousemove", function (ev) {
-                    document.getElementById("si_edit_hud_xpos").innerHTML = ev.pageX;
-                    document.getElementById("si_edit_hud_ypos").innerHTML = ev.pageY;
-                });
-
-                SI.Editor.UI.HUD.Window.Append(container);
-            },
-        },
-        Phpinfo: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Id: "si_edit_phpinfo_window",
-                    Trigger: '#si_edit_phpinfo_trigger',
-                    Title: "PhpInfo",
-                    StartWidth: '990px',
-                    IconImg: '/editor/media/icons/php.png',
-                };
-                    SI.Editor.UI.Phpinfo.Window = new SI.Widget.Window(obj);
-                    SI.Editor.UI.Phpinfo.Draw();
-                },
-            Draw: function () {
-                let container = Ele('div', {
-                    innerHTML: SI.Editor.Data.Objects.PhpInfo,
-                });
-                SI.Editor.UI.Phpinfo.Window.Append(container);
+                SI.Widgets.Window[winid].Show();
             },
         },
     },
     Objects: {
-        Widgets: {
-            List: function() {
-                let widgets = ["Window"]
-
-            },
-        },
-        Alerts: {
-            StaticMove:"The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property",
-        }
+    // Mystery how this is not being defined above. 
     },
     Ajax: {
         Run: function(options) {
@@ -3051,54 +2335,69 @@ SI.Editor = {
             ajax.send(stringdata);
         },
         Complete: function (json,options) {
-           
-            for (let prop in json) {
-                if (json.hasOwnProperty(prop)) {
-                    let value = json[prop];
-                    switch (prop) {
-                        case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
-                        case "EXCEPTION": alert(JSON.stringify(value)); break;
-                        case "REFRESH": location.reload(); break;
-                        case "CONSOLELOG": console.log(value); break;
-                        //
-                        case "PAGECREATED": SI.Editor.Objects.Page.Created(value); break;
-                        case "PAGESAVED": SI.Editor.Objects.Page.Saved(value); break;
-                        //Blocks
-                        case "BLOCKRELATED": SI.Editor.Objects.Blocks.Created(value); break;
-                        case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value); break; 
-                        case "BLOCKREMOVED": console.log(value); break; 
+            debugger;
+            if(options.Callback){
+                    if(json.hasOwnProperty("PARAMETER")){
+                        let param = json['PARAMETER'];
+                        options.Callback(param);
+                    }
+                    else{
+                        options.Callback();
+                    }
+            }else{
 
-                        //Common
-                        case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
+                for (let prop in json) {
+                    if (json.hasOwnProperty(prop)) {
+                        let value = json[prop];
+                        switch (prop) {
+                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
+                            case "EXCEPTION": alert(JSON.stringify(value)); break;
+                            case "REFRESH": location.reload(); break;
+                            case "CONSOLELOG": console.log(value); break;
+                            //
+                            case "PAGECREATED": SI.Editor.Objects.Page.Created(value); break;
+                            case "PAGESAVED": SI.Editor.Objects.Page.Saved(value); break;
+                            //Blocks
+                            case "BLOCKRELATED": SI.Editor.Objects.Blocks.Created(value); break;
+                            case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value); break; 
+                            case "BLOCKREMOVED": console.log(value); break; 
 
-                        //Media
-                        case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;
-                        //Language
-                        case 'ADDEDLANGUAGE': SI.Editor.Objects.Language.Added(value); break;
-                        case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
-                        //User
-                        case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
-                        case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
-                        case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
-                        //Security
-                        case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
-                        case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
-                        //Plugins
-                        case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
-                        case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
-                        case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
-                        case 'INSTALLPLUGINFAILED': alert('Plugin install has failed'); break;
-                        case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
-                        case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
-                        //Settings
-                        case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
-                        case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;
-                        case 'BUILDINSTALLER': SI.Tools.SuperAlert(value, 2000); break;
-                        case 'BACKUPDATABASE': SI.Tools.SuperAlert(value, 2000); break;
+                            //Common
+                            case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
+
+                            //Media
+                            case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;
+                            //Language
+                            case 'ADDEDLANGUAGE': SI.Editor.Objects.Language.Added(value); break;
+                            case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
+                            //User
+                            case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
+                            case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
+                            case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
+                            //Security
+                            case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
+                            case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
+                            //Plugins
+                            case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
+                            case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
+                            case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
+                            case 'INSTALLPLUGINFAILED': alert('Plugin install has failed'); break;
+                            case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
+                            case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
+                            //Settings
+                            case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
+                            case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;
+                            case 'BUILDINSTALLER': SI.Tools.SuperAlert(value, 2000); break;
+                            case 'BACKUPDATABASE': SI.Tools.SuperAlert(value, 2000); break;
+                        }
                     }
                 }
             }
             //console.log(json);
+            //check for lookups
+            if(SI.Widgets.Lookup.Lookup){
+                SI.Widgets.Lookup.Lookup.CheckLookups();
+            }
         } 
     }
 }

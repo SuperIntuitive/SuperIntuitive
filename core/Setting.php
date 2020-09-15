@@ -13,16 +13,18 @@ class Setting {
 			    $value = $post['settingvalue'];
 		}
 		if($name && $value){
-		
+
 			$ent = new Entity('settings');
 			$ent->Attributes->Add(new Attribute("settingname", $name));
 			$ent->Attributes->Add(new Attribute("settingvalue", $value));
 			Tools::Log($ent);
 			$id = $ent->Create();
+			$id = ltrim($id, "0x");
 
 			if($id){
-				$nvp = [$name, $value];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGCREATED'] = $nvp;
+				$setting = [$id, $name, $value];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PARAMETER'] = $setting;
+				//
 			}
 
 		}
@@ -68,9 +70,7 @@ class Setting {
 			$delete = new Entity('settings');
 			$delete->Attributes->Add(new Attribute("settingname", $name));
 			$delete->Delete();
-			$ind = $post['index'];
-			$kvp=[$name,$ind];
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGDELETED'] = $kvp;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PARAMETER'] = $name;
 		}
 	}
 

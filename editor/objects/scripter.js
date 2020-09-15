@@ -3,13 +3,16 @@ SI.Editor.Objects.Scripter = {
     LoadedScript: null,
     LoadedType: null,
     SyntaxLoaded: false,
+    Container :null,
+    Workspace : null,
+    SelectorMenu:null,
+    Codeview:null,
+    Codepad:null,
     Draw: function () {
 
         
-
-
         //debugger;
-        let container = Ele("div", {
+        SI.Editor.Objects.Scripter.Container = Ele("div", {
             id: "si_scripter_container",
             style: {
                 backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -28,7 +31,7 @@ SI.Editor.Objects.Scripter = {
                 height: '20px',
             },
 
-            appendTo: container,
+            appendTo: SI.Editor.Objects.Scripter.Container,
 
         });
         let codeOrGuiCbLabel = Ele("label", {
@@ -139,7 +142,7 @@ SI.Editor.Objects.Scripter = {
         });
 
         //Workspace
-        let workspace = Ele("div", {
+        SI.Editor.Objects.Scripter.Workspace = Ele("div", {
             id: "si_scripter_workspace",
             style: {
                 position: 'absolute',
@@ -152,10 +155,10 @@ SI.Editor.Objects.Scripter = {
             ondragover: function (e) { e.preventDefault(); },
             ondragleave: function (e) { },
             ondrop: function (e) { },
-            appendTo: container
+            appendTo: SI.Editor.Objects.Scripter.Container
         });
         //Codeview
-        let codeview = Ele("div", {
+        SI.Editor.Objects.Scripter.Codeview = Ele("div", {
             id: "si_scripter_codeview",
             style: {
                 position: 'absolute',
@@ -163,14 +166,14 @@ SI.Editor.Objects.Scripter = {
                 height: '96%',
                 backgroundColor: '#282e2b',
                 overflow: 'auto',
-                backgroundImage: "url('/editor/media/images/blackslate.jpg')",
+                backgroundImage: "url('/editor/media/images/chalkboard.jpg')",
                 backgroundSize: 'cover',
             },
             ondragenter: function (e) { e.preventDefault(); },
             ondragover: function (e) { e.preventDefault(); },
             ondragleave: function (e) { },
             ondrop: function (e) { },
-            appendTo: container
+            appendTo: SI.Editor.Objects.Scripter.Container
         });
         let linenums = Ele("pre", {
             id: "si_scripter_linenums",
@@ -190,9 +193,9 @@ SI.Editor.Objects.Scripter = {
             ondragover: function (e) { e.preventDefault(); },
             ondragleave: function (e) { },
             ondrop: function (e) { },
-            appendTo: codeview
+            appendTo: SI.Editor.Objects.Scripter.Codeview
         });
-        let codepad = Ele('pre', {
+        SI.Editor.Objects.Scripter.Codepad = Ele('pre', {
             id: 'si_scripter_codepad',
             class: 'si-scripter-codepad',
             contentEditable: "True",
@@ -241,20 +244,18 @@ SI.Editor.Objects.Scripter = {
                 }
             },
 
-            appendTo: codeview
+            appendTo: SI.Editor.Objects.Scripter.Codeview
         });
-        SI.Tools.Text.FingAutoCorrect(codepad);
-
-        return container;
+        SI.Tools.Text.FingAutoCorrect(SI.Editor.Objects.Scripter.Codepad);
+      //  SI.Tools.Events.Fire(scriptSelect, "change");
+        return SI.Editor.Objects.Scripter.Container;
     },
     OpenScript: function (name, type, parent = null) {
 
         //Clear the workspace
-        let workspace = document.getElementById("si_scripter_workspace");
-        workspace.innerHTML = '';
+        SI.Editor.Objects.Scripter.Workspace.innerHTML = '';
         //Clear the codepad
-        let codepad = document.getElementById("si_scripter_codepad");
-        codepad.innerHTML = '';
+        SI.Editor.Objects.Scripter.Codepad.innerHTML = '';
 
         let script = false;
         switch (type) {
@@ -271,28 +272,28 @@ SI.Editor.Objects.Scripter = {
         }
         //debugger;
 
-        if (script) {
+
             SI.Editor.Objects.Scripter.LoadedScript = name;
             SI.Editor.Objects.Scripter.LoadedType = type;
 
             SI.Editor.Objects.Scripter.LoadScriptCode(script);
-        }
+
 
     },
-    LoadScriptCode: function (script) {
-        debugger;
-        let codepad = document.getElementById("si_scripter_codepad");
-        codepad.innerHTML = script.replaceAll(">", "&gt;").replaceAll("<", "&lt;");//lose the html breakers
-        //this functino will run through a codepad and highlight the syntax of the javascript
-        //Nice to see how long the script takes
-        let rand = SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
-        console.time("si-loadScript" + rand);
-        this.HighlightSyntax(codepad);
-        numlines = this.ComputeLineNumbers();
-        if (numlines === 1) {
-            this.AddLineNumbers(30);
+    LoadScriptCode: function (script) {  
+        if (script) {
+            SI.Editor.Objects.Scripter.Codepad.innerHTML = script.replaceAll(">", "&gt;").replaceAll("<", "&lt;");//lose the html breakers
+            //this functino will run through a codepad and highlight the syntax of the javascript
+            //Nice to see how long the script takes
+            let rand = SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
+            console.time("si-loadScript" + rand);
+            this.HighlightSyntax(SI.Editor.Objects.Scripter.Codepad);
+            numlines = this.ComputeLineNumbers();
+            if (numlines === 1) {
+                this.AddLineNumbers(30);
+            }
+            console.timeLog("si-loadScript" + rand);
         }
-        console.timeLog("si-loadScript" + rand);
     },
     SaveScript: function () {
         //debugger;
@@ -300,7 +301,7 @@ SI.Editor.Objects.Scripter = {
         //   let casheStyle = SI_BlockLibrary
         let scripttype = SI.Editor.Objects.Scripter.LoadedType;
         let scriptname = SI.Editor.Objects.Scripter.LoadedScript;
-        let code = document.getElementById("si_scripter_codepad").innerText;
+        let code = SI.Editor.Objects.Scripter.Codepad.innerText;
         if (scripttype === 'Block') {
             SI.Editor.Data.Objects.Blocks[scriptname].script = code;
             SI.Editor.Objects.Blocks.Save(scriptname, 'script');
@@ -753,7 +754,7 @@ SI.Editor.Objects.Scripter = {
 
     },
     ComputeLineNumbers: function (offset = 1) {
-        let code = document.getElementById('si_scripter_codepad').innerText;
+        let code = SI.Editor.Objects.Scripter.Codepad.innerText;
         let numlines = code.split(/\r\n|\r|\n/).length;
         let linebox = document.getElementById("si_scripter_linenums");
         linebox.innerHTML = '';

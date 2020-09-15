@@ -1,11 +1,12 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+if(!SI.Widgets.Tile){SI.Widgets.Tile = {}};
+SI.Widget.Tile = function (options) { 
+    if (!(this instanceof SI.Widget.Tile)) { return new SI.Widget.Tile(options); }
 
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Tile");}
+    this.Input = {...options};
+    SI.Widgets.Tile[this.Id] = this;
 
-
-SI.Widget.Tile = function(options) {
-    if (!(this instanceof SI.Widget.Tile)) { return new SI.Widget.Tile(); }
     this.Defaults = {
         "Parent":null,
         "Type": "Images",
@@ -35,11 +36,10 @@ SI.Widget.Tile = function(options) {
         "Enabled": true,
         "SelectedShadow": "0px 0px 10px 2px rgba(218, 165, 32, 0.5)",
         "OnChange": function (ev, self) { },
-        "Group": "Generic",
+        "Group": "generic-tile",
         "NameChanged": function (ev, self) { }
     };
     options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    this.Random = SI.Tools.String.RandomString(11);
 
     let height, width, labelH, labelW, pos, classtype, mime;
     switch (options.Type) {
@@ -103,21 +103,22 @@ SI.Widget.Tile = function(options) {
             break;
 
         case "Docs":
-            height =  "320px";
+            height =  "360px";
             width = "240px";
             labelH = (parseInt(height) - 15) + 'px';
             labelW = '180px';
             pos = 'absolute';
             classtype = "si-tile-docs";
-            this.Thumb  = Ele('embed', {
-                src: SI.Tools.GetMediaFilePath(options.Url),
+            this.Thumb  = Ele('object', {
+                data: SI.Tools.GetMediaFilePath(options.Url),
                 type: options.Mime,
                 title:options.Text,
                 style: {
                     width: '90%',
                     height: '90%',
-                    overflowY: 'hidden',
+                    overflow: 'hidden',
                 }
+
             });
             break;
 
@@ -178,7 +179,7 @@ SI.Widget.Tile = function(options) {
         options.Data.mime = options.Mime;
     }
     this.Container = Ele("div", {
-        id: "si_tile_" + this.Random,
+        id: this.Id,
         class: options.Group + " " + classtype,
         style: {
             width: options.Width,
@@ -209,9 +210,11 @@ SI.Widget.Tile = function(options) {
                 options.OnChange(ev, this);
             }
         },
+
         append: this.Thumb
     });
-    title = Ele('span', {
+    //Title
+    let title = Ele('span', {
         innerText: options.Text,
         style: {
             position: options.TextPosition,
@@ -246,6 +249,29 @@ SI.Widget.Tile = function(options) {
         },
         onblur: function (ev) {
             options.NameChanged(ev, this);
+        },
+        appendTo: this.Container
+    });
+    
+    let fs = Ele('button', {
+        innerHTML:'&#x26F6;',
+        style:{
+            padding:'0px',
+            textAlign:'center',
+            lineHeight:"0px",
+            verticalAlign: 'middle',
+            position:'absolute',
+            bottom:"0px",
+            right:'0px',
+            width:'14px',
+            height:'13px',
+            color:'#fff',
+            backgroundColor:'#555',
+            opacity:'0.3',
+            borderRadius: options.Radius,
+        },
+        onclick: function(){
+            window.open(SI.Tools.GetMediaFilePath(options.Url), "_blank");
         },
         appendTo: this.Container
     });

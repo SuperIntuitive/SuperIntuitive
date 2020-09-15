@@ -345,7 +345,7 @@
             }
         }
         base.appendChild(langtabs.Draw());
-        SI.Editor.UI.Language.Window.Append(base);
+        return base;
     },
     Created: function (response) {
         //debugger;
@@ -357,7 +357,6 @@
                 text = text.substr(0, 32) + "\u2026";  //18146354
             }
 
-
             let opt = Ele('option', {
                 innerHTML: text,
                 value: response['id'],
@@ -368,12 +367,10 @@
             });
             ts.options.add(opt);
 
-
             let langbox = document.getElementById('si_edit_lang_box_' + language);
             if (langbox) {
                 langbox.innerHTML = response['text'];
             }
-
 
             let item = {
                 createdon: new Date().toISOString().slice(0, 19).replace('T', ' '),

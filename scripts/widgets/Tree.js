@@ -1,15 +1,17 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+﻿if(!SI.Widgets.Tree){SI.Widgets.Tree = {}};
+SI.Widget.Tree = function (options) { 
+    if (!(this instanceof SI.Widget.Tree)) { return new SI.Widget.Tree(options); }
 
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Tree");}
+    this.Input = {...options};
+    SI.Widgets.Tree[this.Id] = this;
 
-
-SI.Widget.Tree = function (options) {
-    if (!(this instanceof SI.Widget.Tile)) { return new SI.Widget.Tile(); }
     this.Defaults = {
         "Leaves": {},
     };
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+
     this.Random = SI.Tools.String.RandomString(11);
     options = this.Options;
     let self = this;
@@ -89,5 +91,6 @@ SI.Widget.Tree = function (options) {
             }
         }
     }
+
     return dir;
 };

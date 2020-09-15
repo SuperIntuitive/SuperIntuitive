@@ -53,7 +53,6 @@ SI.Editor.Objects.Styler = {
         let styleSheetSelect = Ele("select", {
             id: "si_styler_sheetselector",
             onchange: function (e) {
-                
                 //Using the style type, get the selected style data and pass it to the load function 
                 let option = this.options[this.selectedIndex];
                 let stylesheet = this.value;
@@ -76,9 +75,9 @@ SI.Editor.Objects.Styler = {
                 }
                 SI.Editor.Objects.Styler.LoadedType = type;
                 SI.Editor.Objects.Styler.LoadedSheet = stylesheet;
-                if (style) {
-                    SI.Editor.Objects.Styler.LoadStyleCode(style);
-                }
+
+                SI.Editor.Objects.Styler.LoadStyleCode(style);
+ 
             },
             appendTo: mainmenu,
         });
@@ -281,6 +280,7 @@ SI.Editor.Objects.Styler = {
             });
         }
 
+        SI.Tools.Events.Fire(styleSheetSelect, "change");
         return SI.Editor.Objects.Styler.Container;
     },
     LoadStyleCode : function (style) {
@@ -289,7 +289,9 @@ SI.Editor.Objects.Styler = {
         SI.Tools.Element.SetParent(SI.Editor.Objects.Styler.SelectorMenu, SI.Editor.Objects.Styler.Container);
         SI.Editor.Objects.Styler.Workspace.innerHTML = '';
         SI.Editor.Objects.Styler.Codepad.innerHTML = '';
-
+        if(!style){
+            return;
+        }
         //debugger;
         //Write the style to the codepad
         SI.Editor.Objects.Styler.Codepad.innerHTML = style+"\n\n\n";

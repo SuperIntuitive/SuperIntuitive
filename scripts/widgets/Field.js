@@ -1,11 +1,13 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+if(!SI.Widgets.Field){SI.Widgets.Field = {}};
+SI.Widget.Field = function  (options) { 
+    if (!(this instanceof SI.Widget.Field)) { return new SI.Widget.Field(options); }
 
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Window");}
+    this.Input = {...options};
+    SI.Widgets.Field[this.Id] = this;
+    let self = this;
 
-
-SI.Widget.Field = function (options) {
-    if (!(this instanceof SI.Widget.Field)) { return new SI.Widget.Field(); }
     this.Defaults = {
         "Parent": null, 
         "ParentIndex": null, 
@@ -33,8 +35,9 @@ SI.Widget.Field = function (options) {
         "ToolTip": null,
     };
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    this.Random = SI.Tools.String.RandomString();
-    let self = this; //make available for event handelers.
+
+
+     //make available for event handelers.
 
     if (this.Options.LabelColor.length === 0) {
         switch (this.Options.Type) {
@@ -49,8 +52,8 @@ SI.Widget.Field = function (options) {
     }
 
     //this is the box that will be returned
-    let field = Ele("div", {
-        id: "si_field_" + this.Random,
+    let container = Ele("div", {
+        id: this.Id,
         class:"si-field-"+this.Options.Type,
         style: {
             backgroundColor: this.Options.BackgroundColor,
@@ -63,13 +66,13 @@ SI.Widget.Field = function (options) {
     if (this.Options.Label) {
         let label = Ele("label", {
             innerHTML: this.Options.Label,
-            for: "si_entityfield_" + +this.Random,
+            for: this.Id+"_input",
             style: {
                 textAlight: 'right',
                 marginRight: '10px',
                 width:"50%"
             },
-            appendTo: field
+            appendTo: container
         });
         if (this.Options.ToolTip) {
             label.title = this.Options.ToolTip;
@@ -80,7 +83,7 @@ SI.Widget.Field = function (options) {
     //make a input object. 
     let input = {
         tag:"input",
-        id: "si_entityfield_" + this.Random,
+        id: this.Id+"_input",
         value: this.Options.Value,
         onchange: function (ev) {
             debugger;
@@ -94,7 +97,7 @@ SI.Widget.Field = function (options) {
             }
 
         },
-        appendTo: field
+        appendTo: container
     };
 
     if (this.Options.Name) {
@@ -108,11 +111,10 @@ SI.Widget.Field = function (options) {
     }
 
     let isInput = true;
-    //determine the tag type
+    //if this a select or a textarea filed, change tag/handler
     switch (this.Options.Type) {
         case "optionset":
             input.tag = "select";
-
             input.onchange = function (ev) {
                 if (self.options.OnChange) {
                     self.options.OnChange(ev, this);
@@ -120,7 +122,12 @@ SI.Widget.Field = function (options) {
 
             };
             break;
-        case "textarea": input.tag = "textarea"; break;
+
+        case "textarea": input.tag = "textarea"; 
+            break;
+
+
+
     }
     
     if (isInput) {
@@ -155,5 +162,5 @@ SI.Widget.Field = function (options) {
 
 
 
-    return field;
+    return container;
 };

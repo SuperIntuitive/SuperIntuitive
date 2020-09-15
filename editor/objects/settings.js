@@ -1,13 +1,12 @@
 
 SI.Editor.Objects.Settings = {
     Draw: function () {
-        SI.Editor.UI.HUD.Init();
-        SI.Editor.UI.Phpinfo.Init();
+
         let container = Ele('div', {
             style: {
                 width: "100%",
                 height: "100%",
-                overflow: "scroll",
+                overflow: "auto",
                 padding: '20px',
                 backgroundColor: SI.Editor.Style.BackgroundColor,
                 color: SI.Editor.Style.TextColor,
@@ -19,26 +18,42 @@ SI.Editor.Objects.Settings = {
         let toolsbox = Ele('fieldset', {
             style: {
                 width: '90%',
+                marginLeft:'3%',
                 borderRadius: '10px',
             },
             append: Ele('legend', { innerHTML: 'Tools' }),
             appendTo: container,
         });
 
-        //Show hide HUD
+        //HUD
         let hudcb = Ele('input', {
-            id: 'si_edit_settings_hudcb',
+            id: 'si_edit_hud_trigger',
             type: 'checkbox',
             style: {
                 marginRight: '30px',
             },
-            onchange: function () {
-                si_edit_hud_window
-
-                if (this.checked) {
-                    SI.Editor.UI.HUD.Window.Show();
-                } else {
-                    SI.Editor.UI.HUD.Window.Hide();
+            onclick:function(){
+                if(!SI.Widgets.Window.si_edit_hud_window){
+                    var hudwin = {
+                        Id: "si_edit_hud_window",
+                        Trigger: '#si_edit_hud_trigger',
+                        Title: "HUD",
+                        Width: '200px',
+                        Height: '150px',
+                        Top: '30%',
+                        Left: '1%',
+                        Padding:'5px',
+                        Overflow: "hidden",
+                        Position: "fixed",
+                        WindowControls: "CLOSE",
+                        IconImg: '/editor/media/icons/hud.png',
+                        OnClose: function () {  //sync the cb in settings
+                            document.getElementById('si_edit_hud_trigger').checked = false;
+                        },
+                        Populate: SI.Editor.Objects.Settings.DrawHUD,
+                    };
+                    new SI.Widget.Window(hudwin);
+                    SI.Widgets.Window.si_edit_hud_window.Show();
                 }
             }
         });
@@ -48,19 +63,31 @@ SI.Editor.Objects.Settings = {
             appendTo: toolsbox,
         });
 
+        //PhpInfo
+        let openScenegraph = Ele('button', {
+            id: 'si_edit_settings_scenegraph',
+            innerHTML: "Scenegraph",
+            appendTo: toolsbox,
+            title: "View Scenegraph",
+            style: {
+                marginRight: '10px',
+            },
+            onclick:function(){
+                if(!SI.Widgets.Window.scenegraph){
+                    var scenegraph = {
+                        Id: "si_edit_scenegraph_window",
+                        Trigger:"#si_edit_settings_scenegraph",
+                        Title: "Scenegraph",
+                        IconImg: '/editor/media/icons/scenegraph.png',
+                        Populate: SI.Editor.Objects.Settings.DrawScenegraph
+                    };
+                    new SI.Widget.Window(scenegraph);
+                    SI.Widgets.Window.si_edit_scenegraph_window.Show();
+                }
+            },
+        });
 
-
-        //let installergobutton = Ele('button', {
-        //    id: 'si_edit_settings_installermakergo',
-        //    innerHTML:"Build Installer",
-        //    appendTo: container,
-        //    onclick: function () {
-        //        let options = {}
-        //        let data = { KEY: "BuildInstallerFile" }
-        //        options.Data = data;
-        //        SI.Editor.Ajax.Run(options);
-        //    }
-        //});
+        //PhpInfo
         let openPhpInfo = Ele('button', {
             id: 'si_edit_settings_phpinfo',
             innerHTML: "PHP Info",
@@ -69,19 +96,23 @@ SI.Editor.Objects.Settings = {
             style: {
                 marginRight: '10px',
             },
-            onclick: function (e) {
-             //   let phpinfo;
-             //   if(SI.Widgets.Window.HUD){
-            //        phpinfo = SI.Widgets.Window.HUD;
-           //     }else{
-           //         phpinfo = SI.Editor.UI.Phpinfo.Init();
-            //    }
-
-                SI.Editor.UI.Phpinfo.Window.SetPosition(e.pageY + 25, e.pageX - 250);
-                SI.Editor.UI.Phpinfo.Window.Show();
-
-            }
+            onclick:function(){
+                if(!SI.Widgets.Window.si_edit_phpinfo_window){
+                    var phpwin = {
+                        Id: "si_edit_phpinfo_window",
+                        Trigger:"#si_edit_settings_phpinfo",
+                        Title: "PhpInfo",
+                        Width: '990px',
+                        IconImg: '/editor/media/icons/php.png',
+                        Populate:SI.Editor.Objects.Settings.DrawPhpInfo
+                    };
+                    new SI.Widget.Window(phpwin);
+                    SI.Widgets.Window.si_edit_phpinfo_window.Show();
+                }
+            },
         });
+
+
 
         let checkBadImages = Ele('button', {
             id: 'si_edit_settings_checkbadimages',
@@ -120,12 +151,26 @@ SI.Editor.Objects.Settings = {
                 marginRight: '10px',
             },
             onclick: function (e) {
+
+                let filename = prompt("Please name the installer file or leave blank for default", "");
+
                 let options = {
                     Data: {
                         KEY: "BuildInstallerFile",
                     }
                 };  
-                SI.Editor.Ajax.Run(options);
+                if (filename !== "") {
+                    if(SI.Tools.File.IsValid(filename)){
+                        options.Data.Name = filename;
+                    }
+                    else{
+                        alert("Illegal filename, please provide a legal filename");
+                        return false;
+                    }
+                }
+                if (filename !== null) {
+                    SI.Editor.Ajax.Run(options);
+                }
             }
         });
         let createBackupFile = Ele('button', {
@@ -147,139 +192,6 @@ SI.Editor.Objects.Settings = {
         });
 
 
-        let allowedMimesBox = Ele('fieldset', {
-            style: {
-                width: '90%',
-                borderRadius: '10px',
-
-            },
-            append: Ele('legend', { innerHTML: 'Allowed File Types' }),
-            appendTo: container,
-        });
-
-        let mimetypes = SI.Editor.Data.Objects.MimeTypes;   
-        let categories = [];
-        for (let ext in mimetypes) {
-            let data = mimetypes[ext].split("|");
-            let mime = data[0];
-            let cat = data[1];
-            if (!(cat in categories)) {
-                categories[cat] = [];
-            }
-            categories[cat][ext] = mime;
-        }
-        let allowedFileTypes = [];
-        for (let i in SI.Editor.Data.Objects.Settings) {
-            if (SI.Editor.Data.Objects.Settings[i].hasOwnProperty("settingname") && SI.Editor.Data.Objects.Settings[i]["settingname"] === "AllowedFileTypes") {
-                allowedFileTypes = SI.Editor.Data.Objects.Settings[i]["settingvalue"].split(',');
-                break;
-            }
-        }
-       
-        for (let cat in categories) {
-            if (categories.hasOwnProperty(cat)) {
-                let cattitle = Ele("div", {
-                    innerHTML: cat,
-                    
-                    style: {
-                        color:'black',
-                        backgroundColor: "darkgrey",
-                        paddingLeft: "4px",
-                        paddingRight: "4px",
-                        border: "solid 1px black"
-                    },
-                    onclick: function () {
-                        let box = document.getElementById('si_edit_settings_categories_' + cat);
-                        if (box.style.display === 'none') {
-                            box.style.display = 'flex';
-                        } else {
-                            box.style.display = 'none';
-                        }
-                    },
-                    appendTo: allowedMimesBox
-                });
-                let catbox = Ele("div", {
-                    id: 'si_edit_settings_categories_' + cat,
-                    style: {
-                        color: 'black',
-                        backgroundColor: "grey",
-                        display: 'none',
-                        flexWrap: 'wrap',
-                        justifyContent:'space-around'
-                    },
-                    appendTo: allowedMimesBox
-                });
-                for (let ext in categories[cat]) {
-                    if (categories[cat].hasOwnProperty(ext)) {
-                        let check = false;
-                        if (allowedFileTypes.indexOf(ext)>-1) {
-                            check = true;
-                        }
-                        let mimebox = Ele("span", {
-                            appendTo: catbox,
-                            style: {
-                                display:'inline',
-                                paddingLeft: "4px",
-                                paddingRight: "4px",
-                                border: "solid 1px black",
-                                borderRadius:'3px',
-                                backgroundColor: "darkgrey",
-                                margin:'1px'
-                            }
-                        });
-                        let cb = Ele("input", {
-                            type: 'checkbox',
-                            class:"si-edit-settings-allowedfiletypes",
-                            data: {
-                                extension: ext
-                            },
-                            appendTo: mimebox,
-                            checked: check,
-                            onchange: function () {
-                               
-                                let cbs = document.getElementsByClassName("si-edit-settings-allowedfiletypes");
-                                let fncsv = "";
-                                
-                                for (let i in cbs) {
-                                    let cb = cbs[i];
-                                    if (cb.checked) {
-                                        fncsv += cb.dataset.extension+",";
-                                    }
-                                }
-                                if (fncsv.length > 0) {
-                                    fncsv = SI.Tools.String.TrimR(fncsv, ','); //lose the last comma.
-                                }
-
-                                let options = {
-                                    Data: {
-                                        KEY: "UpdateSetting",
-                                        settingname: "AllowedFileTypes",
-                                        settingvalue: fncsv
-                                    }
-                                };
-
-                                SI.Editor.Ajax.Run(options);
-                            }
-                        });
-                        
-                        Ele("span", {
-                            innerHTML: ext +"&nbsp;-&nbsp;",
-                            style: {
-                                color:"blue",
-                            },
-                            appendTo: mimebox
-                        });
-                        Ele("span", {
-                            innerHTML: categories[cat][ext],
-                            appendTo: mimebox
-                        });
-
-                    }
-                }
-
-
-            }
-        }
 
 
         Ele('br', { appendTo: container, });
@@ -287,6 +199,7 @@ SI.Editor.Objects.Settings = {
             style: {
                 width: '90%',
                 borderRadius: '10px',
+                marginLeft:'3%',
             },
             append: Ele('legend', { innerHTML: 'Custom Settings' }),
             appendTo: container,
@@ -331,9 +244,7 @@ SI.Editor.Objects.Settings = {
                 let setting = settings[index];
                 let name = setting.settingname;
                 let value = setting.settingvalue;
-                if (name !== 'AllowedFileTypes') {
-                    SI.Editor.Objects.Settings.Add(name, value, settingstable);
-                }
+                SI.Editor.Objects.Settings.Add(name, value, settingstable);
             }
         }
 
@@ -351,18 +262,23 @@ SI.Editor.Objects.Settings = {
                     KEY: "NewSetting",
                     settingname: name,
                     settingvalue: value
-                }
+                },
+                Callback: SI.Editor.Objects.Settings.Created
             };  
             console.log(name + " " + value);
             SI.Editor.Ajax.Run(options);
         }
     },
-    Created: function (value) {
-        if (value.length === 2) {
-            SI.Editor.Objects.Settings.Add(value[0], value[1]);
-            SI.Editor.Data.Objects.Settings[value[0]] = value[1];
+    Created: function (setting) {
+        if (setting.length === 3) {
+            let id = setting[0];
+            let name = setting[1];
+            let val = setting[2];
+            SI.Editor.Objects.Settings.Add(name, val);
+            
+            SI.Editor.Data.Objects.Settings.push( {"id":id,"settingname": name,'settingvalue': val} );
             //update the page
-            SI.Editor.Objects.Page.AddSetting(value[0]);
+            SI.Editor.Objects.Page.AddSetting(name);
             document.getElementById("si_edit_settings_newname").value = "";
             document.getElementById("si_edit_settings_newvalue").value = "";
         }
@@ -433,22 +349,22 @@ SI.Editor.Objects.Settings = {
                 KEY: "DeleteSetting",
                 settingname: this.dataset.name,
                 index: this.parentElement.parentElement.rowIndex,
-            }
+            },
+            Callback:SI.Editor.Objects.Settings.Deleted
         };
         SI.Editor.Ajax.Run(options);
 
     },
-    Deleted: function (value) {
-        if (value.length === 2) {
-            let name = value[0];
-            let ind = value[1];
-            document.getElementById('si_edit_settings_table').deleteRow(ind);
-            if (SI.Editor.Data.Objects.Settings.hasOwnProperty(name)) {
-                delete SI.Editor.Data.Objects.Settings[name];
-            }
+    Deleted: function (setting) {
+
+            let index = SI.Tools.Array.GetIndexByObjKVP(SI.Editor.Data.Objects.Settings,"settingname",setting);
+
+            document.getElementById('si_edit_settings_table').deleteRow(index);
+
+            delete SI.Editor.Data.Objects.Settings[index];
+
             //Remove from the page window
-            SI.Editor.Objects.Page.RemoveSetting(value[0]);
-        }
+            SI.Editor.Objects.Page.RemoveSetting(name);
     },
     Help: {
         Sites: {
@@ -487,30 +403,7 @@ SI.Editor.Objects.Settings = {
         }
 
     },
-};
-
-SI.Editor.Objects.HUD={
-    Init: function () {
-        var obj = {
-            Id: "si_edit_hud_window",
-            Trigger: '#si_edit_hud_trigger',
-            Title: "HUD",
-            StartWidth: '200px',
-            StartHeight: '150px',
-            StartTop: '30%',
-            StartLeft: '1%',
-            Overflow: "hidden",
-            Position: "fixed",
-            WindowControls: "CLOSE",
-            IconImg: '/editor/media/icons/hud.png',
-            OnClose: function () {  //sync the cb in settings
-                document.getElementById('si_edit_settings_hudcb').checked = false;
-            },
-            Populate: SI.Editor.Objects.HUD.Draw,
-        };
-        new SI.Widget.Window(obj);
-    },
-    Draw: function () {
+    DrawHUD: function () {
         let container = Ele('div', {
             style: {
                 width: "100%",
@@ -626,17 +519,42 @@ SI.Editor.Objects.HUD={
             appendTo: container,
         });
 
-      //  this.dataset.offsetparent = this.offsetParent;
-      //  this.dataset.parentid = this.parentElement.id;
-      //  this.dataset.mOffX = ev.offsetX;
-      //  this.dataset.mOffY = ev.offsetY;
-
-
         document.body.addEventListener("mousemove", function (ev) {
-            document.getElementById("si_edit_hud_xpos").innerHTML = ev.pageX;
-            document.getElementById("si_edit_hud_ypos").innerHTML = ev.pageY;
+            let hud = document.getElementById("si_edit_hud_xpos");
+            if(hud){
+                hud.innerHTML = ev.pageX;
+                document.getElementById("si_edit_hud_ypos").innerHTML = ev.pageY;
+            }
         });
         return container;
-        //SI.Editor.UI.HUD.Window.Append(container);
+    },
+    DrawScenegraph: function () {
+        let base = Ele('div', {
+            style: {
+                width: "100%",
+                height: "100%",
+                backgroundColor:'#111',
+                overflow: "scroll",
+                color:SI.Editor.Style.TextColor,
+            },
+        });
+        //debugger;
+        let ul =  SI.Tools.Object.ToDataTree(SI.Editor.Data.Site.SessionPageData);
+        let pre = Ele('div', {
+            style: {
+                tabSize: '0',
+                color:'white',
+            },
+            append: ul,
+            appendTo:base,
+        })
+        return base;
+    },
+    DrawPhpInfo: function () {
+        let container = Ele('div', {
+            innerHTML: SI.Editor.Data.Objects.PhpInfo,
+        });
+        return container;
     },
 };
+

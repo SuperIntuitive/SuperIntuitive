@@ -102,28 +102,28 @@ class Setup {
 					</header>
 					<main>
 						<section>
-						    <form id='si_setup_form' onsubmit='setup.Submit(this)'>
+						    
 							<nav>
 								<ul>
-									<li class='menuitem' id='mi_sysinfo' onclick='setup.MenuItemClick(this.id)'>System Info</li>
-									<li class='menuitem' id='mi_database' onclick='setup.MenuItemClick(this.id)'>Database</li>
-									<li class='menuitem' id='mi_local' onclick='setup.MenuItemClick(this.id)'>Location</li>
-									<li class='menuitem' id='mi_admin' onclick='setup.MenuItemClick(this.id)'>Admin</li>
-									<li class='menuitem' id='mi_review' onclick='setup.MenuItemClick(this.id)'>Review</li>
-									<li class='menuitem' id='mi_install' onclick='setup.MenuItemClick(this.id)'>Install</li>
+									<li class='menuitem' id='mi_sysinfo' onclick='SI.Setup.MenuItemClick(this.id)'>System Info</li>
+									<li class='menuitem' id='mi_database' onclick='SI.Setup.MenuItemClick(this.id)'>Database</li>
+									<li class='menuitem' id='mi_local' onclick='SI.Setup.MenuItemClick(this.id)'>Location</li>
+									<li class='menuitem' id='mi_admin' onclick='SI.Setup.MenuItemClick(this.id)'>Admin</li>
+									<li class='menuitem' id='mi_review' onclick='SI.Setup.MenuItemClick(this.id)'>Review</li>
+									<li class='menuitem' id='mi_install' onclick='SI.Setup.MenuItemClick(this.id)'>Install</li>
 								</ul>
 								<p>
-									<button id='btnback' type='button' style='margin-top:100px; display:none' onclick='setup.ButtonClick(this);'>Back</button>
-									<button id='btnnext' type='button' style='margin-top:100px' onclick='setup.ButtonClick(this);'>Next</button>
+									<button id='btnback' type='button' style='margin-top:100px; display:none' onclick='SI.Setup.ButtonClick(this);'>Back</button>
+									<button id='btnnext' type='button' style='margin-top:100px' onclick='SI.Setup.ButtonClick(this);'>Next</button>
 									<button id='si_setup_hiddenbtn' style='display:none;'/>
 								</p>
 							</nav>
 							
-							   
+							<form id='si_setup_form' onsubmit='SI.Setup.Submit(this)'>
 								<article class='article' id='sysinfo'>
 									<h1>System Info</h1><br />
 									<p>Domain Name</p>
-									<p><input id='si_setup_host' name='domain' value='$host' data-group='sysinfo'  onchange=' this.value = this.value.trim(); setup.TestDomain();'  required /><span id='si_setup_domainsuccess'></span>*</p> <br />
+									<p><input id='si_setup_host' name='domain' value='$host' data-group='sysinfo'  onchange=' this.value = this.value.trim(); SI.Setup.TestDomain();'  required /><span id='si_setup_domainsuccess'></span>*</p> <br />
 									<p>Notifications Email Address</p>
 									<p><input id='si_setup_hostemail' type='email' name='noteemail' value='info@$host' data-group='sysinfo' /></p>
 								</article>
@@ -145,10 +145,10 @@ class Setup {
 
 									<p>Database Login</p>
 									<br />
-									<input type='radio' value='privuser' checked name='dbuserradio' onchange='setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_privuser'/>
+									<input type='radio' value='privuser' checked name='dbuserradio' onchange='SI.Setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_privuser'/>
 									<label for='si_setup_privuser' >Use privlidged user</label>
 									<br />
-									<input type='radio' value='existuser' name='dbuserradio' onchange='setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_existuser'/>
+									<input type='radio' value='existuser' name='dbuserradio' onchange='SI.Setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_existuser'/>
 									<label for='si_setup_existuser'>Use existing user and database</label>
 							
 									<div id='si_prevuserbox'>
@@ -170,7 +170,7 @@ class Setup {
 										<p>Existing DB Password</p>
 										<p><input name='existpass' value='x' type='password' id='si_setup_expw' data-group='database'/></p><br />					
 									</div>
-										<button type='button' onclick='setup.TestDatabase()'> Test Connection </button>
+										<button type='button' onclick='SI.Setup.TestDatabase()'> Test Connection </button>
 										<span id='si_setup_dbsuccess'></span>
 								</article>
 					  
@@ -190,7 +190,7 @@ class Setup {
 									<p>Super User</p>
 									<p><input name='adminuser' id='si_setup_adminuser' value='admin' data-group='admin'/></p><br />
 									<p>Super User Password</p>
-									<p><input name='adminpw' value='' minlength=8 id='si_setup_adminpassword' style='width:300px;' data-group='admin'/><button type='button' onclick='setup.SetRandomPassword(\"si_setup_adminpassword\")'>Generate Random</button></p>
+									<p><input name='adminpw' value='' minlength=8 id='si_setup_adminpassword' style='width:300px;' data-group='admin'/><button type='button' onclick='SI.Setup.SetRandomPassword(\"si_setup_adminpassword\")'>Generate Random</button></p>
 									<p>Super User Email</p>
 									<p><input name='adminemail' type='email' value='' id='si_setup_adminemail' style='width:300px;' data-group='admin'/></p>
 								</article>
@@ -239,7 +239,7 @@ class Setup {
 					</footer>
 					</div>
 					<script>
-						setup.Init();
+						SI.Setup.Init();
 					</script>
 					";	
 	}	

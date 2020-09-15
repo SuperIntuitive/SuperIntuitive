@@ -1,4 +1,5 @@
 //prototypes
+
 String.prototype.replaceArray = function (find, replace) {   // so-5069464
     var replaceString = this;
     var regex;
@@ -23,14 +24,10 @@ String.prototype.replaceObj = function (replaceValues) {
 if (!String.replaceAll) {
     String.prototype.replaceAll = function (find, replace) {
         return this.split(find).join(replace);
-      //  let str = this;
-      //  while (str.indexOf(find) > -1) {
-      //      str = str.replace(find, replace);
-      //  }
-     //   return str;
     };
 }
-String.prototype.trimChar = function (char=' '){
+String.prototype.trimChar = function (char){
+    char = typeof char !== 'undefined' ? char : ' ';
     let string = this;
     while (string.charAt(0) === char) {
             string = string.substring(1);
@@ -67,12 +64,23 @@ Element.prototype.hide = function () {
 Element.prototype.clear = function () {
     this.innerHTML = "";
 };
-
 Element.prototype.childNumber = function () {
     let self = this;
     for (var i = 0; (self = self.previousSibling); i++);
     return i;
-}
+};
+Element.prototype.disableDown = function () {
+    let eles = this.querySelectorAll(':not([disabled])');
+    for(ele in eles){
+        ele.addAttribute('disabled');
+    }
+};
+Element.prototype.enableDown = function () {
+    let eles = this.querySelectorAll('[disabled]');
+    for(ele in eles){
+        ele.removeAttribute('disabled');
+    }
+};
 NodeList.prototype.hide = HTMLCollection.prototype.remove = function () {
     for (let i = this.length - 1; i >= 0; i--) {
         if (this[i]) {
@@ -241,6 +249,18 @@ SI.Tools = {
 
     },
     Object: {
+        Copy:function(obj){
+            let ret, value, key;
+            if (typeof obj !== "object" || obj === null || typeof obj === "undefined") {
+                return obj;
+            }
+            ret = Array.isArray(obj) ? [] : {};
+            for (key in obj) {
+                value = obj[key];
+                ret[key] = SI.Tools.Object.Copy(value);
+            }
+            return ret;
+        },
         Loop: function (obj, func) {
             for (let k in obj) {
 
@@ -472,6 +492,16 @@ SI.Tools = {
             }
         }
     },
+    Array:{
+        GetIndexByObjKVP:function(array, key, val){
+            debugger;
+            for(let i = 0; i<array.length;i++){
+                if(array[i][key] && array[i][key] === val){
+                    return i;
+                }
+            }
+        }
+    },
     Text: {
         InsertAtCursor: function (text) {
             var sel, range, html;
@@ -591,7 +621,7 @@ SI.Tools = {
         },
         GetTheme: function () {
             let theme = 'dark'
-            si_theme = document.getElementById('si_colorscheme');
+            let si_theme = document.getElementById('si_colorscheme');
             if (si_theme) {
                 //document.body.appendChild(si_theme);
                 let compStyles = window.getComputedStyle(si_theme);
@@ -603,12 +633,12 @@ SI.Tools = {
                 SI.Theme = {};
             }
             SI.Theme.UserPreference = theme;
-            SI.Theme.BackColor = (theme === "light") ? 'white' : 'black';
-            SI.Theme.BackgroundColor = (theme === "light") ? '#AAA' : 'rgb(72, 75, 87)';
+            SI.Theme.BackColor = (theme === "light") ? '#FFF' : '#000';
+            SI.Theme.BackgroundColor = (theme === "light") ? '#CCC' : 'rgb(72, 75, 87)';
             SI.Theme.TextColor = (theme === "light") ? '#111' : 'rgb(172, 175, 187)';
             SI.Theme.MenuColor = (theme === "light") ? '#777' : 'slategrey';
-            SI.Theme.ButtonColor = (theme === "light") ? '#345' : '#9A9';
-            SI.Theme.DraggerColor = (theme === "light") ? '#234' : '#99A';
+            SI.Theme.ButtonColor = (theme === "light") ? '#666' : '#111';
+            SI.Theme.SelectedColor = (theme === "light") ? '#6FA5E2' : '#046EE0';
             return theme;
         },
     },
@@ -1086,6 +1116,11 @@ SI.Tools = {
                 }
             }
         }
+        //check for lookups
+        let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
+        if(lookup){
+            lookup.CheckLookups();
+        }
     },
     ProcessPlugin: function (data) {
         //plugin ajax returns will be processed here. we will return them to their respective plugin functions here. 
@@ -1095,7 +1130,7 @@ SI.Tools = {
         Get: function (search, index = null) {
             //debugger;
             //this search should be pretty robust. it can handle existing elements, queryselectors, qsAlls, and ids. 
-            //You should be able to throw the kitchen sink at it but it will be slower that a getbyid so use that whe psooible.
+            //You should be able to throw the kitchen sink at it but it will be slower than a getbyid so use that whe possible.
             //This should be used for one offs.not drawing UIs. It is used to find the parents of widgets. 
             let retval = null;
             if (search) {
@@ -1269,6 +1304,31 @@ SI.Tools = {
                 }
             }
             return off;
+        },
+        Reload:{
+            Script:function(id){
+                let script = document.getElementById(id);
+                let newsrc = script.src+"?"+Date.now();
+                script.remove();
+                Ele("script",{
+                    id:id,
+                    src:newsrc,
+                    defer:true,
+                    appendTo:'head'
+                });
+            },
+            Style:function(id){
+                let style = document.getElementById(id);
+                let newhref = style.href+"?"+Date.now();
+                style.remove();
+                Ele("link",{
+                    rel:'stylesheet',
+                    type:'text/css',
+                    id:id,
+                    href:newhref,
+                    appendTo:'head'
+                });
+            }
         }
     },
     GetAllFunctions(obj = window) { //11279441
@@ -1535,9 +1595,8 @@ SI.Tools = {
             ajax.onreadystatechange = function () {
                 if (ajax.readyState === 4 && ajax.status === 200) {
                     try {
-                        if (ajax.responseText !== null && ajax.responseText.length > 0) {
-                            //debugger;
-                            json = JSON.parse(ajax.responseText.trim());
+                        if (ajax.responseText !== null && ajax.responseText.length > 0) {                     
+                            json = JSON.parse(ajax.responseText.trim());                            
                             options.Callback(json, options);
                         }
                     } catch (ex) {
@@ -1552,21 +1611,48 @@ SI.Tools = {
             ajax.send(stringdata);
             return ajax;
         },
-        Returned: function (response) {
-            //debugger;
+        Returned: function (response, options) {
+           // debugger;
             if (typeof response['Return'] !== 'undefined') {
-                let queryElements = null;
-                let retEntity = null;
-
-                if (typeof response['Return']['Query'] !== 'undefined') {
-                    queryElements = document.querySelectorAll(response['Return']['Query']);
+                let value = null;
+                let columns = null;
+                if (typeof response['Input']['Columns']!== 'undefined') {
+                    columns = response['Input']['Columns'];
+                    if(typeof response[0]!== 'undefined') {
+                        value = response[0][columns];
+                    }
                 }
-                if (typeof response['Return']['Entity']['Name'] !== 'undefined') {
-                    retEntity = response['Return']['Entity']['Name'];
+                if(!value){
+                    if (typeof response['Return']['Entity']['Name'] !== 'undefined') {
+                        value = response['Return']['Entity']['Name'];
+                    }
                 }
+                if(value){
 
+                    if (typeof response['Return']['Query'] !== 'undefined') {
+                        queryElements = document.querySelectorAll(response['Return']['Query']);
+                        for (var i = 0; i < queryElements.length; i++) {
+
+
+                            let ele = queryElements[i]; 
+                            switch(ele.tagName){
+                                case "INPUT": ele.value = value;
+                                    break;
+                                default: ele.innerHTML = value;
+                                break;
+                            }
+
+
+                        }
+                    }
+                }
             }
-
+            //check for lookups
+            let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
+           // debugger;
+            if(lookup){
+                lookup.CheckLookups();
+            }
         },
     },
     Select: {
@@ -1586,6 +1672,16 @@ SI.Tools = {
                 selElem.options[i] = op;
             }
             return;
+        }
+    },
+    File:{
+        IsValid:function(fname){ //SO11100821
+            var rg1=/^[^\\/:\*\?"<>\|]+$/; // forbidden characters \ / : * ? " < > |
+            var rg2=/^\./; // cannot start with dot (.)
+            var rg3=/^(nul|prn|con|lpt[0-9]|com[0-9])(\.|$)/i; // forbidden file names
+            
+            return rg1.test(fname)&&!rg2.test(fname)&&!rg3.test(fname);
+            
         }
     }
 };

@@ -1,8 +1,6 @@
 
 SI.Editor.Objects.Page = {
     Draw: function () {
-        SI.Editor.UI.BlockTemplates.Init();
-        SI.Editor.UI.ImportBlock.Init();
         let base = Ele('div', {
             style: {
                 width: '100%',
@@ -390,7 +388,7 @@ SI.Editor.Objects.Page = {
                     if (style.length) {
                         let styleobj = {
                             "Property": style,
-                            "Effected": "body",
+                            "Affected": "body",
                             "AccessClass": "si-editor-page-bodystyle",
                             "InputId": 'si_page_body_style_' + SI.Tools.CssProp2JsKey(style),
                             "Removable": true
@@ -462,7 +460,7 @@ SI.Editor.Objects.Page = {
                 //let style = SI.Editor.Data.Tools.GetStyleByName(item);
                 let styleobj = {
                     "Property": item,
-                    "Effected": 'body',
+                    "Affected": 'body',
                     "InitialValue": bodystyle[item],
                     "InputId": 'si_page_body_style_' + SI.Tools.CssProp2JsKey(item),
                     "AccessClass": "si-editor-page-bodystyle",
@@ -598,6 +596,7 @@ SI.Editor.Objects.Page = {
         });
         //Import Block Button
         let blockImportLabel = Ele('button', {
+            id:'si_edit_importblock_trigger',
             appendTo: blocklib,
             style: {
                 width: '20px',
@@ -608,14 +607,28 @@ SI.Editor.Objects.Page = {
             },
             title: "Import Existing Block",
             onclick: function (e) {
-
-                SI.Editor.UI.ImportBlock.Window.SetPosition(e.pageY + 25, e.pageX - 250);
-                SI.Editor.UI.ImportBlock.Window.Show();
+                if(!SI.Widgets.Window.si_edit_importblocks_window){
+                    var obj = {
+                        Id: "si_edit_importblocks_window",
+                        BackgroundColor: 'CadetBlue',
+                        Title: "Import Block", 
+                        Width: '268px', 
+                        Height: '75px',
+                        Top: "400px", 
+                        Left: "300px", 
+                        Resizable: false, 
+                        WindowControls:"CLOSE",
+                        Trigger:'#si_edit_importblock_trigger',
+                        Populate:SI.Editor.Objects.Page.DrawImportBlocks
+                    };
+                    new SI.Widget.Window(obj);
+                    SI.Widgets.Window.si_edit_importblocks_window.Show();
+                }
             }
-
         });
         //Block Template Button
-        let blockTemplateLabel = Ele('button', {
+        let blockTemplateButton = Ele('button', {
+            id:'si_edit_blocktemplates_trigger',
             appendTo: blocklib,
             style: {
                 width: '20px',
@@ -626,7 +639,17 @@ SI.Editor.Objects.Page = {
             },
             title: "Block Template Library",
             onclick: function () {
-                SI.Editor.UI.BlockTemplates.Window.Show();
+                if(!SI.Widgets.Window.si_edit_importblocks_window){
+                    var obj = {
+                        Id: "si_edit_blocktemplates_window",
+                        Trigger: '#si_edit_blocktemplates_trigger',
+                        Title: "Block Templates",
+                        IconImg: '/editor/media/icons/blocktemplates.png',
+                        Populate: SI.Editor.Objects.Page.DrawBlockTemplate
+                    };
+                    new SI.Widget.Window(obj);
+                    SI.Widgets.Window.si_edit_blocktemplates_window.Show();
+                }
             }
 
         });
@@ -660,11 +683,9 @@ SI.Editor.Objects.Page = {
         }
 
         return base;
-
-       // SI.Editor.UI.Page.Window.Append(base);
     },
     New: function (page) {
-        let data = { "KEY": "PageNew", "page": page };
+        let data = { "KEY": "PageNew", "CALLBACK": "SI.Editor.Objects.Page.Created", "page": page };
         //debugger
         SI.Editor.Ajax.Run({ Url: SI.Editor.Ajax.Url, "Data": data });
     },
@@ -807,46 +828,218 @@ SI.Editor.Objects.Page = {
         SI.Tools.SuperAlert(SI.Tools.GetPathDirectory() + " page was saved!", 1500);
     },
     Created: function (data) {
+        debugger;
         alert(data[Object.keys(data)[0]]);
         if (window.confirm('Your new page has been created. Click Yes to go to it or No to stay here.')) {
             window.location.href = '/' + data[Object.keys(data)[0]];
         }
     },
+
+    DrawBlockTemplate: function (content) {
+        let draw = document.createElement('div');
+        let blockTemplateBox = document.createElement('div');
+        for (let key in SI.Editor.Data.Objects.Blocks) {
+            if (SI.Editor.Data.Objects.Blocks.hasOwnProperty(key)) {
+                if (typeof (SI.Editor.Data.Objects.Blocks[key]) != "undefined") {
+                    blockTemplateBox.appendChild(SI.Editor.Objects.Page.AddBlockTemplate(SI.Editor.Data.Objects.Blocks[key]));
+                }
+            }
+        }
+        draw.appendChild(blockTemplateBox);
+        return draw;
+    },
+    AddBlockTemplate: function (template) {
+        //debugger;
+        let table = Ele('table', {
+            style: {
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                margin : '5px',
+            },
+        });
+
+        let tr = document.createElement('tr');
+
+        let pic = document.createElement('td');
+        let data = document.createElement('td');
+
+        let frame = Ele('div',{
+            style: {
+                position : 'relative',
+                height : '150px',
+                width : '150px',
+            },
+            appendTo:pic,
+        });
+        //                    src: '/editor/media/images/blockthumbs/' + template['thumb'] + '.jpg',
+        let thumb = Ele('img', {
+
+            style: {
+                position : 'absolute',
+                maxWidth : '100%',
+                width : '100%',
+                maxHeight : 'auto',
+                heigth : 'auto',
+                margin : 'auto',
+                top : "0",
+                bottom : "0",
+                left : "0",
+                right : "0",
+            },
+            appendTo:frame,
+        });
+
+        tr.appendChild(pic);
+
+       // console.log(Template);
+        //debugger;
+        let options = null;
+        try {
+            options = JSON.parse(template['options']);
+        }
+        catch (error) {
+            console.log(error);
+        }
+        if (options) {
+            for (let s in options.style) {
+                options[s] = options.style[s];
+            }
+
+            for (let option in options) {
+
+
+                if (option != 'order' && option != 'category' && option != 'style') {
+                    let box = Ele('div', {
+                        style: {
+                            display: 'inline-block',
+                            margin: '5px',
+                        },
+                    });
+                    let label = Ele('span', {
+                        innerHTML: option,
+                        style: {
+                            margin: '5px',
+                        },
+                        appendTo: box,
+                    });
+
+                    let input = Ele('input', {
+                        value: options[option],
+                        size: "5",
+                        appendTo: box,
+                    });
+
+                    data.appendChild(box);
+
+                }
+            }
+
+        }
+     //   console.log(options);
+        let btn = document.createElement('button');
+        btn.innerHTML = 'Add Block Template';
+        btn.style.float = 'right';
+        btn.style.marginTop = '40px';
+        btn.style.marginRight = '10px';
+        data.appendChild(btn);
+        tr.appendChild(data);
+        table.appendChild(tr);
+        return table;
+    },
+
+    DrawImportBlocks: function () {
+        let container = document.createElement('div');
+        let blSelect = Ele("select", {
+            id: 'si_edit_importblock_select',
+            style: {
+                margin: '20px',
+            },
+            onchange: function (ev) {
+                let val = this.value;
+                let name = this.innerHTML;
+            },
+            appendTo: container,
+        });
+        let blButton = Ele("input", {
+            type:'button',
+            id: 'si_edit_importblock_button',
+            style: {
+                margin: '20px',
+            },
+            value:'Import',
+            onclick: function (ev) {
+                let sel = document.getElementById('si_edit_importblock_select');
+                //debugger;
+                SI.Editor.Objects.Blocks.Relate(sel.value);
+            },
+            appendTo: container,
+        });
+        let options = {};
+        options.Data = {
+            Operation: "Retrieve",
+            Entity: {
+                Name: 'blocks',
+            },
+            Columns: "id,name",
+        };
+        options.Callback = SI.Editor.Objects.Page.PopulateImportedBlocks;
+        //debugger;
+        SI.Tools.Api.Send(options); 
+        return container;
+    },
+    PopulateImportedBlocks: function(blocks) {
+        let sel = document.getElementById('si_edit_importblock_select');
+        for (let b in blocks) {
+            if (blocks.hasOwnProperty(b) && b !== 'Return') {
+                //debugger;
+                Ele("option", {
+                    innerHTML: blocks[b].name,
+                    value: '0x' + blocks[b].id,
+                    title: '0x' + blocks[b].id,
+                    appendTo: sel,
+                });
+            }
+        }
+    },
+
+
     AddSetting: function (settingName, pageSettings = null) {
         if (!pageSettings) {
             pageSettings = document.getElementById("si_edit_page_settings");
         }
-        let settingBox = Ele('div', {
-            style: {
-                display: 'inline-block',
-                marginRight: '10px',
-                backgroundColor: "rgb(82, 85, 97)",
-                border: "inherit",
-                padding: "2px 4px 2px 4px",
-                borderRadius: "4px",
-            },
-            appendTo: pageSettings,
-        });
-        let settingLabel = Ele('label', {
-            for: "si_edit_page_setting_" + settingName,
-            innerHTML: settingName,
-            appendTo: settingBox
-        });
-        let settingInput = Ele('input', {
-            id: "si_edit_page_setting_" + settingName,
-            class:"si-edit-page-setting",
-            name: settingName,
-            type: 'checkbox',
-            onchange: function (ev) {
-                if (this.checked) {
-                    value = SI.Editor.Data.Objects.Settings[this.name];
-                }
-            },
-            appendTo: settingBox
-        });
+        if (pageSettings) {
+            let settingBox = Ele('div', {
+                style: {
+                    display: 'inline-block',
+                    marginRight: '10px',
+                    backgroundColor: "rgb(82, 85, 97)",
+                    border: "inherit",
+                    padding: "2px 4px 2px 4px",
+                    borderRadius: "4px",
+                },
+                appendTo: pageSettings,
+            });
+            let settingLabel = Ele('label', {
+                for: "si_edit_page_setting_" + settingName,
+                innerHTML: settingName,
+                appendTo: settingBox
+            });
+            let settingInput = Ele('input', {
+                id: "si_edit_page_setting_" + settingName,
+                class:"si-edit-page-setting",
+                name: settingName,
+                type: 'checkbox',
+                onchange: function (ev) {
+                    if (this.checked) {
+                        value = SI.Editor.Data.Objects.Settings[this.name];
+                    }
+                },
+                appendTo: settingBox
+            });
+        }
     },
     RemoveSetting: function (settingName) {
         let settingBox = document.getElementById("si_edit_page_setting_" + settingName).parentElement;
         settingBox.parentElement.removeChild(settingBox);
-    }
+    },
+
 };
