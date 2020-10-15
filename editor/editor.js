@@ -2109,9 +2109,8 @@ SI.Editor = {
                 },
             }
         },
-
-
         ToolsPanel: {
+            ToolWindows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Security", "Users","Settings"],
             Init: function () {
                 //Tools Menu	
                 //Make a div for the tools panel
@@ -2147,13 +2146,13 @@ SI.Editor = {
                     menuItem.style.cursor = 'pointer';
                     menuItem.style.paddingLeft = '5px';
                     menuItem.style.paddingRight = '5px';
-                    menuItem.onclick = SI.Editor.UI.ToolsPanel.ToolsItemClick;
+                    menuItem.onclick = SI.Editor.UI.ToolsPanel.OpenToolWindow;
                 }
                 toolsMenu.appendChild(toolsMenuTable);
                 SI.Editor.UI.MainMenu.Element.appendChild(toolsMenu);          
             },
-            ToolWindows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Security", "Users","Settings"],
-            ToolsItemClick:function(title = null){        
+            OpenToolWindow:function(title = null, show = true){     
+                //if called from the event, title will be the event.   
                 if(title.target){
                     title = this.innerHTML;
                 }
@@ -2276,8 +2275,7 @@ SI.Editor = {
                     }
                     if(options){
                         try{
-                        new SI.Widget.Window(options);
-                        SI.Widgets.Window[winid].Show();
+                            new SI.Widget.Window(options);
                         }catch(er){
                             SI.Tools.SuperAlert("Error loading "+title+": "+er.message, 4000);
                             if(options.Error){
@@ -2292,7 +2290,9 @@ SI.Editor = {
                     SI.Widgets.Window[winid].Hide();
                     return;
                 }
-                SI.Widgets.Window[winid].Show();
+                if(show){
+                    SI.Widgets.Window[winid].Show();
+                }
             },
         },
     },
@@ -2335,7 +2335,7 @@ SI.Editor = {
             ajax.send(stringdata);
         },
         Complete: function (json,options) {
-            debugger;
+            //debugger;
             if(options.Callback){
                     if(json.hasOwnProperty("PARAMETER")){
                         let param = json['PARAMETER'];

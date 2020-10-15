@@ -126,18 +126,19 @@ SI.Editor.Objects.Scripter = {
                 marginLeft: "8px",
             },
             value: "Update",
-            onclick: this.BuildScript,
+            onclick: SI.Editor.Objects.Scripter.BuildScript,
             appendTo: mainmenu,
         });
 
         //update codeview
         let savescript = Ele("input", {
+
             type: 'button',
             style: {
                 marginLeft: "8px",
             },
             value: "Save",
-            onclick: this.SaveScript,
+            onclick: SI.Editor.Objects.Scripter.SaveScript,
             appendTo: mainmenu,
         });
 
@@ -287,8 +288,8 @@ SI.Editor.Objects.Scripter = {
             //Nice to see how long the script takes
             let rand = SI.Tools.String.RandomString(); //required becuase there does not seem to be a way to reset these things. 
             console.time("si-loadScript" + rand);
-            this.HighlightSyntax(SI.Editor.Objects.Scripter.Codepad);
-            numlines = this.ComputeLineNumbers();
+            SI.Editor.Objects.Scripter.HighlightSyntax(SI.Editor.Objects.Scripter.Codepad);
+            numlines = SI.Editor.Objects.Scripter.ComputeLineNumbers();
             if (numlines === 1) {
                 this.AddLineNumbers(30);
             }

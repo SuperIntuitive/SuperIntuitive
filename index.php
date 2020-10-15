@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2020 Robert Allen
  * @license   Licensed under GPLv2 license
  *            See https://github.com/SuperIntuitive/SuperIntuitive/blob/master/LICENSE
- * @version   v0.8
+ * @version   v0.9
  */
 //session_unset();
 

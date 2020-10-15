@@ -906,6 +906,9 @@ SI.Editor.Objects.Blocks = {
         console.log(blockname + ' has been created');
     },
     Save: function (blockui, flag = 'flag') {
+        //if not yet opened, the tool window is needed for some elements below.  
+        SI.Editor.UI.ToolsPanel.OpenToolWindow("Page", false);
+        
         if (typeof blockui === 'string') {
             blockui = document.getElementById('si_bid_' + blockui);
             if (!blockui) {
@@ -922,7 +925,6 @@ SI.Editor.Objects.Blocks = {
         let bname = blockui.getAttribute('data-name');
         let tmp, tguid;
 
-        let t = this;
         if (typeof SI.Editor.Data.Objects.Blocks[bname] !== 'undefined') {
             tmp = SI.Editor.Data.Objects.Blocks[bname];
             tguid = tmp.id;

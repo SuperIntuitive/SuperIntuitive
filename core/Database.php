@@ -52,7 +52,7 @@ class Database extends DbCreds
 		}
 	}
 	public function IsCmsSetup(){
-		if($this->pdo === null){
+		if($this->pdo === null || $this->pdo === false ){
 			return false;
 		}else{
 			return true;
@@ -1392,8 +1392,7 @@ class Database extends DbCreds
 						`name`, 
 					   `path`,
 					   HEX(hash) AS hash,
-					   `mime`,
-					   `category`
+					   `mime`
 				FROM media
 				WHERE entity_id=$mediaEntityId");
 			$data->execute(null );//,':pageEnt'=>$pageEntityId ) );

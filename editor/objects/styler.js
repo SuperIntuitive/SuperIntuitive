@@ -1117,12 +1117,8 @@ SI.Editor.Objects.Styler = {
             SI.Editor.Data.Objects.Blocks[sheetname].style = code.trim();
             //debugger;
             SI.Editor.Objects.Blocks.Save(sheetname, 'style');
-
             //update everything so we dont need to reload
             let currentStyle = document.getElementById('si_page_style');
-            
-
-            
             let head = document.getElementsByTagName('head')[0];
             Ele("link", {
                 id : 'si_page_style',
