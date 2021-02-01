@@ -51,7 +51,7 @@ class Setup {
 	   //Get the supported pdo drivers
 
 		return "<link rel='stylesheet' type='text/css' href='/style/setup.css'>
-		<script src='/scripts/setup.js'></script>
+		<script src='/scripts/setup.js?".rand()."'></script>
 		";			
 	}			
 	public function GetBody(){
@@ -98,7 +98,7 @@ class Setup {
 					<header>
 					  <h2>Setup <i>SuperIntuitive</i> CMS</h2>
 					</header>
-					<main>
+					<main id='si_setup_main'>
 						<section>
 						    
 							<nav>
@@ -300,7 +300,9 @@ class Setup {
 		$source = $_SERVER["DOCUMENT_ROOT"].'/core/setup/domaintemplate/';
 		$dest= $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
 		//Make the domain folder
-		mkdir($dest, 0755);
+		if(!file_exists($dest)){
+			mkdir($dest, 0755);
+		}
 		//Copy the setup/media folder into the new domain folder
 		foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $item) {
 			if ($item->isDir()) {
@@ -325,16 +327,16 @@ class Setup {
 	private $unique = 0;
 	private function ReplaceTokens(&$sqlstr, $post){
 	    Tools::Log("In Replace Tokens");
-		Tools::Log($sqlstr);
-		Tools::Log("In Replace Guids");
+
+		Tools::Log("Replacing Guids");
 		$sqlstr = preg_replace_callback(
 			"(_SI_GUID_[1234567890]+)",
 			function ($matches) {
 				if(count($matches)>0){
 
 					$match = $matches[0];
-					Tools::Log("Matches:".$match);
-					Tools::Log("Matches:".print_r($matches,true));
+					//Tools::Log("Matches:".$match);
+					//Tools::Log("Matches:".print_r($matches,true));
 					$this->total++;
 					if(isset($this->guidTokens[$match])){
 						Tools::Log("Guid Match Exists for: ".$match.' Returning Guid: '.$this->guidTokens[$match]);
@@ -349,14 +351,13 @@ class Setup {
 						//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 						return $guid;
 					}
-					Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
+					//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 				}
-				Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
+				//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 			},
 			$sqlstr
 		);
 		Tools::Log("Afterreplace Guids");
-		Tools::Log($sqlstr);
 		//replace all of the created on 
 		$sqlstr = str_replace("_SI_NOWTIME_"," CURRENT_TIMESTAMP() ",$sqlstr);
 		
@@ -377,14 +378,15 @@ class Setup {
 		$installedlanguages = ['ar','zh','en','fr','de','hi','it','ja','ko','es'];
 		//if the selected language is not in the default languages list, we should add it.
 		if(!in_array($post['language'],$installedlanguages)){
-		    $miscdata = new MiscData();
-		    $langname = $miscdata->languages[$deflang];
+			$miscdata = new MiscData();
+			$langname = $miscdata->Languages[$deflang];
 			$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__',   ", `_$deflang` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '{\"Name\":\"$langname\"}'"  ,$sqlstr);
 			Tools::Error($sqlstr);
 		}else{
-		    //remove the token
-		    $sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__','',$sqlstr);
+			//remove the token
+			$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__','',$sqlstr);
 		}
+
 		
 
 		//set the dollars
@@ -412,7 +414,7 @@ class Setup {
 			Tools::Log($dbserver,true);
 			$sql = " DROP DATABASE IF EXISTS `$dbname`;
 			        DROP USER IF EXISTS '$user'@'$dbserver';
-					CREATE DATABASE `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;				
+					CREATE DATABASE `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;		
 					CREATE USER '$user'@'$dbserver' IDENTIFIED BY '$pw';
 					GRANT ALL PRIVILEGES ON $dbname.* TO '$user'@'$dbserver';
 					FLUSH PRIVILEGES;";
@@ -650,7 +652,7 @@ class Setup {
 		Setup::Log($sqlstr);
 		//split again but this time by semicolons followed by newlines
 		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
-		Tools::Log($sqlfile,true);
+		//Tools::Log($sqlfile,true);
 
 		$outcome = true;
 		$msg = "";

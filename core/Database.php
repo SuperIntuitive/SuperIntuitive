@@ -578,6 +578,9 @@ class Database extends DbCreds
 			foreach ($dbrows as $dbrow) {
 
 				$tablename = $dbrow['table_name'];
+				if($tablename == "securityroles"){
+					$bla = "STOP HERE";
+				}
 				$tablecomment = $dbrow['table_comment'];
 				$columnname = $dbrow['column_name'];
 
@@ -692,9 +695,8 @@ class Database extends DbCreds
 				}
 				$script.=";\r\n";
 				$script.="\r\n";
-			//	$sql = "SELECT * FROM `".$table."`"
+
 				$tdata = $this->pdo->prepare($select);
-				//print_r($data);
 				$tdata->execute( );
 
 				if($table == "emails"){
@@ -720,7 +722,7 @@ class Database extends DbCreds
 						if($table === "users"){
 							$trow["name"]='__SI_USER_NAME__';
 							$trow["email"]='__SI_USER_EMAIL__';
-							$trow["password"]='__SI_USER_Password__';
+							$trow["password"]='__SI_USER_PASSWORD__';
 						}
 						if($table === "settings"){
 							switch($trow["settingname"]){
@@ -742,7 +744,7 @@ class Database extends DbCreds
 							$stype = substr($ctype, 0, strpos($ctype, "("));
 							switch($stype){
 								case "binary": 
-									$bin = "0x".$cell;
+									$bin = "0x".strtoupper($cell);
 									if($ctype === "binary(16)"){
 										if(!$backup){
 											$foundInd = array_search($bin, $guidLookup);
@@ -751,7 +753,6 @@ class Database extends DbCreds
 											}else{
 												$bin = "_SI_GUID_".count($guidLookup);
 												$guidLookup[] = "0x".$cell;
-												
 											}
 										}
 									}
@@ -760,8 +761,30 @@ class Database extends DbCreds
 								case "int": $insert .=$cell; break;
 								case "enum": $insert .="'".$cell."'"; break;
 								default:
+									//  (0x)([a-fA-F0-9]{32})   0x[a-fA-F0-9]{32}
+									if(!$backup){
+									    preg_match_all('/0x[a-fA-F0-9]{32}/', $cell, $allmatches);
+
+									    if($allmatches){
+											foreach($allmatches as $matches){
+												foreach($matches as $match){
+													$binToken = "";
+													$fixedmatch = str_replace("0X","0x",strtoupper($match));
+													$foundInd = array_search($fixedmatch, $guidLookup);
+													if ($foundInd === false){
+														$binToken = "_SI_GUID_".count($guidLookup);
+														$guidLookup[] = $fixedmatch;
+													}else{
+														$binToken = "_SI_GUID_".$foundInd;
+													}
+													$cell = str_replace($match,$binToken, $cell);
+												}
+											}
+										}
+									}
+
 								    $cell = addslashes($cell); 
-									$cell = preg_replace('/(\r\n|\r|\n)+/', "\n", $cell);
+									$cell = preg_replace('/(\r\n|\r|\n)+/', '\n', $cell);
 									$cell = preg_replace('/\s+/', ' ', $cell);
 									$insert .="'".$cell."'"; 
 								    break;
