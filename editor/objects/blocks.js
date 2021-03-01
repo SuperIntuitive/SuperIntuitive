@@ -400,7 +400,7 @@ SI.Editor.Objects.Blocks = {
 
             onclick: function (e) {
                 let blockname = this.dataset.fkey;
-                SI.Editor.UI.ToolsPanel.ToolsItemClick("Scripter");
+                SI.Editor.UI.ToolsPanel.OpenToolWindow("Scripter");
                 SI.Editor.Objects.Scripter.OpenScript(blockname, "Block");
                 e.stopPropagation(); //keep from clicking through
             },
@@ -426,7 +426,7 @@ SI.Editor.Objects.Blocks = {
             onclick: function (e) {
                 //debugger;
                 let blockname = this.dataset.fkey;
-                SI.Editor.UI.ToolsPanel.ToolsItemClick("Styler");
+                SI.Editor.UI.ToolsPanel.OpenToolWindow("Styler");
                 SI.Editor.Objects.Styler.LoadStyleByBlock(blockname);
                 e.stopPropagation(); //keep from clicking through
             },
