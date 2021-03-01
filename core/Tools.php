@@ -203,7 +203,7 @@ class Tools{
 	}
 	static function GetFileTypeData($ext) {
 	    $allowedFileTypes = explode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['AllowedFileTypes']);
-		Tools::Log($allowedFileTypes);
+		//Tools::Log($allowedFileTypes);
 		if($allowedFileTypes == null){
 			Tools::Log("AllowedFileTypes Setting cannot be found. please try loggin in again.");
 			return false;
@@ -545,9 +545,6 @@ class Tools{
 	}
 	static function Trace(){
 		Tools::Log( debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3));
-	//	if(!empty($trace[1]) ){
-		//	Tools::Log('Backtrace:'.str_replace(str_replace('/','\\',$_SERVER["DOCUMENT_ROOT"]),"", implode(" - ",$trace[1])   ));
-	//	}
 	}
 	static function SafeKey($key, $array){
 		if(!isset($array[$key])){
