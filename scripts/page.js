@@ -8,11 +8,11 @@ Tools::DefineServer();
 $finishedScript = 'if(!SI){var SI = {}};';
 
 
-if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'])) {
+if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'])) {
     // Tools:: Log("in page.js after the condidtion");
     Tools::Autoload('subroot');
     $db = new Database();
-    $blocks = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'];
+    $blocks = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'];
     $guids = "";
     // Tools::Log($blocks, true);
     foreach($blocks as $block){

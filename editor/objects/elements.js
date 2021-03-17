@@ -560,7 +560,7 @@ SI.Editor.Objects.Elements = {
                 attrInput.setAttribute('data-type', "media");
                 attrInput.setAttribute('type', "lookup");
                 attrInput.onchange = function (e) {
-                    //debugger;
+                    debugger;
                     let ele = getAffected();
                     if (ele !== null) {
                        let tn = this.getAttribute('data-attr');

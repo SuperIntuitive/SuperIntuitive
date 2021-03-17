@@ -1537,44 +1537,47 @@ SI.Tools = {
 
         if (typeof filename !== 'undefined' && filename.length > 0) {
             filename = filename.replace('url("', '').replace('")', '').replace('"', '');
-            filename = filename.substring(filename.lastIndexOf('/') + 1);
             var re = /(?:\.([^.]+))?$/;
             var ext = re.exec(filename)[1];
+            
             let path = "";
+            let isMedia = true;
             switch (ext) {
                 case "jpg":
                 case "jpeg":
                 case "png":
                 case "bmp":
-                case "gif": path = "/media/images/" + filename;
+                case "gif": path = "/media/images/";
                     break;
                 case "mp4":
                 case "avi":
-                case "mpg": path = "/media/videos/" + filename;
+                case "mpg": path = "/media/videos/";
                     break;
                 case "mp3":
                 case "wav":
-                case "flac": path = "/media/audio/" + filename;
+                case "flac": path = "/media/audio/";
                     break;
                 case "json":
                 case "xml":
                 case "csv":
                 case "xlsx":
-                case "xls": path = "/media/data/" + filename;
+                case "xls": path = "/media/data/" ;
                     break;
                 case "docx":
-                case "pdf": path = "/media/documents/" + filename;
+                case "pdf": path = "/media/documents/";
                     break;
                 case "ttf":
-                case "otf": path = "/media/fonts/" + filename;
+                case "otf": path = "/media/fonts/";
                     break;
-                default: path = null;
+                default: path = filename; isMedia = false;
+                    break;
             }
-            path = window.location.origin + path;
 
-            if (brackets) {
-                path = 'url("' + path + '")';
+            if(isMedia){
+                filename = filename.substring(filename.lastIndexOf('/') + 1);
+                path = window.location.origin + path + filename;
             }
+            
             return path;
         }
         return null;

@@ -906,9 +906,13 @@ SI.Editor.Objects.Blocks = {
         console.log(blockname + ' has been created');
     },
     Save: function (blockui, flag = 'flag') {
+
         //if not yet opened, the tool window is needed for some elements below.  
-        SI.Editor.UI.ToolsPanel.OpenToolWindow("Page", false);
+        if(document.getElementById("si_edit_page_window") === null){
+            SI.Editor.UI.ToolsPanel.OpenToolWindow("Page", false);
+        }
         
+
         if (typeof blockui === 'string') {
             blockui = document.getElementById('si_bid_' + blockui);
             if (!blockui) {

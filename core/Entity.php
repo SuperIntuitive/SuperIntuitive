@@ -185,7 +185,7 @@ class Entity{
 			return false;
 		}
 
-		$bu = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME];
+		$bu = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME];
 		$deployment = $bu['deployment'];
 		
 		//If we cant find the Entity data than scram	
@@ -371,9 +371,9 @@ class Entity{
 			    $safefieldname = Tools::CleanDeployableField($fieldName);
 		    }
 
-			if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['attributes'][$safefieldname])){
-				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['attributes'][$safefieldname]['type'])){
-				$fieldtype = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['attributes'][$safefieldname]['type'];
+			if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['attributes'][$safefieldname])){
+				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['attributes'][$safefieldname]['type'])){
+				$fieldtype = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['attributes'][$safefieldname]['type'];
 			    }
 			}
 
@@ -512,8 +512,8 @@ class Entity{
 						if(Tools::StartsWith($newcol ,"HEX(") === true){
 							 $newCols .= $newcol." AS $col,";
 						}
-						else if(Tools::StartsWith($newcol ,$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'].'-') === true ){
-							$as = str_replace($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'].'-',"",$newcol);
+						else if(Tools::StartsWith($newcol ,$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'].'-') === true ){
+							$as = str_replace($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'].'-',"",$newcol);
 							$newCols .=  '`'.$newcol."` AS `$as`,";
 						}
 						else{

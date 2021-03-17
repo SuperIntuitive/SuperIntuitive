@@ -60,12 +60,12 @@ if (Tools::UserHasRole('Admin'))
     $miscdata = new MiscData();  //this is a grab bag of stuff until i get a better data tree going. 
 
     //get the users settings here
-    $openMethod = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs']['open_link_in']) ? $_SESSION['SI']['user']['prefs']['open_link_in'] : 'window';
+    $openMethod = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs']['open_link_in']) ? $_SESSION['SI']['user']['prefs']['open_link_in'] : 'window';
 
-    $helplinks = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks']) ? _SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks'] : 'true';
+    $helplinks = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings']['HelpLinks']) ? _SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings']['HelpLinks'] : 'true';
   
-    $showMoz = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['moz']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['moz'] : 'false';
-    $showW3 = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['w3']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['w3'] : 'false';
+    $showMoz = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['moz']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['moz'] : 'false';
+    $showW3 = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['w3']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['w3'] : 'false';
 
     $helplinks = "['mdn','w3']";
 
@@ -125,14 +125,14 @@ if (Tools::UserHasRole('Admin'))
     }else{
         $defaultLanguage = 'en';
     }
-    //$defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'];
+    //$defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['defaultlanguage'];
 
     $myLangs = json_encode(explode(',',explode(';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]));
 
     $supportedLanguages = null;
     //Tools::Log($defaultLanguage);
-    if (isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'])) {
-        $langfields = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'];
+    if (isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'])) {
+        $langfields = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'];
         foreach($langfields as $field=>$cols){
             if (Tools::StartsWith($field, "_")){
                 $code = str_replace('_', '', $field);
@@ -220,7 +220,7 @@ if (Tools::UserHasRole('Admin'))
            ";
     //echo $dataage;
 
-    $entities =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'];
+    $entities =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];
     $entityDefinitions = json_encode($entities);
     //deprecate
     $entityInfo = $entityDefinitions;
@@ -389,7 +389,7 @@ SI.Editor = {
                 Relationships:  <?= $relationsjson ?>,
                 Lists: {
                     FwdRevLookup: {},
-                    NotAllowedNames: ['domain', 'domains', 'businessunit', 'businessunits', 'entity', 'entities'],
+                    NotAllowedNames: ['domain', 'domains', 'subdomain', 'subdomains', 'entity', 'entities'],
                     NotAllowedAttributes: ['p_id', 'id', 'status', 'statusreason', 'createdon', 'modifiedon', 'entity_id'],
                 },
             },
@@ -536,7 +536,7 @@ SI.Editor = {
         },
         Site: {
             Domain: "<?= SI_DOMAIN_NAME ?>",
-            BusinessUnit: "<?= SI_BUSINESSUNIT_NAME ?>",
+            SubDomain: "<?= SI_SUBDOMAIN_NAME ?>",
             SessionPageData:  <?= $sessionPageData ?>,
         },
         Tools: {
@@ -2231,6 +2231,7 @@ SI.Editor = {
                                 Id: "si_edit_entities_window",
                                 Trigger: '#si_edit_entities_trigger',
                                 Title: "Entities",
+                                Overflow: "scroll",
                                 Resize: SI.Editor.Objects.Entity.Resize,
                                 Populate:SI.Editor.Objects.Entity.Draw
                             };
@@ -2309,7 +2310,7 @@ SI.Editor = {
                 "Data": {},
             }
             options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-            var ajax = new XMLHttpRequest();
+            let ajax = new XMLHttpRequest();
             //debugger;
             ajax.open(options.Method, options.Url, options.Async);
             ajax.setRequestHeader("Content-Type", options.ContentType);
@@ -2330,7 +2331,7 @@ SI.Editor = {
 
                 }
             };
-            var stringdata = JSON.stringify(options.Data);
+            let stringdata = JSON.stringify(options.Data);
             //debugger;
             ajax.send(stringdata);
         },

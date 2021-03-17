@@ -38,7 +38,7 @@
         let dBuNewPage = document.createElement('td');
         let dBuINewPage = document.createElement('input');
         dBuINewPage.id = "SI_Struct_NewPage_BU";
-        dBuINewPage.value = SI.Editor.Data.Site.BusinessUnit;
+        dBuINewPage.value = SI.Editor.Data.Site.SubDomain;
 
         dBuINewPage.readOnly = true; 
         dBuNewPage.appendChild(dBuINewPage);
@@ -115,15 +115,15 @@
                 }),
                     domains.push(domain['domainName']);
 
-                //Deal with businessunit setup
+                //Deal with subdomain setup
                 let busunits = [];
                 for (let busunit of pageData) {
-                    if ((!busunits.includes(busunit['businessunitName'])) && (domain['domainName'] === busunit['domainName'])) {
+                    if ((!busunits.includes(busunit['subdomainName'])) && (domain['domainName'] === busunit['domainName'])) {
                         let buname = ''
-                        if (busunit['businessunitName'] === '') {
+                        if (busunit['subdomainName'] === '') {
                             buname = 'NONE';
                         } else {
-                            buname = busunit['businessunitName'];
+                            buname = busunit['subdomainName'];
                         }
                         let bu = Ele('fieldset', {
                             id: 'si_edit_site_domain_' + busunit['domainName'] + '_' + buname,
@@ -131,7 +131,7 @@
                                 backgroundColor: '#778899',
                             },
                             append: Ele('legend', {
-                                innerHTML: "BusinessUnit",
+                                innerHTML: "SubDomain",
                                 style: {
                                     backgroundColor: '#d3d9de',
                                     color: '#374049',
@@ -147,7 +147,7 @@
                             innerHTML: buname,
                             appendTo: bu
                         }),
-                            busunits.push(busunit['businessunitName']);
+                            busunits.push(busunit['subdomainName']);
                         let pages = [];
                         for (let page of pageData) {
                             let pgname = ''
@@ -156,7 +156,7 @@
                             } else {
                                 pgname = page['pageName'];
                             }
-                            if ((!pages.includes(page['pageName'])) && (page['businessunitName'] === busunit['businessunitName'])) {
+                            if ((!pages.includes(page['pageName'])) && (page['subdomainName'] === busunit['subdomainName'])) {
 
                                 let pageid = '0x' + page['pageId'].toLowerCase();
 
@@ -355,7 +355,7 @@
         ////    console.log("PAGE");
         //    let pg = pageLibrary[page];
 
-        //    let bu = pg['businessunitName'];
+        //    let bu = pg['subdomainName'];
         //    if (bu.length > 0) {
         //        bu = bu + '.';
         //    }

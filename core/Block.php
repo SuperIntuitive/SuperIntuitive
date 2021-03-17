@@ -86,11 +86,11 @@ class Block {
 					$relations->Update();
 				}
 				
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKSAVED'] = $post['name'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKSAVED'] = $post['name'];
 			}
 			catch(Exception $ex)
 			{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
 			}
 		}
 
@@ -129,19 +129,19 @@ class Block {
 				    $relid = $this->Relate($post);
 					if($relid){
 						//All done return
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKCREATED'] = "New Block: $name created";
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKCREATED'] = "New Block: $name created";
 						return;
 					}else{
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION']['ERROR'] = "Created block; failed to create relation";
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION']['ERROR'] = "Created block; failed to create relation";
 					}
 				}
 				else{
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION']['ERROR'] = "Failed to create the block: $name";
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION']['ERROR'] = "Failed to create the block: $name";
 				}
 			}
 		}
 		catch(Exception $ex){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
 		}
 	}
 	function Relate($post){
@@ -155,7 +155,7 @@ class Block {
 			$options = !isset($post['options']) ? null : $post['options'];
 			if($pageid && $blockid && ($order!==null)){
 				//get the block that were relating to the page
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED'] = array();
 				$entity = new Entity('blocks');
 				$entity->Id = $blockid;
 				$myblock = $entity->Retrieve()[0];
@@ -170,16 +170,16 @@ class Block {
 						$options = '{"tag":"div","style":{"position":"static","left":"0px","top":"0px","width":"100%","height":"500px"}}';
 					}
 					if(isset($myblock['name'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['NAME'] = $myblock['name'];
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['NAME'] = $myblock['name'];
 					}
 					if(isset($myblock['html'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['HTML'] = $myblock['html'];
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['HTML'] = $myblock['html'];
 					}
 					if(isset($myblock['style'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['STYLE'] = $myblock['style'];
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['STYLE'] = $myblock['style'];
 					}
 					if(isset($myblock['script'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['SCRIPT'] = $myblock['script'];
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['SCRIPT'] = $myblock['script'];
 					}
 
 					$db = new Database();
@@ -188,17 +188,17 @@ class Block {
 
 					if($relatedid != null){
 
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['ID'] = $blockid;
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['RELID'] = $relatedid;
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['OPTIONS'] = $options;
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['ORDER'] = $order;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['ID'] = $blockid;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['RELID'] = $relatedid;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['OPTIONS'] = $options;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['ORDER'] = $order;
 					}
 					return $relatedid;
 				}
 
 			}
 		}catch(Exception $ex){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
 		}
 
 	}
@@ -207,7 +207,7 @@ class Block {
 			Tools::Log("Removing relation:".$post['linkid']);
 			$dbc = new Database();
 			$dbc->RemoveRelation($post['linkid']);
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKREMOVED'] = "Block removed";
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKREMOVED'] = "Block removed";
 		}
 
 	}
@@ -215,9 +215,9 @@ class Block {
 	public function GetPagesBlocks(){
 		if(SI_ENTRY == "PAGELOAD"){
 			Tools::Log("IN GetPagesBlocks");
-			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']) && isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['id']) ){			
-				$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
-				$pageid = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['id'];
+			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment']) && isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['id']) ){			
+				$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
+				$pageid = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['id'];
 				$cols= "id,name,`$deploymentlevel-html`,`$deploymentlevel-style`,`$deploymentlevel-script`";
 				$data = array();
 				$data = $this->GetRelatedEntities('pages',$this->pageGuid,'blocks', $cols );
@@ -260,7 +260,7 @@ class Block {
 	}
 
 	public function Get($pageid){	
-		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 		$cols= "id,name,`$deploymentlevel-html`,`$deploymentlevel-style`,`$deploymentlevel-script`";
 		$data = array();
 		$db = new Database();
@@ -274,8 +274,8 @@ class Block {
 				$libs[$v['name']]["order"] = $v['relationsOrder'];
 				$libs[$v['name']]["options"] = $v['relationsOptions'];
 				$libs[$v['name']]['html'] = $v["$deploymentlevel-html"]; //'test html';//
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'][$v['name']]['id']='0x'.$v['id'];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'][$v['name']]['name']=  $v['name'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'][$v['name']]['id']='0x'.$v['id'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'][$v['name']]['name']=  $v['name'];
 
 				//Data only needed by admin for the editor
 				if(Tools::UserHasRole('Admin')){

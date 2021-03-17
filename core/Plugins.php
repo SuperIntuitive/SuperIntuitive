@@ -93,7 +93,7 @@ class Plugins {
 		//TODO add paging and a tracker so this can be fired when the repo is opened and if the user scrolls down the repo
 		$plugins = file_get_contents('http://plugins.superintuitive.net?');
 
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['MOREPLUGINS']= $plugins;
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['MOREPLUGINS']= $plugins;
 
 	}
 
@@ -141,7 +141,7 @@ class Plugins {
 			}
 
 			//Tools::Log($response); // Do something with the response.
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['DOWNLOADEDPLUGIN']= $fname;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['DOWNLOADEDPLUGIN']= $fname;
 		}
 	}
 
@@ -162,14 +162,14 @@ class Plugins {
 					Tools::Log("OPened Zip");
 					$zip->extractTo($_SERVER["DOCUMENT_ROOT"] . "/plugins/installed/".$plugin);
 					$zip->close();
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGIN']= $plugin;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGIN']= $plugin;
 				} else {
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin;
 				}
 			}
 			catch(Exception $ex){
 				Tools::Log($plugin." ".$ex->getMessage());
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin." ".$ex->getMessage();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin." ".$ex->getMessage();
 			}
 
 			if( file_exists($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/install.json") ){
@@ -227,11 +227,11 @@ class Plugins {
 				Tools::Log("IN Uninstall");
 				$this->RemovePluginSQL($plugin);
 				Tools::DeleteDirectory($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin);
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['UNINSTALLPLUGIN']= $plugin;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['UNINSTALLPLUGIN']= $plugin;
 			}
 			catch(Exception $ex){
 				Tools::Log($plugin." ".$ex->getMessage());
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['UNINSTALLPLUGINFAILED']= $ex->getMessage();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['UNINSTALLPLUGINFAILED']= $ex->getMessage();
 			}
 		}
 	}
@@ -516,12 +516,12 @@ class Plugins {
 			file_put_contents($fpath, $script);
 			
 
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Successfully";
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Successfully";
 
 		}
 		catch(Exception $e){
 
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
 			
 		   Tools::Error($e);
 		}

@@ -60,10 +60,10 @@ class Media {
 				$relpath = str_replace('/domains/','',$relpath);
 				$relpath = str_replace(SI_DOMAIN_NAME,'',$relpath);
 
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['FILEPROMOTED'] = "si_media_".ucfirst($category)."_".$deployTo."Preview|$category|$relpath?".time();
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['CONSOLELOG'] = "Promoted File: ". $path.' '.$promoted;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['FILEPROMOTED'] = "si_media_".ucfirst($category)."_".$deployTo."Preview|$category|$relpath?".time();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CONSOLELOG'] = "Promoted File: ". $path.' '.$promoted;
 			}else{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['CONSOLELOG'] = "Did not find file". $path.' '.$deploy;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CONSOLELOG'] = "Did not find file". $path.' '.$deploy;
 			}
 		}
 	}

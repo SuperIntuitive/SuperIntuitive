@@ -34,7 +34,7 @@ class Page {
 		//Tools::Log($this->pageobjects['page'], true);
 			//search for the page in the database
 			$title = null;
-			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 
 			if(isset($this->pageobjects['page']) && isset($this->pageobjects['page']['meta'])){
 			    $title = $this->pageobjects['page']['meta'];
@@ -131,7 +131,6 @@ class Page {
 			
 			$t = time();
 
-			//$lib = new Library();
 			$head = "";
 
 			if($title != null){
@@ -159,7 +158,7 @@ class Page {
 			
 			//If the user is logged in, set up a javacript object for them.
 			//Tools::Log("Logging user");
-			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
+			//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']);
 			$pageblocks = array();
 			foreach($blocks as $block=>$val){
 				if(!isset($pageblocks[$block])){
@@ -194,11 +193,11 @@ if (!SI) { var SI = {}; }
 ";
 
 
-			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] === true){
-				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'];
+			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin'] === true){
+				$name = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['name'];
 				$prefs = "{}";
-				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences'])){
-					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['preferences']);
+				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['preferences'])){
+					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['preferences']);
 				}
 				$head.= 
 "	SI.User.Name = '$name';
@@ -237,7 +236,7 @@ if (!SI) { var SI = {}; }
 
 
 
-			if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']=='dev'){
+			if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment']=='dev'){
 				$admin = new Admin();
 				//$head.=$admin->PopulateEditorMediaFiles($this->pageobjects['admin']['media']);
 				//$head.=$admin->PopulateEditorAllPages($this->pageobjects['admin']['allpages']);
@@ -260,7 +259,6 @@ if (!SI) { var SI = {}; }
 
 						$head .= "
 		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
-		<script src='/scripts/libraries.js?$t' defer id='si_extlibs'></script>
 		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
 		";
 
@@ -280,7 +278,7 @@ if (!SI) { var SI = {}; }
 		else
 		{
 			$guid = "";
-			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 			if(Tools::UserHasRole("Admin")  && $deployment =='dev'){
 				if(isset($this->pageobjects['page']['id'])){
 					$guid =  " data-guid='0x".$this->pageobjects['page']['id']."'";
@@ -363,7 +361,7 @@ if (!SI) { var SI = {}; }
 
 	public function Save($post){
 		//only save the page if we are an admin and in dev
-	    if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] =='dev'){
+	    if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] =='dev'){
 			//make sure we have a guid
 			if(isset($post['body']['data']['guid'])){
 				//make an entity for the page
@@ -372,7 +370,7 @@ if (!SI) { var SI = {}; }
 	
 				unset($post['KEY']);
 
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED'] = array();
 
 				if(isset($post['redirect'])){
 					$ent->Attributes->Add(new Attribute("redirecttopage_id", Tools::FixGuid( $post['redirect'] ) )); 
@@ -388,7 +386,7 @@ if (!SI) { var SI = {}; }
 						$ent->Attributes->Add(new Attribute("name",$post['name'] ) ); 
 						unset($post['name']);
 					}else{
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
 						return false;
 					}
 				}
@@ -400,7 +398,7 @@ if (!SI) { var SI = {}; }
 					if(count($dupe)===0){
 						$ent->Attributes->Add(new Attribute("path",$post['path'] ) ); 
 					}else{
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED']["DUPE"]=true;
 						return false;
 					}
 
@@ -422,21 +420,21 @@ if (!SI) { var SI = {}; }
 					if($ent->Update()){
 					
 						if($path != null){
-							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['CURRENTDBPAGEPATH'] = $path;
+							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED']['CURRENTDBPAGEPATH'] = $path;
 						}
 					
 					}
 				}catch(Exception $e){
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] .= $e;
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['UPDATEFAILED'] = "true";
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] .= $e;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED']['UPDATEFAILED'] = "true";
 					return false;
 				}
 			
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGESAVED']['PAGEUPDATED'] = "true";
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED']['PAGEUPDATED'] = "true";
 					return true;
 
 			}else{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['EXCEPTION'] = "failed to get a data.guid"; 
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['EXCEPTION'] = "failed to get a data.guid"; 
 			}
 
 		}
@@ -461,12 +459,12 @@ if (!SI) { var SI = {}; }
 
 			    $ret = array();
 				$ret[$pageid]=$post['page'];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PAGECREATED'] = $ret;
-				//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['CALLBACK'] = $post['CALLBACK'];
-				//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PARAMETER'] = $ret;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGECREATED'] = $ret;
+				//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CALLBACK'] = $post['CALLBACK'];
+				//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PARAMETER'] = $ret;
 			}else{
 				Tools::Log('That page already exists.');	
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = 'Cannot make that page. It already exists.';
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = 'Cannot make that page. It already exists.';
 			}
 
 		}
@@ -478,7 +476,7 @@ if (!SI) { var SI = {}; }
 	    if($pageobjects == "%EMPTY_DOMAIN%"){
 			return  $pageobjects;
 		}
-		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 
 		$page = new Entity("pages");
 		$page->Attributes->Add(new Attribute("path",SI_URI));
@@ -487,12 +485,12 @@ if (!SI) { var SI = {}; }
 		$pageobjects['page'] = array();
 		$pageobjects['page'][] =  $mypage[0];
 
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['id']='0x'.$mypage[0]['id'];
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['name']= $mypage[0]['name'];
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['id']='0x'.$mypage[0]['id'];
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['name']= $mypage[0]['name'];
 
 		$blocks = new Block();
 
-		$myblocks = $blocks->Get( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['id'] );
+		$myblocks = $blocks->Get( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['id'] );
 		$pageobjects['blocks'] = $myblocks;
 
 

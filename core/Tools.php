@@ -87,7 +87,7 @@ class Tools{
 		$subdomain = str_replace("www","",$subdomain);
 	    //	echo "Sub: $subdomain -";
 		define('SI_DOMAIN_NAME', $host);
-		define('SI_BUSINESSUNIT_NAME', $subdomain);
+		define('SI_SUBDOMAIN_NAME', $subdomain);
 		define('SI_PAGE_PATH',$path);
 		define('SI_NET_SCHEME',$scheme);
 		define('SI_API_QUERY', $query);
@@ -202,7 +202,7 @@ class Tools{
 		file_put_contents($_SERVER["DOCUMENT_ROOT"].'/logs/dev.log',$funcpath."\n\r", FILE_APPEND);
 	}
 	static function GetFileTypeData($ext) {
-	    $allowedFileTypes = explode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['AllowedFileTypes']);
+	    $allowedFileTypes = explode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings']['AllowedFileTypes']);
 		//Tools::Log($allowedFileTypes);
 		if($allowedFileTypes == null){
 			Tools::Log("AllowedFileTypes Setting cannot be found. please try loggin in again.");
@@ -388,7 +388,7 @@ class Tools{
 	}
 	static function UserHasRole($checkroles){
 		
-		//Tools::Log('The current users roles are: '.implode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles']));
+		//Tools::Log('The current users roles are: '.implode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles']));
 		$roles = array();
 	    if(is_array($checkroles)){
 			$roles = $checkroles;			
@@ -406,9 +406,9 @@ class Tools{
 		$usersRoles = array();
 		//This SHOULD be able to be done in one line with array_intersect but I cant get it working this second
 
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles']))
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles']))
 		{
-			$userRoles = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'];
+			$userRoles = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'];
 
 			$cross = array_intersect($userRoles, $roles);
 			
@@ -436,7 +436,7 @@ class Tools{
 		return FALSE;
 	}
 	static function GetEntityNameFromGuid($guid){
-		$entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'];
+		$entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];
 		foreach($entities as $k=>$v){
 			if(!empty($v['instanceid'])){
 				if($v['instanceid'] == $guid){
@@ -448,8 +448,8 @@ class Tools{
 	}
 	static function GetEntityGuidFromName($name){
 		$name = strtolower($name);
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['instanceguid'])){
-			return $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['instanceguid'];
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['instanceguid'])){
+			return $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['instanceguid'];
 		}
 		return null;
 	}
@@ -465,8 +465,8 @@ class Tools{
 		$text = str_replace("__NOW.DBTIME__",date("Y-m-d H:i:s"), $text);
 		$text = str_replace("__NOW.DATEPATH__",date("Y/m/d"), $text);
 		//allow the user to make replacements with Settings
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'])){
-			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'];
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings'])){
+			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings'];
 			//Tools::Log($settings);		
 			foreach($settings as $k=>$v){
 
@@ -581,7 +581,7 @@ class Tools{
 		//Tools::Log($text);
 		if (defined('SI_LANGS') && ( strpos ($text,'SI_MULTILANG_')> - 1 ) )
 		{
-		    $localtextattr = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'];
+		    $localtextattr = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'];
 			$langs = strtolower(SI_LANGS);
 			$lanarr = explode(',',$langs);
 			$lanarr = preg_filter('/^/', '_', $lanarr);

@@ -136,8 +136,8 @@
     },
     {
       "n": "download",
-      "dt": "ATTRIBUTE",
-      "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink",
+      "dt": "TEXT",
+      "d": "Specifies the name of the file that the target will be downloaded when a user clicks on the hyperlink",
       "w3": "/tags/att_download.asp"
     },
     {

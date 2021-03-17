@@ -13,10 +13,10 @@ echo "@charset \"ISO-8859-1\";";
 
 
 
-if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'])) {
+if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'])) {
     Tools:: Autoload('subroot');
     $db = new Database();
-    $blocks = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'];
+    $blocks = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'];
     $guids = "";
     foreach($blocks as $block){
             $guids.= $block['id'].',';

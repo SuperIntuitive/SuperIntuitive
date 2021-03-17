@@ -398,7 +398,7 @@ SI.Editor.Objects.Entity = {
     },
     Lists: {
         FwdRevLookup: {},
-        NotAllowedNames: ['domain', 'domains', 'businessunit', 'businessunits', 'entity', 'entities'],
+        NotAllowedNames: ['domain', 'domains', 'subdomain', 'subdomains', 'entity', 'entities'],
         NotAllowedAttributes: ['p_id', 'id', 'status', 'statusreason', 'createdon', 'modifiedon', 'entity_id'],
     },
     NewEntityDialog: function () {

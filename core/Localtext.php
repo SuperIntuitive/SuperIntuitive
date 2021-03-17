@@ -20,7 +20,7 @@ class Localtext{
 			$db = new Database();
 			try{
 			    $db->Execute($addLang);
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['ADDEDLANGUAGE'] = $post;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ADDEDLANGUAGE'] = $post;
 			}
 			catch(PDOException $ex){
 				
@@ -53,7 +53,7 @@ class Localtext{
 				$ret['text'] = $text;
 				$ret['id'] = $guid;
 				$ret['token'] = $code;
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['NEWLOCALTEXT'] =$ret;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['NEWLOCALTEXT'] =$ret;
 			}
 		}
 	}
@@ -118,7 +118,7 @@ class Localtext{
 		if($key['value']){
 			$key = $key['value'];
 		}
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]
 
 
 		$curl = curl_init();

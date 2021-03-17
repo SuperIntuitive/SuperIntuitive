@@ -69,24 +69,24 @@ class Database extends DbCreds
 		//get a list of entities from the entities table. This list is a key as to which entities belong to the sub.domain combo. 
 		//All entities are owned by a sub.domain combination. 
 		$data = $this->pdo->prepare("
-			SELECT domains.name AS domainName, domains.status AS domainStatus, HEX(domains.id) AS domainId, businessunits.name AS businessunitName, businessunits.status AS businessunitStatus, HEX(businessunits.id) AS businessunitId, entities.name AS entityName, HEX(entities.id) AS entityId
+			SELECT domains.name AS domainName, domains.status AS domainStatus, HEX(domains.id) AS domainId, subdomains.name AS subdomainName, subdomains.status AS subdomainStatus, HEX(subdomains.id) AS subdomainId, entities.name AS entityName, HEX(entities.id) AS entityId
 			FROM domains
-			INNER JOIN businessunits ON domains.id = businessunits.domain_id 
-			INNER JOIN entities ON domains.id = entities.domain_id AND businessunits.id = entities.businessunit_id
-			WHERE domains.name = :domain AND businessunits.name = :businessunit");
-		$data->execute( array(':domain'=>SI_DOMAIN_NAME,':businessunit'=>SI_BUSINESSUNIT_NAME) );
+			INNER JOIN subdomains ON domains.id = subdomains.domain_id 
+			INNER JOIN entities ON domains.id = entities.domain_id AND subdomains.id = entities.subdomain_id
+			WHERE domains.name = :domain AND subdomains.name = :subdomain");
+		$data->execute( array(':domain'=>SI_DOMAIN_NAME,':subdomain'=>SI_SUBDOMAIN_NAME) );
 		$count = $data->rowCount();			
-		//Tools::Log(SI_BUSINESSUNIT_NAME.".".SI_DOMAIN_NAME);
+		//Tools::Log(SI_SUBDOMAIN_NAME.".".SI_DOMAIN_NAME);
 		if($count == 0){
 			$pageobjects = "%EMPTY_DOMAIN%";
-			Tools::Error("Domain: ".SI_DOMAIN_NAME." with Business Unit: ".SI_BUSINESSUNIT_NAME." can not be found");
+			Tools::Error("Domain: ".SI_DOMAIN_NAME." with Business Unit: ".SI_SUBDOMAIN_NAME." can not be found");
 			return $pageobjects;
 		}
 		else{
 			$entityLookup = array();
 			$pageobjects = array();
 			$pageobjects['domain'] = array();
-			$pageobjects['businessunit'] = array();
+			$pageobjects['subdomain'] = array();
 			$pageobjects['entities'] = array();
 			$requiredEntities=['pages','blocks','media','relations','users'];
 			foreach ($data as $row) {
@@ -99,11 +99,11 @@ class Database extends DbCreds
 						define("SI_DOMAIN_ID",'0x'.$v);
 
 					}
-					else if(!isset($pageobjects['businessunit']['id']) && $k ==  'businessunitId'){
-						$pageobjects['businessunit']['name'] = $row['businessunitName'];
-						$pageobjects['businessunit']['status'] = $row['businessunitStatus'];
-						$pageobjects['businessunit']['id'] = '0x'.$v;
-						define("SI_BUSINESSUNIT_ID",'0x'.$v);
+					else if(!isset($pageobjects['subdomain']['id']) && $k ==  'subdomainId'){
+						$pageobjects['subdomain']['name'] = $row['subdomainName'];
+						$pageobjects['subdomain']['status'] = $row['subdomainStatus'];
+						$pageobjects['subdomain']['id'] = '0x'.$v;
+						define("SI_SUBDOMAIN_ID",'0x'.$v);
 					}
 					else if( $k == 'entityId'){
 			   			$pageobjects['entities'][$row['entityName']] = $v;
@@ -124,12 +124,12 @@ class Database extends DbCreds
 			//Once we have the Domain, Bu and entity lookup list we set the domain in the session domain tree under SI
 			$session->SetDomain();
 			//The business unit is set under the Domain. One could conceivably and more likely  usually have multi domains and bu in the SI SESSION obj. THey should not be confused ever. 
-			$session->SetBusinessunit();
+			$session->SetSubDomain();
 			//The deployment is set under the business unit. Moving from one domain or bu to another could change your deployment to what you were on when you were last there. no big deal.  
 			$session->SetDeployment();
 
 			//clear and check every time
-			//unset($_SESSION['SI']['domains'][SI_DOMAIN_ID]['businessunits'][SI_BUSINESSUNIT_ID]['entities']);
+			//unset($_SESSION['SI']['domains'][SI_DOMAIN_ID]['subdomains'][SI_SUBDOMAIN_ID]['entities']);
 			$this->entityLookup = $entityLookup;
 
 			return $pageobjects;		
@@ -139,7 +139,7 @@ class Database extends DbCreds
 		//Add these items to the SI data array
 		if(isset($pageobjects['domain']['id'])){
 
-			//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'] = $pageobjects['domain']['defaultLanguage'];
+			//$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['defaultlanguage'] = $pageobjects['domain']['defaultLanguage'];
 
 			//Get the Users roles;
 			//Get the SecurityRoles Entity Read allowences.
@@ -153,7 +153,7 @@ class Database extends DbCreds
 			//the role is checked again on EntityAction jobs
 
 			if(Tools::UserHasRole("Guest") ){
-				$allowRead = "AND `tbl`.`table_name` IN('users','blocks','localtext','pages','relations','domains','businessunits','securityroles') "; //for now the only entity the guest user needs to have a session saved for is users for loging in.
+				$allowRead = "AND `tbl`.`table_name` IN('users','blocks','localtext','pages','relations','domains','subdomains','securityroles') "; //for now the only entity the guest user needs to have a session saved for is users for loging in.
 
 			}
 			//if its an admin give all aka = "";
@@ -219,7 +219,7 @@ class Database extends DbCreds
 				if(isset( $this->entityLookup[$entity])){
 					$guid = $this->entityLookup[$entity];
 					//$_SESSION['SI']['entities'][$entity]['instanceguid']=$guid;
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$entity]['instanceguid']=$guid;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$entity]['instanceguid']=$guid;
 					$entities[$entity]['instanceguid']=$guid;
 
 					if(!isset($entities[$entity]['deployable']) ){
@@ -392,14 +392,14 @@ class Database extends DbCreds
 			}
 			//Tools::Log($entities, true);
 			
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'] = $entities;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'] = $entities;
 		}
 	}
 	public function GetGuestRules(){
 	    //Tools::Log("In Get Guest Role", true);
 		//first get the entity guid for the security role. then get the guest role
 		//The reason for not using an entity is the user does not have entity access at this point;
-		$sql = "SELECT HEX(`id`) AS `id` from `entities` WHERE `name`=:name AND `domain_id`=".SI_DOMAIN_ID." AND `businessunit_id`=".SI_BUSINESSUNIT_ID;
+		$sql = "SELECT HEX(`id`) AS `id` from `entities` WHERE `name`=:name AND `domain_id`=".SI_DOMAIN_ID." AND `subdomain_id`=".SI_SUBDOMAIN_ID;
 		$securityRoleId = $this->pdo->prepare($sql);
 		$parms = array();
 		$parms[':name'] = "securityroles";
@@ -452,8 +452,8 @@ class Database extends DbCreds
 
 	    $ip = Tools::GetIpAddress();
 		$sid =session_id();
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['sessions'])){
-			$entityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['sessions']['instanceguid'];	
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['sessions'])){
+			$entityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['sessions']['instanceguid'];	
 		//	Tools::Log("logging session");
 		//	Tools::Log($entityId);
 			$session = json_encode($_SESSION);
@@ -475,19 +475,19 @@ class Database extends DbCreds
 	}
 
 	//Admin only
-	public function CreateInstance($domain, $businessunit){
-		//This function will automatically run when accessed from an unknown domain and or businessunit
+	public function CreateInstance($domain, $subdomain){
+		//This function will automatically run when accessed from an unknown domain and or subdomain
 		//if the domain exists it will use it, if not it will make it.
 		//if the business unit exists...we shouldnt be here then. 
 		//make the business unit 
-		//once we have the domain and businessunit id make all the entities for the BU.
+		//once we have the domain and subdomain id make all the entities for the BU.
 		//Once we have all of the entities setup then we setup the default records. Big ToDo
 		$defaultEntities = ['blocks','media','pages','preferences','relations','securityroles','settings','users'];
 		if(Tools::UserHasRole('Admin')){
 			if(strlen($domain) > 1){
 				$db = new Database();
 				$existdom = $db->Excecute("SELECT `id` FROM `domains` WHERE `name`='$domain' ");
-				$existbu = $db->Excecute("SELECT `id` FROM `businessunits` WHERE `name`='$businessunit' ");
+				$existbu = $db->Excecute("SELECT `id` FROM `subdomains` WHERE `name`='$subdomain' ");
 
 				$domainGuid = new Guid(true);
 				$domainId = $domainGuid->ToString();
@@ -500,16 +500,16 @@ class Database extends DbCreds
 				$sql->execute([":name"=>$domain]);
 				$sql = null;
 
-				$insert = "INSERT INTO `businessunits`(`id`, `name`, `domain_id`) VALUES ($buId,:name,$domainId)";
+				$insert = "INSERT INTO `subdomains`(`id`, `name`, `domain_id`) VALUES ($buId,:name,$domainId)";
 				$sql = $this->pdo->prepare($insert);
 			//	print_r($sql);
-				$sql->execute([":name"=>$businessunit]);
+				$sql->execute([":name"=>$subdomain]);
 				$sql = null;
 
 				foreach($this->entityTables as $v){
 					$entGuid = new Guid(true);
 					$entId = $entGuid->ToString();
-					$insert = "INSERT INTO `entities`(`id`, `domain_id`, `businessunit_id`,`name`) VALUES ($entId,$domainId,$buId,:name)";
+					$insert = "INSERT INTO `entities`(`id`, `domain_id`, `subdomain_id`,`name`) VALUES ($entId,$domainId,$buId,:name)";
 					$sql = $this->pdo->prepare($insert);
 					$sql->execute([":name"=>$v]);
 					$sql = null;
@@ -683,7 +683,7 @@ class Database extends DbCreds
 				}
 
 				if(!$backup){
-					if($table ==="domains" || $table ==="businessunits" || $table ==="users"){
+					if($table ==="domains" || $table ==="subdomains" || $table ==="users"){
 						$select.= " LIMIT 1";
 					}
 				}
@@ -848,16 +848,16 @@ class Database extends DbCreds
 			file_put_contents($fpath, $script);
 			
 			if(!$backup){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Built Successfully";
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Built Successfully";
 			}else{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Successfully";
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Successfully";
 			}
 		}
 		catch(Exception $e){
 			if(!$backup){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Build Failed: ".$e;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Build Failed: ".$e;
 			}else{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
 			}
 		   Tools::Error($e);
 		}
@@ -867,7 +867,7 @@ class Database extends DbCreds
 			return  $pageobjects;
 		}
 
-		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 		$page = new Entity("pages");
 		$page->Attributes->Add(new Attribute("path",SI_URI));
 	    $mypage = $page->Retrieve();
@@ -896,7 +896,7 @@ class Database extends DbCreds
 
 			//look for security roles
 			//Tools::Log('In GetPageData: Logging Roles');
-		    //Tools::Log( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'] );
+		    //Tools::Log( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'] );
 			$rolesneeded = $this->GetRelatedEntities('pages',$mypage[0]['id'],'securityroles');
 			//Tools::Log("roles needed");
 			//Tools::Log($rolesneeded);
@@ -908,25 +908,25 @@ class Database extends DbCreds
 			$pageobjects['page']['path']= $mypage[0]['path'];
 			$pageobjects['page']['options']= $mypage[0]['options'];
 
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['id']='0x'.$mypage[0]['id'];
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['name']= $mypage[0]['name'];
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['id']='0x'.$mypage[0]['id'];
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['name']= $mypage[0]['name'];
 
 			$myblocks = $this->GetBlocks( '0x'.$pageobjects['page']['id'] );
 
-			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['contentmodified'])){
-				$pageobjects['page']['contentmodified']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['contentmodified'];
+			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['contentmodified'])){
+				$pageobjects['page']['contentmodified']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['contentmodified'];
 			}
 			$pageobjects['blocks'] = $myblocks;
 
 			//get site settings
-			$pageobjects['page']['sitesettings']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'] = array();
+			$pageobjects['page']['sitesettings']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings'] = array();
 			$settingsentities = new Entity('settings');
 			$settings = $settingsentities->Retrieve('settingname,settingvalue');
 			$tmpSetting = array();
 			if($settings != null){
 				foreach($settings as $setting){
 					$tmpSetting[$setting['settingname']] = $setting['settingvalue'];
-					$pageobjects['page']['sitesettings']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'][$setting['settingname']] = $setting['settingvalue'];
+					$pageobjects['page']['sitesettings']=$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings'][$setting['settingname']] = $setting['settingvalue'];
 				}
 			}
 			//$settings = $tmpSetting;
@@ -992,8 +992,8 @@ class Database extends DbCreds
 		$relayid = $relayid->ToString(); //a random guid
 		$relayEntityId = false;
 
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['relations']['instanceguid'])){
-		    $relayEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['relations']['instanceguid'];
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['relations']['instanceguid'])){
+		    $relayEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['relations']['instanceguid'];
 		}else{
 			return;
 		}
@@ -1023,7 +1023,7 @@ class Database extends DbCreds
 			if(!Tools::StartsWith($entityName,'0x')){
 			
 				//$entityNameId = $this->entityLookup[$entityNameId];
-				$entityNameId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$entityNameId]['instanceguid'];
+				$entityNameId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$entityNameId]['instanceguid'];
 			}else{
 				$entityName = Tools::GetEnityFromGuid($entityNameId);
 
@@ -1032,7 +1032,7 @@ class Database extends DbCreds
 			//ho $eType;
 			//print_r($this->entityLookup);
 			if(!Tools::StartsWith($relatedEntityNameId,'0x')){
-				$relatedEntityNameId =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$relatedEntityNameId]['instanceguid']; 
+				$relatedEntityNameId =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$relatedEntityNameId]['instanceguid']; 
 			}else{
 				$relatedEntityName =  Tools::GetEnityFromGuid($relatedEntityNameId); //array_search($relatedEntityNameId,$this->entityLookup);
 			}
@@ -1072,21 +1072,21 @@ class Database extends DbCreds
 				$rel->Id = $linkid;
 				$rel->Delete();
 
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['REMOVERELATION'] = $linkid;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REMOVERELATION'] = $linkid;
 			}	
 			catch (Exception $e) {
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $e;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $e;
 			}
 		}
 	}
 	public function GetRelatedEntities($entityName,$entityGuid,$relatedEntityName,$columns = null){
 		//ERROR non loggedin users get undefined here.
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'])){
-		    $entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'];
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'])){
+		    $entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];
 		}else{
 			return;
 		}
-	    //	print_r($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]);
+	    //	print_r($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]);
 		if($relatedEntityName == 'securityroles'){
 			//Tools::Log('securityroles:'.$entities['relations']['instanceguid'],true);
 				
@@ -1111,7 +1111,7 @@ class Database extends DbCreds
 
 			if(Tools::StartsWith($entityGuid ,'0x') && strlen($entityGuid) === 34){
 				$select = "SELECT ";
-				$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+				$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 
 				$defselect = "HEX(`relations`.`id`) AS relationsId,  `relations`.`modifiedon` AS relationsModifiedOn,  `relations`.`$deploymentlevel-options` AS relationsOptions,  `relations`.`$deploymentlevel-order` AS relationsOrder,";
 
@@ -1179,13 +1179,13 @@ class Database extends DbCreds
 					$libs[$v['name']] = '0x'.$v['id'];
 				}
 			}
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['libraries'] = $libs;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['libraries'] = $libs;
 		}
 	}
 	public function GetBlocks($pageid){	
 	    //first clear the blocks from  prev page
-	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'] = array();
-		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'] = array();
+		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 		//Tools::Log("IN GetBlocks: ".$deploymentlevel,true);
 		$cols= "id,name,modifiedon,`$deploymentlevel-html`,`$deploymentlevel-style`,`$deploymentlevel-script`";
 		$data = array();
@@ -1215,8 +1215,8 @@ class Database extends DbCreds
 				$contentModified.=$v['relationsModifiedOn']. $v['modifiedon'];
 				$blocks[$safeKey]["ittr"]=$ittr;
 				$blocks[$safeKey]['html'] = $v["$deploymentlevel-html"]; //'test html';//
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'][$v['name']]['id']='0x'.$v['id'];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['blocks'][$v['name']]['name']= $v['name'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'][$v['name']]['id']='0x'.$v['id'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'][$v['name']]['name']= $v['name'];
 				//Data only needed by admin for the editor
 				if(Tools::UserHasRole('Admin')){
 					$blocks[$safeKey]["id"] = '0x'.$v['id'];
@@ -1227,7 +1227,7 @@ class Database extends DbCreds
 			}
 		}
 		$contentModified = md5($contentModified);
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['page']['contentmodified'] = $contentModified;
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['contentmodified'] = $contentModified;
 
 		//Tools::Log($blocks,true);
 		//if we are admin we need these in trhe editor
@@ -1242,8 +1242,8 @@ class Database extends DbCreds
 		return $blocks;
 	}
 	public function GetBlockScriptsByIds($guids, $type='js'){
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'])){
-			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'])){
+			$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 			$select = "name,`$deployment-script` AS script";
 			if($type==='css'){
 			    $select = "name,`$deployment-style` AS script";
@@ -1266,7 +1266,7 @@ class Database extends DbCreds
 		//hack for now until root cause is Found.
 		$id_csv = str_replace("0x0x","0x",$id_csv);
 		$select = "`name`,`live-js`,`live-css`";
-		$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+		$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 
 		if($deployment == 'dev'){
 			$select = "`name`,`dev-js`";
@@ -1331,14 +1331,14 @@ class Database extends DbCreds
 				echo "Failed to import";
 			}
 			else{
-				$sql = "SELECT HEX(`id`) AS businessunit_id, HEX(`domain_id`) AS domain_id FROM `businessunits`";
+				$sql = "SELECT HEX(`id`) AS subdomain_id, HEX(`domain_id`) AS domain_id FROM `subdomains`";
 				$data = $this->pdo->prepare($sql);
 				$data->execute();
 				foreach ($data as $row) 
 				{
-					$bu = '0x'.$row['businessunit_id'];
+					$bu = '0x'.$row['subdomain_id'];
 					$do = '0x'.$row['domain_id'];
-					$insert ="INSERT INTO `entities`(`id`, `domain_id`, `businessunit_id`, `name`) VALUES ($g,$do, $bu, :name);";
+					$insert ="INSERT INTO `entities`(`id`, `domain_id`, `subdomain_id`, `name`) VALUES ($g,$do, $bu, :name);";
 
 					$stmt = $this->pdo->prepare($insert);
 					$stmt->execute(['name' => $name]); 
@@ -1469,15 +1469,15 @@ class Database extends DbCreds
 			$data = $this->pdo->prepare("
 				SELECT domains.name AS domainName, 
 					   HEX(domains.id) AS domainId, 
-					   businessunits.name AS businessunitName, 
-					   HEX(businessunits.id) AS businessunitId,  
+					   subdomains.name AS subdomainName, 
+					   HEX(subdomains.id) AS subdomainId,  
 					   entities.name AS entityName, 
 					   HEX(pages.id) AS pageId, 
 					   HEX(pages.redirecttopage_id) AS redirecttopage, 
 					   pages.name AS pageName
 				FROM domains
-				INNER JOIN businessunits ON businessunits.domain_id = domains.id 
-				INNER JOIN entities ON entities.businessunit_id = businessunits.id AND entities.domain_id = domains.id && entities.name = :entityName
+				INNER JOIN subdomains ON subdomains.domain_id = domains.id 
+				INNER JOIN entities ON entities.subdomain_id = subdomains.id AND entities.domain_id = domains.id && entities.name = :entityName
 				INNER JOIN pages ON entities.id = pages.entity_id
 				$where");
 			$data->execute(array(':entityName'=>"pages" ));//,':pageEnt'=>$pageEntityId ) );
@@ -1575,11 +1575,11 @@ class Database extends DbCreds
 				try{
 				    $success = $ent2->Update();
 					Tools::Log("Updated ".$attribute." successfully");
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PROMOTED'] = $attribute.' has been promoted to '.$deployment.' in '.$entityname;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PROMOTED'] = $attribute.' has been promoted to '.$deployment.' in '.$entityname;
 				}
 				catch(Exception $ex){
 				    //Tools::Log("Updated Failed: ". $ex->getMessage());
-				    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex->getMessage();
+				    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex->getMessage();
 				}
 				
 				//Tools::Log('success', true);

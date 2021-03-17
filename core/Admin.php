@@ -58,7 +58,7 @@ class Admin {
 	public function GetCurrentPages($allpages){
 		$json = '{';
 		foreach($allpages as $k=> $pg){
-		    $bu = $pg['businessunitName'];
+		    $bu = $pg['subdomainName'];
 			$dn = $pg['domainName'];
 			$page = $pg['pageName'];
 			$id = $pg['pageId'];
@@ -66,7 +66,7 @@ class Admin {
 			$json .=  "
 				\"$k\" : {
 				    'id':'$id',
-				    'businessunit':'$bu',
+				    'subdomain':'$bu',
 					'domain':'$dn',
 					'page':'$page'
 				},
@@ -134,12 +134,12 @@ class Admin {
 			$user->Attributes->Add(new Attribute("password", $hash) ); 
 			try{
 				$user->Update();
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PASSWORDCHANGED']=true;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=true;
 			
 			}
 			catch(Exception $e){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['PASSWORDCHANGED']=false;
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['ERROR']= $e->getMessage();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=false;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR']= $e->getMessage();
 			}
 		}
 	}
@@ -165,15 +165,15 @@ class Admin {
 				//$db = new Database();
 				//$db->NewRelatedEntity($entityName,$entityId,$relatedEntityName, $relatedEntityId );
 
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['CREATEUSER']=$output;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CREATEUSER']=$output;
 			}
 			catch(Exception $e){
 				$output = array();
 				$output['Status']='true'; 
 				$output['Name']=$post['name']; 
 				$output['Email']=$post['email'];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['CREATEUSER']=$output;
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['ERROR']= $e->getMessage();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CREATEUSER']=$output;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR']= $e->getMessage();
 			}
 		}
 	}
@@ -200,7 +200,7 @@ class Admin {
 			}
 
 
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['RETRIEVEDROLES']=$ret;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['RETRIEVEDROLES']=$ret;
 		}
 		
 	}

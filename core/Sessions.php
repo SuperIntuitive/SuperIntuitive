@@ -107,27 +107,27 @@ class Sessions {
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME] = array();
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['name'] = SI_DOMAIN_NAME;
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['id'] = SI_DOMAIN_ID;
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'] = array();
 			}
 		}
 	}
-	public function SetBusinessUnit(){
-		if( defined(SI_DOMAIN_ID) && isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits']) && defined(SI_BUSINESSUNIT_ID) ){
-			if( empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]) ){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME] = array();
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['name']= SI_BUSINESSUNIT_NAME;
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['id']= SI_BUSINESSUNIT_ID;
+	public function SetSubDomain(){
+		if( defined(SI_DOMAIN_ID) && isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains']) && defined(SI_SUBDOMAIN_ID) ){
+			if( empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]) ){
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['name']= SI_SUBDOMAIN_NAME;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['id']= SI_SUBDOMAIN_ID;
 			}
 		}
 	}
 	public function SetDeployment(){
 		$overwrite = FALSE;
-		if( empty( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] ) || $overwrite){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] = "live";
+		if( empty( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] ) || $overwrite){
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] = "live";
 		}
 				//define the deployment state
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'])){
-			define('SI_DEPLOYMENT',  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment']);
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'])){
+			define('SI_DEPLOYMENT',  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment']);
 		}else{
 			define('SI_DEPLOYMENT',  'live');
 		}
@@ -135,25 +135,25 @@ class Sessions {
 	}
 	public function SetInitialUser(){
 		$overwrite = FALSE;
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME])){				
-			if(!isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']) || $overwrite){
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user'] = array();
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['name'] = 'guest';
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['id'] = '0x00000000000000000000000000000000';
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs'] = array();
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['loggedin'] = false;
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME])){				
+			if(!isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']) || $overwrite){
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['name'] = 'guest';
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'] = '0x00000000000000000000000000000000';
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin'] = false;
 
 				$db = new Database();
 				$guestrules = $db->GetGuestRules(); //special case lookup functions because we dont have teh entities yet. 
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['permissions'] = $guestrules;
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'][] = "Guest";
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['permissions'] = $guestrules;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'][] = "Guest";
 			}else{
 				//We have a user and know and know it is. Lets proceed with the users data
-				if(count($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'])==0 ){
+				if(count($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'])==0 ){
 					$db = new Database();
 					$guestrules = $db->GetGuestRules(); //special case lookup functions because we dont have teh entities yet. 
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['permissions'] = $guestrules;
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'][] = "Guest";
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['permissions'] = $guestrules;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'][] = "Guest";
 
 				}
 			}
