@@ -93,7 +93,7 @@ class Plugins {
 		//TODO add paging and a tracker so this can be fired when the repo is opened and if the user scrolls down the repo
 		$plugins = file_get_contents('http://plugins.superintuitive.net?');
 
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['MOREPLUGINS']= $plugins;
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['MOREPLUGINS']= $plugins;
 
 	}
 
@@ -141,7 +141,7 @@ class Plugins {
 			}
 
 			//Tools::Log($response); // Do something with the response.
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['DOWNLOADEDPLUGIN']= $fname;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['DOWNLOADEDPLUGIN']= $fname;
 		}
 	}
 
@@ -162,14 +162,14 @@ class Plugins {
 					Tools::Log("OPened Zip");
 					$zip->extractTo($_SERVER["DOCUMENT_ROOT"] . "/plugins/installed/".$plugin);
 					$zip->close();
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGIN']= $plugin;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGIN']= $plugin;
 				} else {
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin;
 				}
 			}
 			catch(Exception $ex){
 				Tools::Log($plugin." ".$ex->getMessage());
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin." ".$ex->getMessage();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin." ".$ex->getMessage();
 			}
 
 			if( file_exists($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/install.json") ){
@@ -205,19 +205,6 @@ class Plugins {
 									}
 
 									Tools::Log($data);
-									//this is just a test comment
-									//$newEntity->NewEntity($data);
-									/*
-									$post['sname']
-									$post['pname']
-									$post['global']
-									$post['attributes'] 
-										$v['name']
-										$v['type']
-										$v['def']
-										$v['deploy']
-									*/
-
 
 								}
 							}
@@ -238,13 +225,305 @@ class Plugins {
 			try{
 				$plugin = $post['plugin'];
 				Tools::Log("IN Uninstall");
+				$this->RemovePluginSQL($plugin);
 				Tools::DeleteDirectory($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin);
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['UNINSTALLPLUGIN']= $plugin;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['UNINSTALLPLUGIN']= $plugin;
 			}
 			catch(Exception $ex){
 				Tools::Log($plugin." ".$ex->getMessage());
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['UNINSTALLPLUGINFAILED']= $ex->getMessage();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['UNINSTALLPLUGINFAILED']= $ex->getMessage();
 			}
+		}
+	}
+
+	private function RemovePluginSQL($plugin){
+		//select all the tables with the $plugin prefix
+		$db = new Database();
+		$tblwildcard = $plugin."\_%";
+		try{
+
+			$schema = "SELECT table_name
+			FROM INFORMATION_SCHEMA.TABLES
+			WHERE table_schema = '$db->databaseName' && table_name LIKE $tblwildcard
+			GROUP BY table_name;";
+
+			$tables = $db->DBC()->prepare($schema);
+			//print_r($data);
+			$tables->execute( );
+			//Drop the plugins tables 
+			foreach ($tables as $table) {
+				$tablename = $table['table_name'];
+				$drop = $db->PDO()->prepare("DROP TABLE $tablename;");
+				$drop->execute();
+			}
+		}
+		catch(Exception $e){
+
+		}
+
+
+	}
+
+	private function SavePluginSql($plugin){
+		$db = new Database();
+		$dir = $_SERVER['DOCUMENT_ROOT'] . "/plugins/installed/".$plugin."/sql/";
+		$filename = $plugin.".sql";
+		
+		Tools::Log($dir);
+		if (!file_exists($dir)) {
+			mkdir($dir, 0777, true);
+		}
+		$fpath = "$dir$filename";
+		Tools::Log($fpath);
+
+		$tblwildcard = $plugin."\_%";
+		try{
+
+			$schema = "SELECT   tbl.table_comment,
+								cols.table_name, 
+								cols.is_nullable, 
+								cols.column_name, 
+								cols.character_set_name,
+								cols.collation_name,
+								cols.column_type, 
+								cols.column_comment,
+								cols.column_default,
+								cols.column_key,
+								cols.extra,
+								cols.numeric_scale
+			FROM INFORMATION_SCHEMA.COLUMNS cols
+			JOIN INFORMATION_SCHEMA.TABLES tbl ON cols.table_name = tbl.table_name AND cols.table_schema = tbl.table_schema
+			WHERE cols.table_schema = '$db->databaseName' && cols.table_name LIKE $tblwildcard
+			ORDER BY table_name, ordinal_position";
+
+
+			$dbrows = $db->PDO()->prepare($schema);
+			//print_r($data);
+			$dbrows->execute( );
+
+			$tables = array();
+			foreach ($dbrows as $dbrow) {
+
+				$tablename = $dbrow['table_name'];
+				$tablecomment = $dbrow['table_comment'];
+				$columnname = $dbrow['column_name'];
+
+				if(!isset($tables[$tablename])){
+					$tables[$tablename] = array();
+					$tables[$tablename]['comment']= $tablecomment;
+					$tables[$tablename]['columns']= array();
+				}
+				
+				$tables[$tablename]['columns'][$columnname]= array();
+				$tables[$tablename]['columns'][$columnname]['type']= $dbrow['column_type'];;
+				$tables[$tablename]['columns'][$columnname]['default']= $dbrow['column_default'];
+				$tables[$tablename]['columns'][$columnname]['key']= $dbrow['column_key'];
+				$tables[$tablename]['columns'][$columnname]['nullable']= $dbrow['is_nullable'];
+				$tables[$tablename]['columns'][$columnname]['comment']= $dbrow['column_comment'];
+				$tables[$tablename]['columns'][$columnname]['collation']= $dbrow['collation_name'];
+				$tables[$tablename]['columns'][$columnname]['charset']= $dbrow['character_set_name'];
+				$tables[$tablename]['columns'][$columnname]['extra']= $dbrow['extra'];
+				$tables[$tablename]['columns'][$columnname]['numeric']= $dbrow['numeric_scale'];
+
+			}
+
+			$script = "SET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\r\nSET AUTOCOMMIT = 0;\r\nSTART TRANSACTION;\r\nSET time_zone = \"+00:00\"; \r\n\r\n";
+
+			$guidLookup = array();
+
+			foreach ($tables as $table=>$tabledata) {
+				$tablecomment = $tabledata['comment'];
+				$columns = $tabledata['columns'];
+				$script .= "CREATE TABLE "."`".$table."` (\r\n";
+				$columntext ="";
+				$i = 0;
+				$len = count($columns);
+				$insert = "INSERT INTO `".$table."` (";
+				$select = "SELECT ";
+				$typeLookup = array();
+				foreach ($columns as $column=>$columndata) {
+					$insert .=  "`".$column."`";
+					$type = $columndata['type'];
+
+					if (strpos($type, "binary") !== false){
+						$select .=  "HEX(".$column.")";
+						$typeLookup["HEX(".$column.")"]=$type;
+					}else{
+						$select .=  "`".$column."`";
+						$typeLookup[$column]=$type;
+					}
+
+					$default = $columndata['default'] == null? "": $columndata['default'];
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					$nullable = $columndata['nullable'] == null? "": $columndata['nullable'];
+					$comment = $columndata['comment'] == null? "": $columndata['comment'];
+					$collation = $columndata['collation'] == null? "": $columndata['collation'];
+					$charset = $columndata['charset'] == null? "": $columndata['charset'];
+					$extra = $columndata['extra'] == null? "": $columndata['extra'];
+					$numeric = $columndata['numeric'] == null? "": $columndata['numeric'];
+
+					$columntext.= "\t`".$column."` ".$type;
+					if($charset){
+						$columntext.= " CHARACTER SET ".$charset;
+					}
+					if($collation){
+						$columntext.= " COLLATE ".$collation;
+					}
+					if($nullable == "NO"){
+						$columntext.= " NOT NULL";
+					}
+					if($default){
+
+					    if($default == "NULL"){
+							$columntext.= " DEFAULT NULL";
+						}
+						else if($default == "current_timestamp()"){
+							$columntext.= " DEFAULT current_timestamp()";
+						}
+						else if($numeric != "NULL"){
+							$columntext.= " DEFAULT ".$default;
+						}
+						else{
+							$columntext.= " DEFAULT '".$default."'";
+						}
+					}
+					if($extra){
+						$extra = str_replace("on update","ON UPDATE",$extra);
+						$columntext.= " ".$extra;
+					}
+					if($comment){
+						$columntext.= " COMMENT '".$comment."'";
+					}
+					if ($i != $len - 1) {
+						$insert .=", ";
+						$select .=", ";
+						$columntext.= ",\r\n";
+					}else{
+						$insert .=") VALUES\r\n";
+						$select .=" FROM ".$table;
+						$columntext.= "\r\n";
+					}
+					$i++;
+				}
+
+				$script.=$columntext;
+				$script.=") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ";
+				if($tablecomment){
+					$script.=" COMMENT='".$tablecomment."'";
+				}
+				$script.=";\r\n";
+				$script.="\r\n";
+			//	$sql = "SELECT * FROM `".$table."`"
+				$tdata = $db->PDO()->prepare($select);
+				//print_r($data);
+				$tdata->execute( );
+				if($table == "emails"){
+					$x=1;
+				}
+				foreach($tdata as $trow){
+					$j = 0;
+					$jlen = count($trow);
+					$insert  .= "(";
+
+					//Replace these with tokens for the install
+					$trow["createdon"]="_SI_NOWTIME_";
+					$trow["modifiedon"]=NULL;
+
+					foreach ($trow as $cname=>$cell) {
+						if($cell===NULL){
+							$insert .="NULL";
+						}else{						
+							$ctype = $typeLookup[$cname];
+							$stype = substr($ctype, 0, strpos($ctype, "("));
+							switch($stype){
+								case "binary": 
+									$bin = "0x".$cell;
+									if($ctype === "binary(16)"){
+										if(!$backup){
+											$foundInd = array_search($bin, $guidLookup);
+											if (false !== $foundInd){
+												$bin = "_SI_GUID_".$foundInd;
+											}else{
+												$bin = "_SI_GUID_".count($guidLookup);
+												$guidLookup[] = "0x".$cell;
+											}
+										}
+									}
+									$insert .=$bin;
+									break;
+								case "int": $insert .=$cell; break;
+								case "enum": $insert .="'".$cell."'"; break;
+								default:
+								    $cell = addslashes($cell); 
+									$cell = preg_replace('/(\r\n|\r|\n)+/', "\n", $cell);
+									$cell = preg_replace('/\s+/', ' ', $cell);
+									$insert .="'".$cell."'"; 
+								    break;
+							}
+						}
+						if ($j !== $jlen - 1) {
+							$insert .=", ";
+						}else{
+							$insert .="),\r\n";
+						}
+						$j++;
+					}
+
+				}
+				if($tdata->rowCount() > 0){
+					$insert = rtrim(trim($insert),',');
+					$script.=$insert.";\r\n\r\n";
+				}
+			}
+			$indexes = "";
+			foreach ($tables as $table=>$tabledata) {
+				$columns = $tabledata['columns'];
+				$index ="";
+				foreach ($columns as $column=>$columndata) {
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					if($key){
+						if($key === "PRI"){
+							$index.="    ADD PRIMARY KEY (`".$column."`),\r\n";
+						}
+					}
+				}
+				foreach ($columns as $column=>$columndata) {
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					if($key){
+						if($key === "UNI"){
+							$index.="    ADD UNIQUE KEY(`".$column."`),\r\n";
+						}
+					}
+				}
+				foreach ($columns as $column=>$columndata) {
+					$key = $columndata['key'] == null? "": $columndata['key'];
+					if($key){
+						if($key === "MUL"){
+							$index.="    ADD KEY (`".$column."`),\r\n";
+						}
+					}
+				}
+				if($index){
+					$index="ALTER TABLE `".$table."`\r\n".$index;
+					$index=trim($index);
+					$index=rtrim($index,',').";\r\n\r\n";
+					$indexes.=$index;
+				}
+			}
+
+			$script.=$indexes;
+
+			file_put_contents($fpath, $script);
+			
+
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Successfully";
+
+		}
+		catch(Exception $e){
+
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Backed Up Database Failed: ".$e;
+			
+		   Tools::Error($e);
 		}
 	}
 

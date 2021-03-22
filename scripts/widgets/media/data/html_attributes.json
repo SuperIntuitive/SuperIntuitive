@@ -1,0 +1,2049 @@
+{
+  "GLOBAL": [
+    {
+      "n": "id",
+      "dt": "UNIQUE_ID",
+      "d": "Specifies a unique id for an element",
+      "w3": "/tags/att_id.asp"
+    },
+    {
+      "n": "draggable",
+      "dt": "OPTIONSET(true|false|auto)",
+      "d": "Specifies whether an element is draggable or not",
+      "w3": "/tags/att_draggable.asp"
+    },
+    {
+      "n": "dropzone",
+      "dt": "OPTIONSET(copy|move|link)",
+      "d": "Specifies whether the dragged data is copied, moved, or linked, when dropped",
+      "w3": "/tags/att_dropzone.asp"
+    },
+    {
+      "n": "data-*",
+      "dt": "KEY_VALUE_PAIR",
+      "d": "Used to store custom data private to the page or application",
+      "w3": "/tags/att_global_data.asp"
+    },
+    {
+      "n": "accesskey",
+      "dt": "CHAR",
+      "d": "Specifies a shortcut key to activate/focus an element",
+      "w3": "/tags/att_accesskey.asp"
+    },
+    {
+      "n": "lang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the element's content",
+      "w3": "/tags/att_lang.asp"
+    },
+    {
+      "n": "tabindex",
+      "dt": "NUMBER",
+      "d": "Specifies the tabbing order of an element",
+      "w3": "/tags/att_tabindex.asp"
+    },
+    {
+      "n": "spellcheck",
+      "dt": "TRUE|FALSE",
+      "d": "Specifies whether the element is to have its spelling and grammar checked or not",
+      "w3": "/tags/att_spellcheck.asp"
+    },
+    {
+      "n": "style",
+      "dt": "CSS",
+      "d": "Specifies an inline CSS style for an element",
+      "w3": "/tags/att_style.asp"
+    },
+    {
+      "n": "dir",
+      "dt": "OPTIONSET(ltr|rtl|auto)",
+      "d": "Specifies the text direction for the content in an element",
+      "w3": "/tags/att_dir.asp"
+    },
+    {
+      "n": "translate",
+      "dt": "OPTIONSET(yes|no)",
+      "d": "Specifies whether the content of an element should be translated or not",
+      "w3": "/tags/att_translate.asp"
+    },
+    {
+      "n": "hidden",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that an element is not yet, or is no longer, relevant",
+      "w3": "/tags/att_hidden.asp"
+    },
+    {
+      "n": "title",
+      "dt": "TEXT",
+      "d": "Specifies extra information about an element",
+      "w3": "/tags/att_title.asp"
+    },
+    {
+      "n": "contenteditable",
+      "dt": "TRUE|FALSE",
+      "d": "Specifies whether the content of an element is editable or not",
+      "w3": "/tags/att_contenteditable.asp"
+    },
+    {
+      "n": "contextmenu",
+      "dt": "ID",
+      "d": "Specifies a context menu for an element. The context menu appears when a user right-clicks on the element",
+      "w3": "/tags/att_contextmenu.asp"
+    },
+    {
+      "n": "class",
+      "dt": "CLASS",
+      "d": "Specifies one or more classnames for an element (refers to a class in a style sheet)",
+      "w3": "/tags/att_class.asp"
+    },
+    {
+      "n": "tag",
+      "dt": "TAG",
+      "d": "The type of tag the element is",
+      "w3": "/tags/tag_html.asp"
+    },
+    {
+      "n": "innerHTML",
+      "dt": "INNERHTML",
+      "d": "The complete contents of the element",
+      "w3": "/jsref/prop_html_innerhtml.asp"
+    },
+    {
+      "n": "innerText",
+      "dt": "INNERHTML",
+      "d": "The complete text contents of the element",
+      "w3": "/jsref/prop_node_innertext.asp"
+    }
+  ],
+  "a": [
+    {
+      "n": "href",
+      "dt": "URL",
+      "d": "Specifies the URL of the page the link goes to",
+      "w3": "/tags/att_href.asp"
+    },
+    {
+      "n": "hreflang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the linked document",
+      "w3": "/tags/att_hreflang.asp"
+    },
+    {
+      "n": "rel",
+      "dt": "OPTIONSET(alternate|author|bookmark|external|help|license|next|nofollow||noreferrer|noopener|prev|search|tag)",
+      "d": "Specifies the relationship between the current document and the linked document",
+      "w3": "/tags/att_rel.asp"
+    },
+    {
+      "n": "download",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink",
+      "w3": "/tags/att_download.asp"
+    },
+    {
+      "n": "target",
+      "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
+      "d": "Specifies the target for where to open the linked document or where to submit the form",
+      "w3": "/tags/att_target.asp"
+    },
+    {
+      "n": "media",
+      "dt": "N OPTIONSETS(and|not|,)",
+      "d": "Specifies what media/device the linked document is optimized for",
+      "w3": "/tags/att_media.asp"
+    }
+  ],
+  "area": [
+    {
+      "n": "download",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the target will be downloaded when a user clicks on the hyperlink",
+      "w3": "/tags/att_download.asp"
+    },
+    {
+      "n": "hreflang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the linked document",
+      "w3": "/tags/att_hreflang.asp"
+    },
+    {
+      "n": "rel",
+      "dt": "OPTIONSET(alternate|author|bookmark|help|license|next|nofollow||noreferrer|prefetch|prev|search|tag)",
+      "d": "Specifies the relationship between the current document and the linked document",
+      "w3": "/tags/att_rel.asp"
+    },
+    {
+      "n": "href",
+      "dt": "URL",
+      "d": "Specifies the URL of the page the link goes to",
+      "w3": "/tags/att_href.asp"
+    },
+    {
+      "n": "alt",
+      "dt": "TEXT",
+      "d": "Specifies an alternate text when the original element fails to display",
+      "w3": "/tags/att_alt.asp"
+    },
+    {
+      "n": "target",
+      "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
+      "d": "Specifies the target for where to open the linked document or where to submit the form",
+      "w3": "/tags/att_target.asp"
+    },
+    {
+      "n": "shape",
+      "dt": "OPTIONSET(default|rect|circle|poly)",
+      "d": "Specifies the shape of the area",
+      "w3": "/tags/att_shape.asp"
+    },
+    {
+      "n": "media",
+      "dt": "N OPTIONSETS(and|not|,)",
+      "d": "Specifies what media/device the linked document is optimized for",
+      "w3": "/tags/att_media.asp"
+    },
+    {
+      "n": "coords",
+      "dt": "COORDS(IF SHAPE = RECT(x1,y1,x2,y2)|IF SHAPE = CIRCLE(x,y,radius)|IF SHAPE = POLYGON(x1,y1,x2,y2,..,xn,yn))",
+      "d": "Specifies the coordinates of the area",
+      "w3": "/tags/att_coords.asp"
+    }
+  ],
+  "audio": [
+    {
+      "n": "ontimeupdate",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)",
+      "w3": "/tags/att_ontimeupdate.asp"
+    },
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "autoplay",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the audio/video will start playing as soon as it is ready",
+      "w3": "/tags/att_autoplay.asp"
+    },
+    {
+      "n": "preload",
+      "dt": "OPTIONSET(auto|metadata|none)",
+      "d": "Specifies if and how the author thinks the audio/video should be loaded when the page loads",
+      "w3": "/tags/att_preload.asp"
+    },
+    {
+      "n": "onended",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media has reach the end (a useful event for messages like \"thanks for listening\")",
+      "w3": "/tags/att_onended.asp"
+    },
+    {
+      "n": "ondurationchange",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the length of the media changes",
+      "w3": "/tags/att_ondurationchange.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the audio file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "onpause",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media is paused either by the user or programmatically",
+      "w3": "/tags/att_onpause.asp"
+    },
+    {
+      "n": "onplay",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media is ready to start playing",
+      "w3": "/tags/att_onplay.asp"
+    },
+    {
+      "n": "oncanplaythrough",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a file can be played all the way to the end without pausing for buffering",
+      "w3": "/tags/att_oncanplaythrough.asp"
+    },
+    {
+      "n": "onwaiting",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)",
+      "w3": "/tags/att_onwaiting.asp"
+    },
+    {
+      "n": "onvolumechange",
+      "dt": "SCRIPT",
+      "d": "Script to be run each time the volume of a video/audio has been changed",
+      "w3": "/tags/att_onvolumechange.asp"
+    },
+    {
+      "n": "oncanplay",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
+      "w3": "/tags/att_oncanplay.asp"
+    },
+    {
+      "n": "loop",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the audio/video will start over again, every time it is finished",
+      "w3": "/tags/att_loop.asp"
+    },
+    {
+      "n": "loop",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the audio/video will start over again, every time it is finished",
+      "w3": "/tags/att_loop.asp"
+    },
+    {
+      "n": "onabort",
+      "dt": "SCRIPT",
+      "d": "Script to be run on abort",
+      "w3": "/tags/att_onabort.asp"
+    },
+    {
+      "n": "onplaying",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media actually has started playing.",
+      "w3": "/tags/att_onplaying.asp"
+    },
+    {
+      "n": "onloadeddata",
+      "dt": "SCRIPT",
+      "d": "Script to be run when media data is loaded",
+      "w3": "/tags/att_onloadeddata.asp"
+    },
+    {
+      "n": "onsuspend",
+      "dt": "SCRIPT",
+      "d": "Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason",
+      "w3": "/tags/att_onsuspend.asp"
+    },
+    {
+      "n": "onemptied",
+      "dt": "SCRIPT",
+      "d": "Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)",
+      "w3": "/tags/att_onemptied.asp"
+    },
+    {
+      "n": "onloadstart",
+      "dt": "SCRIPT",
+      "d": "Script to be run just as the file begins to load before anything is actually loaded",
+      "w3": "/tags/att_onloadstart.asp"
+    },
+    {
+      "n": "onprogress",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser is in the process of getting the media data",
+      "w3": "/tags/att_onprogress.asp"
+    },
+    {
+      "n": "onratechange",
+      "dt": "SCRIPT",
+      "d": "Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode).",
+      "w3": "/tags/att_onratechange.asp"
+    },
+    {
+      "n": "onstalled",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser is unable to fetch the media data for whatever reason",
+      "w3": "/tags/att_onstalled.asp"
+    },
+    {
+      "n": "onloadedmetadata",
+      "dt": "SCRIPT",
+      "d": "Script to be run when meta data (like dimensions and duration) are loaded",
+      "w3": "/tags/att_onloadedmetadata.asp"
+    },
+    {
+      "n": "controls",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that audio/video controls should be displayed (such as a play/pause button etc)",
+      "w3": "/tags/att_controls.asp"
+    },
+    {
+      "n": "onseeking",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the seeking attribute is set to true indicating that seeking is active",
+      "w3": "/tags/att_onseeking.asp"
+    },
+    {
+      "n": "onseeked",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the seeking attribute is set to false indicating that seeking has ended",
+      "w3": "/tags/att_onseeked.asp"
+    },
+    {
+      "n": "muted",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the audio output of the video should be muted",
+      "w3": "/tags/att_muted.asp"
+    }
+  ],
+  "base": [
+    {
+      "n": "href",
+      "dt": "URL",
+      "d": "Specifies the URL of the page the link goes to",
+      "w3": "/tags/att_href.asp"
+    },
+    {
+      "n": "target",
+      "dt": "OPTIONSET(_blank|_self|_parent|_top|framename)",
+      "d": "Specifies the target for where to open the linked document or where to submit the form",
+      "w3": "/tags/att_target.asp"
+    }
+  ],
+  "blockquote": [
+    {
+      "n": "cite",
+      "dt": "URL",
+      "d": "Specifies a URL which explains the quote/deleted/inserted text",
+      "w3": "/tags/att_cite.asp"
+    }
+  ],
+  "body": [
+    {
+      "n": "onstorage",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a Web Storage area is updated",
+      "w3": "/tags/att_onstorage.asp"
+    },
+    {
+      "n": "onpopstate",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the window's history changes.",
+      "w3": "/tags/att_onpopstate.asp"
+    },
+    {
+      "n": "onhashchange",
+      "dt": "SCRIPT",
+      "d": "Script to be run when there has been changes to the anchor part of the a URL",
+      "w3": "/tags/att_onhashchange.asp"
+    },
+    {
+      "n": "onunload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a page has unloaded (or the browser window has been closed)",
+      "w3": "/tags/att_onunload.asp"
+    },
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "onoffline",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser starts to work offline",
+      "w3": "/tags/att_onoffline.asp"
+    },
+    {
+      "n": "onresize",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser window is being resized.",
+      "w3": "/tags/att_onresize.asp"
+    },
+    {
+      "n": "onafterprint",
+      "dt": "SCRIPT",
+      "d": "Script to be run after the document is printed",
+      "w3": "/tags/att_onafterprint.asp"
+    },
+    {
+      "n": "onbeforeprint",
+      "dt": "SCRIPT",
+      "d": "Script to be run before the document is printed",
+      "w3": "/tags/att_onbeforeprint.asp"
+    },
+    {
+      "n": "onbeforeunload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the document is about to be unloaded",
+      "w3": "/tags/att_onbeforeunload.asp"
+    },
+    {
+      "n": "ononline",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser starts to work online",
+      "w3": "/tags/att_ononline.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    },
+    {
+      "n": "onpageshow",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a user navigates to a page",
+      "w3": "/tags/att_onpageshow.asp"
+    },
+    {
+      "n": "onpagehide",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a user navigates away from a page",
+      "w3": "/tags/att_onpagehide.asp"
+    }
+  ],
+  "button": [
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    },
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    },
+    {
+      "n": "formaction",
+      "dt": "URL",
+      "d": "Specifies where to send the form-data when a form is submitted. Only for type=\"submit\"",
+      "w3": "/tags/att_formaction.asp"
+    },
+    {
+      "n": "type",
+      "dt": "OPTIONSET(button|submit|reset)",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    },
+    {
+      "n": "autofocus",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element should automatically get focus when the page loads",
+      "w3": "/tags/att_autofocus.asp"
+    },
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    }
+  ],
+  "canvas": [
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    }
+  ],
+  "col": [
+    {
+      "n": "span",
+      "dt": "NUMBER",
+      "d": "Specifies the number of columns to span",
+      "w3": "/tags/att_span.asp"
+    }
+  ],
+  "colgroup": [
+    {
+      "n": "span",
+      "dt": "NUMBER",
+      "d": "Specifies the number of columns to span",
+      "w3": "/tags/att_span.asp"
+    }
+  ],
+  "del": [
+    {
+      "n": "datetime",
+      "dt": "DATETIME",
+      "d": "Specifies the date and time",
+      "w3": "/tags/att_datetime.asp"
+    },
+    {
+      "n": "cite",
+      "dt": "URL",
+      "d": "Specifies a URL which explains the quote/deleted/inserted text",
+      "w3": "/tags/att_cite.asp"
+    }
+  ],
+  "details": [
+    {
+      "n": "open",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the details should be visible (open) to the user",
+      "w3": "/tags/att_open.asp"
+    },
+    {
+      "n": "ontoggle",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the user opens or closes the <details> element",
+      "w3": "/tags/att_ontoggle.asp"
+    }
+  ],
+  "embed": [
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "onabort",
+      "dt": "SCRIPT",
+      "d": "Script to be run on abort",
+      "w3": "/tags/att_onabort.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the embed file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "oncanplay",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
+      "w3": "/tags/att_oncanplay.asp"
+    },
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    },
+    {
+      "n": "type",
+      "dt": "MEDIATYPE",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    }
+  ],
+  "fieldset": [
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    }
+  ],
+  "form": [
+    {
+      "n": "novalidate",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the form should not be validated when submitted",
+      "w3": "/tags/att_novalidate.asp"
+    },
+    {
+      "n": "action",
+      "dt": "OPTIONSET(application/x-www-form-urlencoded|multipart/form-data|text/plain)",
+      "d": "Specifies where to send the form-data when a form is submitted",
+      "w3": "/tags/att_action.asp"
+    },
+    {
+      "n": "autocomplete",
+      "dt": "OPTIONSET(off|on)",
+      "d": "Specifies whether the <form> or the <input> element should have autocomplete enabled",
+      "w3": "/tags/att_autocomplete.asp"
+    },
+    {
+      "n": "target",
+      "dt": "OPTIONSET(_blank|_self|_parent|_top)",
+      "d": "Specifies the target for where to open the linked document or where to submit the form",
+      "w3": "/tags/att_target.asp"
+    },
+    {
+      "n": "enctype",
+      "dt": "OPTIONSET(application/x-www-form-urlencoded|multipart/form-data|text/plain)",
+      "d": "Specifies how the form-data should be encoded when submitting it to the server (only for method=\"post\")",
+      "w3": "/tags/att_enctype.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "method",
+      "dt": "OPTIONSET(post|get)",
+      "d": "Specifies the HTTP method to use when sending form-data",
+      "w3": "/tags/att_method.asp"
+    },
+    {
+      "n": "onreset",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a reset button in a form is clicked.",
+      "w3": "/tags/att_onreset.asp"
+    },
+    {
+      "n": "onsubmit",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a form is submitted",
+      "w3": "/tags/att_onsubmit.asp"
+    },
+    {
+      "n": "accept-charset",
+      "dt": "SSV CHARSET",
+      "d": "Specifies the character encodings that are to be used for the form submission",
+      "w3": "/tags/att_accept-charset.asp"
+    }
+  ],
+  "html": [
+    {
+      "n": "xmlns",
+      "dt": "",
+      "d": "",
+      "w3": "/tags/att_xmlns.asp"
+    }
+  ],
+  "iframe": [
+    {
+      "n": "srcdoc",
+      "dt": "HTML",
+      "d": "Specifies the HTML content of the page to show in the <iframe>",
+      "w3": "/tags/att_srcdoc.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    },
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    },
+    {
+      "n": "sandbox",
+      "dt": "OPTIONSET(allow-forms|allow-pointer-lock|allow-popups|allow-same-origin|allow-scripts|allow-top-navigation)",
+      "d": "Enables an extra set of restrictions for the content in an <iframe>",
+      "w3": "/tags/att_sandbox.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the iframe file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    }
+  ],
+  "img": [
+    {
+      "n": "srcset",
+      "dt": "URL",
+      "d": "Specifies the URL of the image to use in different situations",
+      "w3": "/tags/att_srcset.asp"
+    },
+    {
+      "n": "sizes",
+      "dt": "NUMBERxNUMBER",
+      "d": "Specifies the size of the linked resource",
+      "w3": "/tags/att_sizes.asp"
+    },
+    {
+      "n": "ismap",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies an image as a server-side image-map",
+      "w3": "/tags/att_ismap.asp"
+    },
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the imagea file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    },
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    },
+    {
+      "n": "usemap",
+      "dt": "#NAME<MAP>",
+      "d": "Specifies an image as a client-side image-map",
+      "w3": "/tags/att_usemap.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    }
+  ],
+  "input": [
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    },
+    {
+      "n": "type",
+      "dt": "OPTIONSET(button|checkbox|color|date|datetime|datetime-local|email|file|hidden|image|lookup|month|number|password|radio|range|reset|search|submit|tel|text|time|url|week)",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    },
+    {
+      "n": "size",
+      "dt": "NUMBER",
+      "d": "Specifies the width, in characters (for <input>) or specifies the number of visible options (for <select>)",
+      "w3": "/tags/att_size.asp"
+    },
+    {
+      "n": "alt",
+      "dt": "IF(TYPE=IMAGE) TEXT",
+      "d": "Specifies an alternate text when the original element fails to display",
+      "w3": "/tags/att_alt.asp"
+    },
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    },
+    {
+      "n": "placeholder",
+      "dt": "TEXT",
+      "d": "Specifies a short hint that describes the expected value of the element",
+      "w3": "/tags/att_placeholder.asp"
+    },
+    {
+      "n": "min",
+      "dt": "NUMBER|DATE",
+      "d": "Specifies a minimum value",
+      "w3": "/tags/att_min.asp"
+    },
+    {
+      "n": "pattern",
+      "dt": "REGEXP",
+      "d": "Specifies a regular expression that an <input> element's value is checked against",
+      "w3": "/tags/att_pattern.asp"
+    },
+    {
+      "n": "multiple",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that a user can enter more than one value",
+      "w3": "/tags/att_multiple.asp"
+    },
+    {
+      "n": "formaction",
+      "dt": "URL",
+      "d": "Specifies where to send the form-data when a form is submitted. Only for type=\"submit\"",
+      "w3": "/tags/att_formaction.asp"
+    },
+    {
+      "n": "dirname",
+      "dt": "NAME.dir",
+      "d": "Specifies that the text direction will be submitted",
+      "w3": "/tags/att_dirname.asp"
+    },
+    {
+      "n": "required",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element must be filled out before submitting the form",
+      "w3": "/tags/att_required.asp"
+    },
+    {
+      "n": "step",
+      "dt": "NUMBER",
+      "d": "Specifies the legal number intervals for an input field",
+      "w3": "/tags/att_step.asp"
+    },
+    {
+      "n": "onsearch",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the user writes something in a search field (for <input=\"search\">)",
+      "w3": "/tags/att_onsearch.asp"
+    },
+    {
+      "n": "autofocus",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element should automatically get focus when the page loads",
+      "w3": "/tags/att_autofocus.asp"
+    },
+    {
+      "n": "checked",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that an <input> element should be pre-selected when the page loads (for type=\"checkbox\" or type=\"radio\")",
+      "w3": "/tags/att_checked.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    },
+    {
+      "n": "list",
+      "dt": "DATALIST_ID",
+      "d": "Refers to a <datalist> element that contains pre-defined options for an <input> element",
+      "w3": "/tags/att_list.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    },
+    {
+      "n": "accept",
+      "dt": "MIMETYPE",
+      "d": "Specifies the types of files that the server accepts (only for type=\"file\")",
+      "w3": "/tags/att_accept.asp"
+    },
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    },
+    {
+      "n": "max",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum value",
+      "w3": "/tags/att_max.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the input file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    },
+    {
+      "n": "readonly",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element is read-only",
+      "w3": "/tags/att_readonly.asp"
+    },
+    {
+      "n": "maxlength",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum number of characters allowed in an element",
+      "w3": "/tags/att_maxlength.asp"
+    },
+    {
+      "n": "autocomplete",
+      "dt": "OPTIONSET(off|on|name|honorific-prefix|given-name|additional-name|family-name|honorific-suffix|nickname|email|username|new-password|current-password|organization-title|organization|street-address|address-line1|address-line2|address-line3|address-level4|address-level3|address-level2|address-level1|country|country-name|postal-code|cc-name|cc-given-name|cc-additional-name|cc-family-name|cc-number|cc-exp|cc-exp-month|cc-exp-year|cc-csc|cc-type|transaction-currency|transaction-amount|language|bday|bday-day|bday-month|bday-year|sex|tel|tel-country-code|tel-national|tel-area-code|tel-local|tel-local-prefix|tel-local-suffix|tel-extension|url|photo)",
+      "d": "Specifies whether the <form> or the <input> element should have autocomplete enabled",
+      "w3": "/tags/att_autocomplete.asp"
+    }
+  ],
+  "ins": [
+    {
+      "n": "datetime",
+      "dt": "DATETIME",
+      "d": "Specifies the date and time",
+      "w3": "/tags/att_datetime.asp"
+    },
+    {
+      "n": "cite",
+      "dt": "URL",
+      "d": "Specifies a URL which explains the quote/deleted/inserted text",
+      "w3": "/tags/att_cite.asp"
+    }
+  ],
+  "label": [
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    },
+    {
+      "n": "for",
+      "dt": "ID",
+      "d": "Specifies which form element(s) a label/calculation is bound to",
+      "w3": "/tags/att_for.asp"
+    }
+  ],
+  "li": [
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    }
+  ],
+  "link": [
+    {
+      "n": "media",
+      "dt": "N OPTIONSETS(and|not|,)",
+      "d": "Specifies what media/device the linked document is optimized for",
+      "w3": "/tags/att_media.asp"
+    },
+    {
+      "n": "hreflang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the linked document",
+      "w3": "/tags/att_hreflang.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    },
+    {
+      "n": "rel",
+      "dt": "OPTIONSET(alternate|author|dns-prefetch|help|icon|license|next|pingback|preconnect|prefetch|preload|prerender|prev|search|stylesheet)",
+      "d": "Specifies the relationship between the current document and the linked document",
+      "w3": "/tags/att_rel.asp"
+    },
+    {
+      "n": "href",
+      "dt": "URL",
+      "d": "Specifies the URL of the page the link goes to",
+      "w3": "/tags/att_href.asp"
+    },
+    {
+      "n": "sizes",
+      "dt": "NUMBERxNUMBER",
+      "d": "Specifies the size of the linked resource",
+      "w3": "/tags/att_sizes.asp"
+    },
+    {
+      "n": "type",
+      "dt": "MEDIATYPE",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    }
+  ],
+  "map": [
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    }
+  ],
+  "menu": [
+    {
+      "n": "type",
+      "dt": "OPTIONSET(list|toolbar|context)",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    },
+    {
+      "n": "onshow",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a <menu> element is shown as a context menu",
+      "w3": "/tags/att_onshow.asp"
+    }
+  ],
+  "meta": [
+    {
+      "n": "http-equiv",
+      "dt": "OPTIONSET(content-type|default-style|refresh)",
+      "d": "Provides an HTTP header for the information/value of the content attribute",
+      "w3": "/tags/att_http-equiv.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "charset",
+      "dt": "CHARSET",
+      "d": "Specifies the character encoding",
+      "w3": "/tags/att_charset.asp"
+    },
+    {
+      "n": "content",
+      "dt": "TEXT",
+      "d": "Gives the value associated with the http-equiv or name attribute",
+      "w3": "/tags/att_content.asp"
+    }
+  ],
+  "meter": [
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    },
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    },
+    {
+      "n": "low",
+      "dt": "NUMBER",
+      "d": "Specifies the range that is considered to be a low value",
+      "w3": "/tags/att_low.asp"
+    },
+    {
+      "n": "min",
+      "dt": "NUMBER|DATE",
+      "d": "Specifies a minimum value",
+      "w3": "/tags/att_min.asp"
+    },
+    {
+      "n": "high",
+      "dt": "NUMBER",
+      "d": "Specifies the range that is considered to be a high value",
+      "w3": "/tags/att_high.asp"
+    },
+    {
+      "n": "optimum",
+      "dt": "NUMBER",
+      "d": "Specifies what value is the optimal value for the gauge",
+      "w3": "/tags/att_optimum.asp"
+    },
+    {
+      "n": "max",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum value",
+      "w3": "/tags/att_max.asp"
+    }
+  ],
+  "object": [
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "usemap",
+      "dt": "#NAME<MAP>",
+      "d": "Specifies an image as a client-side image-map",
+      "w3": "/tags/att_usemap.asp"
+    },
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    },
+    {
+      "n": "oncanplay",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
+      "w3": "/tags/att_oncanplay.asp"
+    },
+    {
+      "n": "type",
+      "dt": "MEDIATYPE",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    },
+    {
+      "n": "data",
+      "dt": "URL",
+      "d": "Specifies the URL of the resource to be used by the object",
+      "w3": "/tags/att_data.asp"
+    },
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    },
+    {
+      "n": "onabort",
+      "dt": "SCRIPT",
+      "d": "Script to be run on abort",
+      "w3": "/tags/att_onabort.asp"
+    },
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    }
+  ],
+  "ol": [
+    {
+      "n": "reversed",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the list order should be descending (9,8,7...)",
+      "w3": "/tags/att_reversed.asp"
+    },
+    {
+      "n": "start",
+      "dt": "NUMBER",
+      "d": "Specifies the start value of an ordered list",
+      "w3": "/tags/att_start.asp"
+    }
+  ],
+  "optgroup": [
+    {
+      "n": "label",
+      "dt": "TEXT",
+      "d": "Specifies the title of the text track",
+      "w3": "/tags/att_label.asp"
+    },
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    }
+  ],
+  "option": [
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    },
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    },
+    {
+      "n": "selected",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that an option should be pre-selected when the page loads",
+      "w3": "/tags/att_selected.asp"
+    },
+    {
+      "n": "label",
+      "dt": "TEXT",
+      "d": "Specifies the title of the text track",
+      "w3": "/tags/att_label.asp"
+    }
+  ],
+  "output": [
+    {
+      "n": "for",
+      "dt": "ID",
+      "d": "Specifies which form element(s) a label/calculation is bound to",
+      "w3": "/tags/att_for.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    }
+  ],
+  "param": [
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    }
+  ],
+  "progress": [
+    {
+      "n": "max",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum value",
+      "w3": "/tags/att_max.asp"
+    },
+    {
+      "n": "value",
+      "dt": "TEXT",
+      "d": "Specifies the value of the element",
+      "w3": "/tags/att_value.asp"
+    }
+  ],
+  "q": [
+    {
+      "n": "cite",
+      "dt": "URL",
+      "d": "Specifies a URL which explains the quote/deleted/inserted text",
+      "w3": "/tags/att_cite.asp"
+    }
+  ],
+  "script": [
+    {
+      "n": "async",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the script is executed asynchronously (only for external scripts)",
+      "w3": "/tags/att_async.asp"
+    },
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    },
+    {
+      "n": "defer",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the script is executed when the page has finished parsing (only for external scripts)",
+      "w3": "/tags/att_defer.asp"
+    },
+    {
+      "n": "charset",
+      "dt": "CHARSET",
+      "d": "Specifies the character encoding",
+      "w3": "/tags/att_charset.asp"
+    },
+    {
+      "n": "type",
+      "dt": "MEDIATYPE",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the script file",
+      "w3": "/tags/att_src.asp"
+    }
+  ],
+  "select": [
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    },
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    },
+    {
+      "n": "size",
+      "dt": "NUMBER",
+      "d": "Specifies the width, in characters (for <input>) or specifies the number of visible options (for <select>)",
+      "w3": "/tags/att_size.asp"
+    },
+    {
+      "n": "required",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element must be filled out before submitting the form",
+      "w3": "/tags/att_required.asp"
+    },
+    {
+      "n": "multiple",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that a user can enter more than one value",
+      "w3": "/tags/att_multiple.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "autofocus",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element should automatically get focus when the page loads",
+      "w3": "/tags/att_autofocus.asp"
+    }
+  ],
+  "source": [
+    {
+      "n": "sizes",
+      "dt": "NUMBERxNUMBER",
+      "d": "Specifies the size of the linked resource",
+      "w3": "/tags/att_sizes.asp"
+    },
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the source file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "srcset",
+      "dt": "URL",
+      "d": "Specifies the URL of the image to use in different situations",
+      "w3": "/tags/att_srcset.asp"
+    },
+    {
+      "n": "media",
+      "dt": "N OPTIONSETS(and|not|,)",
+      "d": "Specifies what media/device the linked document is optimized for",
+      "w3": "/tags/att_media.asp"
+    }
+  ],
+  "style": [
+    {
+      "n": "scoped",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the styles only apply to this element's parent element and that element's child elements",
+      "w3": "/tags/att_scoped.asp"
+    },
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    },
+    {
+      "n": "media",
+      "dt": "N OPTIONSETS(and|not|,)",
+      "d": "Specifies what media/device the linked document is optimized for",
+      "w3": "/tags/att_media.asp"
+    },
+    {
+      "n": "onload",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is finished loading",
+      "w3": "/tags/att_onload.asp"
+    },
+    {
+      "n": "type",
+      "dt": "text/css",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    }
+  ],
+  "td": [
+    {
+      "n": "headers",
+      "dt": "ID",
+      "d": "Specifies one or more headers cells a cell is related to",
+      "w3": "/tags/att_headers.asp"
+    },
+    {
+      "n": "rowspan",
+      "dt": "NUMBER",
+      "d": "Specifies the number of rows a table cell should span",
+      "w3": "/tags/att_rowspan.asp"
+    },
+    {
+      "n": "colspan",
+      "dt": "INT",
+      "d": "Specifies the number of columns a table cell should span",
+      "w3": "/tags/att_colspan.asp"
+    }
+  ],
+  "textarea": [
+    {
+      "n": "dirname",
+      "dt": "NAME.dir",
+      "d": "Specifies that the text direction will be submitted",
+      "w3": "/tags/att_dirname.asp"
+    },
+    {
+      "n": "required",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element must be filled out before submitting the form",
+      "w3": "/tags/att_required.asp"
+    },
+    {
+      "n": "autofocus",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element should automatically get focus when the page loads",
+      "w3": "/tags/att_autofocus.asp"
+    },
+    {
+      "n": "rows",
+      "dt": "NUMBER",
+      "d": "Specifies the visible number of lines in a text area",
+      "w3": "/tags/att_rows.asp"
+    },
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the text area",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "readonly",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the element is read-only",
+      "w3": "/tags/att_readonly.asp"
+    },
+    {
+      "n": "maxlength",
+      "dt": "NUMBER",
+      "d": "Specifies the maximum number of characters allowed in an element",
+      "w3": "/tags/att_maxlength.asp"
+    },
+    {
+      "n": "cols",
+      "dt": "INT",
+      "d": "Specifies the visible width of a text area",
+      "w3": "/tags/att_cols.asp"
+    },
+    {
+      "n": "wrap",
+      "dt": "OPTIONSET(hard|soft)",
+      "d": "Specifies how the text in a text area is to be wrapped when submitted in a form",
+      "w3": "/tags/att_wrap.asp"
+    },
+    {
+      "n": "placeholder",
+      "dt": "TEXT",
+      "d": "Specifies a short hint that describes the expected value of the element",
+      "w3": "/tags/att_placeholder.asp"
+    },
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    },
+    {
+      "n": "form",
+      "dt": "FORM_ID",
+      "d": "Specifies the name of the form the element belongs to",
+      "w3": "/tags/att_form.asp"
+    }
+  ],
+  "th": [
+    {
+      "n": "scope",
+      "dt": "OPTIONSET(col|row|colgroup|rowgroup)",
+      "d": "Specifies whether a header cell is a header for a column, row, or group of columns or rows",
+      "w3": "/tags/att_scope.asp"
+    },
+    {
+      "n": "headers",
+      "dt": "ID",
+      "d": "Specifies one or more headers cells a cell is related to",
+      "w3": "/tags/att_headers.asp"
+    },
+    {
+      "n": "colspan",
+      "dt": "INT",
+      "d": "Specifies the number of columns a table cell should span",
+      "w3": "/tags/att_colspan.asp"
+    },
+    {
+      "n": "rowspan",
+      "dt": "NUMBER",
+      "d": "Specifies the number of rows a table cell should span",
+      "w3": "/tags/att_rowspan.asp"
+    }
+  ],
+  "time": [
+    {
+      "n": "datetime",
+      "dt": "DATETIME",
+      "d": "Specifies the date and time",
+      "w3": "/tags/att_datetime.asp"
+    }
+  ],
+  "track": [
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the media file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "oncuechange",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the cue changes in a <track> element",
+      "w3": "/tags/att_oncuechange.asp"
+    },
+    {
+      "n": "label",
+      "dt": "TEXT",
+      "d": "Specifies the title of the text track",
+      "w3": "/tags/att_label.asp"
+    },
+    {
+      "n": "srclang",
+      "dt": "LANGUAGE",
+      "d": "Specifies the language of the track text data (required if kind=\"subtitles\")",
+      "w3": "/tags/att_srclang.asp"
+    },
+    {
+      "n": "kind",
+      "dt": "OPTIONSET(captions|chapters|descriptions|metadata|subtitles)",
+      "d": "Specifies the kind of text track",
+      "w3": "/tags/att_kind.asp"
+    },
+    {
+      "n": "default",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the track is to be enabled if the user's preferences do not indicate that another track would be more appropriate",
+      "w3": "/tags/att_default.asp"
+    }
+  ],
+  "video": [
+    {
+      "n": "src",
+      "dt": "URL",
+      "d": "Specifies the URL of the media file",
+      "w3": "/tags/att_src.asp"
+    },
+    {
+      "n": "onloadeddata",
+      "dt": "SCRIPT",
+      "d": "Script to be run when media data is loaded",
+      "w3": "/tags/att_onloadeddata.asp"
+    },
+    {
+      "n": "onemptied",
+      "dt": "SCRIPT",
+      "d": "Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)",
+      "w3": "/tags/att_onemptied.asp"
+    },
+    {
+      "n": "onloadedmetadata",
+      "dt": "SCRIPT",
+      "d": "Script to be run when meta data (like dimensions and duration) are loaded",
+      "w3": "/tags/att_onloadedmetadata.asp"
+    },
+    {
+      "n": "onwaiting",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)",
+      "w3": "/tags/att_onwaiting.asp"
+    },
+    {
+      "n": "controls",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that audio/video controls should be displayed (such as a play/pause button etc)",
+      "w3": "/tags/att_controls.asp"
+    },
+    {
+      "n": "onvolumechange",
+      "dt": "SCRIPT",
+      "d": "Script to be run each time the volume of a video/audio has been changed",
+      "w3": "/tags/att_onvolumechange.asp"
+    },
+    {
+      "n": "height",
+      "dt": "PIXELS",
+      "d": "Specifies the height of the element",
+      "w3": "/tags/att_height.asp"
+    },
+    {
+      "n": "ontimeupdate",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)",
+      "w3": "/tags/att_ontimeupdate.asp"
+    },
+    {
+      "n": "onsuspend",
+      "dt": "SCRIPT",
+      "d": "Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason",
+      "w3": "/tags/att_onsuspend.asp"
+    },
+    {
+      "n": "onstalled",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser is unable to fetch the media data for whatever reason",
+      "w3": "/tags/att_onstalled.asp"
+    },
+    {
+      "n": "onseeking",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the seeking attribute is set to true indicating that seeking is active",
+      "w3": "/tags/att_onseeking.asp"
+    },
+    {
+      "n": "preload",
+      "dt": "OPTIONSET(auto|metadata|none)",
+      "d": "Specifies if and how the author thinks the audio/video should be loaded when the page loads",
+      "w3": "/tags/att_preload.asp"
+    },
+    {
+      "n": "muted",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the audio output of the video should be muted",
+      "w3": "/tags/att_muted.asp"
+    },
+    {
+      "n": "width",
+      "dt": "PIXELS",
+      "d": "Specifies the width of the element",
+      "w3": "/tags/att_width.asp"
+    },
+    {
+      "n": "onloadstart",
+      "dt": "SCRIPT",
+      "d": "Script to be run just as the file begins to load before anything is actually loaded",
+      "w3": "/tags/att_onloadstart.asp"
+    },
+    {
+      "n": "onratechange",
+      "dt": "SCRIPT",
+      "d": "Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode).",
+      "w3": "/tags/att_onratechange.asp"
+    },
+    {
+      "n": "onprogress",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the browser is in the process of getting the media data",
+      "w3": "/tags/att_onprogress.asp"
+    },
+    {
+      "n": "onplaying",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media actually has started playing.",
+      "w3": "/tags/att_onplaying.asp"
+    },
+    {
+      "n": "onplay",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media is ready to start playing",
+      "w3": "/tags/att_onplay.asp"
+    },
+    {
+      "n": "onended",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media has reach the end (a useful event for messages like \"thanks for listening\")",
+      "w3": "/tags/att_onended.asp"
+    },
+    {
+      "n": "onpause",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the media is paused either by the user or programmatically",
+      "w3": "/tags/att_onpause.asp"
+    },
+    {
+      "n": "onabort",
+      "dt": "SCRIPT",
+      "d": "Script to be run on abort",
+      "w3": "/tags/att_onabort.asp"
+    },
+    {
+      "n": "oncanplay",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a file is ready to start playing (when it has buffered enough to begin)",
+      "w3": "/tags/att_oncanplay.asp"
+    },
+    {
+      "n": "oncanplaythrough",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a file can be played all the way to the end without pausing for buffering",
+      "w3": "/tags/att_oncanplaythrough.asp"
+    },
+    {
+      "n": "poster",
+      "dt": "URL",
+      "d": "Specifies an image to be shown while the video is downloading, or until the user hits the play button",
+      "w3": "/tags/att_poster.asp"
+    },
+    {
+      "n": "autoplay",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the audio/video will start playing as soon as it is ready",
+      "w3": "/tags/att_autoplay.asp"
+    },
+    {
+      "n": "ondurationchange",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the length of the media changes",
+      "w3": "/tags/att_ondurationchange.asp"
+    },
+    {
+      "n": "onseeked",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the seeking attribute is set to false indicating that seeking has ended",
+      "w3": "/tags/att_onseeked.asp"
+    }
+  ],
+  " fieldset": [
+    {
+      "n": "name",
+      "dt": "NAME",
+      "d": "Specifies the name of the element",
+      "w3": "/tags/att_name.asp"
+    },
+    {
+      "n": "disabled",
+      "dt": "ATTRIBUTE",
+      "d": "Specifies that the specified element/group of elements should be disabled",
+      "w3": "/tags/att_disabled.asp"
+    }
+  ],
+  " img": [
+    {
+      "n": "onabort",
+      "dt": "SCRIPT",
+      "d": "Script to be run on abort",
+      "w3": "/tags/att_onabort.asp"
+    },
+    {
+      "n": "alt",
+      "dt": "TEXT",
+      "d": "Specifies an alternate text when the original element fails to display",
+      "w3": "/tags/att_alt.asp"
+    }
+  ],
+  " source": [
+    {
+      "n": "type",
+      "dt": "MIMETYPE",
+      "d": "Specifies the type of element",
+      "w3": "/tags/att_type.asp"
+    }
+  ],
+  " video": [
+    {
+      "n": "onerror",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an error occurs",
+      "w3": "/tags/att_onerror.asp"
+    }
+  ],
+  "EVENT": [
+    {
+      "n": "ondragstart",
+      "dt": "SCRIPT",
+      "d": "Script to be run at the start of a drag operation",
+      "w3": "/tags/att_ondragstart.asp"
+    },
+    {
+      "n": "onselect",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element gets selected",
+      "w3": "/tags/att_onselect.asp"
+    },
+    {
+      "n": "onkeypress",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a user presses a key",
+      "w3": "/tags/att_onkeypress.asp"
+    },
+    {
+      "n": "onkeydown",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a user is pressing a key",
+      "w3": "/tags/att_onkeydown.asp"
+    },
+    {
+      "n": "oninvalid",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is invalid",
+      "w3": "/tags/att_oninvalid.asp"
+    },
+    {
+      "n": "oninput",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element gets user input",
+      "w3": "/tags/att_oninput.asp"
+    },
+    {
+      "n": "onfocus",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element gets focus",
+      "w3": "/tags/att_onfocus.asp"
+    },
+    {
+      "n": "onmousedown",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a mouse button is pressed down on an element",
+      "w3": "/tags/att_onmousedown.asp"
+    },
+    {
+      "n": "onmousemove",
+      "dt": "SCRIPT",
+      "d": "Script to be run as long as the  mouse pointer is moving over an element",
+      "w3": "/tags/att_onmousemove.asp"
+    },
+    {
+      "n": "onmouseout",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a mouse pointer moves out of an element",
+      "w3": "/tags/att_onmouseout.asp"
+    },
+    {
+      "n": "onmouseover",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a mouse pointer moves over an element",
+      "w3": "/tags/att_onmouseover.asp"
+    },
+    {
+      "n": "onmouseup",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a mouse button is released over an element",
+      "w3": "/tags/att_onmouseup.asp"
+    },
+    {
+      "n": "onscroll",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an element's scrollbar is being scrolled",
+      "w3": "/tags/att_onscroll.asp"
+    },
+    {
+      "n": "onmousewheel",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a mouse wheel is being scrolled over an element",
+      "w3": "/tags/att_onmousewheel.asp"
+    },
+    {
+      "n": "ondrop",
+      "dt": "SCRIPT",
+      "d": "Script to be run when dragged element is being dropped",
+      "w3": "/tags/att_ondrop.asp"
+    },
+    {
+      "n": "onkeyup",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a user releases a key",
+      "w3": "/tags/att_onkeyup.asp"
+    },
+    {
+      "n": "ondragover",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an element is being dragged over a valid drop target",
+      "w3": "/tags/att_ondragover.asp"
+    },
+    {
+      "n": "onwheel",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the mouse wheel rolls up or down over an element",
+      "w3": "/tags/att_onwheel.asp"
+    },
+    {
+      "n": "onpaste",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the user pastes some content in an element",
+      "w3": "/tags/att_onpaste.asp"
+    },
+    {
+      "n": "ondragleave",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an element leaves a valid drop target",
+      "w3": "/tags/att_ondragleave.asp"
+    },
+    {
+      "n": "ondragenter",
+      "dt": "SCRIPT",
+      "d": "Script to be run when an element has been dragged to a valid drop target",
+      "w3": "/tags/att_ondragenter.asp"
+    },
+    {
+      "n": "ondragend",
+      "dt": "SCRIPT",
+      "d": "Script to be run at the end of a drag operation",
+      "w3": "/tags/att_ondragend.asp"
+    },
+    {
+      "n": "ondrag",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is being dragged",
+      "w3": "/tags/att_ondrag.asp"
+    },
+    {
+      "n": "ondblclick",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is being double-clicked",
+      "w3": "/tags/att_ondblclick.asp"
+    },
+    {
+      "n": "oncut",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the content of the element is being cut",
+      "w3": "/tags/att_oncut.asp"
+    },
+    {
+      "n": "oncopy",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the content of the element is being copied",
+      "w3": "/tags/att_oncopy.asp"
+    },
+    {
+      "n": "oncontextmenu",
+      "dt": "SCRIPT",
+      "d": "Script to be run when a context menu is triggered",
+      "w3": "/tags/att_oncontextmenu.asp"
+    },
+    {
+      "n": "onclick",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element is being clicked",
+      "w3": "/tags/att_onclick.asp"
+    },
+    {
+      "n": "onchange",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the value of the element is changed",
+      "w3": "/tags/att_onchange.asp"
+    },
+    {
+      "n": "onblur",
+      "dt": "SCRIPT",
+      "d": "Script to be run when the element loses focus",
+      "w3": "/tags/att_onblur.asp"
+    }
+  ]
+
+}

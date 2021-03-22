@@ -36,7 +36,7 @@ SI.Editor.Objects.Security = {
             roleFs.appendChild(SI.Editor.Objects.Security.DrawRoleControls(roleent));
         }
 
-        SI.Editor.UI.Security.Window.Append(base);
+        return base;
     },
     DrawRoleControls: function (roleent) {
         let rolenameid = SI.Tools.Element.SafeId(roleent.name);

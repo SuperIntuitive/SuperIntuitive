@@ -13,25 +13,27 @@ class Setting {
 			    $value = $post['settingvalue'];
 		}
 		if($name && $value){
-		
+
 			$ent = new Entity('settings');
 			$ent->Attributes->Add(new Attribute("settingname", $name));
 			$ent->Attributes->Add(new Attribute("settingvalue", $value));
 			Tools::Log($ent);
 			$id = $ent->Create();
+			$id = ltrim($id, "0x");
 
 			if($id){
-				$nvp = [$name, $value];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGCREATED'] = $nvp;
+				$setting = [$id, $name, $value];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PARAMETER'] = $setting;
+				//
 			}
 
 		}
 	//settingname:name, settingvalue:value
 	}
 
-	function Update($name=null, $value=null){
+	function Update($name=null, $value=null, $post=null){
 		Tools::Log("IN Settings Update");
-		
+		Tools::Log($post);
 		if(isset($post['settingname']) ){
 			    $name = $post['settingname'];
 		}
@@ -39,10 +41,10 @@ class Setting {
 			    $value = $post['settingvalue'];
 		}
 		if($name){
-		
+		Tools::Log($name.":".$value);
 			$ent = new Entity('settings');
 			$ent->Attributes->Add(new Attribute("settingname", $name));
-			$found = $ent->Select();
+			$found = $ent->Retrieve();
 
 			if(isset($found[0]['id'])){
 				$id = $found[0]['id'];
@@ -53,7 +55,7 @@ class Setting {
 				$update->Update();
 
 				$nvp = [$name, $value];
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGUPDATED'] = $nvp;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['SETTINGUPDATED'] = $nvp;
 			}
 
 		}
@@ -68,9 +70,7 @@ class Setting {
 			$delete = new Entity('settings');
 			$delete->Attributes->Add(new Attribute("settingname", $name));
 			$delete->Delete();
-			$ind = $post['index'];
-			$kvp=[$name,$ind];
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGDELETED'] = $kvp;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PARAMETER'] = $name;
 		}
 	}
 
@@ -83,15 +83,15 @@ class Setting {
 			$settingid = !isset($post['settingid']) ? null : $post['settingid'];
 			if($pageid && $settingid){
 				//get the block that were relating to the page
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGRELATED'] = array();
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['SETTINGRELATED'] = array();
 				$relatedid = $db->NewRelatedEntity("pages",$pageid,"settings", $settingid);
 				if($relatedid != null){
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['BLOCKRELATED']['RELID'] = $relatedid;
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['RELID'] = $relatedid;
 				}
 				return $relatedid;
 			}
 		}catch(Exception $ex){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
 		}
 
 	}
@@ -101,7 +101,7 @@ class Setting {
 			Tools::Log("Removing relation:".$post['linkid']);
 			$dbc = new Database();
 			$dbc->RemoveRelation($post['linkid']);
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['SETTINGREMOVED'] = "Block removed";
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['SETTINGREMOVED'] = "Block removed";
 		}
 	}
 

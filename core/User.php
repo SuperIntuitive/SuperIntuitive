@@ -20,7 +20,7 @@ class User{
 	function ForgotPassword($post){
 		Tools::Log('In Forgot Password!');
 		$users = new Entity('users');
-		$users->Attributes->Add("email", post['email']);
+		$users->Attributes->Add(new Attribute("email", post['email']));
 		$ret = $users->Retrieve("id,status,createdon,modifiedon,name,email");
 		$u = $ret[0];
 

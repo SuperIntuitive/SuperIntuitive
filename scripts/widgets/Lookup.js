@@ -1,8 +1,14 @@
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+if(!SI.Widgets.Lookup){SI.Widgets.Lookup = {}};
+SI.Widget.Lookup = function (options) { 
 
-SI.Widget.Lookup = function (options) {
-    if (!(this instanceof SI.Widget.Lookup)) { return new SI.Widget.Lookup(); }
+    if (!(this instanceof SI.Widget.Lookup)) { return new SI.Widget.Lookup(options); }
+
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Lookup");}
+    this.Input = {...options};
+    SI.Widgets.Lookup[this.Id] = this;
+    let self = this;
+
     this.Defaults = {
         "Parent": null,
         "ParentIndex": null,
@@ -22,67 +28,62 @@ SI.Widget.Lookup = function (options) {
         "FontColor": "black",
         "TextAlign": "left"
     };
-    var self = this;
-    this.Random = SI.Tools.String.RandomString();
-    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+  
+    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
     //The window that holds the advanced lookup search
     this.LookupWindow = null;
-
     this.EntityTypeWindow = null;
-
-    this.InitTimer = function () {
-        //debugger;
-        let initLoopTime = 1000;
-        let initLoopTries = 10;
-        let timer = 500;
-        let thereafter = 3000;
-        let lookuptimer = setInterval(function () {
-            if (initLoopTries > 0) {
-                initLoopTries--;
-                timer = initLoopTime;
-            } else {
-                timer = thereafter;
-                clearInterval(lookuptimer);
-            }
-
-            let lookups = document.querySelectorAll("input[type=lookup]");
-            let status = "init";
-            if (lookups) {
-                for (let i in lookups) {
-                    if (lookups.hasOwnProperty(i)) {
-                        lookup = lookups[i];
-                        if (typeof lookup.dataset.stage === 'undefined') {
-                            //debugger;
-                            self.Init(lookup);
-                            lookup.dataset.stage = "ready";
-                        }
+    this.CheckLookups = function(){
+        let lookups = document.querySelectorAll("input[type=lookup]");
+        if (lookups) {
+            for (let i in lookups) {
+                if (lookups.hasOwnProperty(i)) {
+                    lookup = lookups[i];
+                    if (typeof lookup.dataset.stage !== 'ready') {
+                        self.Init(lookup);
+                        lookup.dataset.stage = "ready";
                     }
                 }
             }
+        }
+    },
 
-        }, timer);
-    };
-
-    //Initili
     this.Init = function (lookupfield) {
-        //debugger;
-        lookupfield.addEventListener('change', self.ChangeOptions, false);
-        searchData = Ele("datalist", {
+
+
+        if(lookupfield.dataset.stage ==="changing"){
+            
+        }else{
+            lookupfield.addEventListener('change', self.ChangeOptions, false);
+        }
+
+        let column = null;
+        if(lookupfield.dataset.column ==="changing"){
+            column = lookupfield.dataset.column;
+        }
+
+        if(lookupfield.list){
+            lookupfield.list.remove();
+        }
+        let searchData = Ele("datalist", {
             id: lookupfield.id + "_datalist",
-            appendTo: lookupfield,
         });
+
+        SI.Tools.Element.InsertAfter(searchData, lookupfield);
+        lookupfield.setAttribute('list', lookupfield.id + "_datalist");
+
         if (lookupfield.dataset.type) {
-            self.GetDatalist({ type: lookupfield.dataset.type, datalist: lookupfield.id + "_datalist" });
+            self.GetDatalist({ type: lookupfield.dataset.type, datalist: lookupfield.id + "_datalist", column:column });
         } else {
             if (self.EntityTypeWindow === null) {
-                var obj = { Name: "Select Entity", Title: lookupfield.id, "WindowControls": "CLOSE", StartWidth: '500px', StartHeight: '300px', StartTop: (window.pageYOffset + window.innerHeight / 2) + "px", StartLeft: (window.innerWidth / 2 - 250) + "px" };
+                var obj = { Name: "Select Entity", Title: lookupfield.id, "WindowControls": "CLOSE", Width: '500px', Height: '300px', Top: (window.pageYOffset + window.innerHeight / 2) + "px", Left: (window.innerWidth / 2 - 250) + "px" };
                 self.EntityTypeWindow = new Window(obj);
             }
             self.EntityTypeWindow.Show();
         }
-        lookupfield.setAttribute('list', lookupfield.id + "_datalist");
-        SI.Tools.Element.InsertAfter(searchData, lookupfield);
+        
+        
     };
 
     //Go to the server and get the data for the lookup
@@ -96,20 +97,30 @@ SI.Widget.Lookup = function (options) {
             },
             LookupDatalist: obj.datalist
         };
+        if(obj.column){
+            ajax.Data.Columns=obj.column;
+        }
         ajax.Callback = self.PopulateDatalist;
         SI.Tools.Api.Send(ajax);
     };
 
     //Once the data is returned from the server, the datalist is populated
     this.PopulateDatalist = function (data, responce) {
-        if (responce.Data.Entity === 'blocks') {
-            //debugger;
-        }
         let datalist = document.getElementById(responce.Data.LookupDatalist);
+        datalist.innerHTML = "";
         for (let i in data) {
             if (data.hasOwnProperty(i)) {
                 let row = data[i];
-                let key = row.path;
+                let key;
+                switch(responce.Data.Entity.Name) {
+                    case 'media': 
+                    case 'pages': 
+                        key = row.path; 
+                        break;
+                    default: 
+                        key = row.name; 
+                        break;
+                }
                 if (key === "") { key = "&nbsp;"; }
                 if (typeof key !== 'undefined') {
                     let id = row.id;
@@ -122,12 +133,12 @@ SI.Widget.Lookup = function (options) {
             }
         }
         Ele("option", {
-            innerHTML: "LOOK IT UP!",
+            innerHTML: "Database Lookup",
             data: {
                 id: "LookItUp"
             },
             style: {
-                backgroundColor: 'yellow',
+                color: 'yellow',
             },
             appendTo: datalist,
         });
@@ -137,11 +148,11 @@ SI.Widget.Lookup = function (options) {
     this.ChangeOptions = function () {
         this.style.color = 'black';
         this.removeAttribute('title');
-        if (this.value === "LOOK IT UP!") {
+        if (this.value === "Database Lookup") {
             if (self.LookupWindow === null) {
                 //debugger;
-                var obj = { Name: "Lookup", Title: "Lookup", "WindowControls": "CLOSE", StartWidth: '500px', StartHeight: '300px', StartTop: (window.pageYOffset + window.innerHeight / 2) + "px", StartLeft: (window.innerWidth / 2 - 250) + "px" };
-                self.LookupWindow = new Window(obj);
+                var obj = { Name: "Lookup", Title: "Lookup", "WindowControls": "CLOSE", Width: '500px', Height: '300px', Top: (window.pageYOffset + window.innerHeight / 2) + "px", Left: (window.innerWidth / 2 - 250) + "px" };
+                self.LookupWindow = new SI.Widget.Window(obj);
             }
             this.value = '';
             self.LookupWindow.Append(self.DrawLookupWindow());
@@ -178,9 +189,8 @@ SI.Widget.Lookup = function (options) {
     };
    
 };
-//SI.Widget.Lookups.Instances = {};
-//var si_lu =
-new SI.Widget.Lookup().InitTimer();
-//si_lu.InitTimer();
+
+new SI.Widget.Lookup();
+
 
 

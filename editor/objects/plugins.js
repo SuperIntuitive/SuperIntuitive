@@ -10,16 +10,68 @@ SI.Editor.Objects.Plugins = {
         titlecolor: '#ccc',
         textcolor: '#bbb',
     },
+
+    Draw: function () {
+        let container = Ele("div",{
+            style:{
+                width:"100%",
+                height:"100%",
+                backgroundColor:'green',
+
+            },
+        });
+
+        let tabs = new SI.Widget.Tab({
+            OnChange: function (self) {
+                let tab = self.dataset.tabname;
+                let pis = SI.Editor.Objects.Plugins.Repo.Plugins;
+                //if we have no plugins, we should probably try to get some
+                if ( pis.length === 0 ) {
+                    SI.Editor.Objects.Plugins.Repo.GetMorePlugins();
+                }
+            }
+        });
+
+        //Currently Installed plugins
+        let localPlugins = Ele("div", {
+            style: {
+                display: 'flex',
+                flexWrap:'wrap',
+            }
+        });
+
+        for (let i = 0; i < 100; i++) {
+            Ele("div", {
+                style: {  
+                    backgroundColor: 'blue',
+                    height: '100px',
+                    width: '100px',
+                    margin:'8px',
+                },
+                appendTo: localPlugins,
+            });
+        }
+
+        tabs.Items.Add("Local Plugins", SI.Editor.Objects.Plugins.Local.Build());
+        tabs.Items.Add("Plugins Repo", SI.Editor.Objects.Plugins.Repo.Build());
+        tabs.Items.Add("Plugin Editor", SI.Editor.Objects.Plugins.Editor.Build());
+
+        container.appendChild(tabs.Draw());
+
+        SI.Editor.Objects.Plugins.Repo.AddCategory("All");
+
+        return container; 
+    },
     Repo: {
+        Content:null,
         Build: function () {
-            let style = SI.Editor.Objects.Plugins.Style;
             let container = Ele('div', {});
             let menu = Ele('div', {
                 id: 'si_edit_plugins_repo_menu',
                 style: {
                     width: '100%',
-                    height: '100px',
-                    backgroundColor: style.menucolor,
+                    height: '75px',
+                    backgroundColor: SI.Editor.Objects.Plugins.Style.menucolor,
                     position: 'relative',
                     paddingLeft: '10px',
                     userSelect: 'none',
@@ -31,7 +83,7 @@ SI.Editor.Objects.Plugins = {
                 style: {
                     width: '100%',
                     height: '500px',
-                    backgroundColor: style.pagecolor,
+                    backgroundColor: SI.Editor.Objects.Plugins.Style.pagecolor,
                     display: 'flex',
                     flexWrap: 'wrap',
                     overflow: 'scroll',
@@ -46,26 +98,25 @@ SI.Editor.Objects.Plugins = {
                     position: 'absolute',
                     top: '15px',
                     left: '15px',
-                    color: style.titlecolor,
+                    color: SI.Editor.Objects.Plugins.Style.titlecolor,
                     textSize: '18px',
                 },
                 appendTo: menu,
             });
 
-
+            SI.Editor.Objects.Plugins.Repo.Content = content;
             return container;
         },
         Categories: ['All'],
         Plugins: [],
         AddCategory: function (cat) {
-            let style = SI.Editor.Objects.Plugins.Style;
-            menu = document.getElementById('si_edit_plugins_repo_menu');
+            let menu = document.getElementById('si_edit_plugins_repo_menu');
             if (menu) {
                 let h = '24px';
-                let col = style.nonselectedtab;  //style.tabcolor;
+                let col = SI.Editor.Objects.Plugins.Style.nonselectedtab;  //style.tabcolor;
                 if (cat === 'All') {
                     h = '25px';
-                    col = style.selectedtab; // style.pagecolor;
+                    col = SI.Editor.Objects.Plugins.Style.selectedtab; // style.pagecolor;
                 }
                 Ele('div', {
                     innerHTML: cat,
@@ -76,7 +127,7 @@ SI.Editor.Objects.Plugins = {
                         color: '#bbb',
                         position: 'relative',
                         display: 'inline-block',
-                        marginTop: '65px',
+                        marginTop: '41px',
                         marginRight: '5px',
                         textAlign: 'center',
                         paddingTop: '10px',
@@ -92,10 +143,10 @@ SI.Editor.Objects.Plugins = {
                             if (kid.tagName == 'DIV') {
                                 if (kid.innerHTML === this.innerHTML) {
                                     kid.style.height = '25px';
-                                    kid.style.background = style.selectedtab;
+                                    kid.style.background = SI.Editor.Objects.Plugins.Style.selectedtab;
                                 } else {
                                     kid.style.height = '24px';
-                                    kid.style.background = style.nonselectedtab;
+                                    kid.style.background = SI.Editor.Objects.Plugins.Style.nonselectedtab;
                                 }
                             }
                         }
@@ -238,6 +289,7 @@ SI.Editor.Objects.Plugins = {
         },
     },
     Local: {
+        Content:null,
         Build: function () {
             let style = SI.Editor.Objects.Plugins.Style;
             let container = Ele('div', {});
@@ -245,8 +297,8 @@ SI.Editor.Objects.Plugins = {
                 id: 'si_edit_plugins_local_menu',
                 style: {
                     width: '100%',
-                    height: '50px',
-                    backgroundColor: style.menucolor,
+                    height: '75px',
+                    backgroundColor: SI.Editor.Objects.Plugins.Style.menucolor,
                     position: 'relative',
                     paddingLeft: '10px',
                     userSelect: 'none',
@@ -258,7 +310,9 @@ SI.Editor.Objects.Plugins = {
                 style: {
                     width: '100%',
                     height: '550px',
-                    backgroundColor: style.pagecolor,
+                    backgroundColor: SI.Editor.Objects.Plugins.Style.pagecolor,
+                    display: 'flex',
+                    flexWrap: 'wrap',
                     overflow: 'scroll',
                 },
                 appendTo: container,
@@ -269,7 +323,7 @@ SI.Editor.Objects.Plugins = {
                     position: 'absolute',
                     top: '15px',
                     left: '15px',
-                    color: style.titlecolor,
+                    color: SI.Editor.Objects.Plugins.Style.titlecolor,
                     textSize: '18px',
                 },
                 appendTo: menu,
@@ -294,108 +348,150 @@ SI.Editor.Objects.Plugins = {
                 }
             }
 
-
+            SI.Editor.Objects.Plugins.Local.Content = content;
             return container;
         },
         AddPlugin: function (name, vals) {
             let style = SI.Editor.Objects.Plugins.Style;
             let box = Ele('div', {
-                innerHTML: name,
+                innerHTML: name+" ",
                 id: 'si_edit_plugin_box_' + name,
                 style: {
                     position: 'relative',
                     border: '2px solid black',
-                    width: '95%',
+                    width: '100px',
                     margin: '10px',
                     padding: '10px',
+                    height: '200px',
                     border: '2px groove black',
+                    textAlign: 'center',
                     borderRadius: '8px',
                     backgroundColor: style.piboxcolor,
+                    color:SI.Editor.Objects.Plugins.Style.titlecolor,
                 },
 
             });
             let checked = true;
+            let isEnabled = "Uncheck to disable";
+            let disableTools = "";
             if (vals == false) {
                 checked = false;
+                isEnabled = "Check to enable";
+                disableTools = "disabled";
             }
 
             let onoff = Ele('input', {
                 type: 'checkbox',
                 checked: checked,
+                title: isEnabled,
                 appendTo: box,
                 data: {
                     plugin: name,
                 },
-                onchange: function () {
-                    if (this.checked) {
-                        if (confirm("Are you sure you want to install the plugin: " + this.dataset.plugin)) {
-                            //install the plugin. extract the zip to its neighboring directory
-                            let options = {
-                                Data: {
-                                    KEY: "InstallPlugin",
-                                    "plugin": this.dataset.plugin
-                                }
-                            }
-                            SI.Editor.Ajax.Run(options);
-                            this.checked = true;
-
-                        } else {
-                            this.checked = false;
-                            return false;
-                        }
-                    } else {
-                        if (confirm("Are you sure you want to remove the plugin: " + this.dataset.plugin + "? You will lose any modifications that you made to this plugin.")) {
-                            //remove the plugin. just delete the directory. leave the zip where it is
-                            let options = {
-                                Data: {
-                                    KEY: "UninstallPlugin",
-                                    "plugin": this.dataset.plugin
-                                }
-                            }
-                            SI.Editor.Ajax.Run(options);
-                            this.checked = false;
-
-                        } else {
-                            this.checked = true;
-                            return false;
-                        }
-                    }
-                },
+                onchange: SI.Editor.Objects.Plugins.Local.ToggleEnabled
             });
-
-            if (vals == true) {
-                //debugger;
-
-
-            }
-
 
             return box;
         },
+        ToggleEnabled:function(){
+            if (this.checked) {
+                if (confirm("Are you sure you want to install the plugin: " + this.dataset.plugin)) {
+                    //install the plugin. extract the zip to its neighboring directory
+                    let options = {
+                        Data: {
+                            KEY: "InstallPlugin",
+                            "plugin": this.dataset.plugin
+                        }
+                    }
+                    SI.Editor.Ajax.Run(options);
+                    this.checked = true;
+
+                } else {
+                    this.checked = false;
+                    return false;
+                }
+
+            } else {
+                if (confirm("Are you sure you want to remove the plugin: " + this.dataset.plugin + "? You will lose any modifications that you made to this plugin.")) {
+                    //remove the plugin. just delete the directory. leave the zip where it is
+                    let options = {
+                        Data: {
+                            KEY: "UninstallPlugin",
+                            "plugin": this.dataset.plugin
+                        }
+                    }
+                    SI.Editor.Ajax.Run(options);
+                    this.checked = false;
+
+                } else {
+                    this.checked = true;
+                    return false;
+                }
+            }
+        },
         Installed: function (plugin) {
-            alert('Plugin has been installed');
+            SI.Tools.SuperAlert(plugin+' plugin has been enabled');
             //add data to plugin UI and move it above the top uninstalled plugin
             //add the plugin to Current
-
-
+            SI.Tools.Element.Reload.Script("si_plugin_script");
+            SI.Tools.Element.Reload.Style("si_plugins_style");
         },
         Uninstalled: function (plugin) {
-            alert('Plugin has been removed');
-            //remove data from UI and move it to the bottom
+            SI.Tools.SuperAlert(plugin+' plugin has been disabled');
+            //add data to plugin UI and move it above the top uninstalled plugin
+            //add the plugin to Current
+            SI.Tools.Element.Reload.Script("si_plugin_script");
+            SI.Tools.Element.Reload.Style("si_plugins_style");
         },
     },
     Editor: {
+        Content:null,
         Build: function () {
-            this.loaded = '';
-            let container = Ele("div", {
+            let container = Ele('div', {});
+            let menu = Ele('div', {
+                id: 'si_edit_plugins_editor_menu',
                 style: {
-                    width: "100%",
-                    height: '600px',
-                    backgroundColor: 'blue',
-                    backgroundImage: "url('/editor/media/images/underconstruction.png')",
-                }
+                    width: '100%',
+                    height: '75px',
+                    backgroundColor: SI.Editor.Objects.Plugins.Style.menucolor,
+                    position: 'relative',
+                    paddingLeft: '10px',
+                    userSelect: 'none',
+                },
+                appendTo: container,
             });
+            let content = Ele('div', {
+                id: 'si_edit_plugins_editor_content',
+                style: {
+                    width: '100%',
+                    height: '550px',
+                    backgroundColor: SI.Editor.Objects.Plugins.Style.pagecolor,
+                    overflow: 'scroll',
+                },
+                appendTo: container,
+            });
+            SI.Editor.Objects.Plugins.Editor.Content = content;
+
+            let title = Ele('span', {
+                innerHTML: 'Edit Plugins',
+                style: {
+                    position: 'absolute',
+                    top: '15px',
+                    left: '15px',
+                    color: SI.Editor.Objects.Plugins.Style.titlecolor,
+                    textSize: '18px',
+                },
+                appendTo: menu,
+            });
+
             return container;
         },
-    }
+    },
+    Resize: function () {
+       // debugger;
+        let h = SI.Widgets.Window.si_edit_plugins_window.GetHeight() - 77 + "px";  
+        SI.Editor.Objects.Plugins.Local.Content.style.height = h;      
+        SI.Editor.Objects.Plugins.Repo.Content.style.height = h;  
+        SI.Editor.Objects.Plugins.Editor.Content.style.height = h;           
+    },
 };

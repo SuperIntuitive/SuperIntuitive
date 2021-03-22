@@ -58,7 +58,7 @@ class Role {
 				//$r = new Relations();
 				//$r->DeleteAllRelations($id);
 
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['ROLEDELETED'] = $post['rolename'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ROLEDELETED'] = $post['rolename'];
 			}
 
 		}
@@ -66,9 +66,9 @@ class Role {
 
 	public function GetUserRoles(){
 	//	Tools::LogTrace();
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['id']) )
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id']) )
 		{
-			$userid = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['id'];
+			$userid = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'];
 			$db = new Database();
 
 		    $roles = $db->GetRelatedEntities("users",$userid,"securityroles");

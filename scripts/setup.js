@@ -1,9 +1,10 @@
-﻿<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+﻿
+    "use strict";
+    if(!SI){ var SI = {};}
 
-
-	var setup = {
+	SI.Setup = {
+        SelectedArticle: 'sysinfo',
+		Installing : false,
         Init: function () {
             //to prevent whitescreen if exists
             localStorage.clear();
@@ -11,14 +12,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
             document.getElementById('si_setup_timezone').value = userTimezone;
             //this is too hard to determine now but from what I hear everybody loves USD
             document.getElementById('si_setup_currency').value = "usd";
-
         },
-        requiredFilled: {
-            domain: false,
-
-        },
-		selectedArticle: 'sysinfo',
-		installing : false,
         ChangeMenu: function (menuitem) {
                  
             //For this choice
@@ -36,7 +30,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
                 acl.style.display = "none";
             });
 
-            setup.selectedArticle = id;
+            SI.Setup.SelectedArticle = id;
             document.getElementById(id).style.display = 'block';
             //debugger;
             let backbtn = document.getElementById("btnback");
@@ -57,7 +51,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
                 backbtn.style.display='inline-block';
                 nextbtn.style.display = 'inline-block';
             } else if (id == 'review') {
-                setup.RefreshReview();
+                SI.Setup.RefreshReview();
                 backbtn.style.display='inline-block';
                 nextbtn.style.display='inline-block';
                 nextbtn.innerHTML='Install';
@@ -68,14 +62,14 @@ header("Content-Type: application/javascript; charset: UTF-8");
 			//	$('#progressupdate').html("Setting up Database");
 			//	$('#progressmeter').val(2);
                 var params = 'Key=SetupDatabase';
-                setup.SetupServer(params);
+                SI.Setup.SetupServer(params);
 
 			}
 		},	
         SetupServer: function (dataobj) {
 
             let json = { "KEY": "SetupSuperIntuitive" };
-            json = setup.FormatForm(json)
+            json = SI.Setup.FormatForm(json)
             //debugger;
 
             let ajax = new XMLHttpRequest();
@@ -106,12 +100,12 @@ header("Content-Type: application/javascript; charset: UTF-8");
 		},
         MenuItemClick: function (menuitemid) {
             //debugger;
-            if (!setup.Validate()) {
+            if (!SI.Setup.Validate()) {
                 return;
             } 
 
-            if (!setup.installing) {
-                setup.ChangeMenu(menuitemid);
+            if (!SI.Setup.Installing) {
+                SI.Setup.ChangeMenu(menuitemid);
             }
 		},
         ChangeDbLoginType: function (self) {
@@ -151,7 +145,7 @@ header("Content-Type: application/javascript; charset: UTF-8");
             }
         },
         SetRandomPassword: function (pwfield) {
-            document.getElementById(pwfield).value = setup.RandPW();
+            document.getElementById(pwfield).value = SI.Setup.RandPW();
 		},
 		RandPW:function(){
 			var text = '';
@@ -161,59 +155,58 @@ header("Content-Type: application/javascript; charset: UTF-8");
 			return text;
 		},
         ButtonClick: function (self) {
-            dir = self.innerText;
-        
-            if (!setup.Validate()) {
+            
+            if (!SI.Setup.Validate()) {
                 return
             } 
 
-            if (self.innerText == 'Next') {
+            if (self.innerText === 'Next') {
 
                 document.getElementById('btnnext').value = 'next';
-                switch (setup.selectedArticle) {
+                switch (SI.Setup.SelectedArticle) {
                     case 'sysinfo':
-                        setup.ChangeMenu('mi_database');
+                        SI.Setup.ChangeMenu('mi_database');
                         break;
                     case 'database':
-                        setup.ChangeMenu('mi_local');
+                        SI.Setup.ChangeMenu('mi_local');
                         break;
                     case 'local':
-                        setup.ChangeMenu('mi_admin');
+                        SI.Setup.ChangeMenu('mi_admin');
                         break;
                     case 'admin':
-                        // setup.RefreshReview();
-                        setup.ChangeMenu('mi_review');
+                        // SI.Setup.RefreshReview();
+                        SI.Setup.ChangeMenu('mi_review');
                         break;
-                    case 'review': setup.ChangeMenu('mi_install');
+                    case 'review': SI.Setup.ChangeMenu('mi_install');
                         var mis = document.querySelectorAll('.menuitem');
                         [].forEach.call(mis, function (mi) {
                             mi.style.color = "#888";
                             mi.removeAttribute("onclick");
                         });
-                        setup.DeactivatePages();
+                        SI.Setup.DeactivatePages();
                         break;
                 }
             }
-            else if (self.innerText == 'Back') {
-                switch (setup.selectedArticle) {
-                    case 'database': setup.ChangeMenu('mi_sysinfo');
+            else if (self.innerText === 'Back') {
+                switch (SI.Setup.SelectedArticle) {
+                    case 'database': SI.Setup.ChangeMenu('mi_sysinfo');
                         break;
-                    case 'local': setup.ChangeMenu('mi_database'); break;
+                    case 'local': SI.Setup.ChangeMenu('mi_database'); break;
                         break;
-                    case 'admin': setup.ChangeMenu('mi_local'); break;
+                    case 'admin': SI.Setup.ChangeMenu('mi_local'); break;
                         break;
-                    case 'review': setup.ChangeMenu('mi_admin'); break;
+                    case 'review': SI.Setup.ChangeMenu('mi_admin'); break;
                         break;
                 }
             }
-            else if (self.innerText == 'Install') {
-                setup.ChangeMenu('mi_install');
+            else if (self.innerText === 'Install') {
+                SI.Setup.ChangeMenu('mi_install');
                 var mis = document.querySelectorAll('.menuitem');
                 [].forEach.call(mis, function (mi) {
                     mi.style.color = "#888";
                     mi.removeAttribute("onclick");
                 });
-                setup.DeactivatePages();
+                SI.Setup.DeactivatePages();
             }
 
 		},
@@ -239,8 +232,8 @@ header("Content-Type: application/javascript; charset: UTF-8");
                 }
                 if (culprit != null) {
                 //change the tab
-                    if (culprit !== setup.selectedArticle) {
-                        setup.ChangeMenu('mi_' + culprit.id);
+                    if (culprit !== SI.Setup.SelectedArticle) {
+                        SI.Setup.ChangeMenu('mi_' + culprit.id);
                     }
                     document.getElementById('si_setup_hiddenbtn').click();
                 }  
@@ -257,10 +250,10 @@ header("Content-Type: application/javascript; charset: UTF-8");
                 }
             });
         },
-
-        TestDatabase: function () {                  
+        TestDatabase: function () {      
+            debugger;            
             let json = { "KEY": "TestDatabase" };
-            json = setup.FormatForm(json)
+            json = SI.Setup.FormatForm(json)
             let ajax = new XMLHttpRequest();
             ajax.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
@@ -279,11 +272,10 @@ header("Content-Type: application/javascript; charset: UTF-8");
             ajax.setRequestHeader("Content-type", 'application/json; charset=UTF-8');
             ajax.send(JSON.stringify(json));
         },
-
         TestDomain: function () {
             //debugger;
             let json = { "KEY": "TestDomain" };
-            json = setup.FormatForm(json)
+            json = SI.Setup.FormatForm(json)
             let ajax = new XMLHttpRequest();
             ajax.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
@@ -304,7 +296,6 @@ header("Content-Type: application/javascript; charset: UTF-8");
             ajax.setRequestHeader("Content-type", 'application/json; charset=UTF-8');
             ajax.send(JSON.stringify(json));
         },
-
         FormatForm: function (jsonin = {}) {
             let form = document.getElementById("si_setup_form");
             let valid = form.checkValidity();

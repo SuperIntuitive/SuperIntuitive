@@ -5,17 +5,17 @@
 
 @font-face {
     font-family: Roboto;
-    src: url('/editor/media/fonts/Roboto/Roboto-Regular.ttf');
+    src: url(/editor/media/fonts/Roboto/Roboto-Regular.ttf);
 }
 
 @font-face {
     font-family: RobotoThin;
-    src: url('/editor/media/fonts/Roboto/Roboto-thin.ttf');
+    src: url(/editor/media/fonts/Roboto/Roboto-thin.ttf);
 }
 
 @font-face {
     font-family: Inconsolata;
-    src: url('/editor/media/fonts/Inconsolata/Inconsolata-Regular.ttf');
+    src: url(/editor/media/fonts/Inconsolata/Inconsolata-Regular.ttf);
 }
 
 .si-scripter-codepad:focus {
@@ -32,6 +32,7 @@ si-linm {
     display: block;
     width: 100%;
     cursor: pointer;
+    color: #3c5252;
 }
 
 si-linm:hover {
@@ -106,3 +107,28 @@ si-jself {
 si-jselp {
     color: #20B2AA
 }
+
+
+
+/* To go to widgets */
+cp-rxp  {color:pink}
+cp-lnm {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    color: #3c5252;
+}
+
+cp-lnm:hover {
+    background-color: #000080;
+    color: #F0FFFF;
+}
+cp-com  {color:#8FBC8F}
+cp-sym  {color:#FFD700}
+cp-kwd  {color:#1E90FF}
+cp-sqt  {color:#CD5C5C}
+cp-dqt  {color:#F08080}
+cp-obj  {color:#87CEEB}
+cp-fnc  {color:#008080}
+cp-prp  {color:#20B2AA}
+cp-url  {color:#9370DB}

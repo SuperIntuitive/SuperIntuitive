@@ -1,5 +1,18 @@
 ﻿
 SI.Editor.Objects.Entity = {
+    Draw2: function(){
+        let container = Ele("div", {
+            id: 'si_edit_entities_container',
+        });
+
+        let tabs = SI.Widget.Tab();
+        tabs.Items.Add("Existing", SI.Editor.Objects.Entity.DrawExistingTab())
+        tabs.Items.Add("New",SI.Editor.Objects.Entity.DrawNewTab())
+
+        container.appendChild(tabs.Draw());
+
+        return container;
+    },
     Draw: function () {
         //Draw the Container to pass to the Window
         let container = Ele("div", {
@@ -8,21 +21,9 @@ SI.Editor.Objects.Entity = {
                 width: '100%',
                 height: '100%',
                 backgroundColor: SI.Editor.Style.BackgroundColor,
-                overflow: 'scroll',
+                
             },
         });
-        SI.Editor.UI.Entities.Window.Append(container);
-
-
-
-        //debugger;
-        //let tabs = new SI.Widget.Tabs();
-        //for (let tab in SI.Editor.Objects.Entity.Tabs) {
-        //    tabs.Items.Add(tab, SI.Editor.Objects.Entity.Tabs[tab]);
-        //}
-        //tabs.Draw(container);
-
-
 
         //Select Entity Text
         Ele('span', {
@@ -34,30 +35,12 @@ SI.Editor.Objects.Entity = {
         //Get all the entity data
         let ent = SI.Editor.Data.Objects.Entities.Definitions
 
-        entitiesSelectChange = function (e) {
-            //debugger;
-            SI.Tools.Class.Loop('si-edit-entities-attributes-container', function (ele) {
-                ele.style.display = 'none';
-            });
-            if (this.value !== 'null') {
-                document.getElementById('si_edit_entities_attributes_container_' + this.value).style.display = "block";
-                let options = {};
-                options.Data = {
-                    Operation: "Retrieve",
-                    Entity: {
-                        Name: this.value,
-                    },
-                };
-                options.Callback = SI.Editor.Objects.Entity.PopulateEntityGrid;
-                SI.Tools.Api.Send(options);
-            }
-        }
 
         //Entities List
         let entitiesSelect = Ele('select', {
             id: 'si_edit_entities_select',
             appendTo: container,
-            onchange: entitiesSelectChange,
+            onchange: SI.Editor.Objects.Entity.SelectEntity,
         });
 
 
@@ -102,24 +85,32 @@ SI.Editor.Objects.Entity = {
         //append: SI.Editor.UI.Entities.Methods.NewEntityDialog(),
 
         for (let e in ent) {
+
             let entity = ent[e];
+
             //create an option tag for each entity
             Ele("option", {
                 value: e,
                 innerHTML: e,
                 appendTo: entitiesSelect,
-
             });
 
-            //create the entity box for both the view and form
+
+
+            //create the entity grid box
             let entityContainer = Ele("div", {
-                id: 'si_edit_entities_attributes_container_' + e,
-                class: 'si-edit-entities-attributes-container',
+                id: 'si_edit_entities_grid_' + e,
+                class: 'si-edit-entities-grid',
                 style: {
                     display: 'none',
+                    
                 },
                 appendTo: container,
             });
+
+
+
+
 
             //create the tabbox
             let tabView = Ele('div', {
@@ -130,7 +121,6 @@ SI.Editor.Objects.Entity = {
                     height: "100%",
                     backgroundColor: "black",
                     paddingLeft: '5px',
-                    overflow: 'visible',
                 },
                 appendTo: entityContainer,
             });
@@ -155,8 +145,10 @@ SI.Editor.Objects.Entity = {
             let entityTable = Ele("table", {
                 id: "si_edit_entity_table_" + e,
                 style: {
-                    backgroundColor: "rgba(43,87,79,1)",
+                    backgroundColor: SI.Editor.Style.FavoriteColor,
+                    color: SI.Editor.Style.TextColor,
                     borderCollapse: 'collapse',
+                    overflow: 'auto',
                 },
                 appendTo: tabView,
             });
@@ -214,7 +206,7 @@ SI.Editor.Objects.Entity = {
             let readonlyFields = ["createdon", 'modifiedon'];
 
             for (let a in entity.attributes) {
-                //debugger;
+               // debugger;
                 let attribute = entity.attributes[a.trim()];
                 if (hiddenFields.indexOf(a) > -1) {
                     //debugger;
@@ -344,50 +336,38 @@ SI.Editor.Objects.Entity = {
 
         }
 
-        // SI.Editor.UI.Entities.Window.Append(container);
+        return container;
 
     },
-    Tabs: {  //TODO chage entities into a tabbed workspace.
-        Query: function () {
-            tabcontainer = Ele('div', {
-                innerHTML: 'Query',
-                style: {
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'blue',
-                }
-            });
 
-
-
-            return tabcontainer
-        },
-        Manage: function () {
-            tabcontainer = Ele('div', {
-                innerHTML: 'Manage',
-                style: {
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'green',
-                }
-            });
-
-            return tabcontainer
-        },
-        New: function () {
-            tabcontainer = Ele('div', {
-                innerHTML: 'New',
-                style: {
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'red',
-                }
-            });
-
-            return tabcontainer
-        },
+    DrawExistingTab:function(){
 
     },
+    DrawNewTab: function(){
+
+
+    },
+
+    SelectEntity: function(entity){
+        entity =  entity.constructor.toString().includes("Event()")?this.value: entity; //bit of a hack to use this outside of event context if needed
+        SI.Tools.Class.Loop('si-edit-entities-grid', function (ele) {
+            ele.style.display = 'none';
+        });
+        if (this.value !== 'null') {
+            document.getElementById('si_edit_entities_grid_' + entity).style.display = "block";
+            let options = {};
+            options.Data = {
+                Operation: "Retrieve",
+                Entity: {
+                    Name: entity,
+                },
+            };
+            options.Callback = SI.Editor.Objects.Entity.PopulateEntityGrid;
+            SI.Tools.Api.Send(options);
+        }
+    },
+
+
     //CRUD   maybe just use api
     Create: function (ent) {
 
@@ -418,7 +398,7 @@ SI.Editor.Objects.Entity = {
     },
     Lists: {
         FwdRevLookup: {},
-        NotAllowedNames: ['domain', 'domains', 'businessunit', 'businessunits', 'entity', 'entities'],
+        NotAllowedNames: ['domain', 'domains', 'subdomain', 'subdomains', 'entity', 'entities'],
         NotAllowedAttributes: ['p_id', 'id', 'status', 'statusreason', 'createdon', 'modifiedon', 'entity_id'],
     },
     NewEntityDialog: function () {
@@ -957,6 +937,10 @@ SI.Editor.Objects.Entity = {
                 let rowid = cbs[0].id.replace('si_edit_entity_checkbox_', 'si_edit_entity_datarow_');
                 let row = document.getElementById(rowid);
                 let recordid = row.dataset.recordid;
+                let relations = {
+                    parentent:null,
+                    childent:null,
+                };
                 if (typeof recordid !== 'undefined') {
                     let cells = row.childNodes;
                     if (cols.length > 0) {
@@ -964,7 +948,64 @@ SI.Editor.Objects.Entity = {
                             //debugger;
                             let column = cols[i].innerHTML;
                             let val = cells[i].innerHTML;
-                            let input = document.getElementById('si_edit_attributes_input_' + selEnt + '_' + column).value = val;
+                            let input = document.getElementById('si_edit_attributes_input_' + selEnt + '_' + column);
+
+                            if(input){
+                                let type = input.dataset.type;
+                                if(type){                                  
+                                    if(selEnt === 'relations'){
+                                        if(column === 'parententity_id'){
+                                            let parent = SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup['0x'+val];
+                                            relations.parentent = parent;
+                                            input.value = parent;
+                                            continue;
+                                        }else if(column === 'childentity_id'){
+                                            let child = SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup['0x'+val];
+                                            relations.childent = child;
+                                            input.value = child;
+                                            continue;
+                                        }
+                                        else if(column === 'parent_id'){
+                                            input.dataset.type = relations.parentent;
+                                            input.dataset.stage = "changing";
+
+                                            let options = {};
+                                            options.Data = {
+                                                Operation: "Retrieve",
+                                                Entity: {
+                                                    Name: relations.parentent,
+                                                    Id:'0x'+val
+                                                },
+                                                ReturnQuery:"#"+input.id,
+                                                Columns:"name"
+                                            };
+                                            
+                                            SI.Tools.Api.Send(options);
+                                        }
+                                        else if (column === 'child_id'){
+                                            input.dataset.type = relations.childent;
+                                            input.dataset.stage = "changing";
+
+                                            let options = {};
+                                            options.Data = {
+                                                Operation: "Retrieve",
+                                                Entity: {
+                                                    Name: relations.childent,
+                                                    Id:'0x'+val
+                                                },
+                                                ReturnQuery:"#"+input.id,
+                                                Columns:"name"
+                                            };
+                                            SI.Tools.Api.Send(options);
+
+                                        }
+                                    }
+                                }
+
+                                input.value = val;
+
+                            }
+
                         }
                         let form = document.getElementById(this.id.replace('si_edit_entities_edit_', 'si_edit_entities_form_'));
                         let view = document.getElementById(this.id.replace('si_edit_entities_edit_', 'si_edit_entities_view_'));

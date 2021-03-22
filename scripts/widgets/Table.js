@@ -1,22 +1,21 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+if(!SI.Widgets.Table){SI.Widgets.Table = {}};
+SI.Widget.Table = function  (options) { 
+    if (!(this instanceof SI.Widget.Table)) { return new SI.Widget.Table(options); }
 
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Table");}
+    this.Input = {...options};
+    SI.Widgets.Table[this.Id] = this;
 
-SI.Widget.Table = function (options) {
-    if (!(this instanceof SI.Widget.Table)) { return new SI.Widget.Table(); }
     this.Defaults = {
         "Parent": null,
         "ParentIndex": null,
     };
 
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    this.Random = SI.Tools.String.RandomString(11);
 
     this.Container = Ele("table", {
-        id: "si_datagrid_" + this.Random,
+        id: this.Id, 
         class: "si-widget",
         style: {
             width: '100%',
@@ -38,5 +37,5 @@ SI.Widget.Table = function (options) {
     if (this.Options.Parent) {
         this.Options.Parent.appendChild(container);
     }
-    return this;
+    return this.Container;
 };

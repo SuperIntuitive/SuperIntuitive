@@ -12,7 +12,8 @@ error_reporting(E_ALL ^ E_WARNING);
    // echo $siobj;
 if (Tools::UserHasRole('Admin')) 
 {
-   
+
+
     $notsuperadmin = "true";
     $notdomainadmin = "true";
     if (Tools::UserHasRole('SuperAdmin')) { $notsuperadmin = "false"; $notdomainadmin = "false"; } 
@@ -59,12 +60,12 @@ if (Tools::UserHasRole('Admin'))
     $miscdata = new MiscData();  //this is a grab bag of stuff until i get a better data tree going. 
 
     //get the users settings here
-    $openMethod = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['prefs']['open_link_in']) ? $_SESSION['SI']['user']['prefs']['open_link_in'] : 'window';
+    $openMethod = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs']['open_link_in']) ? $_SESSION['SI']['user']['prefs']['open_link_in'] : 'window';
 
-    $helplinks = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks']) ? _SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings']['HelpLinks'] : 'true';
+    $helplinks = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings']['HelpLinks']) ? _SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings']['HelpLinks'] : 'true';
   
-    $showMoz = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['moz']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['moz'] : 'false';
-    $showW3 = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['w3']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['help']['w3'] : 'false';
+    $showMoz = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['moz']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['moz'] : 'false';
+    $showW3 = isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['w3']) ? $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['help']['w3'] : 'false';
 
     $helplinks = "['mdn','w3']";
 
@@ -91,22 +92,23 @@ if (Tools::UserHasRole('Admin'))
     $settings = $settingsentities -> Retrieve('id,settingname,settingvalue');
     $settings2 = json_encode($settings);
     $tmpSetting = array();
+    /*
     foreach($settings as $setting){
         $tmpSetting[$setting['settingname']] = $setting['settingvalue'];
     }
     $settings = $tmpSetting;
     //Tools::Log($settings);
     $settingsjson = json_encode($settings);
-
+*/
     //colornames
     $colors = $miscdata->ColorNames;
     $coloroptions = "<option value=''>Color Names</option>";
-    foreach($colors as $v){
-        $coloroptions.= "<option value='$v' >$v</option>";
+    foreach($colors as $col){
+        $coloroptions.= "<option style='background-color:$col;' value='$col' >$col</option>";
     }
 
     //Get Languages
-    $langs = $miscdata->languages;
+    $langs = $miscdata->Languages;
     //$langoptions = "'";
     $langoptions = "<option value=''></option>";
    // $detectedlang = strtolower(explode(",", $_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]);
@@ -123,14 +125,14 @@ if (Tools::UserHasRole('Admin'))
     }else{
         $defaultLanguage = 'en';
     }
-    //$defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['defaultlanguage'];
+    //$defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['defaultlanguage'];
 
     $myLangs = json_encode(explode(',',explode(';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]));
 
     $supportedLanguages = null;
     //Tools::Log($defaultLanguage);
-    if (isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'])) {
-        $langfields = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'];
+    if (isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'])) {
+        $langfields = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'];
         foreach($langfields as $field=>$cols){
             if (Tools::StartsWith($field, "_")){
                 $code = str_replace('_', '', $field);
@@ -146,7 +148,7 @@ if (Tools::UserHasRole('Admin'))
      // Tools::Log($localtexts);
 
     //getDefaultQuickMenu items
-    $quickmenuitems = $miscdata->userDefaultQuickmenu;
+    $quickmenuitems = $miscdata->UserDefaultQuickmenu;
 
     $u = new User();
     $users = $u->GetUsersForEditor();
@@ -155,7 +157,6 @@ if (Tools::UserHasRole('Admin'))
    // Tools::Log($users);
     $dt->Numbered = true;
     $dt->Selectable = true;
-
 
     $dt->LoadArray($users);
 
@@ -185,10 +186,9 @@ if (Tools::UserHasRole('Admin'))
 
     $EasyPassword = '/^(?=.*\d)(?=.*[a-zA-Z]).{6,}$/gm';
     $HardPassword = '/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm';
-
     $PasswordStrength = $HardPassword;
 
-    //Build Mime interface to allow admin to pick allowed mimes
+    $allmimetypes = json_encode($miscdata->MimeTypes);
     $mimes = "{
         'Images': ['image/png', 'image/bmp', 'image/jpeg', 'image/svg', 'image/gif'],
         'Audio': ['audio/wav', 'audio/x-wav', 'audio/mpeg', 'audio/mp3', 'audio/midi', 'audio/ogg', 'audio/flac','audio/webm'],
@@ -197,12 +197,8 @@ if (Tools::UserHasRole('Admin'))
         'Data': ['application/xml', 'application/json','text/csv','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
         'Fonts': ['application/x-font-ttf', 'application/x-font-otf']
         }";
-       
 
     $sessionPageData = json_encode($_SESSION['SI']);
-
-    //  $sessionPageData = str_replace('":{"', '":{<br />&nbsp;&nbsp;&nbsp;&nbsp;"', $sessionPageData);
-
 
     $htmlElementsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/html_elements.json');
     $htmlAttributesAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/html_attributes.json');
@@ -212,7 +208,6 @@ if (Tools::UserHasRole('Admin'))
     $sqlMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/sql_methods.json');
     $cssNew = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_new.json');
     $cssPseudo = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_pseudo.json');
-
 
     $dataage = "html_elements: $htmlElementsAge,
             html_attributes: $htmlAttributesAge,
@@ -225,7 +220,7 @@ if (Tools::UserHasRole('Admin'))
            ";
     //echo $dataage;
 
-    $entities =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'];
+    $entities =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];
     $entityDefinitions = json_encode($entities);
     //deprecate
     $entityInfo = $entityDefinitions;
@@ -237,12 +232,13 @@ if (Tools::UserHasRole('Admin'))
 ?> 
 "use strict";
 if(!SI){ var SI = {};}
-if (!SI.Editor) { SI.Editor = {}; }
-if (!SI.Editor.Objects) { SI.Editor.Objects = {}; }
+if(!SI.Editor) { SI.Editor = {}; }
+if(!SI.Editor.Objects) { SI.Editor.Objects = {}; }
 
 SI.Editor = {
     Style: {
         BackColor: 'black',
+        FavoriteColor:'teal',
         BackgroundColor: 'rgb(72, 75, 87)',
         TextColor: 'rgb(172, 175, 187)',
         MenuColor: 'slategrey',
@@ -272,7 +268,6 @@ SI.Editor = {
         }
     },
     Run: function () {
-      //  let t0 = performance.now(); //how long does the editor take to load?
         console.time('EditorLoadTime');
         SI.Editor.Data.Init(); 
         //wait for all the code to load before continuing. 
@@ -286,15 +281,11 @@ SI.Editor = {
         }, 50);
         console.timeEnd('EditorLoadTime');
         console.log(SI.Editor);
-       // setTimeout(function () { SI.Editor.Ajax.PostSetup.Go() }, 1000);
-
-        for (let x in window) {
-            if (!window.hasOwnProperty) {
-                console.log(x);
-            }
+        //check for lookups
+        let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
+        if(lookup){
+            lookup.CheckLookups();
         }
-
-
     },
     Data: {
         loaded : false,
@@ -324,7 +315,7 @@ SI.Editor = {
             AnimationNames: [],
         },
         Init: function () {
-            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods", "css_new","css_pseudo"];
+            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"];
             let loadedcount = 0;
             codes.forEach(function (codetype) {
                 let lastmoddate = codetype + "_last_modified";
@@ -350,27 +341,18 @@ SI.Editor = {
                         request.send();
                     }
                     catch (e) {
-                        console.warn(e);
+                        SI.Tools.Warn(e);
                     }
                 } else {
                     if (jsonstring != null && jsonstring.length > 0) {
                         try {
-                            if (codetype === "css_new") {
-                                SI.Editor.Data.Code.Styles = JSON.parse(jsonstring);
-                            }
-                            else if (codetype === "css_pseudo") {
-                                SI.Editor.Data.Code.PseudoStyles = JSON.parse(jsonstring);
-                            }
-                            else {
-                                SI.Editor.Data[codetype] = JSON.parse(jsonstring);
-                            }
-                            
+                            SI.Editor.Data[codetype] = JSON.parse(jsonstring);
                             loadedcount++;
                             if (loadedcount == codes.length) {       
                                 SI.Editor.Data.loaded = true;
                             }
                         } catch (ex) {
-                            console.warn(ex);                           
+                            SI.Tools.Warn(ex);                           
                         }
                     }
                 }
@@ -407,9 +389,16 @@ SI.Editor = {
                 Relationships:  <?= $relationsjson ?>,
                 Lists: {
                     FwdRevLookup: {},
-                    NotAllowedNames: ['domain', 'domains', 'businessunit', 'businessunits', 'entity', 'entities'],
+                    NotAllowedNames: ['domain', 'domains', 'subdomain', 'subdomains', 'entity', 'entities'],
                     NotAllowedAttributes: ['p_id', 'id', 'status', 'statusreason', 'createdon', 'modifiedon', 'entity_id'],
                 },
+            },
+            Language: {
+                Current: <?= $localtexts ?>,
+                CurrentPreference: "<?= SI_LANGS ?>",
+                Installed: <?= $myLangs ?>,
+                SupportedLanguages: "<?= $supportedLanguages ?>",
+                Options: "<?= $langoptions ?>"
             },
             Deployment: {
                 Levels: {
@@ -535,8 +524,9 @@ SI.Editor = {
                 Operations: ['create', 'read', 'write', 'append', 'appendTo', 'delete'],
                 Roles: <?= $rolesdata ?>,
             },
-            Settings: <?= $settingsjson ?>,
-            Settings2: <?= $settings2 ?>,
+            Settings: <?= $settings2 ?>,
+            PhpInfo : `<?php echo Tools::GetPhpInfo() ?>`,
+            MimeTypes: <?= $allmimetypes ?>
         },
         User: {
             HelpLinks: <?= $helplinks ?>,
@@ -546,7 +536,7 @@ SI.Editor = {
         },
         Site: {
             Domain: "<?= SI_DOMAIN_NAME ?>",
-            BusinessUnit: "<?= SI_BUSINESSUNIT_NAME ?>",
+            SubDomain: "<?= SI_SUBDOMAIN_NAME ?>",
             SessionPageData:  <?= $sessionPageData ?>,
         },
         Tools: {
@@ -582,7 +572,7 @@ SI.Editor = {
                     let curgroup = SI.Editor.Data.html_attributes[i];
                     if (curgroup == group || group == null) {
                         for (let j in curgroup) {
-                            debugger;
+                            //debugger;
                             if (curgroup[j].s === name) {
                                 //debugger;
                                 SI.Editor.Data.html_attributes[i][j].curgroup = i;
@@ -639,10 +629,18 @@ SI.Editor = {
                     }
                 };
                 this.StyleData = function () {
+                    /*
                     if (SI.Editor.Data.Code.Styles) {
                         SI.Editor.Data.DataLists.StyleGroups = {};
-                        if (SI.Editor.Data.Objects.Settings.StyleGroupOrder) {
-                            let existGroups = SI.Editor.Data.Objects.Settings.StyleGroupOrder.split(",");
+                        let styleGroupOrder = "";
+                        for (let i in SI.Editor.Data.Objects.Settings){
+                            if (SI.Editor.Data.Objects.Settings[i].hasOwnProperty("settingname") && SI.Editor.Data.Objects.Settings[i]["settingname"] === "StyleGroupOrder") {
+                                styleGroupOrder = SI.Editor.Data.Objects.Settings[i]["settingvalue"];
+                                break;
+                            }
+                        }
+                        if (styleGroupOrder.length>0) {
+                            let existGroups = styleGroupOrder.split(",");
                             for (let group of existGroups) {
                                 SI.Editor.Data.DataLists.StyleGroups[group] = [];
                             }
@@ -663,6 +661,7 @@ SI.Editor = {
                             }
                         }
                     }
+                    */
                 };
                 this.AtData = function () {
                     //@keyframenames are the same as animation names. find them and set them. too bad there isnt a window object that holds all Animation Names.
@@ -751,7 +750,6 @@ SI.Editor = {
     },
     UI:{
         Container: null,
-        Windows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Scenegraph", "Security", "Users","Settings"],
         Init: function (){
             //Initialize main visible panel
             SI.Editor.UI.DrawAppContainer();
@@ -763,11 +761,13 @@ SI.Editor = {
                 SI.Editor.UI[title].Init();
             }
             //Initialize Windows
-            for (let i in SI.Editor.UI.Windows) {
-                let title = SI.Editor.UI.Windows[i];
-                SI.Editor.UI[title].Init();
-            }
+           // setTimeout(function(){ //this set timeout fixes a timing issue in xDebug and is not needed otherwise
+          //  for (let i in SI.Editor.UI.Windows) {
+          //      let title = SI.Editor.UI.Windows[i];
+          //      SI.Editor.UI[title].Init();
+          //  }
             SI.Editor.UI.SetDocumentEvents();
+ 
         },
         SetDocumentEvents: function(ev) {
             //if the rott si menu is open, spawn the browser context menu. if not open the root si menu
@@ -804,11 +804,11 @@ SI.Editor = {
                 }             
             };
 
-            var map = {}; // You could also use an array  so-5203407
+            let map = {}; //  so-5203407
             onkeydown = onkeyup = function (e) {
-                var selected = SI.Editor.Objects.Elements.Selected;
-                var isFocused = (document.activeElement === selected);      //so-36430561
-                var movable = true;
+                let selected = SI.Editor.Objects.Elements.Selected;
+                let isFocused = (document.activeElement === selected);      //so-36430561
+                let movable = true;
                 if (selected) {
                     //we only move by arrows if we have a position and the doc does not have a selected element so the arroews dont break textbox navigation
                     if (typeof selected.style.position === 'undefined' || selected.style.position === 'static' || isFocused) {
@@ -836,12 +836,13 @@ SI.Editor = {
                     if (movable)
                     SI.Editor.Objects.Elements.MoveBy(0,inc);
                 }
-                if (map[46]) {//Delete Element
+                if (map[46]) {//Delete Key
                     if (confirm("Delete Element: " + selected.id + "?")) {
                         SI.Editor.Objects.Elements.Remove(selected);
                     } else {
                         map[e.keyCode] = false;
                     }
+                    delete map[46]; 
                 }
                 if (map[90] && e.ctrlKey) { //ctrl-z should undo
                     document.execCommand('undo');
@@ -851,7 +852,7 @@ SI.Editor = {
         },
         DrawAppContainer: function () {
             //create the container that all visible editor.js items will be containd in.
-            var editorContainer = Ele('div', {
+            let editorContainer = Ele('div', {
                 class: 'lgn-editor',
                 id: 'si_edit_container',
                 style: {
@@ -860,7 +861,6 @@ SI.Editor = {
                 },
                 appendTo:document.body,
             });
-
             SI.Editor.UI.Container = editorContainer;  
         },
         MainMenu: {
@@ -889,7 +889,10 @@ SI.Editor = {
                     onmouseleave: function () {
                         //debugger;
                         SI.Editor.UI.MainMenu.IsDragging = false;
-                        document.getElementById('si_edit_hud_editisdragging').innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
                     },
                     ondragstart: function (e) {
                         //Need to add the mouse to menu offset so that it can be determined below.
@@ -899,7 +902,10 @@ SI.Editor = {
                         this.dataset.mOffY = e.offsetY;
                         SI.Editor.UI.MainMenu.IsDragging = true;
                         e.dataTransfer.setData("Text", e.target.id);
-                        document.getElementById('si_edit_hud_editisdragging').innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
                     },
                     ondragover: function (e) { e.preventDefault(); },
                     ondragend: function (e) {
@@ -911,7 +917,10 @@ SI.Editor = {
                         //change the menu position to be the mouse minus the original mouse offset
                         this.style.left = e.pageX - moX + 'px';
                         this.style.top = e.pageY - moY + 'px';
-                        document.getElementById('si_edit_hud_editisdragging').innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
                         //console.log(e);
                     }
                 });
@@ -1034,10 +1043,10 @@ SI.Editor = {
                 SI.Editor.UI.MainMenu.Element.appendChild(tagMenu);
             },
             SetupTabs: function (newMenu) {
-                let tabs = SI.Widget.Tabs();
+                let tabs = new SI.Widget.Tab({Id:"si_edit_add_tab"});
                 //create the tabbox
                 let tabTags = Ele('div', {
-                    id: 'si_edit_add_tabs',
+                    id: 'si_edit_add_tag',
                     style:{
                         width : "96%",
                         height : "200px",
@@ -1051,9 +1060,9 @@ SI.Editor = {
                 tabTags.appendChild(tagscroll);
                 
                 var tabWidgets = Ele('div', {
-                    id: 'new-item-tab-tools',
+                    id: 'si_edit_add_widget',
                     style: {
-                        width: "100%",
+                        width: "96%",
                         height: "200px",
                         backgroundColor: "black",
                         paddingLeft: '5px',
@@ -1070,23 +1079,78 @@ SI.Editor = {
                 newMenu.appendChild(tabs.Draw());
             },
             Widgetbox: function () {
+                //The container holds all
                 let widgetscontainer = Ele('div', {
-                    innerHTML: "Widgets",
                     style: {
-                        backgroundImage: "url('/editor/media/images/underconstruction.png')",
-                        backgroundSize: "contain",
                         width: '100%',
                         height:'100%',
                     },
                 });
-                //debugger;
-                if (SI.Widget) {
-                    for (let widget in SI.Widget) {
-                        let w = new SI.Widget[widget]();
-                        let def = w.Defaults;
-                        //debugger;
-                    }
+                //The table makes it easy to add widgets in a column
+                let widgettable = Ele('table', {
+                    style: { backgroundColor: SI.Editor.Style.BackgroundColor, width: '100%' }
+                });
+                //For each individual widget, add a instance.
+                let widgets = SI.Widget;
+                for (let widget in widgets) {
+                    let widgetrow = document.createElement('tr');
+                    let tddragger = document.createElement('td');
+                    var widgetDragger = Ele('div', {
+                        id: "si_edit_widgetdragger" + widget,
+                        style: {
+                            backgroundImage: "url('/editor/media/icons/widgets.png')",
+                            backgroundSize: "cover",
+                            width: '24px',
+                            height: '24px'
+                        },
+                        data: {
+                            type: widget,
+                        },
+                        draggable: true,
+                        ondragstart: function (ev) {
+                            //  this.dragging = true;
+                            ev.effectAllowed = "copyMove";
+                            ev.dataTransfer.setData("Text", widget);
+                        },
+                        ondrag: function (ev) {
+                            SI.Editor.UI.MainMenu.IsDragging = false;
+                            //console.log(e);
+                            if (ev.buttons === 3) { //both buttons down
+                                ev.preventDefault();
+                                return false;
+                            }
+
+                        },
+                        ondragtransfer: function (ev) {
+                            ev.dataTransfer.dropEffect = "copy";
+                        },
+                        ondragend: function (e) {
+                            e.stopPropagation();
+                            //debugger;
+                            if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent)) {
+                                let widget = e.target.dataset.type;
+                                let parent = SI.Editor.Objects.Elements.DropParent;
+                                let options = { "Parent": parent, "Top": e.clientY + "px", "Left": e.clientX+'px' }
+                                let block = SI.Tools.Element.GetBlock(parent).id.replace("si_block_", "");
+                                if (block) {
+                                    //debugger;
+                                    SI.Editor.Objects.Widgets.AddInstance(block, widget, options);
+                                    SI.Editor.Data.Objects.Blocks[block].IsDirty = true;
+                                }
+                            }
+                            else {
+                                alert("Please make sure you drop on a block. Go to the Page tool to make blocks");
+                            }
+                        }
+                    });
+                    tddragger.appendChild(widgetDragger);
+                    var tddata = document.createElement('td');
+                    tddata.innerHTML = widget;
+                    widgetrow.appendChild(tddragger);
+                    widgetrow.appendChild(tddata);
+                    widgettable.appendChild(widgetrow);
                 }
+                widgetscontainer.appendChild(widgettable);
                 return widgetscontainer;
             },
             TagScroller: function() {
@@ -1258,7 +1322,7 @@ SI.Editor = {
                     },
 
                 });
-                var tabs = new SI.Widget.Tabs({ Height: '100%' });
+                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab' });
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
@@ -1281,7 +1345,6 @@ SI.Editor = {
                     ondrag: function () {
                         return false;
                     },
-
                 });
                 SI.Tools.StopOverscroll(container);
                 //Menubox
@@ -1292,9 +1355,6 @@ SI.Editor = {
                     },
                     appendTo: container,
                 });
-                //if has inner text content edit cb here
-                
-
                 //Select Button
                 let select = Ele('button', {
                     innerHTML: "Select",
@@ -1345,7 +1405,7 @@ SI.Editor = {
                     onclick: function (e) {
                         let sel = SI.Editor.Objects.Elements.Selected;
                         if (sel) {
-                            par = sel.parentElement;
+                            let par = sel.parentElement;
                             if (par.classList.contains('si-block')) {
                                 // do some stuff
                                 alert("Can't select parent block");
@@ -1354,7 +1414,6 @@ SI.Editor = {
                             if (par.id != null) {
                                 SI.Editor.Objects.Elements.Select(e,par.id);
                             }
-                            
                         }
                     },
                     style: {
@@ -1373,7 +1432,7 @@ SI.Editor = {
                     },
                     onmouseenter: function (e) { refreshSelects(); },
                     onchange: function (e) {                      
-                        ele = document.getElementById(this.value)
+                        let ele = document.getElementById(this.value)
                         if (ele) {
                             var event = new MouseEvent('dblclick', {
                                 'view': window,
@@ -1406,6 +1465,7 @@ SI.Editor = {
                     panel.style.display = display;
                 }
                 let refreshSelects = function () {
+                    //debugger;
                     //capture the display of the element 
                     let startValue = selectbyid.value;
                     //clear the select element
@@ -1416,8 +1476,9 @@ SI.Editor = {
                     if (SI.Editor.Objects.Elements.Selected) {
                         selid = SI.Editor.Objects.Elements.Selected.id;
                     }
-                    
+                    //debugger;
                     for (let block of blocks) {
+
                         let group = Ele('optgroup', {
                             label: block.id.replace("si_block_", ""),
                             style: {
@@ -1435,8 +1496,8 @@ SI.Editor = {
                             },
                         })
                         selectbyid.add(option);
-
-                        children = document.querySelectorAll("#" + block.id + " *");
+                           
+                        let children = document.querySelectorAll("#" + block.id + " *");
                         for (let child of children) {
                             let color = 'blue';
                             let disabled = false;
@@ -1445,8 +1506,8 @@ SI.Editor = {
                                 option.disabled = "disabled";
                                 disabled = true;
                             }
-                            //debugger;
-                            let generations =SI.Tools.Element.GenerationsFromBlock(child);
+                                    
+                            let generations = SI.Tools.Element.GenerationsFromBlock(child);
                             let tab = '';
                             for (let g = 0; g < generations; g++) {
                                 tab += "&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -1693,7 +1754,7 @@ SI.Editor = {
                     },
                     appendTo: advancedpanel,
                 });
-                let current = SI.Editor.Objects.Language.Current;
+                let current = SI.Editor.Data.Objects.Language.Current;
                
                 //debugger;
                 
@@ -1859,7 +1920,7 @@ SI.Editor = {
                 //Loop through all of the groups of styles
                 for (let group in SI.Editor.Data.css_properties) {
                     if (SI.Editor.Data.css_properties.hasOwnProperty(group)) {
-                        if (!group.startsWith("Pseudo")) {
+                        if (!group.startsWith("Pseudo") && group!=="At Selectors" ) {
                             //Make the group box
                             let stylebox = Ele('div', {
                                 innerHTML: group,
@@ -1892,135 +1953,6 @@ SI.Editor = {
                 }
                 Ele("div",{style: {height:"18px",}, appendTo:styleview });//hack to fix the bottom of the scrolls. This is probably a tabs issue. further investigate.
                 return styleview;
-            },
-
-            DrawStyles2: function() {
-                //create a box for the groups
-                var styleview = Ele('div', {
-                    id: 'si_edit_style_view',
-                    style: {
-                        backgroundColor: SI.Editor.Style.BackColor,
-
-                    },
-                });
-                //create the menubar for controls
-                var styleviewctrls = Ele('div', {
-                    id: 'si_edit_style_view_controls',
-                    style: {
-                        backgroundColor: SI.Editor.Style.MenuColor,
-                        height:'20px',
-                    },
-                    appendTo: styleview
-                });
-                //add the Group radio box
-                var styleviewradiogrouplabel = Ele('label', {
-                    for: 'si_edit_style_view_controls_radio_group',
-                    innerHTML: "Group",
-                    style: {
-                        marginLeft: '10px',
-                    },
-                    appendTo: styleviewctrls
-                });
-                var styleviewradiogroup = Ele('input', {
-                    type: "radio",
-                    checked:"checked",
-                    name:'si_edit_style_view_controls_sort',
-                    id: 'si_edit_style_view_controls_radio_group',
-                    style: {marginRight:'10px'},
-                    appendTo: styleviewctrls,
-                    onchange: function () {
-                        document.getElementById('si_edit_style_view_groups').style.display = 'block';
-                        document.getElementById('si_edit_style_view_alpha').style.display = 'none';
-                    }
-                });
-                //add the Alpha radio box
-                var styleviewradioalphalabel = Ele('label', {
-                    for: 'si_edit_style_view_controls_radio_alpha',
-                    innerHTML: "A-Z",
-                    appendTo: styleviewctrls
-                });
-                var styleviewradioalpha = Ele('input', {
-                    type: "radio",
-                    name: 'si_edit_style_view_controls_sort',
-                    id: 'si_edit_style_view_controls_radio_alpha',
-                    data: {
-                        'si-loaded': false
-                    },
-                    appendTo: styleviewctrls,
-                    onchange: function () {
-                        alert("alpha");
-                        document.getElementById('si_edit_style_view_groups').style.display = 'none';
-                        let sortedbox = document.getElementById('si_edit_style_view_alpha');
-                        if (!sortedbox.dataset.loaded === true) {
-                            SI.Editor.UI.EditPanel.DrawSortedStyles();
-                        }
-                        sortedbox.style.display = 'block';
-                    }
-                });
-                //The Groups Box
-                var styleviewgroups = Ele('div', {
-                    id: 'si_edit_style_view_groups',
-                    style: {
-                        height: '290px',
-                        overflowX: 'hidden',
-                        overflowY: 'scroll',
-                    },
-                    appendTo: styleview
-                });
-                //The Alphabatized Box
-                var styleviewalpha = Ele('div', {
-                    id: 'si_edit_style_view_alpha',
-                    style: {
-                        height: '290px',
-                        overflowX: 'hidden',
-                        overflowY: 'scroll',
-                        display:'none'
-                    },
-                    appendTo: styleview
-                });
-
-                let groups = SI.Editor.Data.DataLists.StyleGroups;
-                let groupObject = {};
-                for (let g in groups) {
-
-                    let groupbox = Ele("div", { });
-
-                    let props = groups[g];
-                    for (let p in props) {
-                        let prop = props[p];
-                        let style = SI.Editor.Data.Code.Styles[prop];
-
-                        Ele("div", {
-                            innerHTML:prop,           
-                            appendTo:groupbox
-                        });
-
-                    }
-
-                    groupObject[g] = groupbox;
-                }
-             //   debugger;
-                let options = { Sections: groupObject };
-                let accordion = new SI.Widget.Accordion(options);
-                styleviewgroups.appendChild(accordion);
-                return styleview
-            },
-            DrawSortedStyles: function() {
-                //only draw this if the user selected it.
-                let box = document.getElementById('si_edit_style_view_alpha');
-                
-                let styles = SI.Editor.Data.Code.Styles;
-                let styleObject = {};
-
-                for (let s in styles) {
-
-                   
-                }
-
-                let options = { Sections: styleObject };
-                let accordion = new SI.Widget.Accordion(options);
-                debugger;
-                box.dataset.loaded = true;
             },
 
             //When a element is selected, update ALL the Attributes and styles UIs to reflect the elements values.
@@ -2058,32 +1990,33 @@ SI.Editor = {
                         }
                         if (fields) {
                             for (let field in fields) {
-                                //debugger;
-                                if (attrib.name.startsWith('data-')) {
-                                    //add the elements styles here
-                                }
-                                //Handle showing the inline styles
-                                else if (attrib.name == 'style') {
+                                if (fields.hasOwnProperty(field)) {
+                                    if (attrib.name.startsWith('data-')) {
+                                        //add the elements styles here
+                                    }
+                                    //Handle showing the inline styles
+                                    else if (attrib.name == 'style') {
                                     
-                                    var parts = attrib.value.split(";");
-                                    for (let j = 0; j < parts.length; j++) {
-                                        let kvp = parts[j].split(':');
-                                        if (kvp.length > 1) {
-                                            //debugger;
-                                            let sty = kvp[0];
-                                            //    var inputs = document.querySelectorAll("." + "si-edit-style-" + sty);
-                                            let inputs = document.getElementsByClassName("si-edit-style-" + kvp[0].trim());
-                                            for (let k = 0; k < inputs.length; k++) {
-                                                inputs[k].value = kvp[1];
+                                        var parts = attrib.value.split(";");
+                                        for (let j = 0; j < parts.length; j++) {
+                                            let kvp = parts[j].split(':');
+                                            if (kvp.length > 1) {
+                                                //debugger;
+                                                let sty = kvp[0];
+                                                //    var inputs = document.querySelectorAll("." + "si-edit-style-" + sty);
+                                                let inputs = document.getElementsByClassName("si-edit-style-" + kvp[0].trim());
+                                                for (let k = 0; k < inputs.length; k++) {
+                                                    inputs[k].value = kvp[1];
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                else if (attrib.name == 'class') {
-                                    fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editor-selected", "");
-                                }
-                                else {
-                                    fields[field].value = attrib.value;
+                                    else if (attrib.name == 'class') {
+                                        fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editor-selected", "");
+                                    }
+                                    else {
+                                        fields[field].value = attrib.value;
+                                    }
                                 }
                             }
                         }
@@ -2158,7 +2091,6 @@ SI.Editor = {
                     stylefield[i].value = element.style.cssText;
                 }
             },
-
             //Clears the Attributes or the Styles
             Clear: {
                 Attributes: function () {
@@ -2176,9 +2108,9 @@ SI.Editor = {
                     });
                 },
             }
-
         },
         ToolsPanel: {
+            ToolWindows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Security", "Users","Settings"],
             Init: function () {
                 //Tools Menu	
                 //Make a div for the tools panel
@@ -2201,1563 +2133,172 @@ SI.Editor = {
                     }
                 });
 
-                for (let i in SI.Editor.UI.Windows) {
-                    let title = SI.Editor.UI.Windows[i];
+                for (let i in SI.Editor.UI.ToolsPanel.ToolWindows) {
+                 //   debugger;
+                    let title = SI.Editor.UI.ToolsPanel.ToolWindows[i];
+
                     var menuRow = toolsMenuTable.insertRow(i);
                     var menuItem = menuRow.insertCell(0);
                     menuItem.style.border = 'solid 1px #000';
                     menuItem.innerHTML = title;
+                    menuItem.id = 'si_edit_'+title.toLowerCase()+"_trigger";
                     menuItem.style.textAlign = 'center';
                     menuItem.style.cursor = 'pointer';
                     menuItem.style.paddingLeft = '5px';
                     menuItem.style.paddingRight = '5px';
-                    menuItem.onclick = function (ev) {
-                        //debugger;
-                        //if the window is showing, hide it and bail
-                        if (SI.Editor.UI[title].Window.IsVisible()) {
-                            SI.Editor.UI[title].Window.Hide();
-                            return;
-                        }
-                        //if not. position it to the right of the mouse and show it. 
-                        let left = (ev.pageX + 100) + "px";
-                        let top = ev.pageY + "px";
-                        SI.Editor.UI[title].Window.SetPosition(top,left);
-                        SI.Editor.UI[title].Window.Show();
-                    };
+                    menuItem.onclick = SI.Editor.UI.ToolsPanel.OpenToolWindow;
                 }
                 toolsMenu.appendChild(toolsMenuTable);
                 SI.Editor.UI.MainMenu.Element.appendChild(toolsMenu);          
-            }
-        },
-        //Tool windows
-        Page: {
-            Window: null,
-            Init: function () { //ParentId: 'si_edit_container',
-                var options = { Name: "Page", Parent: "si_edit_container", Title: "Page", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Page.Window = new SI.Widget.Window(options);
-                SI.Editor.Objects.Page.Draw();
             },
-        },
-        Media: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "Media", Parent: "si_edit_container", BackgroundColor: "#999", Title: "Media", Width: '800px', Height: '600px', IconUrl:'/editor/media/icons/window-media.png'};
-                SI.Editor.UI.Media.Window = new SI.Widget.Window(obj);
-                let media = new SI.Editor.Objects.Media(SI.Editor.UI.Media.Window);
-                media.Draw();
-                SI.Editor.UI.Media.Window.Resize = media.ResizeWindow;
-            }
-        },
-        Styler: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "Styler", Parent: 'si_edit_container', Title: "Styler", Overflow:"HIDDEN"};
-                SI.Editor.UI.Styler.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Styler.Draw();
-            },
-            Draw: function (content) {
-
-                let styler = new SI.Editor.Objects.Styler();
-                SI.Editor.UI.Styler.Window.Append(styler.Init());
-            }
-        },
-        Scripter: {
-            Window: null,
-            Init: function () {               
-                var obj = { Name: "Scripter", Parent: 'si_edit_container', Title: "Scripter", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Scripter.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Scripter.Window.Append( SI.Editor.Objects.Scripter.Draw() );
-            }
-        },
-        Widgets: {
-            Window: null,
-                Init: function () {
-                    var obj = { Name: "Widgets", Parent: 'si_edit_container', Title: "Widgets", Width: '800px', Height: '600px' };
-                    SI.Editor.UI.Widgets.Window = new SI.Widget.Window(obj);
-                    SI.Editor.UI.Widgets.Draw();
-                },
-            Draw: function () {
-                let base = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: '#111',
-                        overflow: "scroll",
-                        color: SI.Editor.Style.TextColor,
-                    },
-                });
-                SI.Editor.UI.Widgets.Window.Append(base);
-            },
-        },
-        Language: {
-            Window: null,
-            Init: function () {               
-                var obj = { Name: "Language", Parent: 'si_edit_container', Title: "Language", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Language.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Language.Draw();
-            },
-        },
-        Entities: {
-            Window: null,
-            Init: function() {
-                var obj = {
-                    Name: "Entities", Parent: 'si_edit_container', Title: "Entities", Width: '800px', Height: '600px',
-                    Resize: function(win){
-                       //debugger;
-                        
-                        win.Container.height = win.GetHeight();
-                        win.Container.width = win.GetWidth();
-                    },
-                };
-                SI.Editor.UI.Entities.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Entity.Draw();
-            }
-        },
-        Plugins: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Name: "Plugins", Parent: 'si_edit_container', Title: "Plugins", ResizeThickness: 5,
-                    Resize: function (win) {
-                        document.getElementById('si_edit_plugins_repo_content').style.height = win.Container.clientHeight - 127 + "px";
-                        
-                    },
-                };
-                SI.Editor.UI.Plugins.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Plugins.Draw();
-
-            },
-            Draw: function () {
-                let container = Ele("div",{
-                    style:{
-                        width:"100%",
-                        height:"100%",
-                        backgroundColor:'green',
-
-                    },
-                });
-
-                let tabs = new SI.Widget.Tabs({
-                    OnChange: function (self) {
-                        tab = self.dataset.tabname;
-                        let pis = SI.Editor.Objects.Plugins.Repo.Plugins;
-                        //if we have no plugins, we should probably try to get some
-                        if ( pis.length === 0 ) {
-                            SI.Editor.Objects.Plugins.Repo.GetMorePlugins();
-                        }
-                    }
-                });
-
-                //Currently Installed plugins
-                let localPlugins = Ele("div", {
-                    style: {
-                        display: 'flex',
-                        flexWrap:'wrap',
-                    }
-                });
-
-                for (let i = 0; i < 100; i++) {
-                    Ele("div", {
-                        style: {  
-                            backgroundColor: 'blue',
-                            height: '100px',
-                            width: '100px',
-                            margin:'8px',
-                        },
-                        appendTo: localPlugins,
-                    });
+            OpenToolWindow:function(title = null, show = true){     
+                //if called from the event, title will be the event.   
+                if(title.target){
+                    title = this.innerHTML;
                 }
-
-                tabs.Items.Add("Local Plugins", SI.Editor.Objects.Plugins.Local.Build() );
-                tabs.Items.Add("Plugins Repo", SI.Editor.Objects.Plugins.Repo.Build());
-                tabs.Items.Add("Plugin Editor", SI.Editor.Objects.Plugins.Editor.Build());
- 
-                container.appendChild(tabs.Draw());
-                SI.Editor.UI.Plugins.Window.Append(container); 
-                SI.Editor.Objects.Plugins.Repo.AddCategory("All");
-            },
-        },
-        Site: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "Site", Parent: 'si_edit_container', Title: "Site", Width: '800px'};
-                SI.Editor.UI.Site.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Site.Draw();
-            },
-            Draw: function () {
-
-                let base = Ele('div', {
-                    style: {
-                        width: '100%',
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        padding: '15px'
+                let winid = "si_edit_"+title.toLowerCase()+"_window";   //"si_edit_media_window"
+                if(!SI.Widgets.Window[winid]){
+                    let options;
+                    switch(title){
+                        case "Page":
+                            options = {
+                            Id: "si_edit_page_window",
+                            Title: "Page",
+                            Populate: SI.Editor.Objects.Page.Draw,
+                            Trigger: '#si_edit_page_trigger',
+                            IconImg: '/editor/media/icons/page.png'
+                            };
+                            break;
+                        case  "Media":
+                            options = {
+                                Id: "si_edit_media_window",
+                                Trigger: '#si_edit_tools_media',
+                                Title: "Media",
+                                Trigger: '#si_edit_media_trigger',
+                                IconImg: '/editor/media/icons/window-media.png',
+                                Populate: SI.Editor.Objects.Media.Draw,
+                                Resize:SI.Editor.Objects.Media.Resize,
+                            };
+                            break;
+                        case  "Site":
+                            options = {
+                                Id: "si_edit_site_window",
+                                Trigger: '#si_edit_site_trigger',
+                                Title: "Site",
+                                IconImg: '/editor/media/icons/site.png',
+                                Populate: SI.Editor.Objects.Site.Draw
+                            };
+                            break;
+                        case "Styler":
+                            options = {
+                                Id: "si_edit_styler_window",
+                                Trigger: '#si_edit_styler_trigger',
+                                Title: "Styler",
+                                IconImg: '/editor/media/icons/stylebutton.png',
+                                Overflow: "hidden",
+                                Populate:SI.Editor.Objects.Styler.Draw
+                            };
+                            break;
+                        case "Scripter":
+                            options = {
+                                Id: "si_edit_scripter_window",
+                                Trigger: '#si_edit_scripter_trigger',
+                                IconImg: '/editor/media/icons/scripter-code.png',
+                                Title: "Scripter",
+                                Error: "This tool has issues with some browsers. It works fine in Chrome and Edge based on Chromium, Firefox has trouble parsing some of the regular expresions used.",
+                                Populate:SI.Editor.Objects.Scripter.Draw                                    };
+                            break;
+                        case "Widgets":
+                            options = {
+                                Id: "si_edit_widgets_window",
+                                Trigger: '#si_edit_widgets_trigger',
+                                IconImg: '/editor/media/icons/widgets.png',
+                                Title: "Widgets",
+                                Populate:SI.Editor.Objects.Widgets.Draw
+                            };
+                            break;
+                        case "Language":
+                            options = {
+                                Id: "si_edit_language_window",
+                                Trigger: '#si_edit_language_trigger',
+                                IconImg: '/editor/media/icons/language.png',
+                                Title: "Language",
+                                Populate:SI.Editor.Objects.Language.Draw
+                            };
+                            break;
+                        case "Entities":
+                            options = {
+                                Id: "si_edit_entities_window",
+                                Trigger: '#si_edit_entities_trigger',
+                                Title: "Entities",
+                                Overflow: "scroll",
+                                Resize: SI.Editor.Objects.Entity.Resize,
+                                Populate:SI.Editor.Objects.Entity.Draw
+                            };
+                            break;
+                        case "Plugins":
+                            options = {
+                                Id: "si_edit_plugins_window",
+                                Trigger: '#si_edit_plugins_trigger',
+                                Title: "Plugins",
+                                IconImg: '/editor/media/icons/plugins.png',
+                                ResizeThickness: 5,
+                                Resize:  SI.Editor.Objects.Plugins.Resize,
+                                Populate: SI.Editor.Objects.Plugins.Draw,
+                            };
+                            break;
+                        case "Security":
+                            options = {
+                                Id: "si_edit_security_window",
+                                Trigger: '#si_edit_security_trigger',
+                                Title: "Security",
+                                IconImg: '/editor/media/icons/securityroles.png',
+                                Populate: SI.Editor.Objects.Security.Draw
+                            };
+                            break;
+                        case "Users":
+                            options = {
+                                Id: "si_edit_users_window",
+                                Trigger: '#si_edit_users_trigger',
+                                Title: "Users",
+                                Width: '900px',
+                                Populate: SI.Editor.Objects.User.Draw
+                            };
+                            break;
+                        case "Settings":
+                            options = {
+                                Id: "si_edit_settings_window",
+                                Trigger: '#si_edit_settings_trigger',
+                                Title: "Settings",
+                                Populate: SI.Editor.Objects.Settings.Draw
+                            };
+                            break;
                     }
-                });
-
-               
-
-                let fldNewPage = Ele('fieldset', {
-                    append: Ele('legend', {innerHTML: 'Create a new Page' }),
-                });
-             //   fldNewPage.style.width = "300px";
-            //    
-            //    lgndNewPage.innerHTML = 'Create a new Page';
-            //    fldNewPage.appendChild(lgndNewPage);
-
-                let tblNewPage = document.createElement('table');
-                let hgrNewPage = document.createElement('tr');
-                let hBuNewPage = document.createElement('th');
-                hBuNewPage.innerHTML = "Business Unit";
-                hBuNewPage.title = 'sub-domain';
-                hgrNewPage.appendChild(hBuNewPage);
-                let hDoNewPage = document.createElement('th');
-                hDoNewPage.innerHTML = "Domain";
-                hgrNewPage.appendChild(hDoNewPage);
-                let hPgNewPage = document.createElement('th');
-                hPgNewPage.innerHTML = "Page";
-                hgrNewPage.appendChild(hPgNewPage);
-                let blankNewPage = document.createElement('th');
-                hgrNewPage.appendChild(blankNewPage);
-
-                tblNewPage.appendChild(hgrNewPage);
-
-                let inRowNewPage = document.createElement('tr');
-                let dBuNewPage = document.createElement('td');
-                let dBuINewPage = document.createElement('input');
-                dBuINewPage.id = "SI_Struct_NewPage_BU";
-                dBuINewPage.value = SI.Editor.Data.Site.BusinessUnit;
-
-                dBuINewPage.readOnly = <?= $notdomainadmin ?>;
-                dBuNewPage.appendChild(dBuINewPage);
-                inRowNewPage.appendChild(dBuNewPage);
-
-                let dDoNewPage = document.createElement('td');
-                let dDoINewPage = document.createElement('input');
-                dDoINewPage.readOnly =  <?= $notsuperadmin ?>;
-                dDoINewPage.id = "SI_Struct_NewPage_Domain";
-                dDoINewPage.value = SI.Editor.Data.Site.Domain;
-                dDoNewPage.appendChild(dDoINewPage);
-                inRowNewPage.appendChild(dDoNewPage);
-
-                let dPgNewPage = document.createElement('td');
-                let dPgINewPage = document.createElement('input');
-                dPgINewPage.id = "si_edit_site_newpage";
-                dPgNewPage.appendChild(dPgINewPage);
-                inRowNewPage.appendChild(dPgNewPage);
-
-                let dSuNewPage = document.createElement('td');
-
-                let dSuINewPage = document.createElement('input');
-                dSuINewPage.type = 'button';
-                dSuINewPage.onclick = function () {
-                   //debugger;
-                  //  let b = document.getElementById("SI_Struct_NewPage_BU").value;
-                  //  let d = document.getElementById("SI_Struct_NewPage_Domain").value;
-                    let p = document.getElementById("si_edit_site_newpage").value;
-                    SI.Editor.Objects.Page.New(p);
-                }
-                dSuINewPage.value = 'Create';
-                dSuNewPage.appendChild(dSuINewPage);
-                inRowNewPage.appendChild(dSuNewPage);
-
-                tblNewPage.appendChild(inRowNewPage);
-                fldNewPage.appendChild(tblNewPage);
-                base.appendChild(fldNewPage);
-
-
-                //Directory
-
-                let directory = Ele('fieldset', {
-                    append : Ele('legend', { innerHTML: 'Directory' }),
-                    appendTo:base,
-                });
-
-                //debugger;
-                let pageData = SI.Editor.Data.Objects.Pages;
-                let domains = [];
-                for (let domain of pageData) {
-                    //Deal with domain setup
-                    if (!domains.includes(domain['domainName'])) {
-                        let dom = Ele('fieldset', {
-                            id: 'si_edit_site_domain_' + domain['domainName'],
-                            style: {
-                                backgroundColor:'#708090',
-                            },
-                            append: Ele('legend', {
-                                innerHTML: "Domain",
-                                style: {
-                                    backgroundColor: '#d3d9de',
-                                    color: '#374049',
-                                    paddingLeft: '5px',
-                                    paddingRight: '5px',
-                                    border: '2px groove gray',
-                                    borderRadius: '5px',
-                                },
-                            }),
-                            appendTo: directory,
-                        });
-                        Ele('span', {
-                            innerHTML: domain['domainName'],
-                            appendTo: dom,
-                        }),
-                        domains.push(domain['domainName']);
-
-                        //Deal with businessunit setup
-                        let busunits = [];
-                        for (let busunit of pageData) {  
-                            if ((!busunits.includes(busunit['businessunitName'])) && (domain['domainName'] === busunit['domainName'])) {
-                                let buname = ''
-                                if (busunit['businessunitName'] === '') {
-                                    buname = 'NONE';
-                                } else {
-                                    buname = busunit['businessunitName'] ;
-                                }
-                                let bu = Ele('fieldset', {
-                                    id: 'si_edit_site_domain_' + busunit['domainName'] + '_' + buname,
-                                    style: {
-                                        backgroundColor: '#778899',
-                                    },
-                                    append: Ele('legend', {
-                                        innerHTML:"BusinessUnit",
-                                        style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
-                                            paddingLeft: '5px',
-                                            paddingRight: '5px',
-                                            border: '2px groove gray',
-                                            borderRadius: '5px',
-                                        },
-                                    }),
-                                    appendTo: dom,
-                                });
-                                Ele('span', {
-                                    innerHTML: buname,
-                                    appendTo: bu
-                                }),
-                                busunits.push(busunit['businessunitName']);
-                                let pages = [];
-                                for (let page of pageData) {
-                                    let pgname = ''
-                                    if (page['pageName'] === '') {
-                                        pgname = 'ROOT';
-                                    } else {
-                                        pgname = page['pageName'];
-                                    }
-                                    if ((!pages.includes(page['pageName'])) && (page['businessunitName'] === busunit['businessunitName'])) {
-
-                                        let pageid = '0x' + page['pageId'].toLowerCase();
-
-                                        let pg = Ele('fieldset', {
-                                            id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                            style: {
-                                                backgroundColor: '#a8b3bd',
-                                            },
-                                            append: Ele('legend', {
-                                                innerHTML: pgname,
-                                                style: {
-                                                    backgroundColor: '#d3d9de',
-                                                    color: '#374049',
-                                                    paddingLeft: '5px',
-                                                    paddingRight: '5px',
-                                                    border: '2px groove gray',
-                                                    borderRadius: '5px',
-                                                },
-                                            }),
-                                            appendTo: bu,
-                                        });
-
-                                        //try to round up some relationships
-                                        let relationships = SI.Editor.Data.Objects.Entities.Relationships;
-                                        //debugger;
-
-                                        
-
-
-                                        
-
-                                        let removeredirect = Ele('button', {
-                                            id: 'si_edit_site_rmredirect_' + pageid,
-                                            innerHTML: 'Remove Redirect',
-                                            style: {
-                                                margin: '15px',
-                                                display: 'none',
-                                            },
-                                            appendTo: pg,
-                                            onclick: function (e) {
-                                                let options = {};
-                                                options.Data = {};
-                                                options.Data.KEY = "RemoveRedirect";
-                                                options.Data.pageid = this.id.replace('si_edit_site_rmredirect_','');
-                                                SI.Editor.Ajax.Run(options);
-                                            },
-                                        });
-
-
-                                        if (page.redirecttopage) {
-                                            removeredirect.style.display = 'block';
-                                        } else {
-
-                                        }
-
-                                        let parentEntBox = Ele('fieldset', {
-                                            id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                            style: {
-                                                backgroundColor: '#a8b3bd',
-                                            },
-                                            append: Ele('legend', {
-                                                innerHTML: "Parent Entities",
-                                                style: {
-                                                    backgroundColor: '#d3d9de',
-                                                    color: '#374049',
-                                                    paddingLeft: '5px',
-                                                    paddingRight: '5px',
-                                                    border: '2px groove gray',
-                                                    borderRadius: '5px',
-                                                },
-                                            }),
-                                            appendTo: pg,
-                                        });
-
-                                        let childEntBox = Ele('fieldset', {
-                                            id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                            style: {
-                                                backgroundColor: '#a8b3bd',
-                                            },
-                                            append: Ele('legend', {
-                                                innerHTML: "Child Entities",
-                                                style: {
-                                                    backgroundColor: '#d3d9de',
-                                                    color: '#374049',
-                                                    paddingLeft: '5px',
-                                                    paddingRight: '5px',
-                                                    border: '2px groove gray',
-                                                    borderRadius: '5px',
-                                                },
-                                            }),
-                                            appendTo: pg,
-                                        });
-
-                                        let parentEnts = [];
-                                        let childEnts = [];
-
-                                        for (let r in relationships) {
-
-                                            let relation = relationships[r];
-                                            //check for parents or children
-                                            let relid = '0x' + relation.id.toLowerCase();
-                                            let parentid = '0x' + relation.parent_id.toLowerCase();
-                                            let childid = '0x' + relation.child_id.toLowerCase();
-
-                                            let pEntName = relation.parententity_name;
-                                            let cEntName = relation.childentity_name;
-                                            //debugger;
-                                            //save only the correct id
-                                            if (parentid !== pageid) {
-                                                parentid = null;
-                                            }
-                                            if (childid !== pageid) {
-                                                childid = null;
-                                            }
-                                            //this should never be both
-                                            if (parentid || childid) {
-                                                //debugger;
-                                                //put the remaining id into the id
-                                                let id = (parentid || childid);
-                                                ;
-                                                let entName = null;
-                                                let appendto = null;
-                                                let makeFS = false;
-                                                let pg;
-                                                if (parentid) {  //The page is the parent  
-                                                    if (!parentEnts.includes(parentid)) {
-                                                        parentEnts.push(parentid);
-                                                        entName = pEntName;
-                                                        appendto = parentEntBox;
-                                                        makeFS = true;
-                                                        //debugger;
-                                                    } else {
-                                                        entName = pEntName;
-                                                        appendto = parentEntBox;
-                                                    }
-                                                } else {    //The page is the child 
-                                                    if (childEnts.includes(childid)) {
-                                                        childEnts.push(childid);
-                                                        entName = cEntName;
-                                                        appendto = childEntBox;
-                                                        makeFS = true;
-                                                        //debugger;
-                                                    }
-                                                    else {
-
-                                                    }
-                                                }
-                                                //debugger;
-                                                if (makeFS) {
-                                                    pg= Ele('fieldset', {
-                                                        id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                                        style: {
-                                                            backgroundColor: '#a8b3bd',
-                                                        },
-                                                        append: Ele('legend', {
-                                                            innerHTML: cEntName,
-                                                            style: {
-                                                                backgroundColor: '#d3d9de',
-                                                                color: '#374049',
-                                                                paddingLeft: '5px',
-                                                                paddingRight: '5px',
-                                                                border: '2px groove gray',
-                                                                borderRadius: '5px',
-                                                            },
-                                                        }),
-                                                        appendTo: appendto,
-                                                    });
-
-                                                } else {
-                                                    //debugger;
-                                                    pg = document.getElementById('si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname);
-                                                }
-                                                //debugger;
-                                                let relbox = Ele('div', {
-                                                    id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname +"_"+ id,
-                                                    innerHTML: relation.note,
-                                                    style: {
-                                                        display:'inline-block',
-                                                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                                                    },
-                                                    appendTo: pg,
-                                                });
-
-                                            }            
-                                            //then check for children
-                                        }
-                                        pages.push(page['pageName']);
-                                    }
-                                }
+                    if(options){
+                        try{
+                            new SI.Widget.Window(options);
+                        }catch(er){
+                            SI.Tools.SuperAlert("Error loading "+title+": "+er.message, 4000);
+                            if(options.Error){
+                                setTimeout(function(){
+                                    SI.Tools.SuperAlert(options.Error, 4000);
+                                },4500)
                             }
                         }
                     }
                 }
-
-                //let pageLibrary = SI.Editor.Objects.Page.Current;
-
-                //let selectCurrentPages = document.createElement('select');
-                
-
-                //for (let page in pageLibrary){
-                ////    console.log("PAGE");
-                //    let pg = pageLibrary[page];
-
-                //    let bu = pg['businessunitName'];
-                //    if (bu.length > 0) {
-                //        bu = bu + '.';
-                //    }
-                //    let domain = pg['domainName'];
-                //    let pagename = pg['pageName'];
-
-                //    let option = document.createElement('option');
-                //    option.value = bu + domain + "/" + pagename;
-                //    option.innerHTML = bu + domain + "/" + pagename;
-                //    selectCurrentPages.appendChild(option);
-                //}
-
-
-                //let btnOpenPage = document.createElement('button');
-                //btnOpenPage.innerHTML = 'Open';
-               // fldCurrentPages.appendChild(selectCurrentPages);
-           //     base.appendChild(fldCurrentPages);
-
-   
-                let fldNewInstance = Ele('fieldset', {
-                    append: Ele('legend', { innerHTML: 'Create a new Instance' }),
-                    appendTo:base,
-                });
-                let tblNewInstance = Ele('table', { appendTo:fldNewInstance});
-                let tblHdrInstance = Ele('tr', { appendTo: tblNewInstance });
-
-                Ele('th', { innerHTML: 'Business Unit', appendTo: tblHdrInstance });
-                Ele('th', { innerHTML: 'Domain', appendTo: tblHdrInstance });
-                Ele('th', { appendTo: tblHdrInstance });
-
-                let tblDtaInstance = Ele('tr', { appendTo: tblNewInstance });
-                let tblDtaBuInstance = Ele('td', { appendTo: tblDtaInstance });
-                Ele('input', { appendTo: tblDtaBuInstance });
-                let tblDtaDoInstance = Ele('td', { appendTo: tblDtaInstance });
-                Ele('input', { appendTo: tblDtaDoInstance });
-                let tblDtaSubInstance = Ele('td', { appendTo: tblDtaInstance });
-                Ele('input', { appendTo: tblDtaSubInstance });
-
-
-                SI.Editor.UI.Site.Window.Append(base);
-            },
-        },
-        Scenegraph: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "Scenegraph", Parent: 'si_edit_container', Title: "Scenegraph", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Scenegraph.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Scenegraph.Draw();
-            },
-            Draw: function () {
-                let base = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor:'#111',
-                        overflow: "scroll",
-                        color:SI.Editor.Style.TextColor,
-                    },
-                });
-                //debugger;
-                let ul =  SI.Tools.Object.ToDataTree(SI.Editor.Data.Site.SessionPageData);
-
-                let pre = Ele('div', {
-                    style: {
-                        tabSize: '0',
-                        color:'white',
-                    },
-                    append: ul,
-                    appendTo:base,
-                })
-                SI.Editor.UI.Scenegraph.Window.Append(base);
-            },
-        },
-        Security: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "Security", Parent: 'si_edit_container', Title: "Security", Width: '800px', Height: '600px' };
-                SI.Editor.UI.Security.Window = new SI.Widget.Window(obj);
-                SI.Editor.Objects.Security.Draw();
-            },
-        },
-        Users: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "Users", Parent: 'si_edit_container', Title: "Users", StartWidth:'1000px', StartHeight: '600px' };
-                SI.Editor.UI.Users.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.Users.Draw();
-            },
-            Draw: function () {
-                let base = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        overflow: "scroll",
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        color: SI.Editor.Style.TextColor,
-                    },
-                });
-
-                let newuser = Ele('button', {
-                    innerHTML: "New",
-                    style: {
-                    },
-                    onclick: function () {
-
-                        SI.Editor.Objects.User.New();
-                    },
-                    appendTo: base,
-                });
-
-                let rolewindow = Ele('div', {
-                    id: 'si_edit_users_rolewindow',
-                    innerHTML: "",
-                    style: {
-                        backgroundColor: SI.Editor.Style.MenuColor,
-                        top: '0px',
-                        left: '0px',
-                        position: 'relative',
-                        padding: '5px',
-                        display:'none',
-                    },
-                    appendTo: base,
-                })
-                let currentroles = SI.Editor.Data.Objects.Security.Roles;
-                //debugger;
-                for (let role of currentroles) {
-
-                    let rolebox = Ele('div', {
-
-                        appendTo: rolewindow,
-                    })
-                    let rolename = role.name;
-                    let label = Ele('label', {
-                        for: 'si_edit_users_rolecb_' + role.id,
-                        innerHTML:role.name,
-                        appendTo: rolebox,
-                    });
-
-                    let cb = Ele('input', {
-                        id: 'si_edit_users_rolecb_' + role.id,
-                        class: 'si-edit-users-rolecb-' + role.name,
-                        type: 'checkbox',
-                        style: {
-                            float:'right',
-                        },
-                        onchange: SI.Editor.Objects.User.UpdateRoles,
-                        appendTo: rolebox,
-                    });
-
-
-
+                if (SI.Widgets.Window[winid].IsVisible()) {
+                    SI.Widgets.Window[winid].Hide();
+                    return;
                 }
-
-                let pre = Ele('div', {
-                    innerHTML: "",
-                    style: {
-                        tabSize: '0',
-                    },
-                    appendTo: base,
-                })
-                pre.insertAdjacentHTML('beforeend', SI.Editor.Data.Objects.Users);
-
-
-
-                SI.Editor.UI.Users.Window.Append(base);
-
-
-            },
-        },
-        Settings: {
-            Window: null,
-            Init: function () {
-                    var obj = { Name: "Settings", Parent: 'si_edit_container', Title: "Settings", StartWidth: '800px', StartHeight: '600px' };
-                    SI.Editor.UI.Settings.Window = new SI.Widget.Window(obj);
-                    SI.Editor.Objects.Settings.Draw();
-                },
-
-        },
-        //Tool Sub-Windows
-        BlockTemplates: {
-            Window: null,
-            Init: function () {
-                var obj = { Name: "BlockTemplates", BackgroundColor:'CadetBlue', Parent: 'si_edit_container', Title: "Block Templates", Width: '600px', Height: '400px' };
-                SI.Editor.UI.BlockTemplates.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.BlockTemplates.Window.Append(SI.Editor.UI.BlockTemplates.Draw());
-                SI.Editor.UI.BlockTemplates.Draw(SI.Editor.UI.BlockTemplates.Window.GetContentId());
-            },
-            Draw: function (content) {
-                let draw = document.createElement('div');
-
-                
-                let blockTemplateBox = document.createElement('div');
-                for (let key in SI.Editor.Data.Objects.Blocks) {
-                    if (SI.Editor.Data.Objects.Blocks.hasOwnProperty(key)) {
-
-                        if (typeof (SI.Editor.Data.Objects.Blocks[key]) != "undefined") {
-                            blockTemplateBox.appendChild(SI.Editor.UI.BlockTemplates.Add(SI.Editor.Data.Objects.Blocks[key]));
-                        }
-
-                    }
+                if(show){
+                    SI.Widgets.Window[winid].Show();
                 }
-
-                draw.appendChild(blockTemplateBox);
-                return draw;
-            },
-            Add: function (template) {
-                //debugger;
-                let table = Ele('table', {
-                    style: {
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        margin : '5px',
-                    },
-                });
-
-                let tr = document.createElement('tr');
-
-                let pic = document.createElement('td');
-                let data = document.createElement('td');
-
-                let frame = Ele('div',{
-                    style: {
-                        position : 'relative',
-                        height : '150px',
-                        width : '150px',
-                    },
-                    appendTo:pic,
-                });
-                //                    src: '/editor/media/images/blockthumbs/' + template['thumb'] + '.jpg',
-                let thumb = Ele('img', {
-
-                    style: {
-                        position : 'absolute',
-                        maxWidth : '100%',
-                        width : '100%',
-                        maxHeight : 'auto',
-                        heigth : 'auto',
-                        margin : 'auto',
-                        top : "0",
-                        bottom : "0",
-                        left : "0",
-                        right : "0",
-                    },
-                    appendTo:frame,
-                });
-
-                tr.appendChild(pic);
-
-               // console.log(Template);
-                //debugger;
-                let options = null;
-                try {
-                    options = JSON.parse(template['options']);
-                }
-                catch (error) {
-                    console.log(error);
-                }
-                if (options) {
-                    for (let s in options.style) {
-                        options[s] = options.style[s];
-                    }
-
-                    for (let option in options) {
-
-
-                        if (option != 'order' && option != 'category' && option != 'style') {
-                            let box = Ele('div', {
-                                style: {
-                                    display: 'inline-block',
-                                    margin: '5px',
-                                },
-                            });
-                            let label = Ele('span', {
-                                innerHTML: option,
-                                style: {
-                                    margin: '5px',
-                                },
-                                appendTo: box,
-                            });
-
-                            let input = Ele('input', {
-                                value: options[option],
-                                size: "5",
-                                appendTo: box,
-                            });
-
-                            data.appendChild(box);
-
-                        }
-                    }
-
-                }
-
-
-
-             //   console.log(options);
-
-                let btn = document.createElement('button');
-                btn.innerHTML = 'Add Block Template';
-                btn.style.float = 'right';
-                btn.style.marginTop = '40px';
-                btn.style.marginRight = '10px';
-                data.appendChild(btn);
-                tr.appendChild(data);
-                table.appendChild(tr);
-                return table;
-            }
-        },
-        ImportBlock: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Name: "ImportBlock", BackgroundColor: 'CadetBlue', Parent: 'si_edit_container',
-                    Title: "Import Block", StartWidth: '268px', StartHeight: '75px',
-                    StartTop: "400px", StartLeft: "300px", Resizable: false, WindowControls:"CLOSE",
-                };
-                SI.Editor.UI.ImportBlock.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.ImportBlock.Window.Append(SI.Editor.UI.ImportBlock.Draw());
-
-
-            },
-            Draw: function () {
-                let container = document.createElement('div');
-                let blSelect = Ele("select", {
-                    id: 'si_edit_importblock_select',
-                    style: {
-                        margin: '20px',
-                    },
-                    onchange: function (ev) {
-                        let val = this.value;
-                        let name = this.innerHTML;
-                    },
-                    appendTo: container,
-                });
-                let blButton = Ele("input", {
-                    type:'button',
-                    id: 'si_edit_importblock_button',
-                    style: {
-                        margin: '20px',
-                    },
-                    value:'Import',
-                    onclick: function (ev) {
-                        let sel = document.getElementById('si_edit_importblock_select');
-                        //debugger;
-                        SI.Editor.Objects.Blocks.Relate(sel.value);
-                    },
-                    appendTo: container,
-                });
-                let options = {};
-                options.Data = {
-                    Operation: "Retrieve",
-                    Entity: {
-                        Name: 'blocks',
-                    },
-                    Columns: "id,name",
-                };
-                options.Callback = SI.Editor.UI.ImportBlock.PopulateBlocks;
-                //debugger;
-                SI.Tools.Api.Send(options); 
-                return container;
-            },
-            PopulateBlocks: function(blocks) {
-              
-                let sel = document.getElementById('si_edit_importblock_select');
-                for (let b in blocks) {
-                    if (blocks.hasOwnProperty(b) && b !== 'Return') {
-                        //debugger;
-                        Ele("option", {
-                            innerHTML: blocks[b].name,
-                            value: '0x' + blocks[b].id,
-                            title: '0x' + blocks[b].id,
-                            appendTo: sel,
-                        });
-                    }
-                }
-            },
-        },
-        HUD: {
-            Window: null,
-            Init: function () {
-                var obj = {
-                    Name: "HUD", Parent: 'si_edit_container', Title: "HUD", StartWidth: '200px', StartHeight: '150px', StartTop:'30%', StartLeft:'1%', Overflow: "hidden", Position: "fixed", "WindowControls": "CLOSE",
-                    OnClose: function () {  //sync the cb in settings
-                        document.getElementById('si_edit_settings_hudcb').checked = false;
-                    }
-                };
-                SI.Editor.UI.HUD.Window = new SI.Widget.Window(obj);
-                SI.Editor.UI.HUD.Draw();
-            },
-            Draw: function () {
-                let container = Ele('div', {
-                    style: {
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        color: SI.Editor.Style.TextColor,
-                        fontSize: '10px',
-                    },
-                });
-
-                Ele('span', {
-                    innerHTML: "Mouse X:",
-                    appendTo: container,
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_xpos',
-                    appendTo: container,
-                });
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Mouse Y:",
-                    appendTo: container,
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_ypos',
-                    appendTo: container,
-                });
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Selected Element:",
-                    appendTo: container,
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_selectedelement',
-                    appendTo: container,
-                });
-
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Dragging Element:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_draggingelement',
-                    appendTo: container,
-                });
-                //offparent
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Offset Parent:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_offsetparent',
-                    appendTo: container,
-                });
-                //parent elementid
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Parent Id:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_parentid',
-                    appendTo: container,
-                });
-                //offsetX
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Offest X:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_offsetx',
-                    appendTo: container,
-                });
-                //offsetY
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Offset Y:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_offsety',
-                    appendTo: container,
-                });
-
-                //DropParent
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Drop Parent:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_dropparent',
-                    appendTo: container,
-                });
-                //DropParent
-                Ele('br', { appendTo: container });
-                Ele('span', {
-                    innerHTML: "Editor Is Dragging:",
-                    appendTo: container,
-
-                });
-                Ele('span', {
-                    id: 'si_edit_hud_editisdragging',
-                    appendTo: container,
-                });
-
-              //  this.dataset.offsetparent = this.offsetParent;
-              //  this.dataset.parentid = this.parentElement.id;
-              //  this.dataset.mOffX = ev.offsetX;
-              //  this.dataset.mOffY = ev.offsetY;
-
-
-                document.body.addEventListener("mousemove", function (ev) {
-                    document.getElementById("si_edit_hud_xpos").innerHTML = ev.pageX;
-                    document.getElementById("si_edit_hud_ypos").innerHTML = ev.pageY;
-                });
-
-                SI.Editor.UI.HUD.Window.Append(container);
-            },
-        },
-        Phpinfo: {
-            Window: null,
-            Init: function () {
-                    var obj = { Name: "PhpInfo", Parent: 'si_edit_container', Title: "PhpInfo", StartWidth: '990px', StartHeight: '600px' };
-                    SI.Editor.UI.Phpinfo.Window = new SI.Widget.Window(obj);
-                    SI.Editor.UI.Phpinfo.Draw();
-                },
-            Draw: function () {
-                let container = Ele('div', {
-                    innerHTML: `<?php echo Tools::GetPhpInfo() ?>`,
-                });
-                SI.Editor.UI.Phpinfo.Window.Append(container);
             },
         },
     },
     Objects: {
-        Language: {
-            Added: function(lang) {               
-                //debugger;
-                [].forEach.call(document.getElementById('si_edit_lang_availablelangs').options, function (opt) {
-                    if (opt.value === lang.langcode) {
-                        //debugger;
-                        opt.disabled = 'true';
-                    }
-                })
-                let newlang = Ele("option", { innerHTML: lang.name, value: lang.langcode });
-                let installedLangs = document.getElementById('si_edit_lang_supportedlangs');
-                installedLangs.add(newlang);
-                SI.Tools.Select.Sort(installedLangs);
-            },
-            Draw: function () {
-                // var localtext = SI.Editor.Data.Objects.Entities.Definitions.localtext.attributes;
-                //Base
-                let base = Ele('div', {
-                    style: {
-                        width: '100%',
-                        height: '100%',
-                        padding: '20px',
-                        background: SI.Editor.Style.BackgroundColor,
-                    },
-
-                });
-                //top menu
-                let menu = Ele('div', {
-                    style: {
-                        width: '100%',
-                        lineHeight: '25px',
-                    },
-                    appendTo: base,
-                });
-                //get the current users lang stuff incase they would like to see it
-                let mylangs = <?= $myLangs ?>;
-                //track the installed languages as they populate 
-                let instLangs = [];
-                menu.appendChild(Ele('span', {
-                    innerHTML: "Detected Languages: ",
-                }));
-                for (let lang in mylangs) {
-                    let comma = (lang != mylangs.length - 1) ? "," : "";
-                    menu.appendChild(Ele('span', { innerHTML: mylangs[lang] + comma + " " }));
-                }
-                menu.appendChild(Ele('br'));
-                menu.appendChild(Ele('span', {
-                    innerHTML: "Installed Languages: ",
-                }));
-
-                let installedLangs = Ele('select', {
-                    id: 'si_edit_lang_supportedlangs',
-                    innerHTML: "<?= $supportedLanguages ?>",
-                    appendTo: menu,
-                    onchange: function () {
-
-
-                    }
-                });
-                menu.appendChild(Ele('br'));
-                menu.appendChild(Ele('span', { innerHTML: " Install a new language: " }));
-                let instalableList = Ele('select', {
-                    innerHTML: "<?= $langoptions ?>",
-                    appendTo: menu,
-                    onchange: function () {
-                        document.getElementById('si_edit_language_add').innerHTML = 'Add ' + this.options[this.selectedIndex].text;
-                    }
-                });
-                instalableList.innerHTML += "<?= $langoptions ?>";
-
-                SI.Tools.Select.Sort(installedLangs);
-                //debugger;
-                [].forEach.call(instalableList.options, function (opt) {
-                    if (opt.value.length !== 0) {
-                        [].forEach.call(installedLangs.options, function (installed) {
-                            if (opt.value === installed.value) {
-                                opt.disabled = 'true';
-                            }
-                        })
-                    }
-
-                });
-
-                for (let langopt in installedLangs.children) {
-                    if (typeof installedLangs[langopt].innerText !== 'undefined') {
-                        instLangs.push(installedLangs[langopt].value);
-                    }
-                }
-                SI.Editor.Objects.Language.CurrentInstalled = instLangs;
-                let availLang = mylangs.filter(value => instLangs.includes(value))
-                if (availLang.length > 0) {
-                    SI.Editor.Objects.Language.PerferredInstalledLanguage = availLang[0].toLowerCase();
-                }
-
-                menu.appendChild(Ele('span', { innerHTML: "*Irreversible", style: { color: 'red', marginLeft: '20px', marginRight: '20px', }, }));
-                menu.appendChild(Ele('button', {
-                    id: 'si_edit_language_add',
-                    innerHTML: "Add",
-                    style: {
-                        color: 'red',
-                    },
-                    onclick: function () {
-
-                        //debugger;
-
-                        sellang = document.getElementById("si_edit_lang_availablelangs");
-                        langnode = sellang[sellang.selectedIndex];
-
-                        let obj = {};
-                        obj.Data = {};
-                        obj.Data.KEY = "AddLanguage";
-                        obj.Data.langcode = langnode.value;
-                        obj.Data.name = langnode.innerHTML;
-                        SI.Editor.Ajax.Run(obj);
-
-                    }
-                }));
-
-
-                let cmLabel = Ele("div", {
-                    innerHTML: "Char Map",
-                    appendTo: base,
-                    style: {
-                        margin: '5px 0px 5px 0px',
-                    },
-                });
-                Ele("input", {
-                    type: "checkbox",
-                    onchange: function (e) {
-                        if (SI.Editor.Objects.Language.LastChar === 32) {
-                            SI.Editor.Objects.Language.DrawChars(3000);
-                        }
-                        if (this.checked) {
-                            document.getElementById("si_edit_language_charmap").style.display = 'block';
-                        } else {
-                            document.getElementById("si_edit_language_charmap").style.display = 'none';
-                        }
-                    },
-                    appendTo: cmLabel,
-                });
-
-                //Char Map
-                let charmap = Ele('div', {
-                    id: 'si_edit_language_charmap',
-                    style: {
-                        padding: '10px',
-                        height: '150px',
-                        width: '95%',
-                        top: '0px',
-                        backgroundColor: 'grey',
-                        color: 'white',
-                        overflowY: 'scroll',
-                        overflowX: 'auto',
-                        font: '20px/ 40px Arial, Helvetica, sans-serif',
-                        display: 'none',
-                        letterSpacing: '.5em',
-                        cursor: 'pointer',
-                    },
-                    contentEditable: true,
-                    appendTo: base,
-
-                });
-                SI.Tools.Text.FingAutoCorrect(charmap);
-                charmap.onscroll = function (e) {
-                    SI.Editor.Objects.Language.DrawChars(1000);
-                };
-
-                //Text Authoring/Editing
-                //NEW controls
-                let newLabel = Ele("div", {
-                    innerHTML: "New: ",
-                    style: {
-                        display: 'inline-block',
-                        margin: '5px 5px 5px 0px',
-                    },
-                    appendTo: base,
-                });
-                //New Text start data. a text is started by simply adding text to the field...
-                Ele("input", {
-                    id: 'si_edit_lang_newtext',
-                    placeholder: availLang[0] + " text",
-                    data: {
-                        language: availLang[0],
-                    },
-                    appendTo: newLabel,
-                });
-                //and clicking new.
-                Ele("input", {
-                    type: "button",
-                    value: 'New',
-                    style: {
-                        marginRight: '20px',
-                    },
-                    onclick: function (e) {
-                        if (this.previousSibling.value.length > 0) {
-                            SI.Editor.Objects.Language.New();
-                        } else {
-                            alert("Add some text first");
-                        }
-                        this.value = '';
-                    },
-                    appendTo: newLabel,
-                });
-
-
-                //Existing text selector. since selecting by token would suck we populate the select box with live text in the users language
-                //label
-                let tsLabel = Ele("div", {
-                    innerHTML: "Edit: ",
-                    appendTo: base,
-                    style: {
-                        display: 'inline-block',
-                    },
-                });
-                //On Change function for the selector will swap out all of text boxes contents for that of the text selected
-                let LocalChange = function (e) {
-                    //debugger;
-                    SI.Editor.Objects.Language.Clear();
-                    let index = this.selectedIndex-1;
-                    //let opt = this.selectedOptions[0];
-                    let localtext = SI.Editor.Objects.Language.Current[index];
-                    for (let lang in localtext) {
-                        if (lang.charAt(0) == '_') {
-                            let langbox = document.getElementById('si_edit_lang_box' + lang);
-                            if (langbox) {
-                                langbox.innerHTML = localtext[lang];
-                            }
-                        }
-                    }
-                };
-                //Select drop down to select the text currently being edited
-                let textselect = Ele('select', {
-                    id:'si_edit_lang_textselect',
-                    appendTo: tsLabel,
-                    onchange: LocalChange,
-                });
-                //A blank option for the first blaank line
-                Ele('option', { innerHTML: '', value: '', appendTo: textselect, });
-                //Button to save the currently selected text in that language
-                Ele("input", {
-                    type: "button",
-                    id:'si_edit_lang_save',
-                    value: 'Save',
-                    onclick: function (e) {
-                        //debugger
-                        let sel = this.previousSibling;//document.getElementById('si_edit_lang_textselect');
-                        let index = sel.selectedIndex;
-                        if (index > -1) {
-                            let option = sel.options[index];
-                            
-                            let language = SI.Editor.Objects.Language.CurrentInstalled[this.dataset.index];
-                            SI.Editor.Objects.Language.Update(index - 1, language);
-                        }
-                    },
-                    data: {
-                        index:0,
-                    },
-                    appendTo: tsLabel,
-                });
-
-                let langtabs =new SI.Widget.Tabs({
-                    Width: '90%',
-                    Height: '70%',
-                    OnChange: function (ele) {
-                        let lang = ele.dataset.tabname;
-                        let index = ele.dataset.tabnum;
-                        ele = document.getElementById('si_edit_lang_save')
-                        ele.value = "Save " + lang;
-                        ele.dataset.index = index;
-                    },
-                });
-                //debugger;
-                let langSync = function (e) {
-                    lang = this.id.replace('si_edit_lang_box', '');
-                    let index = document.getElementById('si_edit_lang_textselect').selectedIndex - 1;
-                    if (index > -1) {
-                        let content = this.innerHTML
-                        SI.Editor.Objects.Language.Current[index][lang] = content;
-                        let tok = SI.Editor.Objects.Language.Current[index].name;
-                        //debugger;
-                        //if it is the one from our language then update the onscreen text.
-                        if ('_'+SI.Editor.Objects.Language.CurrentPreference.toLowerCase().split(',')[0] == lang) {                    
-                            SI.Tools.Class.Loop("si-multilingual-" + tok, function (ele) {
-                                ele.innerHTML = content;
-                            })
-                        }
-                       
-                    }
-
-                }
-
-                for (let langopt in instLangs) {
-
-                    let langbox = Ele('div', {
-                        id: 'si_edit_lang_box_' + instLangs[langopt],
-                        class: 'si_edit_lang_box',
-                        contentEditable: true,
-                        style: {
-                            minHeight: '500px',
-                            width: '100%',
-                            color: 'black',
-                            backgroundColor: 'silver',
-                            padding: '15px',
-                        },
-                        onkeyup: langSync,
-                        onmouseup: langSync,
-                    });
-                    
-                    langtabs.Items.Add(installedLangs[langopt].innerText, langbox);
-
-                }
-
-                //sort to have longest, most specific value first.
-                mylangs = mylangs.sort(function (a, b) { //10630766
-                    // ASC  -> a.length - b.length
-                    // DESC -> b.length - a.length
-                    return b.length - a.length;
-                });
-
-                let allLocalTexts = SI.Editor.Objects.Language.Current;
-                //debugger;
-                for (let l in allLocalTexts) {
-                    let localTexts = allLocalTexts[l];
-                    for (let la in mylangs) {
-                        let lan = mylangs[la].toLowerCase();
-                        if (typeof SI.Editor.Objects.Language.Current[l]['_' + lan] !== 'undefined') {
-                            let text = SI.Editor.Objects.Language.Current[l]['_' + lan];
-                            if (text && text.length > 0) {
-                                if (text.length > 32) {
-                                    text = text.substr(0, 32) + "\u2026";  //18146354
-                                }
-                                let guid = '0x' + SI.Editor.Objects.Language.Current[l].id;
-                                let token = SI.Editor.Objects.Language.Current[l].name;
-                                Ele('option', {
-                                    innerHTML: text,
-                                    value: guid,
-                                    data: {
-                                        token: token,
-                                        lang: lan,
-                                    },
-                                    appendTo: textselect,
-                                });
-                                break;
-                            }
-                        }
-                    }
-                }
-                base.appendChild(langtabs.Draw());
-                SI.Editor.UI.Language.Window.Append(base);
-            },
-            Created: function(response) {
-                //debugger;
-                if (response['language'] && response['text'] && response['id'] && response['token']) {
-                    let language = response['language'].replace('_', '');
-                    let ts = document.getElementById('si_edit_lang_textselect');
-                    let text = response['text'];
-                    if (text.length > 32) {
-                        text = text.substr(0, 32) + "\u2026";  //18146354
-                    }
-
-
-                    let opt = Ele('option', {
-                        innerHTML: text,
-                        value: response['id'],
-                        data: {
-                            token: response['token'],
-                            lang: language,
-                        },
-                    });
-                    ts.options.add(opt);
-
-
-                    let langbox = document.getElementById('si_edit_lang_box_' + language);
-                    if (langbox) {
-                        langbox.innerHTML = response['text'];
-                    }
-
-
-                    let item = {
-                        createdon: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                        entity_id: SI.Editor.Data.Objects.Entities.Definitions.localtext.instanceguid,//dont need this but its in entities
-                        id: response['id'],
-                        modifiedon: null,
-                        name: response['token'],
-                        options: {},
-                        status: "active",
-                    }
-                    for (let l in SI.Editor.Objects.Language.CurrentInstalled) {
-                        //debugger;
-                        let lan = '_'+SI.Editor.Objects.Language.CurrentInstalled[l];
-                        if (lan == response['language']) {
-                            item[lan] = response['text'];
-                        }
-                        else {
-                            item[lan] = null;
-                        }
-                    }
-                    SI.Editor.Objects.Language.Current.push(item);
-                }
-            },
-            Current: <?= $localtexts ?>,
-            CurrentPreference: "<?= SI_LANGS ?>",
-            PerferredInstalledLanguage: "",
-            CurrentInstalled:[],
-            LastChar: 32,
-            DrawChars: function(quant) {
-                 //debugger;
-
-                this.copyChar = function (self) { alert("poof"); }
-                let last = SI.Editor.Objects.Language.LastChar;
-                if (last < 300000) {   //71000
-                    if (typeof quant === 'undefined') {
-                        quant = 100;
-                    }
-                    quant += last;
-                    let charMap = document.getElementById('si_edit_language_charmap');
-                    let chars = "";
-                    for (let i = last; i < quant; i++) {
-                        //let char = String.fromCharCode(i);
-                        let char = " &#" + i + "; ";
-                        if (char.length) {
-                            chars += char;
-                        }
-                    }
-                    charMap.innerHTML += chars;
-                    SI.Editor.Objects.Language.LastChar += chars.length; 
-                }
-            },
-            New: function() {
-                //debugger;
-                this.Clear();
-                let localtxt = document.getElementById('si_edit_lang_newtext');
-                let lang = localtxt.dataset.language;
-                let text = localtxt.value;
-
-                let options = {
-                    Data: {
-                        KEY: "LocaltextNew",
-                        language: lang,
-                        text:text,
-                    }
-                }
-
-                SI.Editor.Ajax.Run(options);
-            },
-            Clear: function() {
-                SI.Tools.Class.Loop("si_edit_lang_box", function (ele) { ele.clear(); });
-            },
-            Update: function(langindex, lang) {
-                if (SI.Editor.Objects.Language.Current[langindex]) {
-                    let localtext = SI.Editor.Objects.Language.Current[langindex];
-                    //debugger;
-                    if (localtext.id.length == 32) {
-                        localtext.id = '0x' + localtext.id;
-                    }
-                    let options = {
-                        Data: {
-                            KEY: "UpdateLocaltext",
-                            id: localtext.id,
-                            language: lang,
-                            text: localtext['_'+lang],
-                        }
-                    }
-                    SI.Editor.Ajax.Run(options);
-                }
-            },
-        },
-        Widgets: {
-            List: function() {
-                let widgets = ["Window"]
-
-            },
-        },
-        Alerts: {
-            StaticMove:"The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property",
-        }
+    // Mystery how this is not being defined above. 
     },
     Ajax: {
         Run: function(options) {
@@ -3769,7 +2310,8 @@ SI.Editor = {
                 "Data": {},
             }
             options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-            var ajax = new XMLHttpRequest();
+            let ajax = new XMLHttpRequest();
+            //debugger;
             ajax.open(options.Method, options.Url, options.Async);
             ajax.setRequestHeader("Content-Type", options.ContentType);
             ajax.onreadystatechange = function () {
@@ -3789,57 +2331,74 @@ SI.Editor = {
 
                 }
             };
-            var stringdata = JSON.stringify(options.Data);
+            let stringdata = JSON.stringify(options.Data);
             //debugger;
             ajax.send(stringdata);
         },
         Complete: function (json,options) {
-           
-            for (let prop in json) {
-                if (json.hasOwnProperty(prop)) {
-                    let value = json[prop];
-                    switch (prop) {
-                        case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
-                        case "EXCEPTION": alert(JSON.stringify(value)); break;
-                        case "REFRESH": location.reload(); break;
-                        case "CONSOLELOG": console.log(value); break;
-                        //
-                        case "PAGECREATED": SI.Editor.Objects.Page.Created(value); break;
-                        case "PAGESAVED": SI.Editor.Objects.Page.Saved(value); break;
-                        //Blocks
-                        case "BLOCKRELATED": SI.Editor.Objects.Blocks.Created(value); break;
-                        case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value); break; 
-                        case "BLOCKREMOVED": console.log(value); break; 
+            //debugger;
+            if(options.Callback){
+                    if(json.hasOwnProperty("PARAMETER")){
+                        let param = json['PARAMETER'];
+                        options.Callback(param);
+                    }
+                    else{
+                        options.Callback();
+                    }
+            }else{
 
-                        //Common
-                        case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
+                for (let prop in json) {
+                    if (json.hasOwnProperty(prop)) {
+                        let value = json[prop];
+                        switch (prop) {
+                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
+                            case "EXCEPTION": alert(JSON.stringify(value)); break;
+                            case "REFRESH": location.reload(); break;
+                            case "CONSOLELOG": console.log(value); break;
+                            //
+                            case "PAGECREATED": SI.Editor.Objects.Page.Created(value); break;
+                            case "PAGESAVED": SI.Editor.Objects.Page.Saved(value); break;
+                            //Blocks
+                            case "BLOCKRELATED": SI.Editor.Objects.Blocks.Created(value); break;
+                            case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value); break; 
+                            case "BLOCKREMOVED": console.log(value); break; 
 
-                        //Media
-                        case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;
-                        //Language
-                        case 'ADDEDLANGUAGE': SI.Editor.Objects.Language.Added(value); break;
-                        case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
-                        //User
-                        case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
-                        case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
-                        case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
-                        //Plugins
-                        case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
-                        case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
-                        case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
-                        case 'INSTALLPLUGINFAILED': alert('Plugin install has failed'); break;
-                        case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
-                        case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
-                        //Settings
-                        case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
-                        case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;
-                        //Security
-                        case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
-                        case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
+                            //Common
+                            case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
+
+                            //Media
+                            case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;
+                            //Language
+                            case 'ADDEDLANGUAGE': SI.Editor.Objects.Language.Added(value); break;
+                            case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
+                            //User
+                            case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
+                            case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
+                            case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
+                            //Security
+                            case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
+                            case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
+                            //Plugins
+                            case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
+                            case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
+                            case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
+                            case 'INSTALLPLUGINFAILED': alert('Plugin install has failed'); break;
+                            case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
+                            case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
+                            //Settings
+                            case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
+                            case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;
+                            case 'BUILDINSTALLER': SI.Tools.SuperAlert(value, 2000); break;
+                            case 'BACKUPDATABASE': SI.Tools.SuperAlert(value, 2000); break;
+                        }
                     }
                 }
             }
             //console.log(json);
+            //check for lookups
+            if(SI.Widgets.Lookup.Lookup){
+                SI.Widgets.Lookup.Lookup.CheckLookups();
+            }
         } 
     }
 }

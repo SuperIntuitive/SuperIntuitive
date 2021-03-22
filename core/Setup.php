@@ -2,6 +2,7 @@
 <?php
 Tools::Autoload();
 class Setup {
+
 	public function __construct(){
 		$domdir = $_SERVER["DOCUMENT_ROOT"].'/domains';
 		if( is_dir($domdir) === false )
@@ -10,7 +11,6 @@ class Setup {
 		}
 		$coredir = $_SERVER["DOCUMENT_ROOT"].'/core';
 		chmod($coredir, 0777);
-
 	}	
 	public function __destruct(){
 	}	
@@ -46,14 +46,12 @@ class Setup {
 		file_put_contents($log,$output,FILE_APPEND);
 	}
 
-
-
 	public function GetHead(){
 
 	   //Get the supported pdo drivers
 
 		return "<link rel='stylesheet' type='text/css' href='/style/setup.css'>
-		<script src='/scripts/setup.js'></script>
+		<script src='/scripts/setup.js?".rand()."'></script>
 		";			
 	}			
 	public function GetBody(){
@@ -65,7 +63,7 @@ class Setup {
 		require_once "MiscData.php";
 		$miscdata = new MiscData();
 		//Get Languages
-		$langs = $miscdata->languages;
+		$langs = $miscdata->Languages;
 		$langoptions = "";
 		$detectedlang = strtolower(explode(",",$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]);
 		foreach($langs as $k=>$v){
@@ -73,14 +71,14 @@ class Setup {
 			$langoptions.="<option value='$k' $selected >$v</option>";
 		}
 		//Get timezones
-		$timezones = $miscdata->timezones;
+		$timezones = $miscdata->TimeZones;
 		$timezonesoptions = "<option disabled selected value> -- select a timezone -- </option>";
 		foreach($timezones as $k=>$v){
 			$selected = (strtolower($k) == $detectedlang ? "selected='selected'" : "");
 			$timezonesoptions.="<option value='$k' $selected >$k</option>";
 		}	
 		//Get timezones
-		$currencies = $miscdata->currencies;
+		$currencies = $miscdata->Currencies;
 		$currenciesoptions = "<option disabled selected value> -- select a currency -- </option>";
 		foreach($currencies as $k=>$v){
 		//	$selected = (strtolower($k) == $detectedlang ? "selected='selected'" : "");
@@ -100,30 +98,30 @@ class Setup {
 					<header>
 					  <h2>Setup <i>SuperIntuitive</i> CMS</h2>
 					</header>
-					<main>
+					<main id='si_setup_main'>
 						<section>
-						    <form id='si_setup_form' onsubmit='setup.Submit(this)'>
+						    
 							<nav>
 								<ul>
-									<li class='menuitem' id='mi_sysinfo' onclick='setup.MenuItemClick(this.id)'>System Info</li>
-									<li class='menuitem' id='mi_database' onclick='setup.MenuItemClick(this.id)'>Database</li>
-									<li class='menuitem' id='mi_local' onclick='setup.MenuItemClick(this.id)'>Location</li>
-									<li class='menuitem' id='mi_admin' onclick='setup.MenuItemClick(this.id)'>Admin</li>
-									<li class='menuitem' id='mi_review' onclick='setup.MenuItemClick(this.id)'>Review</li>
-									<li class='menuitem' id='mi_install' onclick='setup.MenuItemClick(this.id)'>Install</li>
+									<li class='menuitem' id='mi_sysinfo' onclick='SI.Setup.MenuItemClick(this.id)'>System Info</li>
+									<li class='menuitem' id='mi_database' onclick='SI.Setup.MenuItemClick(this.id)'>Database</li>
+									<li class='menuitem' id='mi_local' onclick='SI.Setup.MenuItemClick(this.id)'>Location</li>
+									<li class='menuitem' id='mi_admin' onclick='SI.Setup.MenuItemClick(this.id)'>Admin</li>
+									<li class='menuitem' id='mi_review' onclick='SI.Setup.MenuItemClick(this.id)'>Review</li>
+									<li class='menuitem' id='mi_install' onclick='SI.Setup.MenuItemClick(this.id)'>Install</li>
 								</ul>
 								<p>
-									<button id='btnback' type='button' style='margin-top:100px; display:none' onclick='setup.ButtonClick(this);'>Back</button>
-									<button id='btnnext' type='button' style='margin-top:100px' onclick='setup.ButtonClick(this);'>Next</button>
+									<button id='btnback' type='button' style='margin-top:100px; display:none' onclick='SI.Setup.ButtonClick(this);'>Back</button>
+									<button id='btnnext' type='button' style='margin-top:100px' onclick='SI.Setup.ButtonClick(this);'>Next</button>
 									<button id='si_setup_hiddenbtn' style='display:none;'/>
 								</p>
 							</nav>
 							
-							   
+							<form id='si_setup_form' onsubmit='SI.Setup.Submit(this)'>
 								<article class='article' id='sysinfo'>
 									<h1>System Info</h1><br />
 									<p>Domain Name</p>
-									<p><input id='si_setup_host' name='domain' value='$host' data-group='sysinfo'  onchange=' this.value = this.value.trim(); setup.TestDomain();'  required /><span id='si_setup_domainsuccess'></span>*</p> <br />
+									<p><input id='si_setup_host' name='domain' value='$host' data-group='sysinfo'  onchange=' this.value = this.value.trim(); SI.Setup.TestDomain();'  required /><span id='si_setup_domainsuccess'></span>*</p> <br />
 									<p>Notifications Email Address</p>
 									<p><input id='si_setup_hostemail' type='email' name='noteemail' value='info@$host' data-group='sysinfo' /></p>
 								</article>
@@ -145,10 +143,10 @@ class Setup {
 
 									<p>Database Login</p>
 									<br />
-									<input type='radio' value='privuser' checked name='dbuserradio' onchange='setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_privuser'/>
+									<input type='radio' value='privuser' checked name='dbuserradio' onchange='SI.Setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_privuser'/>
 									<label for='si_setup_privuser' >Use privlidged user</label>
 									<br />
-									<input type='radio' value='existuser' name='dbuserradio' onchange='setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_existuser'/>
+									<input type='radio' value='existuser' name='dbuserradio' onchange='SI.Setup.ChangeDbLoginType(this)' data-group='database' id='si_setup_existuser'/>
 									<label for='si_setup_existuser'>Use existing user and database</label>
 							
 									<div id='si_prevuserbox'>
@@ -157,7 +155,11 @@ class Setup {
 										<p>This will use a privlidged user, usually root, to create a database and user with a long random password. The privlidged password is not stored and forgotten after the setup. The site password can be found in /core/DbCreds.php</p><br />
 										<p><input  name='privuser' id='si_setup_pruser' value='root' required data-group='database' title='This user must be able to create databases, tables, user and grant access' /></p><br />
 										<p>Privlidged Password</p>
-										<p><input  name='privpass' type='password' value='x' id='si_setup_prpw' required data-group='database'/></p><br />					
+										<p><input  name='privpass' type='password' value='x' id='si_setup_prpw' required data-group='database'/></p><br />	
+										<p>New Database User</p>
+										<p><input name='newuser' value='super_intuitive' id='si_setup_newun' data-group='database'/></p><br />
+										<p>New Database</p>
+										<p><input name='newdbname' value='super_intuitive' id='si_setup_newdb' data-group='database'/></p><br />					
 									</div>
 									<div id='si_existuserbox' style='display:none'>
 										<br />
@@ -170,7 +172,7 @@ class Setup {
 										<p>Existing DB Password</p>
 										<p><input name='existpass' value='x' type='password' id='si_setup_expw' data-group='database'/></p><br />					
 									</div>
-										<button type='button' onclick='setup.TestDatabase()'> Test Connection </button>
+										<button type='button' onclick='SI.Setup.TestDatabase()'> Test Connection </button>
 										<span id='si_setup_dbsuccess'></span>
 								</article>
 					  
@@ -190,7 +192,7 @@ class Setup {
 									<p>Super User</p>
 									<p><input name='adminuser' id='si_setup_adminuser' value='admin' data-group='admin'/></p><br />
 									<p>Super User Password</p>
-									<p><input name='adminpw' value='' minlength=8 id='si_setup_adminpassword' style='width:300px;' data-group='admin'/><button type='button' onclick='setup.SetRandomPassword(\"si_setup_adminpassword\")'>Generate Random</button></p>
+									<p><input name='adminpw' value='' minlength=8 id='si_setup_adminpassword' style='width:300px;' data-group='admin'/><button type='button' onclick='SI.Setup.SetRandomPassword(\"si_setup_adminpassword\")'>Generate Random</button></p>
 									<p>Super User Email</p>
 									<p><input name='adminemail' type='email' value='' id='si_setup_adminemail' style='width:300px;' data-group='admin'/></p>
 								</article>
@@ -239,7 +241,7 @@ class Setup {
 					</footer>
 					</div>
 					<script>
-						setup.Init();
+						SI.Setup.Init();
 					</script>
 					";	
 	}	
@@ -275,7 +277,6 @@ class Setup {
 			die(json_encode(array('outcome' => false, 'message' => 'Unable to connect:'.$ex->getMessage())));
 		}	
 	}
-
 	public function TestDomain($domain){
 		$dirExists = file_exists($_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain);
 
@@ -285,7 +286,6 @@ class Setup {
 		//do some other spec char checks
 		return true;
 	}
-
 	private function CreateDomainFolder($domain){
 		//PRE CONDITION: We already asked if they want to delete it by this point;
 		if(!$this->TestDomain($domain)){
@@ -300,7 +300,9 @@ class Setup {
 		$source = $_SERVER["DOCUMENT_ROOT"].'/core/setup/domaintemplate/';
 		$dest= $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
 		//Make the domain folder
-		mkdir($dest, 0755);
+		if(!file_exists($dest)){
+			mkdir($dest, 0755);
+		}
 		//Copy the setup/media folder into the new domain folder
 		foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $item) {
 			if ($item->isDir()) {
@@ -311,7 +313,6 @@ class Setup {
 		}
 
 	}
-
 	private function DeleteDomainFolder($domain){
 		$dir = $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
 		$di = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
@@ -321,169 +322,21 @@ class Setup {
 		}
 		return true;  //SO-4594180
 	}
-
 	private $guidTokens = array();
 	private $total = 0; //preg_match_all('(_SI_GUID_[1234567890]+)', $sqlstr, $matches2);
 	private $unique = 0;
-
-    public function SetupSuperIntuitive($post){
-		
-		$connect = null;
-		$user = null;
-		$pw = null;
-		$db = null;
-		$domain = null;
-		if(isset($post["dbtype"]) && isset($post["dbserver"]) && isset($post["dbport"]) && isset($post["dbuserradio"])){
-			$connect = $post["dbtype"].":host=".$post["dbserver"].":".$post["dbport"].';';
-			if($post["dbuserradio"]=='privuser' && isset($post["privuser"]) && isset($post["privpass"])){
-				$user = $post["privuser"];
-				$pw = $post["privpass"];
-			}
-			else if($post["dbuserradio"]=='existuser' && isset($post["existdb"]) && isset($post["existuser"]) && isset($post["existpass"])){
-			    $connect .="dbname=".$post["existdb"];
-				$user = $post["existuser"];
-				$pw = $post["existpass"];
-				$db = $post["existdb"];
-			}
-		}
-
-		if($post["dbuserradio"]=='privuser'){
-		    Tools::Log("about to create the user/db for root", true);
-			
-
-			$pw = $this->CreateDbForRoot($connect,$post); 
-
-			if($pw === false){
-			    Tools::Log("pw was false. epic fail", true);
-				return;
-			}
-
-			//Now that the database and user is setup, overwrite the root creds with the si creds.
-			Tools::Log("created the new si db with pw:".$pw, true);
-			$user = $db ="super_intuitive";
-			$connect .="dbname=super_intuitive";
-		}
-
-		//setup the /domain/hostname directory
-		if(isset($post['domain'])){
-		    $domain = $post['domain'];
-		}else{
-		    $domain = 'localhost'; //this should never happen if I validated right on the form
-		}
-		//
-		$this->CreateDomainFolder($domain);
-		
-		//move the current DbCreds file to an incremented one as to not overwrite any passwords
-		$dbcrds =  $_SERVER["DOCUMENT_ROOT"].'/core/DbCreds';
-		if(file_exists($dbcrds.".php"))
-		{
-			$test = trim(file_get_contents($dbcrds.".php"));
-			Tools::Log("Logging Test");
-			Tools::Log($test);
-			Tools::Log("Done Loggin Test");
-			if($test != "<?php class DbCreds { }"){
-				$counter=1;
-				while (file_exists($dbcrds."_".$counter.".php")) {
-						$counter++;
-				}
-
-				if (!copy($dbcrds.".php", $dbcrds."_".$counter.".php")) {
-					Tools::Log("Failed to copy file",true);
-				}else{
-					Tools::Log("Copy success",true);
-				}
-			}
-
-		}
-
-				//Create new dbcreds
-		$newcreds = '<?php
-		class DbCreds {
-			protected $servername = "'.$post['dbserver'].'";
-			protected $username = "'.$user.'";
-			protected $password = "'.$pw.'"; 
-			protected $database = "'.$db.'";
-			protected $dbtype = "'.$post["dbtype"].'";
-		} ';
-		file_put_contents($dbcrds.".php", $newcreds);
-		Tools::Log("Built new Creds file",true);
-
-		chmod($_SERVER["DOCUMENT_ROOT"].'/core', 0755);
-		//$dbms_schema = $_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql';
-		
-
-
-		//$sqls = explode(';',$sql_query);
-		//this is the dbc to build the database
-		$dbc=null;
-		try{
-		Tools::Log("Try to connect",true);
-			$dbc = new PDO($connect, $user, $pw);
-			Tools::Log("Connected with db string: ".$connect, true);
-		} catch (PDOException $e) {
-			Tools::Log("New Database login error: ". $e->getMessage());
-			die("DB ERROR: ". $e->getMessage());
-		}
-
-		Tools::Log($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql', true);
-
-		//$sqlfile = file_get_contents($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql');
-		$sqlfile = file($_SERVER["DOCUMENT_ROOT"].'/core/setup/super_intuitive_install.sql', FILE_SKIP_EMPTY_LINES);
-		
-
-
-		array_unshift($sqlfile, "USE $db;\n");
-
-		$this->RemoveBlanksAndComments($sqlfile);
-
-		//change it into a string to do the replaces
-		$sqlstr = implode($sqlfile);
-
-		//This allows new installs to have their own fresh guids and not old ones that were made when I made the installer sql script.
-
-		//$guidTokens = array();
-
-		$this->ReplaceTokens($sqlstr, $post);
-
-
-		Setup::Log($sqlstr);
-		//split again but this time by semicolons followed by newlines
-		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
-		Tools::Log($sqlfile,true);
-
-		$outcome = true;
-		$msg = "";
-		foreach($sqlfile as $sql){
-			try {
-				$dbc->exec($sql);
-			} catch (PDOException $ex) {
-				Tools::Log("Error performing Query: " . $sql . "   Message: " . $ex->getMessage() . "\n",true);
-				$msg .= $ex->getMessage()." ";
-				$outcome = false;
-			}
-		}
-	
-		if($outcome){
-			$result = array("outcome" => true, "time" => "5000", "message"=>"Congratulations!<br />Setup is Complete.<br />Welcome to Super Intuitive!" );
-			echo json_encode($result);
-			session_unset(); 
-		}else{
-			echo json_encode(array('outcome' => false, 'message' => 'Error adding data to database: '.$msg));
-		}
-	}
-
 	private function ReplaceTokens(&$sqlstr, $post){
 	    Tools::Log("In Replace Tokens");
-		Tools::Log($sqlstr);
-		Tools::Log("In Replace Guids");
+
+		Tools::Log("Replacing Guids");
 		$sqlstr = preg_replace_callback(
 			"(_SI_GUID_[1234567890]+)",
 			function ($matches) {
 				if(count($matches)>0){
 
 					$match = $matches[0];
-					Tools::Log("Matches:".$match);
-					Tools::Log("Matches:".print_r($matches,true));
+					//Tools::Log("Matches:".$match);
+					//Tools::Log("Matches:".print_r($matches,true));
 					$this->total++;
 					if(isset($this->guidTokens[$match])){
 						Tools::Log("Guid Match Exists for: ".$match.' Returning Guid: '.$this->guidTokens[$match]);
@@ -498,14 +351,13 @@ class Setup {
 						//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 						return $guid;
 					}
-					Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
+					//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 				}
-				Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
+				//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 			},
 			$sqlstr
 		);
 		Tools::Log("Afterreplace Guids");
-		Tools::Log($sqlstr);
 		//replace all of the created on 
 		$sqlstr = str_replace("_SI_NOWTIME_"," CURRENT_TIMESTAMP() ",$sqlstr);
 		
@@ -526,14 +378,15 @@ class Setup {
 		$installedlanguages = ['ar','zh','en','fr','de','hi','it','ja','ko','es'];
 		//if the selected language is not in the default languages list, we should add it.
 		if(!in_array($post['language'],$installedlanguages)){
-		    $miscdata = new MiscData();
-		    $langname = $miscdata->languages[$deflang];
+			$miscdata = new MiscData();
+			$langname = $miscdata->Languages[$deflang];
 			$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__',   ", `_$deflang` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '{\"Name\":\"$langname\"}'"  ,$sqlstr);
 			Tools::Error($sqlstr);
 		}else{
-		    //remove the token
-		    $sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__','',$sqlstr);
+			//remove the token
+			$sqlstr= str_replace('__SI_DEFAULT_LANGUAGE_COLUMN__','',$sqlstr);
 		}
+
 		
 
 		//set the dollars
@@ -548,21 +401,22 @@ class Setup {
 		Tools::Log("Unique: ".$this->unique);
 
 	}
-
 	private function CreateDbForRoot($connection,$post){
 		$pw = $this->RandomString();
 
 		try {
 			$root = $post['privuser'];
 			$root_password = $post['privpass'];
+			$user = $post['newuser'];
+			$dbname = $post['newdbname'];
 			$dbh = new PDO($connection, $root, $root_password);
 			$dbserver = $post['dbserver'];
 			Tools::Log($dbserver,true);
-			$sql = " DROP DATABASE IF EXISTS `super_intuitive`;
-			        DROP USER IF EXISTS 'super_intuitive'@'$dbserver';
-					CREATE DATABASE `super_intuitive` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;				
-					CREATE USER 'super_intuitive'@'$dbserver' IDENTIFIED BY '$pw';
-					GRANT ALL PRIVILEGES ON super_intuitive.* TO 'super_intuitive'@'$dbserver';
+			$sql = " DROP DATABASE IF EXISTS `$dbname`;
+			        DROP USER IF EXISTS '$user'@'$dbserver';
+					CREATE DATABASE `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;		
+					CREATE USER '$user'@'$dbserver' IDENTIFIED BY '$pw';
+					GRANT ALL PRIVILEGES ON $dbname.* TO '$user'@'$dbserver';
 					FLUSH PRIVILEGES;";
 			Tools::Log($sql,true);
 			$dbh->exec($sql);
@@ -673,4 +527,152 @@ class Setup {
 		}
 
 	}
+
+
+    public function SetupSuperIntuitive($post){		
+		$connect = null;
+		$user = null;
+		$pw = null;
+		$db = null;
+		$domain = null;
+		if(isset($post["dbtype"]) && isset($post["dbserver"]) && isset($post["dbport"]) && isset($post["dbuserradio"])){
+			$connect = $post["dbtype"].":host=".$post["dbserver"].":".$post["dbport"].';';
+			if($post["dbuserradio"]=='privuser' && isset($post["privuser"]) && isset($post["privpass"])){
+				$user = $post["privuser"];
+				$pw = $post["privpass"];
+			}
+			else if($post["dbuserradio"]=='existuser' && isset($post["existdb"]) && isset($post["existuser"]) && isset($post["existpass"])){
+			    $connect .="dbname=".$post["existdb"];
+				$user = $post["existuser"];
+				$pw = $post["existpass"];
+				$db = $post["existdb"];
+			}
+		}
+
+		if($post["dbuserradio"]=='privuser'){
+		    Tools::Log("about to create the user/db for root", true);
+			
+
+			$pw = $this->CreateDbForRoot($connect,$post); 
+
+			if($pw === false){
+			    Tools::Log("pw was false. epic fail", true);
+				return;
+			}
+
+			//Now that the database and user is setup, overwrite the root creds with the si creds.
+			Tools::Log("created the new si db with pw:".$pw, true);
+			$user = $post["newuser"];
+			$db = $post["newdbname"];
+			$connect .="dbname=$db";
+		}
+
+		//setup the /domain/hostname directory
+		if(isset($post['domain'])){
+		    $domain = $post['domain'];
+		}else{
+		    $domain = 'localhost'; //this should never happen if I validated right on the form
+		}
+		//
+		$this->CreateDomainFolder($domain);
+		
+		//move the current DbCreds file to an incremented one as to not overwrite any passwords
+		$dbcrds =  $_SERVER["DOCUMENT_ROOT"].'/core/DbCreds';
+		if(file_exists($dbcrds.".php"))
+		{
+			$test = trim(file_get_contents($dbcrds.".php"));
+			Tools::Log("Logging Test");
+			Tools::Log($test);
+			Tools::Log("Done Loggin Test");
+			if($test != "<?php class DbCreds { }"){
+				$counter=1;
+				while (file_exists($dbcrds."_".$counter.".php")) {
+						$counter++;
+				}
+
+				if (!copy($dbcrds.".php", $dbcrds."_".$counter.".php")) {
+					Tools::Log("Failed to copy file",true);
+				}else{
+					Tools::Log("Copy success",true);
+				}
+			}
+
+		}
+
+				//Create new dbcreds
+		$newcreds = '<?php
+		class DbCreds {
+			protected $servername = "'.$post['dbserver'].'";
+			protected $username = "'.$user.'";
+			protected $password = "'.$pw.'"; 
+			protected $database = "'.$db.'";
+			protected $dbtype = "'.$post["dbtype"].'";
+		} ';
+		file_put_contents($dbcrds.".php", $newcreds);
+		Tools::Log("Built new Creds file",true);
+
+		chmod($_SERVER["DOCUMENT_ROOT"].'/core', 0755);
+		//$dbms_schema = $_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql';
+		
+
+
+		//$sqls = explode(';',$sql_query);
+		//this is the dbc to build the database
+		$dbc=null;
+		try{
+		Tools::Log("Try to connect",true);
+			$dbc = new PDO($connect, $user, $pw);
+			Tools::Log("Connected with db string: ".$connect, true);
+		} catch (PDOException $e) {
+			Tools::Log("New Database login error: ". $e->getMessage());
+			die("DB ERROR: ". $e->getMessage());
+		}
+
+		Tools::Log($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql', true);
+
+		//$sqlfile = file_get_contents($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql');
+		$sqlfile = file($_SERVER["DOCUMENT_ROOT"].'/core/setup/super_intuitive_install.sql', FILE_SKIP_EMPTY_LINES);
+		
+
+
+		array_unshift($sqlfile, "USE $db;\n");
+
+		$this->RemoveBlanksAndComments($sqlfile);
+
+		//change it into a string to do the replaces
+		$sqlstr = implode($sqlfile);
+
+		//This allows new installs to have their own fresh guids and not old ones that were made when I made the installer sql script.
+
+		//$guidTokens = array();
+
+		$this->ReplaceTokens($sqlstr, $post);
+
+
+		Setup::Log($sqlstr);
+		//split again but this time by semicolons followed by newlines
+		$sqlfile = explode(';'.PHP_EOL,$sqlstr);
+		//Tools::Log($sqlfile,true);
+
+		$outcome = true;
+		$msg = "";
+		foreach($sqlfile as $sql){
+			try {
+				$dbc->exec($sql);
+			} catch (PDOException $ex) {
+				Tools::Log("Error performing Query: " . $sql . "   Message: " . $ex->getMessage() . "\n",true);
+				$msg .= $ex->getMessage()." ";
+				$outcome = false;
+			}
+		}
+	
+		if($outcome){
+			$result = array("outcome" => true, "time" => "5000", "message"=>"Congratulations!<br />Setup is Complete.<br />Welcome to Super Intuitive!" );
+			echo json_encode($result);
+			session_unset(); 
+		}else{
+			echo json_encode(array('outcome' => false, 'message' => 'Error adding data to database: '.$msg));
+		}
+	}
+
 } 

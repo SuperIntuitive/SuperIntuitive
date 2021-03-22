@@ -1,18 +1,19 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+if(!SI.Widgets.Tile){SI.Widgets.Tile = {}};
+SI.Widget.Tile = function (options) { 
+    if (!(this instanceof SI.Widget.Tile)) { return new SI.Widget.Tile(options); }
 
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Tile");}
+    this.Input = {...options};
+    SI.Widgets.Tile[this.Id] = this;
 
-SI.Widget.Tile = function(options) {
-    if (!(this instanceof SI.Widget.Tile)) { return new SI.Widget.Tile(); }
     this.Defaults = {
+        "Parent":null,
         "Type": "Images",
-        "Url": "",
+        "Url": "/scripts/widgets/media/icons/default_image.png",
         "ContainerClass": "",
         "Position": "relative",
-        "Mime":null,
+        "Mime":"application/octet-stream",
         "ImageHeight": "140px",
         "ImageWidth": "100px",
         "AudioHeight": "83px",
@@ -24,39 +25,39 @@ SI.Widget.Tile = function(options) {
         "Display": "inline-block",
         "Margin": "6px",
         "Border": "1px solid #ccc",
-        "BackgroundColor": "gray",
-        "SelectedBrightness": '125%',
+        "BackgroundColor": SI.Editor.Style.BackgroundColor,
+        "SelectedBrightness": '110%',
         "Radius": "3px",
         "FontSize": "1em",
         "FontColor": "black",
-        "Text": '',
+        "Text": false,
         "TextAlign": "center",
-        "ParentId": "",
         "Data": {},
         "Enabled": true,
         "SelectedShadow": "0px 0px 10px 2px rgba(218, 165, 32, 0.5)",
-        "OnChange": null,
-        "Group": "Generic",
-        "NameChanged": function () { }
+        "OnChange": function (ev, self) { },
+        "Group": "generic-tile",
+        "NameChanged": function (ev, self) { }
     };
-    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+    options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
-    let self = this;
-
-    this.Random = SI.Tools.String.RandomString(11);
-
-    let height, width, labelH, labelW, pos;
-    switch (this.Options.Type) {
+    let height, width, labelH, labelW, pos, classtype, mime;
+    switch (options.Type) {
         case "Images":
             height = "148px";
             width = "100px";
             labelH = (parseInt(height) - 40) + 'px';
             labelW = '80px';
             pos = 'absolute';
+            classtype = "si-tile-image";
+            if (!options.Text) {
+                let len = document.getElementsByClassName("si-tile-image").length;
+                options.Text = "ImageTile" + len;
+            }
             this.Thumb = Ele('img', {
-                src: SI.Tools.GetMediaFilePath(this.Options.Url),
+                src: SI.Tools.GetMediaFilePath(options.Url),
                 style: {
-                    backgroundImage: "url('/editor/media/icons/transparentBackground.jpg')", //if the image has transpency to checkerboards
+                    backgroundImage: "url('/scripts/widgets/media/icons/transparent_background.jpg')",
                     width: '90%'
                 }
             });
@@ -68,7 +69,8 @@ SI.Widget.Tile = function(options) {
             labelH =  '1px';
             labelW = '180px';
             pos = 'relative';
-            if (this.Options.Mime === null) {
+            classtype = "si-tile-audio";
+            if (options.Mime === null) {
                 "audio/mpeg";
             }
             //debugger;
@@ -77,7 +79,7 @@ SI.Widget.Tile = function(options) {
                 style: {
                     width: '90%'
                 },
-                append: Ele('source', { src: SI.Tools.GetMediaFilePath(this.Options.Url), type: this.Options.Mime })
+                append: Ele('source', { src: SI.Tools.GetMediaFilePath(options.Url), type: options.Mime })
             });
             break;
 
@@ -87,7 +89,8 @@ SI.Widget.Tile = function(options) {
             labelH = (parseInt(height) - 240) + 'px';
             labelW = '180px';
             pos = 'relative';
-            if (this.Options.Mime === null) {
+            classtype = "si-tile-video";
+            if (options.Mime === null) {
                 "video/mp4";
             }
             this.Thumb  = Ele('video', {
@@ -95,24 +98,27 @@ SI.Widget.Tile = function(options) {
                 style: {
                     width: '90%'
                 },
-                append: Ele('source', { src: SI.Tools.GetMediaFilePath(this.Options.Url), type: this.Options.Mime })
+                append: Ele('source', { src: SI.Tools.GetMediaFilePath(options.Url), type: options.Mime })
             });
             break;
 
         case "Docs":
-            height =  "320px";
+            height =  "360px";
             width = "240px";
             labelH = (parseInt(height) - 15) + 'px';
             labelW = '180px';
             pos = 'absolute';
-            this.Thumb  = Ele('embed', {
-                src: SI.Tools.GetMediaFilePath(this.Options.Url),
-                type: mime,
+            classtype = "si-tile-docs";
+            this.Thumb  = Ele('object', {
+                data: SI.Tools.GetMediaFilePath(options.Url),
+                type: options.Mime,
+                title:options.Text,
                 style: {
                     width: '90%',
                     height: '90%',
-                    overflowY: 'hidden',
+                    overflow: 'hidden',
                 }
+
             });
             break;
 
@@ -122,12 +128,15 @@ SI.Widget.Tile = function(options) {
             labelH = (parseInt(height) - 40) + 'px';
             labelW = '80px';
             pos = 'absolute';
+            classtype = "si-tile-data";
+
             this.Thumb = Ele('img', {
-                src: '/editor/media/icons/datafile.png',
+                src: '/scripts/widgets/media/icons/datafile.png',
                 style: {
                     width: '90%'
                 }
             });
+        
             break;
 
         case "Fonts":
@@ -136,8 +145,9 @@ SI.Widget.Tile = function(options) {
             labelH = (parseInt(height) - 40) + 'px';
             labelW = '80px';
             pos = 'absolute';
+            classtype = "si-tile-font";
             this.Thumb = Ele('img', {
-                src: '/editor/media/icons/fontfile.png',
+                src: '/scripts/widgets/media/icons/fontfile.png',
                 style: {
                     width: '90%'
                 }
@@ -150,94 +160,124 @@ SI.Widget.Tile = function(options) {
             labelH = (parseInt(height) - 40) + 'px';
             labelW = '80px';
             pos = 'absolute';
+            classtype = "si-tile-other";
             this.Thumb = Ele('img', {
-                src: '/editor/media/icons/window-media.png',
+                src: '/scripts/widgets/media/icons/window-media.png',
                 style: {
                     width: '90%'
                 }
             });
             break;
     }
-
     //set this for the media type ONLY if it is not passed in
-    this.Options.Height = this.Options.Height ? this.Options.Height : height;
-    this.Options.Width = this.Options.Width ? this.Options.Width : width;
-    this.Options.LabelHeight = this.Options.LabelHeight ? this.Options.LabelHeight : labelH;
-    this.Options.LabelWidth = this.Options.LabelWidth ? this.Options.LabelWidth : labelW;
-    this.Options.TextPosition = this.Options.TextPosition ? this.Options.TextPosition : pos;
-
+    options.Height = options.Height ? options.Height : height;
+    options.Width = options.Width ? options.Width : width;
+    options.LabelHeight = options.LabelHeight ? options.LabelHeight : labelH;
+    options.LabelWidth = options.LabelWidth ? options.LabelWidth : labelW;
+    options.TextPosition = options.TextPosition ? options.TextPosition : pos;
+    if (!options.Data.hasOwnProperty("mime") && options.hasOwnProperty("Mime")) {
+        options.Data.mime = options.Mime;
+    }
     this.Container = Ele("div", {
-        id: "si_tile_" + this.Random,
-        class: this.Options.Group,
+        id: this.Id,
+        class: options.Group + " " + classtype,
         style: {
-            width: this.Options.Width,
-            height: this.Options.Height,
-            position: this.Options.Position,
-            margin: this.Options.Margin,
-            display: this.Options.Display,
+            width: options.Width,
+            height: options.Height,
+            position: options.Position,
+            margin: options.Margin,
+            display: options.Display,
             verticalAlign: 'top',
-            textAlign: this.Options.TextAlign,
-            backgroundColor: SI.Editor.Style.BackgroundColor,
-            borderRadius: this.Options.Radius,
+            textAlign: options.TextAlign,
+            backgroundColor: options.BackgroundColor,
+            borderRadius: options.Radius,
             paddingTop: (parseInt(height) / 20) + 'px'
         },
-        data: this.Options.Data,
+        data: options.Data,
         onclick: function (ev) {
-            let b = (self.Options.Group !== null && self.Options.Enabled);
-            SI.Tools.Class.Loop(self.Options.Group, function (ele) {
+            let b = (options.Group !== null && options.Enabled);
+            SI.Tools.Class.Loop(options.Group, function (ele) {
                 if (b) {
                     ele.style.boxShadow = '';
                     ele.style.filter = "brightness(100%)";
                 }
             });
             if (b) {
-                this.style.boxShadow = self.Options.SelectedShadow;
-                this.style.filter = "brightness(120%)";
+                this.style.boxShadow = options.SelectedShadow;
+                this.style.filter = "brightness("+options.SelectedBrightness+")";
             }
-            if (self.Options.OnChange) {
-                self.Options.OnChange(ev, this);
+            if (options.OnChange) {
+                options.OnChange(ev, this);
             }
         },
+
         append: this.Thumb
     });
-
-    this.Title = Ele('span', {
-        innerText: this.Options.Text,
+    //Title
+    let title = Ele('span', {
+        innerText: options.Text,
         style: {
-            position: this.Options.TextPosition,
+            position: options.TextPosition,
             backgroundColor: '#F5FFFA',
             padding: '2px',
             marginLeft: 'auto',
             marginRight: 'auto',
-            borderRadius: this.Options.Radius,
+            borderRadius: options.Radius,
             left: '8px',
-            top: this.Options.LabelHeight,
+            top: options.LabelHeight,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            width: this.Options.LabelWidth,
+            width: options.LabelWidth,
             maxHeight: '40px'
         },
         data: {
-            simediatype: this.Options.Type
+            simediatype: options.Type
         },
+        contentEditable: false,
         ondblclick: function () {
-            if (!title.contentEditable) {
-                title.contentEditable = 'true';
+            if (this.contentEditable === 'false') {
+                this.contentEditable = 'true';
             }
             else {
-                title.contentEditable = 'false';
+                this.contentEditable = 'false';
             }
         },
-        onblur: function (e) {
-            this.title = this.innerText;
+        oninput: function () {
+           // debugger;
             document.getElementById("si_media_" + this.dataset.simediatype + "_Name").value = this.innerText;
+            
+        },
+        onblur: function (ev) {
+            options.NameChanged(ev, this);
+        },
+        appendTo: this.Container
+    });
+    
+    let fs = Ele('button', {
+        innerHTML:'&#x26F6;',
+        style:{
+            padding:'0px',
+            textAlign:'center',
+            lineHeight:"0px",
+            verticalAlign: 'middle',
+            position:'absolute',
+            bottom:"0px",
+            right:'0px',
+            width:'14px',
+            height:'13px',
+            color:'#fff',
+            backgroundColor:'#555',
+            opacity:'0.3',
+            borderRadius: options.Radius,
+        },
+        onclick: function(){
+            window.open(SI.Tools.GetMediaFilePath(options.Url), "_blank");
         },
         appendTo: this.Container
     });
 
-    
-    if (this.Options.Parent) {
-        this.Options.Parent.appendChild(this.Container);
+    if (options.Parent) {
+        options.Parent.appendChild(this.Container);
     }
 
     return this;

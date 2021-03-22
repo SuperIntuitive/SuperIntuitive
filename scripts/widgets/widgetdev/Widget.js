@@ -58,7 +58,7 @@ class Widget{
         //debugger;
         if(id){
             let parent;
-            if(id == document.body){
+            if (id === document.body){
                 parent = document.body;
             }else if(id.charAt(0) === '#'){
                 parent = document.querySelector(id);

@@ -87,7 +87,7 @@ class Tools{
 		$subdomain = str_replace("www","",$subdomain);
 	    //	echo "Sub: $subdomain -";
 		define('SI_DOMAIN_NAME', $host);
-		define('SI_BUSINESSUNIT_NAME', $subdomain);
+		define('SI_SUBDOMAIN_NAME', $subdomain);
 		define('SI_PAGE_PATH',$path);
 		define('SI_NET_SCHEME',$scheme);
 		define('SI_API_QUERY', $query);
@@ -111,15 +111,15 @@ class Tools{
 	static function IsLocalhost($whitelist = ['127.0.0.1', '::1']) {
 		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
 	}
-	static function Log($data,$tofile=false){
-		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.log';
+	static function Log($data,$filetype='log'){
+		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.'.$filetype;
 		if(file_exists($log)){
 			if (time() - filemtime($log) > 5) {
 				unlink($log);
 			} 
 		}else{
 		    mkdir($_SERVER["DOCUMENT_ROOT"].'/logs', 0755, true);
-			fopen($_SERVER["DOCUMENT_ROOT"].'/logs/dev.log', "w");
+			fopen($log, "w");
 		}
 	    $back = debug_backtrace(2);
 		$debuginfo='';
@@ -128,7 +128,7 @@ class Tools{
 				if( $i===0){ //dont care about the tracking the Tools::Log function. 
 				}else{
 					if( isset($bt['class']) && isset($bt['function'])&& isset($back[$i-1]['line']) ){
-						$debuginfo .= "line:".$back[$i-1]['line']." ".$bt['class'].'->'.$bt['function'].'()'."\r\n";
+						$debuginfo .= "line:".$back[$i-1]['line']." ".$bt['class'].'->'.$bt['function'].'()';
 					}
 				}
 			}
@@ -137,7 +137,7 @@ class Tools{
 			$data = print_r($data, true);
 		}
 		$milliseconds = round(microtime(true) * 1000);
-		$output =  date("Y-m-d H:i:s").":$milliseconds\r\n$data \r\n$debuginfo---------------------------------\r\n";
+		$output =  "/*\r\n".date("Y-m-d H:i:s").":$milliseconds\r\n$debuginfo\r\n-----------------------------------------------------------------------\r\n*/\r\n$data\r\n/*-------------------------------------------------------------------*/\r\n";
 
 		file_put_contents($log,$output,FILE_APPEND);
 	}
@@ -201,7 +201,28 @@ class Tools{
 		if(!empty($dbt))
 		file_put_contents($_SERVER["DOCUMENT_ROOT"].'/logs/dev.log',$funcpath."\n\r", FILE_APPEND);
 	}
-	static function GetFileMimeType($file) {
+	static function GetFileTypeData($ext) {
+	    $allowedFileTypes = explode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings']['AllowedFileTypes']);
+		//Tools::Log($allowedFileTypes);
+		if($allowedFileTypes == null){
+			Tools::Log("AllowedFileTypes Setting cannot be found. please try loggin in again.");
+			return false;
+		}
+		if(!in_array ($ext,  $allowedFileTypes)){
+			Tools::Log($ext." is not a allowed file type");
+			return false;
+		}
+
+		$md = new MiscData();
+		$mimes = $md->MimeTypes;
+		Tools::Log($ext);
+		if (array_key_exists($ext,$mimes))
+		{
+		    $filedata = $mimes[$ext];
+			return explode('|',$filedata);
+		}
+		return false;
+		/*
 		if (function_exists('finfo_file')) {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			$type = finfo_file($finfo, $file);
@@ -219,6 +240,7 @@ class Tools{
 		}
 		
 		return $type;
+		*/
 	}
 	static function GetIpAddress(){
 		if (!empty($_SERVER['HTTP_CLIENT_IP']))   //check ip from share internet
@@ -366,7 +388,7 @@ class Tools{
 	}
 	static function UserHasRole($checkroles){
 		
-		//Tools::Log('The current users roles are: '.implode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles']));
+		//Tools::Log('The current users roles are: '.implode(',',$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles']));
 		$roles = array();
 	    if(is_array($checkroles)){
 			$roles = $checkroles;			
@@ -384,9 +406,9 @@ class Tools{
 		$usersRoles = array();
 		//This SHOULD be able to be done in one line with array_intersect but I cant get it working this second
 
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles']))
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles']))
 		{
-			$userRoles = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles'];
+			$userRoles = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'];
 
 			$cross = array_intersect($userRoles, $roles);
 			
@@ -414,7 +436,7 @@ class Tools{
 		return FALSE;
 	}
 	static function GetEntityNameFromGuid($guid){
-		$entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'];
+		$entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];
 		foreach($entities as $k=>$v){
 			if(!empty($v['instanceid'])){
 				if($v['instanceid'] == $guid){
@@ -426,8 +448,8 @@ class Tools{
 	}
 	static function GetEntityGuidFromName($name){
 		$name = strtolower($name);
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['instanceguid'])){
-			return $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$name]['instanceguid'];
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['instanceguid'])){
+			return $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$name]['instanceguid'];
 		}
 		return null;
 	}
@@ -443,17 +465,17 @@ class Tools{
 		$text = str_replace("__NOW.DBTIME__",date("Y-m-d H:i:s"), $text);
 		$text = str_replace("__NOW.DATEPATH__",date("Y/m/d"), $text);
 		//allow the user to make replacements with Settings
-		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'])){
-			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['settings'];
-			Tools::Log($settings);		
+		if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings'])){
+			$settings = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['settings'];
+			//Tools::Log($settings);		
 			foreach($settings as $k=>$v){
 
 			    $match = preg_match('/^(__\w*__)$/', $k, $matches, PREG_UNMATCHED_AS_NULL);
-				Tools::Log("match");
-				Tools::Log($match);
+				//Tools::Log("match");
+				//Tools::Log($match);
 				if($match > 0){
-					Tools::Log($k." ".$v);
-					Tools::Log($text);
+					//Tools::Log($k." ".$v);
+					//Tools::Log($text);
 					$text = str_replace($k,$v, $text);
 				}
 
@@ -523,9 +545,6 @@ class Tools{
 	}
 	static function Trace(){
 		Tools::Log( debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3));
-	//	if(!empty($trace[1]) ){
-		//	Tools::Log('Backtrace:'.str_replace(str_replace('/','\\',$_SERVER["DOCUMENT_ROOT"]),"", implode(" - ",$trace[1])   ));
-	//	}
 	}
 	static function SafeKey($key, $array){
 		if(!isset($array[$key])){
@@ -562,7 +581,7 @@ class Tools{
 		//Tools::Log($text);
 		if (defined('SI_LANGS') && ( strpos ($text,'SI_MULTILANG_')> - 1 ) )
 		{
-		    $localtextattr = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities']['localtext']['attributes'];
+		    $localtextattr = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'];
 			$langs = strtolower(SI_LANGS);
 			$lanarr = explode(',',$langs);
 			$lanarr = preg_filter('/^/', '_', $lanarr);
@@ -572,9 +591,9 @@ class Tools{
 				   $filtLanArr[] = $lan;
 				}
 			}
-			Tools::Log($localtextattr);
-			Tools::Log($lanarr);
-			Tools::Log($filtLanArr);
+			//Tools::Log($localtextattr);
+			//Tools::Log($lanarr);
+			//Tools::Log($filtLanArr);
 
 			$cols = implode("`,`",$filtLanArr);
 
@@ -588,7 +607,7 @@ class Tools{
 				$placeholders = str_repeat ('?, ',  count ($inset) - 1) . '?';
 				$pdo = $db->DBC();
 				$sql = "SELECT `$cols`,`name` FROM `localtext` WHERE `name` IN($placeholders);";
-				Tools::Log($sql);
+				//Tools::Log($sql);
 				$query = $pdo->prepare($sql);
 				if ($query->execute($inset)) {
 					$data = $query->fetchAll();

@@ -1,11 +1,15 @@
-﻿if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+﻿if(!SI.Widgets.Accordian){ SI.Widgets.Accordian = {};}
+SI.Widget.Accordian = function  (options) { 
+    options = typeof options !== 'undefined' ? options : {};
+    if (!(this instanceof SI.Widget.Accordian)) { return new SI.Widget.Accordian(options); }
 
-SI.Widget.Accordion = function (options) {
-    if (!(this instanceof SI.Widget.Accordion)){return new SI.Widget.Accordion();}
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Accordian");}
+    this.Input = {...options};
+    SI.Widgets.Accordian[this.Id] = this;
+
     this.Defaults = {
         "Parent": null,
-        "ParentIndex":null,
         "Sections": null,
         "Duration": null,
         "Width": '100%',
@@ -20,7 +24,7 @@ SI.Widget.Accordion = function (options) {
 
     this.Groups = [];
     this.Container = Ele("div", {
-        id: "si_widget_accordian_" + self.Random,
+        id: this.Id,
         class:"si-widget si-widget-accordion",
     });
 
@@ -111,8 +115,10 @@ SI.Widget.Accordion = function (options) {
     }
 
     if (this.Options.Parent) {
-        this.Options.Parent.appendChild(container);
+        this.Options.Parent.appendChild(this.Container);
     }
+
+    SI.Widgets.Accordian[this.Id] = this;
 
     return this;
 

@@ -24,8 +24,8 @@ class Deployment {
 	public function DrawControls(){
 		if(Tools::UserHasRole("Admin,Tester"))
 		{
-			if(isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] )){
-				$dep = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+			if(isset( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] )){
+				$dep = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 
 				$liveB = "filter:brightness(50%)";
 				$testB = "filter:brightness(50%)";
@@ -62,14 +62,14 @@ class Deployment {
 					{
 						if(Tools::UserHasRole("Admin"))
 						{
-							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] = "dev";
+							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] = "dev";
 						}
 					}
 					else
 					{
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] = $post['Deployment'];
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] = $post['Deployment'];
 					}
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
+					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
 				}
 			}
 		}
@@ -78,8 +78,8 @@ class Deployment {
 
 	//TODO fix this to use the new page session vars
 	public function DeployMediaPaths($htmlstring){
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'])){
-    		$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'];
+		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'])){
+    		$deployment = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 			if($deployment != 'live'){
 			//rexex will find all but this works
 			//$rx = 'media\/(images|audio|video|data|fonts|documents)\/[^&!*'"();:@=+$,/?#[\]*]*(?=[&"'])/';

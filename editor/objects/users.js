@@ -1,5 +1,76 @@
 ﻿
 SI.Editor.Objects.User = {
+    Draw: function () {
+        let base = Ele('div', {
+            style: {
+                width: "100%",
+                height: "100%",
+                overflow: "scroll",
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
+            },
+        });
+
+        let newuser = Ele('button', {
+            innerHTML: "New",
+            style: {
+            },
+            onclick: function () {
+
+                SI.Editor.Objects.User.New();
+            },
+            appendTo: base,
+        });
+
+        let rolewindow = Ele('div', {
+            id: 'si_edit_users_rolewindow',
+            innerHTML: "",
+            style: {
+                backgroundColor: SI.Editor.Style.MenuColor,
+                top: '0px',
+                left: '0px',
+                position: 'relative',
+                padding: '5px',
+                display:'none',
+            },
+            appendTo: base,
+        })
+        let currentroles = SI.Editor.Data.Objects.Security.Roles;
+        //debugger;
+        for (let role of currentroles) {
+
+            let rolebox = Ele('div', {
+
+                appendTo: rolewindow,
+            })
+            let rolename = role.name;
+            let label = Ele('label', {
+                for: 'si_edit_users_rolecb_' + role.id,
+                innerHTML:role.name,
+                appendTo: rolebox,
+            });
+
+            let cb = Ele('input', {
+                id: 'si_edit_users_rolecb_' + role.id,
+                class: 'si-edit-users-rolecb-' + role.name,
+                type: 'checkbox',
+                style: {
+                    float:'right',
+                },
+                onchange: SI.Editor.Objects.User.UpdateRoles,
+                appendTo: rolebox,
+            });
+        }
+        let pre = Ele('div', {
+            innerHTML: "",
+            style: {
+                tabSize: '0',
+            },
+            appendTo: base,
+        })
+        pre.insertAdjacentHTML('beforeend', SI.Editor.Data.Objects.Users);
+        return base;
+    },
     ChangePassword: function (self) {
         let pw = prompt("Enter the new password", "password");
         if (pw !== null) {

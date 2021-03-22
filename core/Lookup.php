@@ -14,7 +14,7 @@ class Lookup {
 		$this->Entity = $entity;
 		$this->EntityId = $entity->Id;
 		$this->InstanceEntityName = $entity->Name;
-		$this->InstanceEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['entities'][$this->InstanceEntityName];
+		$this->InstanceEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$this->InstanceEntityName];
 		
 	}
 	

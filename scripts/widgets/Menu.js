@@ -1,12 +1,12 @@
-<?php 
-header("Content-Type: application/javascript; charset: UTF-8");
-?>
+if(!SI.Widgets.Menu){SI.Widgets.Menu = {}};
+SI.Widget.Menu = function  (options) { 
+    if (!(this instanceof SI.Widget.Menu)) { return new SI.Widget.Menu(options); }
 
-if (!SI) { var SI = {}; }
-if (!SI.Widget) { SI.Widget = {}; }
+    options = typeof options !== 'undefined' ? options : {};
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Menu");}
+    this.Input = {...options};
+    SI.Widgets.Menu[this.Id] = this;
 
-SI.Widget.Menu = function(options) {
-    if (!(this instanceof SI.Widget.Menu)) { return new SI.Widget.Menu(); }
     this.Defaults = {
         "Parent": null,
         "ParentIndex": null,
@@ -25,7 +25,7 @@ SI.Widget.Menu = function(options) {
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     this.Random = SI.Tools.String.RandomString(11);
     this.Container = Ele('div', {
-        id: "si_menu_" + this.Random ,
+        id: this.Id,
         class: this.Options.ContainerClass,
         style: {
             minHeight: this.Options.MinHeight,
@@ -66,14 +66,16 @@ SI.Widget.Menu = function(options) {
                     "TextMargin": "2px 5px 2px 5px",
                     "Items": {},
                 };
+
                 menuOptions = SI.Tools.Object.SetDefaults(items[itter], menuitemDefaults);
+
                 let dir = options.Direction;
                 display = "none";
                 if (options.Direction == 'h'&& level ==0) {
                     display = "inline-block";
                 }
                 let menuItem = Ele('div', {
-                    id: "si_menuitem_" + menuItemRandId,
+                    id: this.Id + "_menuitem_" + itter,
                     style: {
                         display: display,
                         height: menuOptions.Height,
@@ -88,7 +90,7 @@ SI.Widget.Menu = function(options) {
                     appendTo: parent,
                 });
                 let menuText = Ele('span', {
-                    id: "si_menuitem_text_" + menuItemRandId,
+                    id: this.Id + "_menuitem_" + itter+"_label",
                     innerHTML: menuOptions.Text,
                     style: {
                         margin: menuOptions.TextMargin,
@@ -123,7 +125,7 @@ SI.Widget.Menu = function(options) {
     if (this.Options.Parent) {
         this.Options.Parent.appendChild(this.Container);
     }
-    return this;
+    return this.Container;
 }
 
 
@@ -134,24 +136,24 @@ SI.Widget.Menu = function(options) {
         let options = {};
         options.Items = {
             [0]: {
-                Text: "File",
+                Label: "File",
                 Type: "parent",
                 ItemPadding: "2px 5px 2px 5px",
 
                 Items: {
                     [0]: {
-                        Text: "New",
+                        Label: "New",
                         Type: "window",
                         Window: "NewWidgetWindow",
                         Direction:"v",
                     },
                     [1]: {
-                        Text: "Open",
+                        Label: "Open",
                         Type: "link",
                         Direction: "v",
                     },
                     [2]: {
-                        Text: "Export",
+                        Label: "Export",
                         Items: {
                             [0]: {
                                 Text: "Select All",
@@ -166,23 +168,23 @@ SI.Widget.Menu = function(options) {
                 }
             },
             [1]: {
-                Text: "Edit",
+                Label: "Edit",
                 Type: 'parent',
                 Padding: "2px 5px 2px 5px",
                 Items: {
                     [0]: {
-                        Text: "Cut",
+                        Label: "Cut",
                         Type: "function",       
                     },
                     [1]: {
-                        Text: "Copy",
+                        Label: "Copy",
                         Type: "WindowOpener"
                     },
                     [2]: {
-                        Text: "Paste",
+                        Label: "Paste",
                         Items: {
                             [0]: {
-                                Text: "Custom Paste",
+                                Label: "Custom Paste",
                                 type: "function",
 
 
@@ -193,7 +195,7 @@ SI.Widget.Menu = function(options) {
                 }
             },
             [2]: {
-                Text: "Test",
+                Label: "Test",
                 Type: "link",
 
 

@@ -17,8 +17,8 @@ if(Tools::UserHasRole('Admin')){
 	//Get post from here
 	$post = json_decode( file_get_contents("php://input"), true);
 	//Tools::Log($post);
-	unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']); //Make sure any old return data is gone
-	$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'] = array(); //Reinit a new return.
+	unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']); //Make sure any old return data is gone
+	$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] = array(); //Reinit a new return.
 	//If we have a key property
 	Tools::Log('In DA');
 
@@ -82,18 +82,17 @@ if(Tools::UserHasRole('Admin')){
 					$media->Recycle($post); 
 					break;
 
-
+				//ZRelate two entities
 				case "RelationNew":
 					$relation = new Relations();
 					$relation->New($post);
 					break;
 
-
+				//User
 				case "ChangePassword":
 					$admin = new Admin();
 					$admin->SetPassword($post);
 					break;
-
 				case "NewUser":
 					$admin = new Admin();
 					$admin->NewUser($post);
@@ -102,22 +101,25 @@ if(Tools::UserHasRole('Admin')){
 					$admin = new Admin();
 					$admin->DeleteUser($post);
 					break;
-				
+				//Security
 				case "GetUserRoles":
 					$admin = new Admin();
 					$admin->GetUserRoles($post);
 					break;
-
 				case "AddUserRole":
 					$user = new User();
 					$user->AddRole($post);
 					break;
-			
 				case "RemoveUserRole":
 					$user = new User();
 					$user->RemoveRole($post);
 					break;
+				case "DeleteRole":
+					$sec = New Role();
+					$sec->Delete($post);
+					break;
 
+				//Language
 				case "AddLanguage":
 					$localT = new Localtext();
 					$localT->AddLanguage($post);
@@ -135,12 +137,9 @@ if(Tools::UserHasRole('Admin')){
 					$ent->NewEntity($post);
 					break;
 
-				case "BuildInstallerFile":
-					$db = new Database();
-					$db->BuildInstallerFile();
-					 break;
 
 
+				//Plugins
 				case "GetMorePlugins":
 					$pi = new Plugins();
 					$pi->GetMorePlugins();
@@ -158,10 +157,7 @@ if(Tools::UserHasRole('Admin')){
 					$pi->UninstallPlugin($post);
 					 break;
 
-				case "DeleteRole":
-				    $sec = New Role();
-					$sec->Delete($post);
-					break;
+
 
 				case "NewSetting":
 					$set = new Setting();
@@ -175,6 +171,15 @@ if(Tools::UserHasRole('Admin')){
 					$set = new Setting();
 					$set->Delete(null,$post);
 					break;
+				case "BuildBackupFile":
+					$db = new Database();
+					$db->BackupDatabase($post);
+					break;	
+				case "BuildInstallerFile":
+					$db = new Database();
+					$db->BuildInstallerFile($post);
+					break;
+
 
 				default: 
 					break;
@@ -183,13 +188,13 @@ if(Tools::UserHasRole('Admin')){
 
 	}
 	catch (Exception $e) {
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']['EXCEPTION'] = $e->getMessage();
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $e->getMessage();
 	}
 
 	//Return any messages as a json object to parse client side.
-	if(count($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN']) > 0 ){
-	    echo json_encode( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'] );
-	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['AJAXRETURN'] = null; //make sure to clear it after. Race conditions worry me here.
+	if(count($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']) > 0 ){
+	    echo json_encode( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] );
+	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] = null; //make sure to clear it after. Race conditions worry me here.
 		//it is why it is good to only allow one ajax out at a time before the next on is allowed to go.
     }
 

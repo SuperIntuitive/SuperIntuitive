@@ -139,7 +139,10 @@ SI.Editor.Objects.Elements = {
         self.classList.add('si-editor-selected');
 
         //show it in the hud
-        document.getElementById("si_edit_hud_selectedelement").innerHTML = self.id;
+        let hud = document.getElementById("si_edit_hud_selectedelement");
+        if(hud){
+           hud.innerHTML = self.id;
+        }
 
         //Lastly make the global Selected element be self one.
         SI.Editor.Objects.Elements.Selected = self;
@@ -236,7 +239,7 @@ SI.Editor.Objects.Elements = {
         var selected = SI.Editor.Objects.Elements.Selected;
         if (selected) {
             if (typeof selected.style.position === 'undefined' || selected.style.position === 'static') {
-                alert(SI.Editor.Objects.Alerts.StaticMove);
+                SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
             }
             let oldx = parseInt(selected.style.left);
             let oldy = parseInt(selected.style.top);
@@ -249,7 +252,7 @@ SI.Editor.Objects.Elements = {
         let style = window.getComputedStyle(this);
         //debugger;
         if (!style.position || style.position === 'static') {
-            alert(SI.Editor.Objects.Alert.StaticMove);
+            SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
         }
         else {
             if (SI.Editor.Objects.Elements.Selected !== null && SI.Editor.Objects.Elements.Selected.id === this.id) {
@@ -261,15 +264,19 @@ SI.Editor.Objects.Elements = {
                 this.dataset.mOffX = ev.offsetX;
                 this.dataset.mOffY = ev.offsetY;
 
-                document.getElementById("si_edit_hud_draggingelement").innerHTML = this.id;
-                if (this.offsetParent === document.body) {
-                    document.getElementById("si_edit_hud_offsetparent").innerHTML = 'body';
-                } else {
-                    document.getElementById("si_edit_hud_offsetparent").innerHTML = this.offsetParent.id;
+
+                let hud = document.getElementById("si_edit_hud_draggingelement");
+                if(hud){
+                    hud.innerHTML = this.id;
+                    if (this.offsetParent === document.body) {
+                        document.getElementById("si_edit_hud_offsetparent").innerHTML = 'body';
+                    } else {
+                        document.getElementById("si_edit_hud_offsetparent").innerHTML = this.offsetParent.id;
+                    }
+                    document.getElementById("si_edit_hud_parentid").innerHTML = this.parentElement.id;
+                    document.getElementById("si_edit_hud_offsetx").innerHTML = ev.offsetX;
+                    document.getElementById("si_edit_hud_offsety").innerHTML = ev.offsetY;
                 }
-                document.getElementById("si_edit_hud_parentid").innerHTML = this.parentElement.id;
-                document.getElementById("si_edit_hud_offsetx").innerHTML = ev.offsetX;
-                document.getElementById("si_edit_hud_offsety").innerHTML = ev.offsetY;
             }
         }
         if (ev.stopPropagation)
@@ -318,7 +325,11 @@ SI.Editor.Objects.Elements = {
         if (SI.Tools.Is.Element(self)) {
             SI.Editor.Objects.Elements.DropParent = self;
 
-            document.getElementById("si_edit_hud_dropparent").innerHTML = self.id;
+            let hud = document.getElementById("si_edit_hud_dropparent")
+            if(hud){
+                hud.innerHTML = self.id;
+            }
+           
 
         }
         if (ev.stopPropagation) {
@@ -334,9 +345,10 @@ SI.Editor.Objects.Elements = {
                 "Group": null,
                 "Index": null,
                 "Attribute": null,
-                "Effected": null,
+                "Affected": null,
                 "AccessClass": null,
-                "Preserve": false
+                "Preserve": false,
+                "OnChange": null,
             };
             options = SI.Tools.Object.SetDefaults(options, this.Defaults);
 
@@ -349,28 +361,33 @@ SI.Editor.Objects.Elements = {
                 else {
                     let a;
                     if (options.Group === null) {
-                        //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? 
+                        //without a group name we cannot guarrentee the correct attr. ex If its for a video the audio one may be selected? but as long as the choices are the same its fine
                         a = SI.Editor.Data.Tools.GetAttributeByName(options.Property);
                     } else {
                         //if we dont have an index but do have a group name, guarentee the correct attr
                         a = SI.Editor.Data.Tools.GetAttributeByName(options.Property, options.Group);
                     }
-
                     options.Group = a.group;
                     options.Index = a.index;
                 }
             }
 
+            if (typeof options.Group === 'undefined' || typeof options.Index === 'undefined') {
+                SI.Tools.Warn(options.Property + " is not found in the Attributes table");
+                return false;
+            }
+
             let attrobj = SI.Editor.Data.html_attributes[options.Group][options.Index];
+
             let attrrow = document.createElement('tr');
 
-            let getEffected = function () {
+            let getAffected = function () {
                 let ele = null;
-                if (options.Effected) {
-                    if (options.Effected.toLowerCase() === "none") {
+                if (options.Affected) {
+                    if (options.Affected.toLowerCase() === "none") {
                         ele = null;
                     } else {
-                        ele = document.querySelector(options.Effected);
+                        ele = document.querySelector(options.Affected);
                     }
                 } else {
                     ele = SI.Editor.Objects.Elements.Selected;
@@ -399,11 +416,11 @@ SI.Editor.Objects.Elements = {
                 // if (effectid) { attrInput.setAttribute("data-effectid", effectid); }
                 attrInput.onchange = function (e) {
                     let ele = null;
-                    if (options.Effected) {
-                        if (options.Effected.toLowerCase() === "none") {
+                    if (options.Affected) {
+                        if (options.Affected.toLowerCase() === "none") {
                             ele = null;
                         } else {
-                            ele = document.querySelector(options.Effected);
+                            ele = document.querySelector(options.Affected);
                         }
                     } else {
                         ele = SI.Editor.Objects.Elements.Selected;
@@ -423,7 +440,7 @@ SI.Editor.Objects.Elements = {
                 attrInput.placeholder = 'Javascript';
                 // if (effectid) { attrInput.setAttribute("data-effectid", effectid); }
                 attrInput.onchange = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let script = this.value;
                         if (script.length > 0) {
@@ -443,7 +460,7 @@ SI.Editor.Objects.Elements = {
                             height: '57px',
                         },
                         onkeyup: function (e) {
-                            let ele = getEffected();
+                            let ele = getAffected();
                             let text = this.value;
                             if (text.length > 0) {
                                 SI.Editor.Objects.Elements.Selected.innerHTML = text;
@@ -462,7 +479,7 @@ SI.Editor.Objects.Elements = {
                             height: '57px',
                         },
                         onkeyup: function (e) {
-                            let ele = getEffected();
+                            let ele = getAffected();
                             let text = this.value;
                             if (text.length > 0) {
                                 ele.innerText = text;
@@ -478,7 +495,7 @@ SI.Editor.Objects.Elements = {
             else if (attrobj.dt === 'TEXT') {
                 attrInput = document.createElement('input');
                 attrInput.onkeyup = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                         let text = this.value;
                         if (text.length > 0) {
@@ -492,7 +509,7 @@ SI.Editor.Objects.Elements = {
             else if (attrobj.dt === 'CSS') {
                 attrInput = document.createElement('textarea');
                 attrInput.onkeyup = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let text = this.value;
                         if (text.length > 0) {
@@ -523,7 +540,7 @@ SI.Editor.Objects.Elements = {
             else if (attrobj.dt === 'NAME') {
                 attrInput = document.createElement('input');
                 attrInput.onkeyup = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let names = document.querySelectorAll(' [name]');
                        let text = this.value;
@@ -543,8 +560,8 @@ SI.Editor.Objects.Elements = {
                 attrInput.setAttribute('data-type', "media");
                 attrInput.setAttribute('type', "lookup");
                 attrInput.onchange = function (e) {
-                    //debugger;
-                    let ele = getEffected();
+                    debugger;
+                    let ele = getAffected();
                     if (ele !== null) {
                        let tn = this.getAttribute('data-attr');
                         // let text = this.value;
@@ -569,7 +586,7 @@ SI.Editor.Objects.Elements = {
                 this.firstId = null;
                 attrInput.onchange = function (e) {
                     //debugger;
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                         if (ele.id !== this.value) { //dont touch if it is already the value
                             //debugger;
@@ -598,8 +615,8 @@ SI.Editor.Objects.Elements = {
                 };
                 attrInput.onmouseover = function () {
                     let ele = null;
-                    if (options.Effected) {
-                        ele = document.querySelector(options.Effected);
+                    if (options.Affected) {
+                        ele = document.querySelector(options.Affected);
                     } else {
                         ele = SI.Editor.Objects.Elements.Selected;
                     }
@@ -612,11 +629,11 @@ SI.Editor.Objects.Elements = {
                     type: 'number',
                     onkeyup: function (e) {
                         let ele = null;
-                        if (options.Effected) {
-                            if (options.Effected.toLowerCase() === "none") {
+                        if (options.Affected) {
+                            if (options.Affected.toLowerCase() === "none") {
                                 ele = null;
                             } else {
-                                ele = document.querySelector(options.Effected);
+                                ele = document.querySelector(options.Affected);
                             }
                         } else {
                             ele = SI.Editor.Objects.Elements.Selected;
@@ -635,7 +652,7 @@ SI.Editor.Objects.Elements = {
                 attrInput = Ele('input', {
                     type: 'number',
                     onkeyup: function (e) {
-                        let ele = getEffected();
+                        let ele = getAffected();
                         if (ele !== null) {
                             if (this.value.length > 0) {
                                 ele.setAttribute(attrobj.n, this.value);
@@ -687,7 +704,7 @@ SI.Editor.Objects.Elements = {
                         width: '24px',
                     },
                     onclick: function () {
-                        let ele = getEffected();
+                        let ele = getAffected();
                         if (ele !== null) {
                            let name = document.getElementById("si_editor_attributes_" + attrobj.n + "_name_" + RandId);
                            let val = document.getElementById("si_editor_attributes_" + attrobj.n + "_value_" + RandId);
@@ -713,7 +730,7 @@ SI.Editor.Objects.Elements = {
                 attrInput.setAttribute('data-attr', attrobj.n);
                 attrInput.setAttribute('placeholder', 'Space Separated Classes');
                 attrInput.onchange = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let tn = this.getAttribute('data-attr');
                        let text = this.value;
@@ -743,7 +760,7 @@ SI.Editor.Objects.Elements = {
                         width: '26px',
                     },
                     onkeyup: function (e) {
-                        let ele = getEffected();
+                        let ele = getAffected();
                         if (ele !== null) {
                             if (this.value.length === 1) {
                                 ele.setAttribute(attrobj.n, this.value);
@@ -770,7 +787,7 @@ SI.Editor.Objects.Elements = {
                 attrInput.appendChild(optF);
 
                 attrInput.onchange = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let choice = this.options[this.selectedIndex].innerText;
                        let tn = this.getAttribute('data-attr');
@@ -799,7 +816,7 @@ SI.Editor.Objects.Elements = {
                 attrInput.appendChild(optF);
 
                 attrInput.onchange = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let choice = this.options[this.selectedIndex].innerText;
                        let tn = this.getAttribute('data-attr');
@@ -819,7 +836,7 @@ SI.Editor.Objects.Elements = {
                 attrInput.appendChild(blank);
                 attrInput.innerHTML += SI.Editor.Data.OptionSets.Language.All;
                 attrInput.onchange = function (e) {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                        let choice = this.options[this.selectedIndex].value;
 
@@ -845,7 +862,7 @@ SI.Editor.Objects.Elements = {
                     attrInput.appendChild(option);
                 }
                 attrInput.onchange = function () {
-                    let ele = getEffected();
+                    let ele = getAffected();
                     if (ele !== null) {
                         let selEle = this.options[this.selectedIndex]
                         let tn = this.getAttribute('data-attr');
@@ -884,6 +901,11 @@ SI.Editor.Objects.Elements = {
             attrInput.setAttribute("data-si-preserve", options.Preserve);
             attrInput.id = "si_edit_attribute_" + options.Group + "_" + attrobj.n + "_" + RandId;
 
+            if (options.OnChange) {
+                attrInput.addEventListener("change", function (ev) {
+                    options.OnChange(ev, this);
+                });
+            }
 
            let attroptionbox = Ele('td', {
                 style: {
@@ -917,7 +939,7 @@ SI.Editor.Objects.Elements = {
                 "Group": null,
                 "Index": null,
                 "Property": null,
-                "Effected": null,
+                "Affected": null,
                 "AssignTo": null,
                 "InitialValue": "",
                 "Class": "",
@@ -964,7 +986,7 @@ SI.Editor.Objects.Elements = {
                 return null;
             }
 
-            //set the Effected Element 
+            //set the Affected Element 
             //The Row to be returned. 
             let cssrow = Ele('tr', {
                 draggable: options.Draggable,
@@ -1024,7 +1046,7 @@ SI.Editor.Objects.Elements = {
                 appendTo: container
             });
 
-            if (options.Effected === null) {
+            if (options.AAffected === null) {
                 this.css_value.classList.add("si-edit-style");
                 this.css_value.classList.add("si-edit-style-" + styleobj.n);
             }
@@ -1068,10 +1090,10 @@ SI.Editor.Objects.Elements = {
                 //sets the values of the read only input
                 document.getElementById("si_edit_style_" + styleobj.n + "_" + RandId).value = val;
                 let ele = null;
-                //if we have a Effected elementis selector
-                if(options.Effected) {
-                    if (options.Effected.toLowerCase() !== 'none') { //if it is none, than ignore it. it will stay null and do nothing on change. needed for styler 
-                        ele = document.querySelector(options.Effected); //if not, use it as a css qurey selector to the the effected
+                //if we have a Affected elementis selector
+                if(options.Affected) {
+                    if (options.Affected.toLowerCase() !== 'none') { //if it is none, than ignore it. it will stay null and do nothing on change. needed for styler 
+                        ele = document.querySelector(options.Affected); //if not, use it as a css qurey selector to the the affected
                         if (ele) {
                             ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = val;
                         }
@@ -1121,8 +1143,8 @@ SI.Editor.Objects.Elements = {
 
                 }
 
-                if (options.Effected) {
-                    let ele = document.querySelector(options.Effected);
+                if (options.Affected) {
+                    let ele = document.querySelector(options.Affected);
                     if (ele) {
                         ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
                     }
@@ -1572,7 +1594,7 @@ SI.Editor.Objects.Elements = {
                         }
 
                     } else {
-                        console.warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
+                        SI.Tools.Warn("Style: " + prop + " not obtainable from SI.Editor.Data.Tools.GetStyleByName()");
                     }
 
 

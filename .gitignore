@@ -346,9 +346,14 @@ healthchecksdb
 #dont want vs webconfig file in here
 web.config
 
-# SI DbCredsFile
+*.vscode
+*.vs
+
+# SI Files
 /core/DbCreds*
 /plugins/installed/*
 /plugins/downloaded/*
 /domains/*
 /logs/*
+/sql/backups/*
+/sql/installer/*

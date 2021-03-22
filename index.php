@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2020 Robert Allen
  * @license   Licensed under GPLv2 license
  *            See https://github.com/SuperIntuitive/SuperIntuitive/blob/master/LICENSE
- * @version   v0.8
+ * @version   v0.9
  */
 //session_unset();
 
@@ -40,12 +40,12 @@ else{
 	$plugins = new Plugins();
 	$pi = $plugins->GetLocalPlugins('installed');
 	if(count($pi)>0){
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['plugins']=$pi;
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins']=$pi;
 	}
 
 	$dbc->GetDatabaseSchema($pageobjects);
 
-	//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']);
+	//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']);
 
 		//GET THE USER INFO
 	//what are the circumstances?
@@ -59,7 +59,7 @@ else{
 	//If the user is guest, then try to locate a cookie to authenticate the user. 
 
 	//Tools::Log('In Index: Logging Roles');
-	//Tools::Log( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user'] );
+	//Tools::Log( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user'] );
 
 
 
@@ -71,7 +71,7 @@ else{
 	$login = new Login();
 	$login->Remembered();
 	//Tools::Log($_COOKIE);
-	//	print_r($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['user']['roles']);
+	//	print_r($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles']);
 
 	//get the users roles every time.
 	$security = new Security();
@@ -103,7 +103,7 @@ else{
 	//echo "is admin ".$_SESSION['ISADMIN'];
 	//print_r($_SESSION['USER']['ROLES']);
 
-	if( Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['businessunits'][SI_BUSINESSUNIT_NAME]['deployment'] == 'dev' && $pageobjects !== "%EMPTY_DOMAIN%"){
+	if( Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] == 'dev' && $pageobjects !== "%EMPTY_DOMAIN%"){
 
 			$pageobjects = $dbc->GetMediaFiles($pageobjects);
 			$pageobjects = $dbc->GetAllPages($pageobjects);
