@@ -346,6 +346,7 @@ healthchecksdb
 #dont want vs webconfig file in here
 web.config
 
+.vscode
 *.vscode
 *.vs
 

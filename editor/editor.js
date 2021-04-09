@@ -89,23 +89,28 @@ if (Tools::UserHasRole('Admin'))
 
 
     $settingsentities = new Entity('settings');
-    $settings = $settingsentities -> Retrieve('id,settingname,settingvalue');
-    $settings2 = json_encode($settings);
-    $tmpSetting = array();
-    /*
-    foreach($settings as $setting){
-        $tmpSetting[$setting['settingname']] = $setting['settingvalue'];
-    }
-    $settings = $tmpSetting;
-    //Tools::Log($settings);
+    $settings = $settingsentities->Retrieve('id,settingname,settingvalue');
+
+    
     $settingsjson = json_encode($settings);
-*/
-    //colornames
+    $settingsArray = array();
+    
+    foreach($settings as $setting){
+        $settingsArray[$setting['settingname']] = $setting['settingvalue'];
+    }
+
+    //Color names. This creates options for a select of all of the css color names
     $colors = $miscdata->ColorNames;
     $coloroptions = "<option value=''>Color Names</option>";
     foreach($colors as $col){
         $coloroptions.= "<option style='background-color:$col;' value='$col' >$col</option>";
     }
+
+    $favColor = 'blue';
+    if(isset($settingsArray['FavoriteColor'])) {
+        $favColor = $settingsArray['FavoriteColor'];
+    }
+
 
     //Get Languages
     $langs = $miscdata->Languages;
@@ -238,7 +243,7 @@ if(!SI.Editor.Objects) { SI.Editor.Objects = {}; }
 SI.Editor = {
     Style: {
         BackColor: 'black',
-        FavoriteColor:'teal',
+        FavoriteColor:'<?= $favColor ?>',
         BackgroundColor: 'rgb(72, 75, 87)',
         TextColor: 'rgb(172, 175, 187)',
         MenuColor: 'slategrey',
@@ -250,7 +255,7 @@ SI.Editor = {
             if (theme) {
                 if (theme === 'light') {
                     SI.Editor.Style.BackColor = 'white',
-                        SI.Editor.Style.BackgroundColor = '#AAA';
+                    SI.Editor.Style.BackgroundColor = '#AAA';
                     SI.Editor.Style.TextColor = '#111';
                     SI.Editor.Style.MenuColor = '#777';
                     SI.Editor.Style.ButtonColor = '#345';
@@ -524,7 +529,7 @@ SI.Editor = {
                 Operations: ['create', 'read', 'write', 'append', 'appendTo', 'delete'],
                 Roles: <?= $rolesdata ?>,
             },
-            Settings: <?= $settings2 ?>,
+            Settings: <?= $settingsjson ?>,
             PhpInfo : `<?php echo Tools::GetPhpInfo() ?>`,
             MimeTypes: <?= $allmimetypes ?>
         },
@@ -806,7 +811,7 @@ SI.Editor = {
 
             let map = {}; //  so-5203407
             onkeydown = onkeyup = function (e) {
-                let selected = SI.Editor.Objects.Elements.Selected;
+                let selected = SI.Editor.Objects.Elements.SelectedElement;
                 let isFocused = (document.activeElement === selected);      //so-36430561
                 let movable = true;
                 if (selected) {
@@ -889,6 +894,7 @@ SI.Editor = {
                     onmouseleave: function () {
                         //debugger;
                         SI.Editor.UI.MainMenu.IsDragging = false;
+                        
                         let hud = document.getElementById('si_edit_hud_editisdragging');
                         if(hud){
                             hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
@@ -995,8 +1001,8 @@ SI.Editor = {
             //Hide/Unhide sub menus when item selected
             SelectMenu: function(menu) {
                 //for now we want something selected before openeing the edit menu
-                if (menu == "si_edit_edit_menuitem" && SI.Editor.Objects.Elements.Selected == null) {
-                    alert("Please select an element to edit.");
+                if (menu == "si_edit_edit_menuitem" && SI.Editor.Objects.Elements.SelectedElement == null) {
+                    SI.Tools.SuperAlert("Please select an element to edit.",3000);
                     return false;
                 }
                 if (menu && SI.Tools.Is.Visible(menu)) {
@@ -1032,7 +1038,7 @@ SI.Editor = {
                         left : '75px',
                         display : 'none',
                         padding : '0',
-                        fontSize: '.8em',
+                        fontSize: '.8em'
                     },
                     onscroll: function (e) {
                        e.stopPropagation();
@@ -1043,13 +1049,16 @@ SI.Editor = {
                 SI.Editor.UI.MainMenu.Element.appendChild(tagMenu);
             },
             SetupTabs: function (newMenu) {
-                let tabs = new SI.Widget.Tab({Id:"si_edit_add_tab"});
+                let tabs = new SI.Widget.Tab({
+                    Id:"si_edit_add_tab",
+                    BackgroundColor:  SI.Editor.Style.FavoriteColor,
+                });
                 //create the tabbox
                 let tabTags = Ele('div', {
                     id: 'si_edit_add_tag',
                     style:{
                         width : "96%",
-                        height : "200px",
+                        height : "191px",
                         backgroundColor : "black",
                         paddingLeft: '5px',
                         overflow : 'auto',
@@ -1063,7 +1072,7 @@ SI.Editor = {
                     id: 'si_edit_add_widget',
                     style: {
                         width: "96%",
-                        height: "200px",
+                        height: "191px",
                         backgroundColor: "black",
                         paddingLeft: '5px',
                         overflow: 'auto',
@@ -1084,6 +1093,7 @@ SI.Editor = {
                     style: {
                         width: '100%',
                         height:'100%',
+
                     },
                 });
                 //The table makes it easy to add widgets in a column
@@ -1126,7 +1136,7 @@ SI.Editor = {
                         },
                         ondragend: function (e) {
                             e.stopPropagation();
-                            //debugger;
+                            debugger;
                             if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent)) {
                                 let widget = e.target.dataset.type;
                                 let parent = SI.Editor.Objects.Elements.DropParent;
@@ -1297,7 +1307,7 @@ SI.Editor = {
                 }
                 Ele("div", { style: { height: '16px', position: 'relative' }, appendTo: tagsview });//hack to fix the bottom row of the scrolls. This is probably a tabs issue. further investigate.
                 return tagsview;
-            },
+            }
         },
         EditPanel: {
             //Init: build the panel, setup and populate the tabs.
@@ -1312,17 +1322,21 @@ SI.Editor = {
                         display: 'none',
                         width: '485px',
                         height: '329px',
+                        fontSize: '.8em'
                     },
-                    draggable: true,
+                    //draggable: true,
                     ondragover: function (e) { e.preventDefault();},
-                    ondragstart: function (e) {
+                  //  ondragstart: function (e) {
                         
-                        e.stopPropagation();
-                        return false;
-                    },
+                //        e.stopPropagation();
+                 //       return false;
+                 //   },
 
                 });
-                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab' });
+                var tabs = new SI.Widget.Tab({
+                    Id:'si_edit_edit_tab',
+                    BackgroundColor:  SI.Editor.Style.FavoriteColor,
+                 });
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
@@ -1336,7 +1350,7 @@ SI.Editor = {
                 let container = Ele('div', {
                     id: 'si_main_view',
                     style: {
-                        height: '329px',
+                        height: '266px',
                         backgroundColor: 'black',
                         color: SI.Editor.Style.TextColor,
                         padding: '15px',
@@ -1368,7 +1382,6 @@ SI.Editor = {
                     },
                     appendTo: menu,
                 });
-
                 let selectpanel = Ele('div', {
                     id: "si_edit_main_selectpanel",
                     class:"si-edit-main-panel",
@@ -1382,12 +1395,11 @@ SI.Editor = {
                     },
                     appendTo: menu,
                 });
-
                 let blkBtn = Ele('button', {
                     innerHTML: "Block",
                     onclick: function (e) {
                         //debugger;
-                        let sel = SI.Editor.Objects.Elements.Selected
+                        let sel = SI.Editor.Objects.Elements.SelectedElement
                         let blk =SI.Tools.Element.GetBlock(sel);
 
                         SI.Editor.Objects.Blocks.Select(blk.id);
@@ -1397,13 +1409,11 @@ SI.Editor = {
                         width: '74px',
                     },
                     appendTo: selectpanel,
-                });
-
-                
+                });              
                 let parBtn = Ele('button', {
                     innerHTML: "Parent",
                     onclick: function (e) {
-                        let sel = SI.Editor.Objects.Elements.Selected;
+                        let sel = SI.Editor.Objects.Elements.SelectedElement;
                         if (sel) {
                             let par = sel.parentElement;
                             if (par.classList.contains('si-block')) {
@@ -1473,8 +1483,8 @@ SI.Editor = {
                     //get all the blocks
                     let blocks = document.querySelectorAll(".si-block");
                     let selid = null;
-                    if (SI.Editor.Objects.Elements.Selected) {
-                        selid = SI.Editor.Objects.Elements.Selected.id;
+                    if (SI.Editor.Objects.Elements.SelectedElement) {
+                        selid = SI.Editor.Objects.Elements.SelectedElement.id;
                     }
                     //debugger;
                     for (let block of blocks) {
@@ -1582,10 +1592,10 @@ SI.Editor = {
 
                 let selectBlockElements = Ele('select', {
                     onchange: function (e) {
-                        if (SI.Editor.Objects.Elements.Selected != null) {
+                        if (SI.Editor.Objects.Elements.SelectedElement != null) {
                             let newParent = document.getElementById(this.value);
-                            if (newParent != SI.Editor.Objects.Elements.Selected.parentElement) {
-                                newParent.appendChild(SI.Editor.Objects.Elements.Selected);
+                            if (newParent != SI.Editor.Objects.Elements.SelectedElement.parentElement) {
+                                newParent.appendChild(SI.Editor.Objects.Elements.SelectedElement);
                             } else {
                                 console.log("The element alread belongs to that parent");
                             }
@@ -1601,9 +1611,9 @@ SI.Editor = {
                     selectBlockElements.innerHTML = "";
                     let blocks = document.querySelectorAll(".si-block");
                     let selid = null;
-                    if (SI.Editor.Objects.Elements.Selected) {
-                        selid = SI.Editor.Objects.Elements.Selected.id;
-                        selectedParentValue.innerHTML = SI.Editor.Objects.Elements.Selected.parentElement.id;
+                    if (SI.Editor.Objects.Elements.SelectedElement) {
+                        selid = SI.Editor.Objects.Elements.SelectedElement.id;
+                        selectedParentValue.innerHTML = SI.Editor.Objects.Elements.SelectedElement.parentElement.id;
                     }
                     //debugger;
                     for (let b in blocks) {
@@ -1666,8 +1676,8 @@ SI.Editor = {
                 let remove = Ele('button', {
                     innerHTML: "Delete",
                     onclick: function (e) {
-                        if (confirm("Delete Element " + SI.Editor.Objects.Elements.Selected.id+"???")) {
-                            SI.Editor.Objects.Elements.Remove(SI.Editor.Objects.Elements.Selected);
+                        if (confirm("Delete Element " + SI.Editor.Objects.Elements.SelectedElement.id+"???")) {
+                            SI.Editor.Objects.Elements.Remove(SI.Editor.Objects.Elements.SelectedElement);
                         } 
                     },
                     style: {
@@ -1728,11 +1738,11 @@ SI.Editor = {
                                         let col = '_' + lang.toLowerCase();
                                         if (localtext[col] && localtext[col].length > 0) {
                                             let text = localtext[col];
-                                            SI.Editor.Objects.Elements.Selected.innerHTML = text;
-                                            SI.Editor.Objects.Elements.Selected.classList.add("si-multilingual-" + localtext.name);
-                                            SI.Editor.Objects.Elements.Selected.classList.add("si-multilingual");
-                                            SI.Editor.Objects.Elements.Selected.dataset.si_ml_index = index;
-                                            SI.Editor.Objects.Elements.Selected.dataset.si_ml_token = localtext.name;
+                                            SI.Editor.Objects.Elements.SelectedElement.innerHTML = text;
+                                            SI.Editor.Objects.Elements.SelectedElement.classList.add("si-multilingual-" + localtext.name);
+                                            SI.Editor.Objects.Elements.SelectedElement.classList.add("si-multilingual");
+                                            SI.Editor.Objects.Elements.SelectedElement.dataset.si_ml_index = index;
+                                            SI.Editor.Objects.Elements.SelectedElement.dataset.si_ml_token = localtext.name;
                                             break;
                                         }
                                     }
@@ -1740,14 +1750,14 @@ SI.Editor = {
                                 this.selectedIndex = 0;
                             }
                         } else {
-                            if (SI.Editor.Objects.Elements.Selected.classList.contains("si-multilingual-")) {
+                            if (SI.Editor.Objects.Elements.SelectedElement.classList.contains("si-multilingual-")) {
                                 if (confirm("This will remove the multilingual nature of this element.\nThe innerHTML will remain intact but will not be tracked multilingually.\nThis will not affect the item in the Language tool or other elements it is assigned to.")) {
-                                    var classes = SI.Editor.Objects.Elements.Selected.classList;
+                                    var classes = SI.Editor.Objects.Elements.SelectedElement.classList;
                                     
 
-                                    SI.Editor.Objects.Elements.Selected.classList.Remove("si-multilingual");
-                                    SI.Editor.Objects.Elements.Selected.removeAttribute('data-si_ml_index');
-                                    SI.Editor.Objects.Elements.Selected.removeAttribute('data-si_ml_token');
+                                    SI.Editor.Objects.Elements.SelectedElement.classList.Remove("si-multilingual");
+                                    SI.Editor.Objects.Elements.SelectedElement.removeAttribute('data-si_ml_index');
+                                    SI.Editor.Objects.Elements.SelectedElement.removeAttribute('data-si_ml_token');
                                 }
                             }
                         }
@@ -1800,9 +1810,9 @@ SI.Editor = {
                     onchange: function (ev) {
                         //debugger;
                         if (this.checked) {
-                            SI.Editor.Objects.Elements.Selected.classList.add("si-editable-ignoreinner");
+                            SI.Editor.Objects.Elements.SelectedElement.classList.add("si-editable-ignoreinner");
                         } else {
-                            SI.Editor.Objects.Elements.Selected.classList.remove("si-editable-ignoreinner");
+                            SI.Editor.Objects.Elements.SelectedElement.classList.remove("si-editable-ignoreinner");
                         }
                     },
                     appendTo: advancedpanel,
@@ -1813,7 +1823,6 @@ SI.Editor = {
                     id: "si_edit_main_shotrcuttable",
                     style: {
                         height: '100%',
-                        paddingBottom: '40px',
                     },
                     appendTo: container,
                 });
@@ -1841,17 +1850,18 @@ SI.Editor = {
                 var attrsview = Ele('div', {
                     id: 'si_attribute_view',
                     style: {
-                        height: '329px',
+                        height: '300px',
                         overflowY: 'scroll',
                     },
                     
                 });
                 //Tools.StopOverscroll(attrsview); //this is meant to make the screen not scroll past the window. it needs work
-                var pretable = Ele('table', {
-                    style: {
-                        width: '100%',  
-                    }
-                });
+               // var pretable = Ele('table', {
+              //      style: {
+              //          width: '100%', 
+              //          marginBottom:'50px' 
+               //     }
+              //  });
                 var fnamerow = document.createElement('tr');
                 var fnameLabel = document.createElement('td');
                 fnameLabel.innerHTML = 'friendly name';
@@ -1869,7 +1879,7 @@ SI.Editor = {
                             style: {
                                 backgroundColor: 'black',
                                 color: SI.Editor.Style.TextColor,
-                                paddingLeft: '10px',
+                                padding: '10px',
                             },
                         });         
                         if (group != 'GLOBAL' && group != 'EVENT') {
@@ -1894,15 +1904,12 @@ SI.Editor = {
                             }
                         }
 
-                        Ele("tr", { append: Ele('td', { innerHTML: '|' }), appendTo: attrstable });//hack to fix the bottom row of the scrolls. This is probably a tabs issue. further investigate.
-                        
+                       // Ele("tr", { append: Ele('td', { innerHTML: '|' }), appendTo: attrstable });//hack to fix the bottom row of the scrolls. This is probably a tabs issue. further investigate.
                         attrsbox.appendChild(attrstable);
-                        attrsview.appendChild(attrsbox);
-                        
+                        attrsview.appendChild(attrsbox); 
                     }
                 }
                 return attrsview;
-
             },
             //Draw the styles tab
             DrawStyles : function (e) {
@@ -1910,7 +1917,7 @@ SI.Editor = {
                 var styleview = Ele('div', {
                     id: 'si_style_view',
                     style: {
-                        height: '329px',
+                        height: '300px',
                         overflowX: 'hidden',
                         overflowY: 'scroll',
                     },
@@ -1918,6 +1925,7 @@ SI.Editor = {
                 
                // var eletype = ele.tagName.toLowerCase();
                 //Loop through all of the groups of styles
+                let numGroups = SI.Editor.Data.css_properties.length;
                 for (let group in SI.Editor.Data.css_properties) {
                     if (SI.Editor.Data.css_properties.hasOwnProperty(group)) {
                         if (!group.startsWith("Pseudo") && group!=="At Selectors" ) {
@@ -1927,7 +1935,7 @@ SI.Editor = {
                                 style: {
                                     backgroundColor: 'black',
                                     color: SI.Editor.Style.TextColor,
-                                    paddingLeft: "10px",
+                                    padding: "10px",
                                 },
                                 appendTo: styleview,
                             });
@@ -1951,7 +1959,7 @@ SI.Editor = {
                         }
                     }
                 }
-                Ele("div",{style: {height:"18px",}, appendTo:styleview });//hack to fix the bottom of the scrolls. This is probably a tabs issue. further investigate.
+               // Ele("div",{style: {height:"25px",}, appendTo:styleview });//hack to fix the bottom of the scrolls. This is probably a tabs issue. further investigate.
                 return styleview;
             },
 
@@ -2012,7 +2020,7 @@ SI.Editor = {
                                         }
                                     }
                                     else if (attrib.name == 'class') {
-                                        fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editor-selected", "");
+                                        fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editable-selected", "");
                                     }
                                     else {
                                         fields[field].value = attrib.value;
@@ -2151,7 +2159,7 @@ SI.Editor = {
                 toolsMenu.appendChild(toolsMenuTable);
                 SI.Editor.UI.MainMenu.Element.appendChild(toolsMenu);          
             },
-            OpenToolWindow:function(title = null, show = true){     
+            OpenToolWindow:function (title = null, show = true){     
                 //if called from the event, title will be the event.   
                 if(title.target){
                     title = this.innerHTML;
@@ -2174,10 +2182,11 @@ SI.Editor = {
                                 Id: "si_edit_media_window",
                                 Trigger: '#si_edit_tools_media',
                                 Title: "Media",
+                                Overflow:'hidden',
                                 Trigger: '#si_edit_media_trigger',
                                 IconImg: '/editor/media/icons/window-media.png',
                                 Populate: SI.Editor.Objects.Media.Draw,
-                                Resize:SI.Editor.Objects.Media.Resize,
+                                Resize:SI.Editor.Objects.Media.Resize
                             };
                             break;
                         case  "Site":
@@ -2251,6 +2260,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_security_window",
                                 Trigger: '#si_edit_security_trigger',
+                                Overflow:'none',
                                 Title: "Security",
                                 IconImg: '/editor/media/icons/securityroles.png',
                                 Populate: SI.Editor.Objects.Security.Draw
@@ -2294,8 +2304,8 @@ SI.Editor = {
                 if(show){
                     SI.Widgets.Window[winid].Show();
                 }
-            },
-        },
+            }
+        }
     },
     Objects: {
     // Mystery how this is not being defined above. 
