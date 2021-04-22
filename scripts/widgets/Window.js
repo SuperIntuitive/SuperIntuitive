@@ -46,7 +46,7 @@ SI.Widget.Window = function  (options) {
         "Resizable": { "value": true, "type": "BOOL" },
         "Dockable": { "value": true, "type": "BOOL" },
         "ZLevel": { "value": 980, "type": "NUM" },
-        "Overflow": { "value": "visible", "type": "ENUM", "choices": ["auto", "scroll", "hidden","visable"] },
+        "Overflow": { "value": "auto", "type": "ENUM", "choices": ["auto", "scroll", "hidden","visable"] },
         "Position": { "value": "absolute", "type": "ENUM", "choices": ["absolute", "relative", "fixed"] },
         "OnClose": { "value": function () { console.log("Window Closing"); }, "type": "FUNC" }, //the window is really only hidden if it has been created and closed. 
         "Modal": { "value": false, "type": "BOOL" },
@@ -315,7 +315,7 @@ SI.Widget.Window = function  (options) {
             draggable: false,
             src: this.Options.IconImg,
             style: {
-                width: '24px',
+                height: this.Options.TitleBarHeight,
                 verticalAlign: "middle",
                 marginLeft: '7px',
                 pointerEvents: 'none',

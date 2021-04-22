@@ -182,15 +182,15 @@ class Page {
 
 
 				$head.= 
-"		<script>
-if (!SI) { var SI = {}; }
-	SI.Page = {};
-	SI.Page.Settings = { $settings };
-	SI.Page.Blocks = $blocksjson;
-	SI.Widget = {};
-	SI.Widgets = {};
-	SI.User = {};
-";
+		"		<script>
+		if (!SI) { var SI = {}; }
+			SI.Page = {};
+			SI.Page.Settings = { $settings };
+			SI.Page.Blocks = $blocksjson;
+			SI.Widget = {};
+			SI.Widgets = {};
+			SI.User = {};
+		";
 
 
 			if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin']) && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin'] === true){
@@ -200,12 +200,12 @@ if (!SI) { var SI = {}; }
 					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['preferences']);
 				}
 				$head.= 
-"	SI.User.Name = '$name';
-	SI.User.Preferences = $prefs;";
+		"	SI.User.Name = '$name';
+			SI.User.Preferences = $prefs;";
 	
 			}else{
 				$head.= 
-"	SI.User.Name = 'guest';";
+		"	SI.User.Name = 'guest';";
 			}
 
 			$head.= "</script>\n";
@@ -356,8 +356,6 @@ if (!SI) { var SI = {}; }
 			return $body;
 		}
 	}
-
-
 
 	public function Save($post){
 		//only save the page if we are an admin and in dev
@@ -511,4 +509,6 @@ if (!SI) { var SI = {}; }
 		}
 
 	}
+
+
 } 

@@ -105,6 +105,27 @@ class Setting {
 		}
 	}
 
+	function Get($name){
+		$ent = new Entity('settings');
+		$ent->Attributes->Add(new Attribute("settingname", $name));
+		$found = $ent->Retrieve();
+		if(isset($found[0]['id'])){
+			return $found[0]['settingvalue'];
+		}else{
+			return FALSE;
+		}
+
+	}
+
+
+
+
+
+
+
+
+
+
 }
 
 

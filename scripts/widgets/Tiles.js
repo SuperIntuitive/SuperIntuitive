@@ -273,6 +273,7 @@ SI.Widget.Tile = function (options) {
         onclick: function(){
             window.open(SI.Tools.GetMediaFilePath(options.Url), "_blank");
         },
+        title:'Show original in new tab',
         appendTo: this.Container
     });
 

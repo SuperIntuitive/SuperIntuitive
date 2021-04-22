@@ -20,7 +20,7 @@ class Login {
 						//if remember me is set, then make a guid and the time and set it in the database
 						$this->Verified($ouruser,$post);
 						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
-						sleep(2); //help make the page load right the first time.
+						//sleep(2); //help make the page load right the first time.
 						return true;
 					} 
 				}
@@ -30,7 +30,7 @@ class Login {
 			}
 			//$this->Logout();
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['LOGINFAIL'] = 'TRUE';
-			sleep(5);//were in no hurry to give up the results of an incorrect attempt.
+			sleep(5);//we're in no hurry to give up the results of an incorrect attempt.
 			return false;
 		}
 		else{

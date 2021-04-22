@@ -1082,23 +1082,31 @@ SI.Editor.Objects.Blocks = {
     Names: [],
     Blocks: [],
     Select: function (blockid = '') {
+
         //make sure it is the block
         //ezhack- if blockid is undefined or null select no blocks.
         let block = document.getElementById(blockid);
         //debugger;
-        //Light up the block
+        //Unselect all Blocks
         SI.Tools.Class.Loop("si-block", function (ele) {
-            ele.style.boxShadow = "none";
+           // ele.style.boxShadow = "none";
+            ele.classList.remove("si-block-selected");
+            
         });
+        //Unselect all Block Interfaces
         SI.Tools.Class.Loop("si-bids", function (ele) {
-            ele.style.boxShadow = "none";
+            ele.classList.remove("si-bids-selected");
+         //   ele.style.boxShadow = "none";
         });
+        //debugger;
         if (block) {
-            block.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
+            block.classList.add("si-block-selected");
+          //  block.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
            
             let bid =  document.getElementById(block.id.replace("si_block_", "si_bid_"))
             if(bid){
-                bid.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
+                bid.classList.add("si-bid-selected");
+               // bid.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
             }
 
             SI.Editor.Objects.Blocks.Selected = block;
@@ -1109,10 +1117,12 @@ SI.Editor.Objects.Blocks = {
     Selected: null,
     DropBlock: null,
     DragEnter: function (e) {
-        //debugger;
+        
+        if(e.target.id === 'si_block_GDPR'){
+           debugger;
+        }
         if (!SI.Editor.UI.MainMenu.IsDragging) {
             var data = e.dataTransfer.getData("Text");
-            //let self = this;
             SI.Editor.Objects.Elements.MakeDropParent(e, this);
             SI.Editor.Objects.Blocks.Select(this.id);
         }

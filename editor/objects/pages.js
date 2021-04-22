@@ -4,21 +4,27 @@ SI.Editor.Objects.Page = {
         let base = Ele('div', {
             style: {
                 width: '100%',
-                height: '100%',
                 backgroundColor: SI.Editor.Style.FavoriteColor,
-                overflowY: 'scroll'
+                paddingTop:'6px'
             }
-
         });
-        let sub = SI.Tools.GetSubdomain();
-        let dir = SI.Tools.GetPathDirectory();
+        Ele("div", {
+            style: {
+                width: '100%',
+                backgroundColor: SI.Editor.Style.FavoriteColor,
+                height:'10px'
+            },
+            appendTo: base
+        });
         //Path Section
         let pageContainer = Ele('section', {
             style: {
                 backgroundColor: 'black',
                 color: SI.Editor.Style.TextColor,
-                margin: '7px',
-                padding: '6px'
+                padding: '6px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                width:'96%'
             },
             appendTo: base
         });
@@ -51,13 +57,7 @@ SI.Editor.Objects.Page = {
             appendTo: pageContainer,
             append: Ele("legend", {
                 innerHTML: "Path",
-                style: {
-                    backgroundColor: "rgb(72, 75, 87)",
-                    border: "inherit",
-                    padding: "2px 4px 2px 4px",
-                    borderRadius: "4px",
-                    filter: "brightness(1.2)"
-                }
+                class:'si-edit-legend'
             })
         });
         let pathTable = Ele("table", {
@@ -69,6 +69,10 @@ SI.Editor.Objects.Page = {
             },
             appendTo: pathFieldset
         });
+
+        let sub = SI.Tools.GetSubdomain();
+        let dir = SI.Tools.GetPathDirectory();
+
         let pathHeaderRow = Ele('tr', { appendTo: pathTable, style: { color: SI.Editor.Style.TextColor } });
         let subHeader = Ele('th', { innerHTML: "Business Unit", appendTo: pathHeaderRow, userSelect: 'none' });
         let domainHeader = Ele('th', { innerHTML: "Domain", appendTo: pathHeaderRow, userSelect: 'none' });
@@ -141,13 +145,7 @@ SI.Editor.Objects.Page = {
             appendTo: pageContainer,
             append: Ele("legend", {
                 innerHTML: "Meta Tags",
-                style: {
-                    backgroundColor: "rgb(72, 75, 87)",
-                    border: "inherit",
-                    padding: "2px 4px 2px 4px",
-                    borderRadius: "4px",
-                    filter: "brightness(1.2)"
-                }
+                class:'si-edit-legend'
             })
         });
         let metaTable = Ele("table", {
@@ -365,13 +363,7 @@ SI.Editor.Objects.Page = {
                 appendTo: pageContainer,
                 append: Ele("legend", {
                     innerHTML: "Body Style",
-                    style: {
-                        backgroundColor: "rgb(72, 75, 87)",
-                        border: "inherit",
-                        padding: "2px 4px 2px 4px",
-                        borderRadius: "4px",
-                        filter: "brightness(1.2)"
-                    }
+                    class:'si-edit-legend'
                 })
             });
 
@@ -493,13 +485,7 @@ SI.Editor.Objects.Page = {
                 appendTo: pageContainer,
                 append: Ele("legend", {
                     innerHTML: "Deployment",
-                    style: {
-                        backgroundColor: "rgb(72, 75, 87)",
-                        border: "inherit",
-                        padding: "2px 4px 2px 4px",
-                        borderRadius: "4px",
-                        filter: "brightness(1.2)"
-                    }
+                    class:'si-edit-legend'
                 })
             });
             
@@ -529,13 +515,7 @@ SI.Editor.Objects.Page = {
             appendTo: pageContainer,
             append: Ele("legend", {
                 innerHTML: "Page Settings",
-                style: {
-                    backgroundColor: "rgb(72, 75, 87)",
-                    border: "inherit",
-                    padding: "2px 4px 2px 4px",
-                    borderRadius: "4px",
-                    filter: "brightness(1.2)"
-                }
+                class:'si-edit-legend'
             })
         });
         for (let s in SI.Editor.Data.Objects.Settings) {
@@ -551,9 +531,13 @@ SI.Editor.Objects.Page = {
             id: "si_editor_page_block_container",
             style: {
                 backgroundColor: 'black',
-                width: '96.5%',
                 padding: '6px',
-                margin: '7px'
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                width:'96%',
+                marginTop:'16px',
+
+                
             },
             onclick: function (e) { SI.Editor.Objects.Blocks.Select(); },
             onmouseenter: function () {

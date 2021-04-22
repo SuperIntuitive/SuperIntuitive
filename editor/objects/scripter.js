@@ -199,7 +199,7 @@ SI.Editor.Objects.Scripter = {
         SI.Editor.Objects.Scripter.Codepad = Ele('pre', {
             id: 'si_scripter_codepad',
             class: 'si-scripter-codepad',
-            contentEditable: "True",
+            contentEditable: true,
             style: {
                 color: 'white',
                 position: "absolute",
@@ -229,6 +229,7 @@ SI.Editor.Objects.Scripter = {
                 }
             },
             onkeyup: function (e) {
+                let pad = e.target;
                 let code = e.keyCode;
                 switch (code) {
                     case 9:
@@ -242,7 +243,16 @@ SI.Editor.Objects.Scripter = {
                             SI.Editor.Objects.Scripter.ComputeLineNumbers();
                         }
                         break;
+                    case 32:
+                        let pos = SI.Tools.Caret.GetPosition(pad);
+                        debugger;
+                        SI.Editor.Objects.Scripter.HighlightSyntax(this);
+                        debugger;
+                        SI.Tools.Caret.SetPosition(pad,pos);
+                        break;
                 }
+
+                //SI.Tools.SuperAlert(code);
             },
 
             appendTo: SI.Editor.Objects.Scripter.Codeview
@@ -733,7 +743,7 @@ SI.Editor.Objects.Scripter = {
 
             codepad.innerHTML = script + "\n\n\n";
             //debugger;
-
+/*
             if (curele) {
                 //debugger;
                 let node = codepad.childNodes[curele];
@@ -750,7 +760,7 @@ SI.Editor.Objects.Scripter = {
                 //   sel.modify('move', 'forward', curoff);
 
             }
-
+*/
 
 
     },

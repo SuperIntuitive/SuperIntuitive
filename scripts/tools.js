@@ -982,10 +982,10 @@ SI.Tools = {
                 SI.Tools.Warn("Tried to determine if "+ele+" IsVisable. The element was null");
             }
         },
-        Element: function (o) {
+        Element: function (ele) {
             return (
-                typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
-                    o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+                typeof HTMLElement === "object" ? ele instanceof HTMLElement : //DOM2
+                ele && typeof ele === "object" && ele !== null && ele.nodeType === 1 && typeof ele.nodeName === "string"
             );  //SO-384286
         },
         InlineElement: function (ele) {
@@ -1037,10 +1037,10 @@ SI.Tools = {
             }
             return b;
         },
-        Node: function (o) {
+        Node: function (node) {
             return (
-                typeof Node === "object" ? o instanceof Node :
-                    o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
+                typeof Node === "object" ? node instanceof Node :
+                    node && typeof node === "object" && typeof node.nodeType === "number" && typeof node.nodeName === "string"
             );
         },
         Guid: function (test) { return SI.Tools.RegEx.Match('guid', test); },
@@ -1685,6 +1685,68 @@ SI.Tools = {
             
             return rg1.test(fname)&&!rg2.test(fname)&&!rg3.test(fname);
             
+        }
+    },
+    Cookie:{
+        Get(name) {
+            var dc = document.cookie;
+            var prefix = name + "=";
+            var begin = dc.indexOf("; " + prefix);
+            if (begin == -1) {
+                begin = dc.indexOf(prefix);
+                if (begin != 0) return null;
+            }
+            else
+            {
+                begin += 2;
+                var end = document.cookie.indexOf(";", begin);
+                if (end == -1) {
+                end = dc.length;
+                }
+            }
+            // because unescape has been deprecated, replaced with decodeURI
+            //return unescape(dc.substring(begin + prefix.length, end));
+            return decodeURI(dc.substring(begin + prefix.length, end));
+        } 
+
+    },
+    Caret:{
+        GetPosition(ele) {
+            if (ele.contentEditable) {
+                ele.focus()
+                let _range = document.getSelection().getRangeAt(0)
+                let range = _range.cloneRange()
+                range.selectNodeContents(ele)
+                range.setEnd(_range.endContainer, _range.endOffset)
+                return range.toString().length;
+            }
+            // for texterea/input element
+            return target.selectionStart
+        },
+        SetPosition(ele, pos) {
+            debugger;
+            if(ele != null) {
+                if(ele.createTextRange) {
+                    var range = ctrl.createTextRange();
+                    range.collapse(true);
+                    range.moveEnd('character', pos);
+                    range.moveStart('character', pos);
+                    range.select();
+                }
+                else if (ele.setSelectionRange)
+                {
+                    ele.focus();
+                    ele.setSelectionRange(pos,pos);
+                }
+                else {
+                    if(ele.selectionStart) {
+                        ele.focus();
+                        ele.setSelectionRange(pos, pos);
+                    }
+                    else
+                        ele.focus();
+                }
+            }
         }
     }
 };

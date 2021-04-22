@@ -6,8 +6,9 @@ SI.Editor.Objects.Security = {
             style: {
                 width: "100%",
                 height: "100%",
-                overflow: "scroll",
-                backgroundColor: 'teal',
+                overflow: "auto",
+                padding:"6px",
+                backgroundColor: SI.Editor.Style.FavoriteColor,
                 color: SI.Editor.Style.TextColor,
             },
         });
@@ -15,11 +16,12 @@ SI.Editor.Objects.Security = {
         let roleFs = Ele('fieldset', {
             id: "si_edit_security_rolesfs",
             style: {
-                marginTop: '10px',
-                backgroundColor: 'black',
+                margin: '10px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
             },
             append: Ele("legend", {
                 innerHTML: "Roles",
+                class:'si-edit-legend'
             }),
             appendTo: base,
         });
@@ -47,6 +49,7 @@ SI.Editor.Objects.Security = {
             },
             append: Ele("legend", {
                 innerHTML: roleent.name,
+                class:'si-edit-legend',
                 style: {
                     cursor: 'pointer',
                 },
@@ -62,7 +65,7 @@ SI.Editor.Objects.Security = {
         let controlbox = Ele('section', {
             class: 'si-edit-security-entity-box-' + rolenameid,
             style: {
-                display: 'block',
+                display: 'none',
             },
             appendTo: roleFs,
         });
@@ -103,12 +106,13 @@ SI.Editor.Objects.Security = {
 
         let rules = roleent.rules;
         for (let rule in rules) {
+           
             let myrule = rules[rule];
 
             let rulebox = Ele('div', {
                 class: "si-edit-security-entity-box-" + rolenameid,
                 style: {
-                    display: 'inline-block',
+                    display: 'none',
                     backgroundColor: "grey",
                     margin: '3px',
                     border: "1px solid lightgrey",
@@ -139,7 +143,9 @@ SI.Editor.Objects.Security = {
                         float: 'right',
                     },
                 });
-
+                if (roleent.name === 'Admin') {
+                    rulecb.disabled = true;
+                }
                 let rulelabel = Ele('label', {
                     innerHTML: op,
                     for: "si_edit_security_rule_" + rolenameid + "_" + op + "_" + myrule.name,

@@ -8,8 +8,8 @@ SI.Editor.Objects.Settings = {
                 height: "100%",
                 overflow: "auto",
                 padding: '20px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
+                backgroundColor: SI.Editor.Style.FavoriteColor,
+
             },
         });
 
@@ -20,11 +20,16 @@ SI.Editor.Objects.Settings = {
                 width: '90%',
                 marginLeft:'3%',
                 borderRadius: '10px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
+                marginTop:'8px'
             },
-            append: Ele('legend', { innerHTML: 'Tools' }),
+            append: Ele('legend', { 
+                innerHTML: 'More Tools',
+                class:'si-edit-legend'
+            }),
             appendTo: container,
         });
-
         //HUD
         let hudcb = Ele('input', {
             id: 'si_edit_hud_trigger',
@@ -62,7 +67,6 @@ SI.Editor.Objects.Settings = {
             append: hudcb,
             appendTo: toolsbox,
         });
-
         //PhpInfo
         let openScenegraph = Ele('button', {
             id: 'si_edit_settings_scenegraph',
@@ -70,7 +74,7 @@ SI.Editor.Objects.Settings = {
             appendTo: toolsbox,
             title: "View Scenegraph",
             style: {
-                marginRight: '10px',
+                margin: '5px',
             },
             onclick:function(){
                 if(!SI.Widgets.Window.scenegraph){
@@ -86,7 +90,6 @@ SI.Editor.Objects.Settings = {
                 }
             },
         });
-
         //PhpInfo
         let openPhpInfo = Ele('button', {
             id: 'si_edit_settings_phpinfo',
@@ -94,7 +97,7 @@ SI.Editor.Objects.Settings = {
             appendTo: toolsbox,
             title: "View php info",
             style: {
-                marginRight: '10px',
+                margin: '5px',
             },
             onclick:function(){
                 if(!SI.Widgets.Window.si_edit_phpinfo_window){
@@ -112,13 +115,11 @@ SI.Editor.Objects.Settings = {
             },
         });
 
-
-
         let checkBadImages = Ele('button', {
             id: 'si_edit_settings_checkbadimages',
             innerHTML: "Look for Image problems",
             style: {
-                marginRight: '10px',
+                margin: '5px',
             },
             appendTo: toolsbox,
             title: 'Some browsers can try to load a page twice+ if there is a missing image. \nMake sure you have images at the end of all your image urls!\nThis will search the document for all invalid images and return their ids.',
@@ -141,14 +142,13 @@ SI.Editor.Objects.Settings = {
 
             }
         });
-
         let createInstallerFile = Ele('button', {
             id: 'si_edit_settings_createinstaller',
             innerHTML: "Create Installer",
             appendTo: toolsbox,
             title: "Build a installer file from the existing database",
             style: {
-                marginRight: '10px',
+                margin: '5px',
             },
             onclick: function (e) {
 
@@ -179,7 +179,7 @@ SI.Editor.Objects.Settings = {
             appendTo: toolsbox,
             title: "Make a backup file from the existing database",
             style: {
-                marginRight: '10px',
+                margin: '5px',
             },
             onclick: function (e) {
                 let options = {
@@ -190,7 +190,24 @@ SI.Editor.Objects.Settings = {
                 SI.Editor.Ajax.Run(options);
             }
         });
-
+        let performUpdate = Ele('button', {
+            id: 'si_edit_settings_getupdate',
+            innerHTML: "Update SI",
+            appendTo: toolsbox,
+            title: "Update files from Github",
+            style: {
+                margin: '5px',
+            },
+            onclick: function (e) {
+                let options = {
+                    Data: {
+                        KEY: "PerformUpdate",
+                        branch:'dev'
+                    }
+                };  
+                SI.Editor.Ajax.Run(options);
+            }
+        });
 
 
 
@@ -200,8 +217,13 @@ SI.Editor.Objects.Settings = {
                 width: '90%',
                 borderRadius: '10px',
                 marginLeft:'3%',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
             },
-            append: Ele('legend', { innerHTML: 'Custom Settings' }),
+            append: Ele('legend', { 
+                innerHTML: 'Custom Settings',
+                class:'si-edit-legend'
+            }),
             appendTo: container,
         });
         Ele("span", { innerHTML: 'New Setting: Name ', appendTo: newbox });
@@ -223,13 +245,19 @@ SI.Editor.Objects.Settings = {
                 SI.Editor.Objects.Settings.New(name, value);
             }
         });
-
+        Ele("hr",{appendTo: newbox});
         let existingbox = Ele('fieldset', {
             style: {
-                width: '90%',
+                width: '96%',
                 borderRadius: '10px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
+                filter: "brightness(1.2)"
             },
-            append: Ele('legend', { innerHTML: 'Current Settings' }),
+            append: Ele('legend', { 
+                innerHTML: 'Current Settings',
+                class:'si-edit-legend'
+            }),
             appendTo: newbox,
         });
         let settingstable = Ele('table', {
@@ -289,15 +317,21 @@ SI.Editor.Objects.Settings = {
         let settingname = Ele('th', {
             innerHTML: name,
             appendTo: settingsrow,
+            style:{
+                paddingRight:"30px",
+            }
         });
         let settingvalue = Ele('td', {
-            appendTo: settingsrow,
+            appendTo: settingsrow
         });
 
         let settingedit = Ele('input', {
             value: value,
             data: {
                 name: name,
+            },
+            style:{
+                width:"230px",
             },
             onchange: SI.Editor.Objects.Settings.Update,
             appendTo: settingvalue,

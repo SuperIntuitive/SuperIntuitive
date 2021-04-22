@@ -120,6 +120,9 @@ class Sessions {
 			}
 		}
 	}
+	private function DefineInstance(){
+		define('SI_INSTANCE', $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]);
+	}
 	public function SetDeployment(){
 		$overwrite = FALSE;
 		if( empty( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] ) || $overwrite){

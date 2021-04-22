@@ -2,7 +2,9 @@
 SI.Editor.Objects.Media = {
     Draw : function(){
         let container = Ele("div", {});
-        var tabs = new SI.Widget.Tab({});
+        var tabs = new SI.Widget.Tab({
+            BackgroundColor:  SI.Editor.Style.FavoriteColor,
+        });
 
         tabs.Items.Add('Images', SI.Editor.Objects.Media.MediaTab('Images'));
         tabs.Items.Add('Audio', SI.Editor.Objects.Media.MediaTab('Audio'));
@@ -34,10 +36,6 @@ SI.Editor.Objects.Media = {
         this.CurrentMediaPath = "",
         tabname = tabname.replace(/ /g, '');
         let container = Ele('div', {
-            style: {
-                width: '100%',
-                height: '100%'
-            }
         });
         //Left Menu
         let menu = Ele('div', {
@@ -238,14 +236,17 @@ SI.Editor.Objects.Media = {
                 position: 'absolute',
                 width: '540px',
                 height: "24px",
-                top: '0px',
+                top: '33px',
+                left: '260px',
                 backgroundColor: SI.Editor.Style.BackgroundColor,
-                left: '260px'
             },
             appendTo: container,
-            onclick: function () { alert("Sort and filter stuff will be here soon"); },
+            title:"Sort and filter controls will be here soon",
         });
         //Media Scroller
+       //ele.style.width = (w - 265) + "px";
+      //  ele.style.height = (h - 56) + "px";
+
         var mediascroller = Ele('div', {
             id: 'si_edit_mediascroller_' + tabname,
             class: 'si-edit-mediascroller',
@@ -255,11 +256,10 @@ SI.Editor.Objects.Media = {
                 padding: '6px',
                 overflow: 'auto',
                 left: '260px',
-                top: '24px',
+                top: '57px',
                 width: '538px',
-                height: '100%',
+                height:'544px',
                 backgroundColor: SI.Editor.Style.FavoriteColor,
-                paddingRight: '0px'
             },
             appendTo: container
         });

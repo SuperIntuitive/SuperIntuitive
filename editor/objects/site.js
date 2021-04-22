@@ -3,14 +3,30 @@
         let base = Ele('div', {
             style: {
                 width: '100%',
-                height: '100%',
                 backgroundColor: SI.Editor.Style.FavoriteColor,
-                overflowY: 'scroll'
+                color:SI.Editor.Style.TextColor,
             }
         });
-
+        Ele("div", {
+            style: {
+                width: '100%',
+                backgroundColor: SI.Editor.Style.FavoriteColor,
+                height:'10px'
+            },
+            appendTo: base
+        });
         let fldNewPage = Ele('fieldset', {
-            append: Ele('legend', { innerHTML: 'Create a new Page' }),
+            style:{
+                margin: '6px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                width: "95%",
+                display: 'block',
+                borderRadius: '10px'
+            },
+            append: Ele('legend', { 
+                innerHTML: 'Create a new Page',
+                class:'si-edit-legend',
+            }),
         });
         //   fldNewPage.style.width = "300px";
         //    
@@ -81,7 +97,14 @@
         //Directory
 
         let directory = Ele('fieldset', {
-            append: Ele('legend', { innerHTML: 'Directory' }),
+            class:'si-edit-fieldset',
+            style:{
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+            },
+            append: Ele('legend', {
+                 innerHTML: 'Directory',
+                 class:'si-edit-legend'
+            }),
             appendTo: base,
         });
 
@@ -93,19 +116,14 @@
             if (!domains.includes(domain['domainName'])) {
                 let dom = Ele('fieldset', {
                     id: 'si_edit_site_domain_' + domain['domainName'],
-                    style: {
-                        backgroundColor: '#708090',
+                    class:'si-edit-fieldset',
+                    style:{
+                        backgroundColor: SI.Editor.Style.BackgroundColor,
+                        filter: 'brightness(120%)'
                     },
                     append: Ele('legend', {
-                        innerHTML: "Domain",
-                        style: {
-                            backgroundColor: '#d3d9de',
-                            color: '#374049',
-                            paddingLeft: '5px',
-                            paddingRight: '5px',
-                            border: '2px groove gray',
-                            borderRadius: '5px',
-                        },
+                        innerHTML: "Domains",
+                        class:'si-edit-legend'
                     }),
                     appendTo: directory,
                 });
@@ -116,9 +134,9 @@
                     domains.push(domain['domainName']);
 
                 //Deal with subdomain setup
-                let busunits = [];
+                let subdoms = [];
                 for (let busunit of pageData) {
-                    if ((!busunits.includes(busunit['subdomainName'])) && (domain['domainName'] === busunit['domainName'])) {
+                    if ((!subdoms.includes(busunit['subdomainName'])) && (domain['domainName'] === busunit['domainName'])) {
                         let buname = ''
                         if (busunit['subdomainName'] === '') {
                             buname = 'NONE';
@@ -127,19 +145,14 @@
                         }
                         let bu = Ele('fieldset', {
                             id: 'si_edit_site_domain_' + busunit['domainName'] + '_' + buname,
-                            style: {
-                                backgroundColor: '#778899',
+                            class:'si-edit-fieldset',
+                            style:{
+                                backgroundColor: SI.Editor.Style.BackgroundColor,
+                                filter: 'brightness(120%)'
                             },
                             append: Ele('legend', {
-                                innerHTML: "SubDomain",
-                                style: {
-                                    backgroundColor: '#d3d9de',
-                                    color: '#374049',
-                                    paddingLeft: '5px',
-                                    paddingRight: '5px',
-                                    border: '2px groove gray',
-                                    borderRadius: '5px',
-                                },
+                                innerHTML: "SubDomains",
+                                class:'si-edit-legend'
                             }),
                             appendTo: dom,
                         });
@@ -147,7 +160,7 @@
                             innerHTML: buname,
                             appendTo: bu
                         }),
-                            busunits.push(busunit['subdomainName']);
+                            subdoms.push(busunit['subdomainName']);
                         let pages = [];
                         for (let page of pageData) {
                             let pgname = ''
@@ -162,19 +175,14 @@
 
                                 let pg = Ele('fieldset', {
                                     id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                    style: {
-                                        backgroundColor: '#a8b3bd',
+                                    class:'si-edit-fieldset',
+                                    style:{
+                                        backgroundColor: SI.Editor.Style.BackgroundColor,
+                                        filter: 'brightness(120%)'
                                     },
                                     append: Ele('legend', {
                                         innerHTML: pgname,
-                                        style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
-                                            paddingLeft: '5px',
-                                            paddingRight: '5px',
-                                            border: '2px groove gray',
-                                            borderRadius: '5px',
-                                        },
+                                        class:'si-edit-legend'
                                     }),
                                     appendTo: bu,
                                 });
@@ -209,38 +217,28 @@
 
                                 let parentEntBox = Ele('fieldset', {
                                     id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                    style: {
-                                        backgroundColor: '#a8b3bd',
+                                    class:'si-edit-fieldset',
+                                    style:{
+                                        backgroundColor: SI.Editor.Style.BackgroundColor,
+                                        filter: 'brightness(120%)'
                                     },
                                     append: Ele('legend', {
                                         innerHTML: "Parent Entities",
-                                        style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
-                                            paddingLeft: '5px',
-                                            paddingRight: '5px',
-                                            border: '2px groove gray',
-                                            borderRadius: '5px',
-                                        },
+                                        class:'si-edit-legend'
                                     }),
                                     appendTo: pg,
                                 });
 
                                 let childEntBox = Ele('fieldset', {
                                     id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                    style: {
-                                        backgroundColor: '#a8b3bd',
+                                    class:'si-edit-fieldset',
+                                    style:{
+                                        backgroundColor: SI.Editor.Style.BackgroundColor,
+                                        filter: 'brightness(120%)'
                                     },
                                     append: Ele('legend', {
                                         innerHTML: "Child Entities",
-                                        style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
-                                            paddingLeft: '5px',
-                                            paddingRight: '5px',
-                                            border: '2px groove gray',
-                                            borderRadius: '5px',
-                                        },
+                                        class:'si-edit-legend'
                                     }),
                                     appendTo: pg,
                                 });
@@ -303,19 +301,14 @@
                                         if (makeFS) {
                                             pg = Ele('fieldset', {
                                                 id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
-                                                style: {
-                                                    backgroundColor: '#a8b3bd',
+                                                class:'si-edit-fieldset',
+                                                style:{
+                                                    backgroundColor: SI.Editor.Style.BackgroundColor,
+                                                    filter: 'brightness(120%)'
                                                 },
                                                 append: Ele('legend', {
                                                     innerHTML: cEntName,
-                                                    style: {
-                                                        backgroundColor: '#d3d9de',
-                                                        color: '#374049',
-                                                        paddingLeft: '5px',
-                                                        paddingRight: '5px',
-                                                        border: '2px groove gray',
-                                                        borderRadius: '5px',
-                                                    },
+                                                    class:'si-edit-legend'
                                                 }),
                                                 appendTo: appendto,
                                             });

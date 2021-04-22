@@ -358,6 +358,7 @@ SI.Editor.Objects.Styler = {
                 color: SI.Editor.Style.TextColor,
                 display: 'table',
                 marginLeft: '1%',
+                marginTop: '5px',
                 textAlign: 'top',
                 paddingTop: '3px',
                 paddingBottom: '3px',

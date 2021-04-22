@@ -44,7 +44,7 @@ class Cookies {
 
 	//GDPR
 	public function DrawCookiesOptIn(){
-	
+	//	$hasGDPR = Setting->Get("GDPR");
 	}
 
 	public function DrawCookiesDisclosureGrid(){

@@ -277,11 +277,12 @@ SI.Editor = {
         SI.Editor.Data.Init(); 
         //wait for all the code to load before continuing. 
         var starttimmer = setInterval(function () {
-            if (SI.Editor.Data.loaded) {
+            //this hack helps ensure that the editor objects are loaded and we dont need timers everywhere. 'defer' is not good enough. the Ω.js file should always load last and this is all it has: SI.Editor.Objects.Loaded.
+            if (SI.Editor.Data.loaded && SI.Editor.Objects.Loaded) {
                 clearInterval(starttimmer);
-                SI.Editor.Style.SetTheme();
-                SI.Editor.Objects.Elements.Init();
-                SI.Editor.UI.Init();
+                    SI.Editor.Style.SetTheme();
+                    SI.Editor.Objects.Elements.Init();
+                    SI.Editor.UI.Init();
             }
         }, 50);
         console.timeEnd('EditorLoadTime');
@@ -1296,7 +1297,12 @@ SI.Editor = {
                                 tagsrow.appendChild(tddragger);
                                 tagsrow.appendChild(tddata);
 
+ 
                                 SI.Editor.Objects.Settings.Help.Show("tags", tagGroup[prop], tagsrow);
+
+
+
+                                
 
                                 tagtable.appendChild(tagsrow);
                             }
@@ -2361,7 +2367,8 @@ SI.Editor = {
                     if (json.hasOwnProperty(prop)) {
                         let value = json[prop];
                         switch (prop) {
-                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
+                            case "SUPERALERT": SI.Tools.SuperAlert(value, 2000); break;
+                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); "); break;
                             case "EXCEPTION": alert(JSON.stringify(value)); break;
                             case "REFRESH": location.reload(); break;
                             case "CONSOLELOG": console.log(value); break;

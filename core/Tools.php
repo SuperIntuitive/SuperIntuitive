@@ -43,9 +43,8 @@ class Tools{
 	}
 	static function DefineServer(){
 
+		
 		$url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-		//since we do not use apache virtual hosts to partition the domains, this could be anything. If it was bad it wouldnt get by the vhosts.
-		//DO NOT TRUST THIS URL. DO NOT MAKE IT PART OF ANYTHING UNTILL IT IS VERIFIED TO BE IN THE DATABASE.
 		$scheme = parse_url($url, PHP_URL_SCHEME);  //http or https
 		$user = parse_url($url, PHP_URL_USER); //we'll probably never use
 		$pass = parse_url($url, PHP_URL_PASS); //we'll probably never use
@@ -97,14 +96,8 @@ class Tools{
 
 
 
-		//hackety hack time: github forces that I either dont have DbCreds.php or I do, but I can't have it online and ignore it from what Ive seen so Ill get rid of it onlie and do this hack. 
-		//If it does not exist i need to make a blank one before the db is called.
-		//if(!file_exists("core/DbCreds.php")){
-		//	file_put_contents("core/DbCreds.php", '<?php class DbCreds { }');
-		//}
-		
+		//This should only be needed in setup
 		if(!is_file($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php")){
-			
 			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", '<?php class DbCreds { }');     // Save our content to the file.
 		}
 	}
@@ -693,5 +686,43 @@ class Tools{
 			}
 		}
 		return $default;
+	}
+	static function SameFileData($file_a, $file_b) //SO-18849927
+	{
+		/*
+		if (filesize($file_a) == filesize($file_b))
+		{
+			$fp_a = fopen($file_a, 'rb');
+			$fp_b = fopen($file_b, 'rb');
+			while (($b = fread($fp_a, 4096)) !== false)
+			{
+				$b_b = fread($fp_b, 4096);
+				if ($b !== $b_b)
+				{
+					fclose($fp_a);
+					fclose($fp_b);
+					return false;
+				}
+			}
+			fclose($fp_a);
+			fclose($fp_b);
+			return true;
+		}
+		return false;
+		*/
+		//Get the file into a string and remove 
+		$data_a = str_replace("\r",'',file_get_contents ($file_a));
+		$data_b = str_replace("\r",'',file_get_contents ($file_b));
+
+		$size_a = strlen($data_a);
+		$size_b = strlen($data_b);
+		if($size_a === $size_b){
+			$match = strcmp($data_a, $data_b);
+			if ($match == 0){
+				return true;
+			} 
+		}
+
+		return false;
 	}
 }

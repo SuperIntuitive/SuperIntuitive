@@ -1,8 +1,5 @@
 ﻿
 
-
-
-
 @font-face {
     font-family: Roboto;
     src: url(/editor/media/fonts/Roboto/Roboto-Regular.ttf);
@@ -18,8 +15,40 @@
     src: url(/editor/media/fonts/Inconsolata/Inconsolata-Regular.ttf);
 }
 
+
+
+
+.si-edit-legend {
+    background-color: inherit;
+    border: inherit;
+    padding: 2px 4px 2px 4px;
+    border-radius: 4px;
+    filter: brightness(1.2);
+}
+.si-edit-fieldset {
+    border-radius: 10px;
+}
+
+
 .si-scripter-codepad:focus {
     outline: none; /*1px dashed rgba(128,128,128,0.4);*/
+}
+
+
+
+.si-editable-selected{
+    box-shadow: rgb(255 254 201/ 30%) 0px 0px 10px 1px, rgb(248 255 53/ 60%) 0px 0px 10px 1px inset;
+}
+
+.si-block-selected{
+    box-shadow: rgb(84 255 226 / 30%) 0px 0px 10px 1px, rgb(17 255 207/ 60%) 0px 0px 10px 1px inset;
+}
+.si-bid-selected{
+    box-shadow: rgb(84 255 226 / 30%) 0px 0px 10px 1px, rgb(17 255 207/ 60%) 0px 0px 10px 1px inset;
+}
+
+.si-drop-parent{
+    box-shadow: rgb(109 112 255 / 30%) 0px 0px 10px 1px, rgb(28 35 255 / 60%) 0px 0px 10px 1px inset;
 }
 
 si-jsur {

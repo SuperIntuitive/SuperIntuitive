@@ -51,6 +51,9 @@ class Database extends DbCreds
 			Tools::Error("Database connection error: ".$ex->getMessage(),true);
 		}
 	}
+	public function GetDatabaseName(){
+		return $this->databaseName;
+	}
 	public function IsCmsSetup(){
 		if($this->pdo === null || $this->pdo === false ){
 			return false;
@@ -474,6 +477,8 @@ class Database extends DbCreds
 		}
 	}
 
+
+	
 	//Admin only
 	public function CreateInstance($domain, $subdomain){
 		//This function will automatically run when accessed from an unknown domain and or subdomain
@@ -1185,6 +1190,7 @@ class Database extends DbCreds
 	public function GetBlocks($pageid){	
 	    //first clear the blocks from  prev page
 	    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'] = array();
+		//Get the deployment
 		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 		//Tools::Log("IN GetBlocks: ".$deploymentlevel,true);
 		$cols= "id,name,modifiedon,`$deploymentlevel-html`,`$deploymentlevel-style`,`$deploymentlevel-script`";

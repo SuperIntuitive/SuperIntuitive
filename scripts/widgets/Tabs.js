@@ -9,7 +9,7 @@ SI.Widget.Tab = function  (options) {
 
     this.Defaults = {
         "ContainerClass": "",
-        "Position": "absolute",
+        "Position": "static",
         "Parent": null,
         "ParentIndex": null,
         "Width": "100%",
@@ -23,12 +23,14 @@ SI.Widget.Tab = function  (options) {
         "TextAlign": "center",
         "Border": 'solid 1px rgba(64,64,64,.5)',
         "BackgroundColor": SI.Theme.BackgroundColor,
-        "TabTextColor": "white",
+        "BackgroundFilter":"brightness(0.6)",
+        "Radius": '8px',
+        "TabTextColor": SI.Theme.TextColor,
         "TabBackgroundColor": SI.Theme.MenuColor,
         "SelectedTabBackgroundColor": "slategrey",
         "TabFilter": "brightness(100%)",
-        "HoverTabFilter": "brightness(110%)",
-        "SelectedTabFilter": "brightness(125%)",
+        "HoverTabFilter": "brightness(120%)",
+        "SelectedTabFilter": "brightness(145%)",
         "TabHeight": "20px",
         "TabPadding": "6px",
         "LeftOfTabsSpace": '18px',
@@ -121,20 +123,22 @@ SI.Widget.Tab = function  (options) {
                 height: this.Options.Height,
                 width: this.Options.Width,
                 overflow: this.Options.Overflow,
+                height:this.Options.Height
             }
         });
         //debugger;
-        let tabs = Ele("ul", {
+        let tabs = Ele("div", {
             class: this.BaseClass+"-tabmenu",
             style: {
-                listStyle: 'none',
-                whiteSpace: 'nowrap',
-                height: (parseInt(this.Options.TabHeight) + (parseInt(this.Options.TabPadding) - 3)) + 'px',
+                position:'relative',
+               // height: (parseInt(this.Options.TabHeight) + (parseInt(this.Options.TabPadding) - 3)) + 'px',
                 backgroundColor: this.Options.BackgroundColor,
+                filter: this.Options.BackgroundFilter,
                 margin: '0px',
-                //  verticalAlign: 'center',
                 width: this.Options.Width,
                 paddingLeft: this.Options.LeftOfTabsSpace,
+                display:'flex',
+                flexWrap:'wrap',
             },
             appendTo: container,
         });
@@ -161,18 +165,19 @@ SI.Widget.Tab = function  (options) {
                 filter = this.Options.TabFilter;
             }
 
-            let tabitem = Ele("li", {
+            let tabitem = Ele("div", {
                 id: this.Id+'_tabitem_' + key.replace(' ', '_'),
                 class: this.BaseClass+"-tabitem",
                 style: {
-                    display: 'inline',
+                    display: 'flex',
                     border: this.Options.Border,
-                    height: this.Options.TabHeight,
                     padding: this.Options.TabPadding,
                     marginLeft: '0px',
                     cursor: 'pointer',
                     backgroundColor: this.Options.TabBackgroundColor,
                     filter: filter,
+                    borderTopLeftRadius: this.Options.Radius,
+                    borderTopRightRadius: this.Options.Radius,
                 },
                 data: {
                     tabname: key,
@@ -222,7 +227,8 @@ SI.Widget.Tab = function  (options) {
                 style: {
                     position: 'relative',
                     userSelect: 'none',
-                    top: ((parseInt(this.Options.TabPadding) / 2) - 2) + 'px'
+                   // top: ((parseInt(this.Options.TabPadding) / 2) - 2) + 'px',
+                    color: 'white',
                 },
                 appendTo:tabitem,
             });
@@ -236,16 +242,18 @@ SI.Widget.Tab = function  (options) {
                 disp = 'block';
             } 
             //Create the element
+            let minH = this.Options.Height - this.Options.TabHeight;
             let content = Ele('div', {
                 id: this.Id+'_tabcontent_' + key.replace(' ', '_'),
                 class: this.BaseClass+"-tabcontent",
                 style: {
-                    minHeight: '100%',
+                    minHeight: minH,
                     backgroundColor: '#DDD',
-                    position: 'absolute',
+                    position: 'static',
                     top: this.Options.TabHeight,
                     width: '100%',
                     display: disp,
+
                 }
             });
             //the incomming content can be a string to add to inner, or an element to append

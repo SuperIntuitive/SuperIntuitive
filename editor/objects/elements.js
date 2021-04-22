@@ -27,22 +27,24 @@ SI.Editor.Objects.Elements = {
     //A list of all of the unique classes
     Classes: [],
     //Holds the currently selected element type=element
-    Selected: null,
+    SelectedElement: null,
+    //When a new element is being dragged into the scene, this holds the element that will be dropped onto.
+    DropParent: null,
     //Removes selection from all elements.
     SelectNone: function () {
         //debugger;
-        var selecteds = document.getElementsByClassName("si-editor-selected");
+        var selecteds = document.getElementsByClassName("si-editable-selected");
         if (selecteds.length > 0) {
             for (let node in selecteds) {
                 let ele = selecteds[node];
                 if (SI.Tools.Is.Element(ele)) {
                     //remove its selected events
-                    // ele.removeEventListener('dragenter', SI.Editor.Objects.Elements.MakeDropParent);
-                    //  ele.removeEventListener('dragstart', SI.Editor.Objects.Elements.MoveStart);
-                    //  ele.removeEventListener('dragend', SI.Editor.Objects.Elements.MoveEnd);
+                    ele.removeEventListener('dragenter', SI.Editor.Objects.Elements.MakeDropParent);
+                    ele.removeEventListener('dragstart', SI.Editor.Objects.Elements.MoveStart);
+                    ele.removeEventListener('dragend', SI.Editor.Objects.Elements.MoveEnd);
                     //remove/replace any styles or attributes that make this selected
-                    if (typeof ele.classList !== 'undefined' && ele.classList.contains("si-editor-selected")) {
-                        ele.classList.remove("si-editor-selected");
+                    if (typeof ele.classList !== 'undefined' && ele.classList.contains("si-editable-selected")) {
+                        ele.classList.remove("si-editable-selected");
                         // Cycle over each attribute on the element
                         for (let i = 0; i < ele.attributes.length; i++) {
                             // Store reference to current attr
@@ -77,7 +79,7 @@ SI.Editor.Objects.Elements = {
                 }
             };
         }
-        SI.Editor.Objects.Elements.Selected = null;
+        SI.Editor.Objects.Elements.SelectedElement = null;
     },
     //Selects a single element.
     Select: function (ev, id) {
@@ -102,7 +104,7 @@ SI.Editor.Objects.Elements = {
         }
 
         //if it is already selected, then unselect it and hide the edit window.
-        if (self.classList && self.classList.contains('si-editor-selected')) {
+        if (self.classList && self.classList.contains('si-editable-selected')) {
             SI.Editor.Objects.Elements.SelectNone();
             document.getElementById('si_edit_edit_menuitem').style.display = 'none'; //hide the edit menu
             return;
@@ -116,12 +118,13 @@ SI.Editor.Objects.Elements = {
 
         //Add whatever we need to make self Selected
         //since were comindering the box shadow for selection we should keep a copy of/if there is a set one
-        if (typeof self.style.boxShadow.length > 0) {
-            self.setAttribute('data-sistyle_box-shadow', self.style.boxShadow);
-        } else {
-            self.setAttribute('data-sistyle_box-shadow', null);
-        }
-        self.style.boxShadow = '0px 0px 20px 1px rgba(255, 255, 0, 0.3), inset 0px 0px 20px 1px rgba(255, 255, 0, 0.3)';
+        //Update since this will be done with a class it should default back to its self
+        //if (typeof self.style.boxShadow.length > 0) {
+        //    self.setAttribute('data-sistyle_box-shadow', self.style.boxShadow);
+        //} else {
+        //    self.setAttribute('data-sistyle_box-shadow', null);
+        //}
+        //self.style.boxShadow = '0px 0px 20px 1px rgba(255, 255, 0, 0.3), inset 0px 0px 20px 1px rgba(255, 255, 0, 0.3)';
 
         //all selected elements are draggable, and turned off when unselected. But what if it is supposed to be draggable? it should not turn off. store it. 
         if (typeof self.draggable.length > 0) {
@@ -136,7 +139,7 @@ SI.Editor.Objects.Elements = {
         self.addEventListener('dragend', SI.Editor.Objects.Elements.MoveEnd);
 
         //give it the selected class
-        self.classList.add('si-editor-selected');
+        self.classList.add('si-editable-selected');
 
         //show it in the hud
         let hud = document.getElementById("si_edit_hud_selectedelement");
@@ -145,7 +148,7 @@ SI.Editor.Objects.Elements = {
         }
 
         //Lastly make the global Selected element be self one.
-        SI.Editor.Objects.Elements.Selected = self;
+        SI.Editor.Objects.Elements.SelectedElement = self;
 
         //Select the block that is parent to the element
         let block = SI.Tools.Element.GetBlock(self);
@@ -236,15 +239,16 @@ SI.Editor.Objects.Elements = {
     //Moves the selected element plus or minus 
     MoveBy: function (x, y) {
         //debugger;
-        var selected = SI.Editor.Objects.Elements.Selected;
+        var selected = SI.Editor.Objects.Elements.SelectedElement;
         if (selected) {
             if (typeof selected.style.position === 'undefined' || selected.style.position === 'static') {
                 SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
+            }else{
+                let oldx = parseInt(selected.style.left);
+                let oldy = parseInt(selected.style.top);
+                selected.style.left = (oldx + x) + 'px';
+                selected.style.top = (oldy + y) + 'px';
             }
-            let oldx = parseInt(selected.style.left);
-            let oldy = parseInt(selected.style.top);
-            selected.style.left = (oldx + x) + 'px';
-            selected.style.top = (oldy + y) + 'px';
         }
     },
     //Sets the start info when dragging starts
@@ -255,7 +259,7 @@ SI.Editor.Objects.Elements = {
             SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
         }
         else {
-            if (SI.Editor.Objects.Elements.Selected !== null && SI.Editor.Objects.Elements.Selected.id === this.id) {
+            if (SI.Editor.Objects.Elements.SelectedElement !== null && SI.Editor.Objects.Elements.SelectedElement.id === this.id) {
                 //make the drop Parent this parent to avoid ambiguity;
                 SI.Editor.Objects.Elements.MakeDropParent(this.parentElement);
                 //debugger;
@@ -263,8 +267,6 @@ SI.Editor.Objects.Elements = {
                 this.dataset.parentid = this.parentElement.id;
                 this.dataset.mOffX = ev.offsetX;
                 this.dataset.mOffY = ev.offsetY;
-
-
                 let hud = document.getElementById("si_edit_hud_draggingelement");
                 if(hud){
                     hud.innerHTML = this.id;
@@ -278,14 +280,21 @@ SI.Editor.Objects.Elements = {
                     document.getElementById("si_edit_hud_offsety").innerHTML = ev.offsetY;
                 }
             }
-        }
-        if (ev.stopPropagation)
+            if (ev.stopPropagation)
             ev.stopPropagation();
+        }
+
     },
     //Sets the position when the move ends. NEEDS WORK
     MoveEnd: function (ev) {
         //this.style.display = 'initial';
-        if (SI.Editor.Objects.Elements.Selected !== null && SI.Editor.Objects.Elements.Selected.id === this.id) {
+                let style = window.getComputedStyle(this);
+        //debugger;
+        if (!style.position || style.position === 'static') {
+            SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
+        }
+        else if (SI.Editor.Objects.Elements.SelectedElement !== null && SI.Editor.Objects.Elements.SelectedElement.id === this.id) {
+            let style = window.getComputedStyle(this);
             //debugger;
             let self = this;
             let x = ev.pageX;
@@ -315,28 +324,32 @@ SI.Editor.Objects.Elements = {
 
             //var x = (evt.pageX - $('#element').offset().left) + self.frame.scrollLeft();
             //var y = (evt.pageY - $('#element').offset().top) + self.frame.scrollTop();
-        }
-        if (ev.stopPropagation)
+            if (ev.stopPropagation)
             ev.stopPropagation();
+        }
+
     },
     //Sets the parent of the element while being moved
     MakeDropParent: function (ev, self) {
         self = (typeof self === 'undefined') ? this : self;
         if (SI.Tools.Is.Element(self)) {
-            SI.Editor.Objects.Elements.DropParent = self;
-
-            let hud = document.getElementById("si_edit_hud_dropparent")
-            if(hud){
-                hud.innerHTML = self.id;
+            if(SI.Editor.Objects.Elements.Selected.id !== self.id ){
+                SI.Editor.Objects.Elements.DropParent = self;
+                SI.Editor.Objects.Elements.DropParent.classList.add("si-drop-parent");
+    
+    
+                let hud = document.getElementById("si_edit_hud_dropparent")
+                if(hud){
+                    hud.innerHTML = self.id;
+                }
+   
             }
-           
-
         }
         if (ev.stopPropagation) {
             ev.stopPropagation();
         }
     },
-    DropParent: null,
+ 
 
     Attributes: {
         Widget: function (options) {
@@ -390,7 +403,7 @@ SI.Editor.Objects.Elements = {
                         ele = document.querySelector(options.Affected);
                     }
                 } else {
-                    ele = SI.Editor.Objects.Elements.Selected;
+                    ele = SI.Editor.Objects.Elements.SelectedElement;
                 }
                 return ele;
             }
@@ -423,7 +436,7 @@ SI.Editor.Objects.Elements = {
                             ele = document.querySelector(options.Affected);
                         }
                     } else {
-                        ele = SI.Editor.Objects.Elements.Selected;
+                        ele = SI.Editor.Objects.Elements.SelectedElement;
                     }
                     if (ele !== null) {
                         if (this.checked) {
@@ -463,9 +476,9 @@ SI.Editor.Objects.Elements = {
                             let ele = getAffected();
                             let text = this.value;
                             if (text.length > 0) {
-                                SI.Editor.Objects.Elements.Selected.innerHTML = text;
+                                SI.Editor.Objects.Elements.SelectedElement.innerHTML = text;
                             } else {
-                                SI.Editor.Objects.Elements.Selected.innerHTML = "";
+                                SI.Editor.Objects.Elements.SelectedElement.innerHTML = "";
                             }
                         }
                     });
@@ -601,7 +614,7 @@ SI.Editor.Objects.Elements = {
                                 }
                                 //debugger;
                                 //once we replace the id, we need to go into the Elemet.Ids and update the old value to the new one.
-                                SI.Editor.Objects.Elements.Selected = ele; //make sure we dont harm the future of editing this.
+                                SI.Editor.Objects.Elements.SelectedElement = ele; //make sure we dont harm the future of editing this.
                                 let index = SI.Editor.Objects.Elements.Ids.indexOf(this.firstId);
                                 if (index !== -1) {
                                     SI.Editor.Objects.Elements.Ids[index] = this.value;
@@ -618,7 +631,7 @@ SI.Editor.Objects.Elements = {
                     if (options.Affected) {
                         ele = document.querySelector(options.Affected);
                     } else {
-                        ele = SI.Editor.Objects.Elements.Selected;
+                        ele = SI.Editor.Objects.Elements.SelectedElement;
                     }
                     this.firstId = ele.id;
 
@@ -636,7 +649,7 @@ SI.Editor.Objects.Elements = {
                                 ele = document.querySelector(options.Affected);
                             }
                         } else {
-                            ele = SI.Editor.Objects.Elements.Selected;
+                            ele = SI.Editor.Objects.Elements.SelectedElement;
                         }
                         if (ele !== null) {
                             if (this.value.length > 0) {
@@ -735,8 +748,8 @@ SI.Editor.Objects.Elements = {
                        let tn = this.getAttribute('data-attr');
                        let text = this.value;
                         //debugger;
-                        if (text.indexOf('si-editor-selected') === -1) {
-                            text = 'si-editor-selected ' + text;
+                        if (text.indexOf('si-editable-selected') === -1) {
+                            text = 'si-editable-selected ' + text;
                         }
                         if (text.indexOf('si-editable-element') === -1) {
                             text = 'si-editable-element ' + text;
@@ -1099,13 +1112,13 @@ SI.Editor.Objects.Elements = {
                         }
                     }
                 }
-                else if (SI.Editor.Objects.Elements.Selected !== null) {
+                else if (SI.Editor.Objects.Elements.SelectedElement !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
                     for (let i = 0; i < classes.length; i++) {
                         classes[i].value = val;
                     }
-                    ele = SI.Editor.Objects.Elements.Selected;
+                    ele = SI.Editor.Objects.Elements.SelectedElement;
                 }
 
                 if (ele) {
@@ -1152,13 +1165,13 @@ SI.Editor.Objects.Elements = {
                 ///     else if (options.OnChange != null) {
                 //        options.OnChange(val);
                 //     }
-                else if (SI.Editor.Objects.Elements.Selected !== null) {
+                else if (SI.Editor.Objects.Elements.SelectedElement !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
                     for (let i = 0; i < classes.length; i++) {
                         classes[i].value = null;
                     }
-                    SI.Editor.Objects.Elements.Selected.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
+                    SI.Editor.Objects.Elements.SelectedElement.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
                 }
                 if (options.Removable) {
                     //debugger;

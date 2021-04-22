@@ -17,20 +17,35 @@
         //Base
         let base = Ele('div', {
             style: {
-                width: '100%',
-                height: '100%',
+                width: "100%",
+                height: "100%",
+                overflow: "auto",
                 padding: '20px',
                 backgroundColor: SI.Editor.Style.FavoriteColor,
+
             },
 
         });
+
+
+
+
         //top menu
-        let menu = Ele('div', {
+        let menu = Ele('fieldset', {
             style: {
-                width: '100%',
+                margin: '6px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
+                width: "95%",
+                display: 'block',
+                borderRadius: '10px',
                 lineHeight: '25px',
             },
             appendTo: base,
+            append: Ele("legend", {
+                innerHTML: "Available Languages",
+                class:'si-edit-legend'
+            })
         });
         //get the current users lang stuff incase they would like to see it
         let mylangs = SI.Editor.Data.Objects.Language.Installed;
@@ -118,7 +133,7 @@
 
         let cmLabel = Ele("div", {
             innerHTML: "Char Map",
-            appendTo: base,
+            appendTo: menu,
             style: {
                 margin: '5px 0px 5px 0px',
             },
@@ -156,7 +171,7 @@
                 cursor: 'pointer',
             },
             contentEditable: true,
-            appendTo: base,
+            appendTo: menu,
 
         });
         SI.Tools.Text.FingAutoCorrect(charmap);
@@ -164,7 +179,31 @@
             SI.Editor.Objects.Language.DrawChars(1000);
         };
 
+
+
         //Text Authoring/Editing
+
+        //top menu
+        let workspace = Ele('fieldset', {
+            class:'si-edit-fieldset',
+            style: {
+                margin: '6px',
+                backgroundColor: SI.Editor.Style.BackgroundColor,
+                color: SI.Editor.Style.TextColor,
+                width: "95%",
+                display: 'block',
+                borderRadius: '10px',
+                lineHeight: '25px',
+                position:'relative'
+            },
+            appendTo: base,
+            append: Ele("legend", {
+                innerHTML: "Current Translations",
+                class:'si-edit-legend',
+                title:"These are the current translations on this page."
+
+            })
+        });
         //NEW controls
         let newLabel = Ele("div", {
             innerHTML: "New: ",
@@ -172,7 +211,7 @@
                 display: 'inline-block',
                 margin: '5px 5px 5px 0px',
             },
-            appendTo: base,
+            appendTo: workspace,
         });
         //New Text start data. a text is started by simply adding text to the field...
         Ele("input", {
@@ -206,11 +245,12 @@
         //label
         let tsLabel = Ele("div", {
             innerHTML: "Edit: ",
-            appendTo: base,
+            appendTo: workspace,
             style: {
                 display: 'inline-block',
             },
         });
+
         //On Change function for the selector will swap out all of text boxes contents for that of the text selected
         let LocalChange = function (e) {
             //debugger;
@@ -257,9 +297,17 @@
             appendTo: tsLabel,
         });
 
+
+        let tabBox = Ele('div', {
+            style:{
+                position:'relative',
+            },
+            appendTo:workspace,
+        });
+
+
+        //Create the Language Tabs
         let langtabs = new SI.Widget.Tab({
-            Width: '90%',
-            Height: '70%',
             OnChange: function (ele) {
                 let lang = ele.dataset.tabname;
                 let index = ele.dataset.tabnum;
@@ -268,7 +316,7 @@
                 ele.dataset.index = index;
             },
         });
-        //debugger;
+        //Get the multilingual text from the page
         let langSync = function (e) {
             lang = this.id.replace('si_edit_lang_box', '');
             let index = document.getElementById('si_edit_lang_textselect').selectedIndex - 1;
@@ -287,16 +335,14 @@
             }
 
         }
-
+        //Draw the Tab Items
         for (let langopt in instLangs) {
-
             let langbox = Ele('div', {
                 id: 'si_edit_lang_box_' + instLangs[langopt],
                 class: 'si_edit_lang_box',
                 contentEditable: true,
                 style: {
-                    minHeight: '500px',
-                    width: '100%',
+                    height:'246px',
                     color: 'black',
                     backgroundColor: 'silver',
                     padding: '15px',
@@ -304,9 +350,7 @@
                 onkeyup: langSync,
                 onmouseup: langSync,
             });
-
             langtabs.Items.Add(installedLangs[langopt].innerText, langbox);
-
         }
 
         //sort to have longest, most specific value first.
@@ -344,7 +388,9 @@
                 }
             }
         }
-        base.appendChild(langtabs.Draw());
+        tabBox.appendChild(langtabs.Draw());
+
+
         return base;
     },
     Created: function (response) {

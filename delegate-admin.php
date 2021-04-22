@@ -145,7 +145,7 @@ if(Tools::UserHasRole('Admin')){
 					$pi->GetMorePlugins();
 					break;
 				case "DownloadPlugin":
-					$pi = new Plugins();
+					$pi = new Plugins(); 
 					$pi->DownloadPlugin($post);
 					 break;
 				case "InstallPlugin":
@@ -172,13 +172,17 @@ if(Tools::UserHasRole('Admin')){
 					$set->Delete(null,$post);
 					break;
 				case "BuildBackupFile":
-					$db = new Database();
-					$db->BackupDatabase($post);
+					$a = new Admin();
+					$a->BackupDatabase($post);
 					break;	
 				case "BuildInstallerFile":
-					$db = new Database();
-					$db->BuildInstallerFile($post);
+					$a = new Admin();
+					$a->BuildInstallerFile($post);
 					break;
+				case "PerformUpdate":
+					$up = new Updater();
+					$up->PerformUpdate($post);
+
 
 
 				default: 

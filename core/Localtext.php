@@ -106,7 +106,7 @@ class Localtext{
 		$url = "https://translate.yandex.com/?lang=$langto-$langfrom&text=".$text;
 		$text = file_get_contents($url);
 
-
+		
 
 	}
 
