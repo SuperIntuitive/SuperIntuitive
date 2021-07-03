@@ -47,6 +47,30 @@ class Role {
 
 	}
 
+	public function Deactivate($post){
+		if(isset($post['roleid'])){
+			$ent = new Entity('securityroles');
+			$id =  Tools::FixGuid($post['roleid']);
+			if($id){
+				$ent->Id =$id;
+				$ent->Attributes.Add(new Attribute("status","inactive") );
+				$ent->Update();
+			}
+		}
+	}
+	
+	public function Activate($post){
+		if(isset($post['roleid'])){
+			$ent = new Entity('securityroles');
+			$id =  Tools::FixGuid($post['roleid']);
+			if($id){
+				$ent->Id =$id;
+				$ent->Attributes.Add(new Attribute("status","active") );
+				$ent->Update();
+			}
+		}
+	}
+
 	public function Delete($post){
 		if(isset($post['roleid'])){
 			$ent = new Entity('securityroles');

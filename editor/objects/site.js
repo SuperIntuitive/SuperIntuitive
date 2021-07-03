@@ -108,12 +108,25 @@
             appendTo: base,
         });
 
-        //debugger;
+
         let pageData = SI.Editor.Data.Objects.Pages;
+
+
+        let json = {'domains':{}};
+        json.domains.NODE_DATA = {};
+
         let domains = [];
         for (let domain of pageData) {
             //Deal with domain setup
             if (!domains.includes(domain['domainName'])) {
+                let domName = domain['domainName'];
+                
+                json.domains[domName] = {};
+                json.domains[domName].NODE_DATA = {};
+                json.domains[domName].NODE_DATA.guid=domain['domainId'];
+                json.domains[domName].subdomains = {};
+                json.domains[domName].subdomains.NODE_DATA = {};
+
                 let dom = Ele('fieldset', {
                     id: 'si_edit_site_domain_' + domain['domainName'],
                     class:'si-edit-fieldset',
@@ -135,16 +148,34 @@
 
                 //Deal with subdomain setup
                 let subdoms = [];
-                for (let busunit of pageData) {
-                    if ((!subdoms.includes(busunit['subdomainName'])) && (domain['domainName'] === busunit['domainName'])) {
-                        let buname = ''
-                        if (busunit['subdomainName'] === '') {
-                            buname = 'NONE';
+                for (let sub of pageData) {
+                    if ((!subdoms.includes(sub['subdomainName'])) && (domain['domainName'] === sub['domainName'])) {
+                        let subname = ''
+                        if (sub['subdomainName'] === '') {
+                            subname = ' ';
                         } else {
-                            buname = busunit['subdomainName'];
+                            subname = sub['subdomainName'];
                         }
+
+                        json.domains[domName].subdomains[subname] = {};
+                        json.domains[domName].subdomains[subname].NODE_DATA = {};
+                        json.domains[domName].subdomains[subname].NODE_DATA.guid = sub['subdomainId'];
+                        json.domains[domName].subdomains[subname].NODE_DATA.ele =  
+                            {
+                                tag:'button',
+                                innerHTML:"New",
+                                style:{
+                                    float:'right'
+                                },
+                                onclick: function (e) {
+                                    e.stopPropagation();
+                                },
+                            }
+
+                        
+
                         let bu = Ele('fieldset', {
-                            id: 'si_edit_site_domain_' + busunit['domainName'] + '_' + buname,
+                            id: 'si_edit_site_domain_' + sub['domainName'] + '_' + subname,
                             class:'si-edit-fieldset',
                             style:{
                                 backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -157,11 +188,37 @@
                             appendTo: dom,
                         });
                         Ele('span', {
-                            innerHTML: buname,
+                            innerHTML: subname,
                             appendTo: bu
                         }),
-                            subdoms.push(busunit['subdomainName']);
+                        subdoms.push(sub['subdomainName']);
                         let pages = [];
+                        json.domains[domName].subdomains[subname].pages = {};
+                        json.domains[domName].subdomains[subname].pages.NODE_DATA = {};
+                        json.domains[domName].subdomains[subname].pages.NODE_DATA.ele = 
+                        [
+                            {
+                                tag:'button',
+                                innerHTML:"New",
+                                style:{
+                                    float:'right'
+                                },
+                                onclick: function (e) {
+                                    e.stopPropagation();
+                                },
+                            },
+                            {
+                                tag:'button',
+                                innerHTML:"Delete",
+                                style:{
+                                    float:'right'
+                                },
+                                onclick: function (e) {
+                                    e.stopPropagation();
+                                },
+                            }
+                            
+                        ];
                         for (let page of pageData) {
                             let pgname = ''
                             if (page['pageName'] === '') {
@@ -169,12 +226,20 @@
                             } else {
                                 pgname = page['pageName'];
                             }
-                            if ((!pages.includes(page['pageName'])) && (page['subdomainName'] === busunit['subdomainName'])) {
+
+                            if ((!pages.includes(page['pageName'])) && (page['subdomainName'] === sub['subdomainName'])) {
+                                pageName = page['pageName'];
+
+
+                                json.domains[domName].subdomains[subname].pages[pageName] = {};
+                                json.domains[domName].subdomains[subname].pages[pageName].name = pageName;
+                                json.domains[domName].subdomains[subname].pages[pageName].NODE_DATA = {};
+                                json.domains[domName].subdomains[subname].pages[pageName].NODE_DATA.id = page['pageId'];
 
                                 let pageid = '0x' + page['pageId'].toLowerCase();
 
                                 let pg = Ele('fieldset', {
-                                    id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
+                                    id: 'si_edit_site_domain_' + domName+ '_' + subname + '_' + pgname,
                                     class:'si-edit-fieldset',
                                     style:{
                                         backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -198,12 +263,15 @@
                                         margin: '15px',
                                         display: 'none',
                                     },
+                                    data:{
+                                        guid:pageid
+                                    },
                                     appendTo: pg,
                                     onclick: function (e) {
                                         let options = {};
                                         options.Data = {};
                                         options.Data.KEY = "RemoveRedirect";
-                                        options.Data.pageid = this.id.replace('si_edit_site_rmredirect_', '');
+                                        options.Data.pageid = this.dataset.guid; //.id.replace('si_edit_site_rmredirect_', '');
                                         SI.Editor.Ajax.Run(options);
                                     },
                                 });
@@ -216,7 +284,7 @@
                                 }
 
                                 let parentEntBox = Ele('fieldset', {
-                                    id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
+                                    id: 'si_edit_site_domain_' + domName + '_' + subname + '_' + pgname,
                                     class:'si-edit-fieldset',
                                     style:{
                                         backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -230,7 +298,7 @@
                                 });
 
                                 let childEntBox = Ele('fieldset', {
-                                    id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
+                                    id: 'si_edit_site_domain_' + page['domainName'] + '_' + subname + '_' + pgname,
                                     class:'si-edit-fieldset',
                                     style:{
                                         backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -300,7 +368,7 @@
                                         //debugger;
                                         if (makeFS) {
                                             pg = Ele('fieldset', {
-                                                id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
+                                                id: 'si_edit_site_domain_' + page['domainName'] + '_' + subname + '_' + pgname,
                                                 class:'si-edit-fieldset',
                                                 style:{
                                                     backgroundColor: SI.Editor.Style.BackgroundColor,
@@ -315,11 +383,11 @@
 
                                         } else {
                                             //debugger;
-                                            pg = document.getElementById('si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname);
+                                            pg = document.getElementById('si_edit_site_domain_' + page['domainName'] + '_' + subname + '_' + pgname);
                                         }
                                         //debugger;
                                         let relbox = Ele('div', {
-                                            id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname + "_" + id,
+                                            id: 'si_edit_site_domain_' + page['domainName'] + '_' + subname + '_' + pgname + "_" + id,
                                             innerHTML: relation.note,
                                             style: {
                                                 display: 'inline-block',
@@ -338,6 +406,21 @@
                 }
             }
         }
+
+
+        debugger;
+        let ul =  new SI.Widget.Tree({Leaves:json});
+        let pre = Ele('div', {
+            style: {
+                tabSize: '0',
+                color:'white',
+            },
+            append: ul,
+            appendTo:base,
+        })
+        return base;
+
+
 
         //let pageLibrary = SI.Editor.Objects.Page.Current;
 

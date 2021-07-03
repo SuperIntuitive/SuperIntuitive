@@ -984,8 +984,6 @@ SI.Editor.Objects.Page = {
             }
         }
     },
-
-
     AddSetting: function (settingName, pageSettings = null) {
         if (!pageSettings) {
             pageSettings = document.getElementById("si_edit_page_settings");

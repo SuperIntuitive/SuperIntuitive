@@ -244,11 +244,11 @@ SI.Editor.Objects.Scripter = {
                         }
                         break;
                     case 32:
-                        let pos = SI.Tools.Caret.GetPosition(pad);
-                        debugger;
-                        SI.Editor.Objects.Scripter.HighlightSyntax(this);
-                        debugger;
-                        SI.Tools.Caret.SetPosition(pad,pos);
+                      //  let pos = SI.Tools.Caret.GetPosition(pad);
+                      //  debugger;
+                     //   SI.Editor.Objects.Scripter.HighlightSyntax(this);
+                     //   debugger;
+                      //  SI.Tools.Caret.SetPosition(pad,pos);
                         break;
                 }
 

@@ -224,38 +224,46 @@ class Page {
 
 		<script src='/scripts/tools.js?$t' defer ></script>\n";
 
-		$widgetfiles = scandir('scripts/widgets');
-		//Tools::Log($widgetfiles);
+
+		//Determine what widgets we need to include. Get widget scripts. Get all page scripts.
+		$widgetfiles = preg_grep('~\.(js)$~', scandir('scripts/widgets')); //SO-3226519
+		//$widgetfiles = scandir('scripts/widgets'); //get all files from the script folder
+		$widgetsInUse = array();
+		$pageSript = $this->GetPageScriptString();
+		$pluginSript = $this->GetPluginScriptString();
+		//Loop through all the scripts
 		foreach($widgetfiles as $widget){
-			if(!is_dir('scripts/widgets/'.$widget)){
+			//determine the class name we're looking for
+			$classname = ucwords(str_replace(".js","",$widget), " \t\r\n\f\v_'");  //JS Class must match filename.
+			//If the Object is called in any script used in the page, it is included.
+			if(strpos($pageSript, "SI.Widget.".$classname) || strpos($pluginSript, "SI.Widget.".$classname) ){
+				$widgetsInUse[] = $widget;
 				$moded = filemtime('scripts/widgets/'.$widget);
 				$head .= "\t\t<script src='/scripts/widgets/$widget?$moded' defer></script>\n";	
 			}
 		}
 
-
-
-
-			if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment']=='dev'){
-				$admin = new Admin();
-				//$head.=$admin->PopulateEditorMediaFiles($this->pageobjects['admin']['media']);
-				//$head.=$admin->PopulateEditorAllPages($this->pageobjects['admin']['allpages']);
-				if(isset($this->pageobjects['blocks'])){
-				
-						//$head.=$admin->PopulatePageBlockData($this->pageobjects['blocks']);
-				}
-
-				//$head.=$admin->PopulatePageBlockData($this->pageobjects['admin']['blocktemplates'],true);
-				$head.=$admin->IncludeAdminFiles();	
-			}		
-			if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
-				$deploy = new Deployment();
-				$head.= $deploy->DrawScript();
+		if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment']=='dev'){
+			//dev requires all widget classes so if they were not loaded above, load them now.
+			foreach($widgetfiles as $widget){
+				if(!in_array($widget,$widgetsInUse)){
+			        $moded = filemtime('scripts/widgets/'.$widget);
+			        $head .= "\t\t<script src='/scripts/widgets/$widget?$moded' defer></script>\n";
+				}	
 			}
+			//Get all the admin script and css files for the editor and such.
+			$admin = new Admin();
+			$head.=$admin->IncludeAdminFiles();	
+		}		
+		//Draw traffic light for admin and tester 
+		if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
+			$deploy = new Deployment();
+			$head.= $deploy->DrawScript();
+		}
 
-			if($bodystyle != null){
-				$head.=$bodystyle;
-			}
+		if($bodystyle != null){
+			$head.=$bodystyle;
+		}
 
 						$head .= "
 		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
@@ -510,5 +518,55 @@ class Page {
 
 	}
 
+
+	private function GetPageScriptString(){
+
+		$finishedScript = 'if(!SI){var SI = {}};';
+		if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'])) {
+			$db = new Database();
+			$blocks = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'];
+			$guids = "";
+			// Tools::Log($blocks, true);
+			foreach($blocks as $block){
+				$guids.= $block['id'].',';   
+			}
+			$guids = rtrim($guids, ',');
+			$libs = $db->GetBlockScriptsByIds($guids);
+			foreach($libs as $name=>$type){           
+				if (!empty($type['js'])) {
+					$finishedScript.= "\n/*__BLOCK=$name */ \n";
+					$finishedScript.= $type['js'];
+					$finishedScript.= "\n/*__ENDBLOCK=$name */ \n";
+				}             
+			}
+		}		
+		return $finishedScript;
+	}
+	private function GetPluginScriptString(){
+
+		if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])) {
+
+			$plugins = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'];
+			$pluginscript = "";
+		
+			foreach($plugins as $plugin){
+				$scripts = glob($_SERVER["DOCUMENT_ROOT"]. "/plugins/installed/".$plugin."/scripts/*.js");
+				if (count($scripts) > 0) {
+					$pluginscript.= "\n/*__PLUGIN=$plugin */";
+				}
+				foreach($scripts as $script){
+					$name = basename($script);
+					$pluginscript.= "\n/*__SCRIPTFILE=$name */ \n";
+					$pluginscript.= file_get_contents($script);
+		
+					$pluginscript.= "\n/*__SCRIPTFILE=$name */";
+				}
+				if (count($scripts) > 0) {
+					$pluginscript.= "\n/*__ENDPLUGIN=$plugin */ \n\n";
+				}
+			}
+			return $pluginscript;
+		}
+	}
 
 } 

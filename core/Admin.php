@@ -29,7 +29,6 @@ class Admin {
 		//$files.=$this->AdminStyle();
 		return $files;
 	}
-
 	public function GetCurrentMedia($media){
 	    //print_r( $media);
 
@@ -55,7 +54,6 @@ class Admin {
 		//echo $json;
 		return $json;
 	}
-
 	public function GetCurrentPages($allpages){
 		$json = '{';
 		foreach($allpages as $k=> $pg){
@@ -76,7 +74,6 @@ class Admin {
 		$json .= '},';
 		return $json;
 	}
-
 	public function GetCurrentBlocks($blocks, $template = false){
 		//Tools::Log($blocks, true);
 
@@ -125,7 +122,6 @@ class Admin {
 		$_SESSION['SITMP']['blocks']= $json;
 		return $json;
 	}
-
 	public function SetPassword($post){
 		if ( isset($post['newpassword']) && isset($post['userid'])) {	
 			$user = new Entity("users");
@@ -144,7 +140,6 @@ class Admin {
 			}
 		}
 	}
-
 	public function NewUser($post){
 		if ( isset($post['newpassword']) && isset($post['name']) && isset($post['email']) ) {	
 			$user = new Entity("users");
@@ -205,7 +200,6 @@ class Admin {
 		}
 		
 	}
-
 	public function AdminStyle(){
 		return "
 		<style id='si_editor_style'>
@@ -250,7 +244,7 @@ class Admin {
 
 		si-jssq{color:#CD5C5C}
 
-		si-jsdq{color:#F08080}
+		si-jsdq{color:#F08080} 
 
 		si-jsmet{color:#ADD8E6}
 
@@ -275,13 +269,9 @@ class Admin {
 
 	}
 
-
-
-
 	public function BackupDatabase($post){
 		$this->BuildInstallerFile($post, true);
-	}
-	
+	}	
 	public function BuildInstallerFile($post, $backup = false){
 
 		$filename;

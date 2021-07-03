@@ -278,13 +278,13 @@ SI.Editor = {
         //wait for all the code to load before continuing. 
         var starttimmer = setInterval(function () {
             //this hack helps ensure that the editor objects are loaded and we dont need timers everywhere. 'defer' is not good enough. the Ω.js file should always load last and this is all it has: SI.Editor.Objects.Loaded.
-            if (SI.Editor.Data.loaded && SI.Editor.Objects.Loaded) {
+            if (SI.Editor.Data.Loaded && SI.Editor.Objects.Loaded) {
                 clearInterval(starttimmer);
                     SI.Editor.Style.SetTheme();
                     SI.Editor.Objects.Elements.Init();
                     SI.Editor.UI.Init();
             }
-        }, 50);
+        }, 1);
         console.timeEnd('EditorLoadTime');
         console.log(SI.Editor);
         //check for lookups
@@ -338,7 +338,7 @@ SI.Editor = {
                                     SI.Editor.Data[codetype] = JSON.parse(request.responseText);
                                     loadedcount++;
                                     if (loadedcount == codes.length) {
-                                        SI.Editor.Data.loaded = true;
+                                        SI.Editor.Data.Loaded = true;
                                     }
                                 }
                             }
@@ -355,7 +355,7 @@ SI.Editor = {
                             SI.Editor.Data[codetype] = JSON.parse(jsonstring);
                             loadedcount++;
                             if (loadedcount == codes.length) {       
-                                SI.Editor.Data.loaded = true;
+                                SI.Editor.Data.Loaded = true;
                             }
                         } catch (ex) {
                             SI.Tools.Warn(ex);                           
@@ -745,7 +745,6 @@ SI.Editor = {
                     }
                 };
 
-
                 //run our data functions
                 this.EntityData();
                 this.RelationsData();//dependent on the function above it to have run.
@@ -873,7 +872,7 @@ SI.Editor = {
             Element: null,
             Init: function () {
                 //Main Menu Box	
-                var mainMenu = Ele('div', {
+                let mainMenu = Ele('div', {
                     id: 'si_edit_main_menu',
                     class: 'si-window-container',//hack to make this play like a window
                     draggable: true,
@@ -1106,10 +1105,14 @@ SI.Editor = {
                 for (let widget in widgets) {
                     let widgetrow = document.createElement('tr');
                     let tddragger = document.createElement('td');
+                   // debugger;
+
+
+
                     var widgetDragger = Ele('div', {
-                        id: "si_edit_widgetdragger" + widget,
+                        id: "si_edit_widgetdragger_" + widget,
                         style: {
-                            backgroundImage: "url('/editor/media/icons/widgets.png')",
+                            backgroundImage: "url('/scripts/widgets/media/icons/"+widget+"_Icon.png')",
                             backgroundSize: "cover",
                             width: '24px',
                             height: '24px'
@@ -1137,7 +1140,7 @@ SI.Editor = {
                         },
                         ondragend: function (e) {
                             e.stopPropagation();
-                            debugger;
+                          //  debugger;
                             if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent)) {
                                 let widget = e.target.dataset.type;
                                 let parent = SI.Editor.Objects.Elements.DropParent;
@@ -1152,8 +1155,22 @@ SI.Editor = {
                             else {
                                 alert("Please make sure you drop on a block. Go to the Page tool to make blocks");
                             }
-                        }
+                        },
+
                     });
+
+                    //bit of a hack here but it works
+                    let bgImage = new Image();
+                    bgImage.src = '/scripts/widgets/media/icons/'+widget+'_Icon.png';
+                    bgImage.onerror = function () {
+                        document.getElementById("si_edit_widgetdragger_" + widget).style.backgroundImage = "url('/scripts/widgets/media/icons/Default_Icon.png')";
+                    };
+
+
+
+
+
+
                     tddragger.appendChild(widgetDragger);
                     var tddata = document.createElement('td');
                     tddata.innerHTML = widget;
@@ -2183,7 +2200,7 @@ SI.Editor = {
                             IconImg: '/editor/media/icons/page.png'
                             };
                             break;
-                        case  "Media":
+                        case "Media":
                             options = {
                                 Id: "si_edit_media_window",
                                 Trigger: '#si_edit_tools_media',
@@ -2195,7 +2212,7 @@ SI.Editor = {
                                 Resize:SI.Editor.Objects.Media.Resize
                             };
                             break;
-                        case  "Site":
+                        case "Site":
                             options = {
                                 Id: "si_edit_site_window",
                                 Trigger: '#si_edit_site_trigger',
@@ -2286,6 +2303,7 @@ SI.Editor = {
                                 Id: "si_edit_settings_window",
                                 Trigger: '#si_edit_settings_trigger',
                                 Title: "Settings",
+                                IconImg: '/editor/media/icons/settings.gif',
                                 Populate: SI.Editor.Objects.Settings.Draw
                             };
                             break;
@@ -2367,9 +2385,10 @@ SI.Editor = {
                     if (json.hasOwnProperty(prop)) {
                         let value = json[prop];
                         switch (prop) {
+                            case "ALERT":
                             case "SUPERALERT": SI.Tools.SuperAlert(value, 2000); break;
-                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); "); break;
-                            case "EXCEPTION": alert(JSON.stringify(value)); break;
+                            case "CREATEELEMENT": Ele(null,value); break;
+                            case "EXCEPTION":  SI.Tools.SuperAlert(value, 2000); break;
                             case "REFRESH": location.reload(); break;
                             case "CONSOLELOG": console.log(value); break;
                             //
@@ -2381,7 +2400,7 @@ SI.Editor = {
                             case "BLOCKREMOVED": console.log(value); break; 
 
                             //Common
-                            case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
+                            case "PROMOTED": SI.Tools.SuperAlert(value, 2000); break;
 
                             //Media
                             case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;

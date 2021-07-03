@@ -86,7 +86,7 @@ class Block {
 					$relations->Update();
 				}
 				
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKSAVED'] = $post['name'];
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ALERT'] = $post['name']." was saved successfully";
 			}
 			catch(Exception $ex)
 			{

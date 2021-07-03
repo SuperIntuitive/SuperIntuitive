@@ -1,0 +1,660 @@
+{
+	"workers": [
+		{
+			"associateOID": "G4O73G9Z62SL2NFM",
+			"workerID": {
+				"idValue": "1000199",
+				"schemeCode": {
+					"codeValue": "EID",
+					"shortName": "Employee ID"
+				}
+			},
+			"person": {
+				"birthDate": "1972-01-27",
+				"genderCode": {
+					"codeValue": "M",
+					"shortName": "Male"
+				},
+				"maritalStatusCode": {
+					"effectiveDate": "2010-07-04",
+					"codeValue": "M",
+					"shortName": "Married"
+				},
+				"socialInsurancePrograms": [
+					{
+						"itemID": "1",
+						"nameCode": {
+							"shortName": "Medicare"
+						},
+						"countryCode": "US",
+						"coveredIndicator": true
+					}
+				],
+				"immigrationDocuments": [
+					{
+						"documentID": "PR-000018US",
+						"countryCode": "CA",
+						"typeCode": {
+							"codeValue": "PR",
+							"shortName": "Permanent Resident"
+						},
+						"issuingParty": {
+							"nameCode": {
+								"codeValue": "CIC",
+								"shortName": "Office of Citizenship and Immigration"
+							},
+							"address": {
+								"lineOne": "365 Laurier Avenue West",
+								"cityName": "Ottawa",
+								"countrySubdivisionLevel1": {
+									"subdivisionType": "province",
+									"codeValue": "ON",
+									"shortName": "Ontario"
+								},
+								"countryCode": "CA",
+								"postalCode": "K1A 1L1"
+							}
+						},
+						"issueDate": "2013-04-15",
+						"expirationDate": "2018-04-14",
+						"authorizedStayDuration": "P5Y0M0DT0H0M0S",
+						"reentryRequirementDuration": "P1Y0M0DT0H0M0S"
+					}
+				],
+				"passports": [
+					{
+						"documentID": "Z00000018US",
+						"countryCode": "US",
+						"typeCode": {
+							"codeValue": "RG",
+							"shortName": "Regular"
+						},
+						"issuingParty": {
+							"nameCode": {
+								"codeValue": "USDS",
+								"shortName": "U.S. Department of State"
+							},
+							"address": {
+								"attentionOfName": "U.S. Department of State - Bureau of Consular Affairs",
+								"lineOne": "1150 Passport Services PL",
+								"lineTwo": "4th Floor",
+								"cityName": "Dulles",
+								"countrySubdivisionLevel1": {
+									"subdivisionType": "state",
+									"codeValue": "VA",
+									"shortName": "Virginia"
+								},
+								"countryCode": "US",
+								"postalCode": "20189-1150"
+							}
+						},
+						"issueDate": "2003-04-15",
+						"expirationDate": "2018-04-14"
+					}
+				],
+				"workAuthorizationDocuments": [
+					{
+						"documentID": "A-00018-CA",
+						"countryCode": "CA",
+						"typeCode": {
+							"codeValue": "WP",
+							"shortName": "Work Permit"
+						},
+						"issuingParty": {
+							"nameCode": {
+								"codeValue": "CIC",
+								"shortName": "Office of Citizenship and Immigration"
+							},
+							"address": {
+								"attentionOfName": "Case Processing Centre",
+								"lineOne": "365 Laurier Avenue West",
+								"cityName": "Ottawa",
+								"countrySubdivisionLevel1": {
+									"subdivisionType": "province",
+									"codeValue": "ON",
+									"shortName": "Ontario"
+								},
+								"countryCode": "CA",
+								"postalCode": "K1A 1L1"
+							}
+						},
+						"issueDate": "2014-04-15",
+						"expirationDate": "2015-04-14"
+					}
+				],
+				"preferredName": {
+					"nickName": "Tony",
+					"familyName1": "Albright",
+					"formattedName": "Tony Albright"
+				},
+				"formerNames": [
+					{
+						"givenName": "Anthony",
+						"familyName1": "Ratliff",
+						"formattedName": "Anthony Ratliff"
+					}
+				],
+				"birthName": {
+					"givenName": "Anthony",
+					"familyName1": "Gallowy",
+					"formattedName": "Anthony Gallowy"
+				},
+				"birthPlace": {
+					"formattedBirthPlace": "Millburn NJ 07041 US",
+					"cityName": "Millburn",
+					"countrySubdivisionLevel1": {
+						"subdivisionType": "state",
+						"codeValue": "NJ",
+						"shortName": "New Jersey"
+					},
+					"postalCode": "07041",
+					"countryCode": "US"
+				},
+				"otherPersonalAddresses": [
+					{
+						"nameCode": {
+							"codeValue": "SH",
+							"shortName": "Summer House"
+						},
+						"lineOne": "1301 Ocean Avenue",
+						"cityName": "Beach Haven",
+						"countrySubdivisionLevel1": {
+							"subdivisionType": "state",
+							"codeValue": "NJ",
+							"shortName": "New Jersey"
+						},
+						"countryCode": "US",
+						"postalCode": "08008"
+					}
+				],
+				"raceCode": {
+					"identificationMethodCode": {
+						"codeValue": "self-identification"
+					},
+					"codeValue": "102",
+					"shortName": "Black or African American"
+				},
+				"citizenshipCountryCodes": [
+					{
+						"codeValue": "US",
+						"shortName": "United States"
+					}
+				],
+				"residencyCountryCodes": [
+					{
+						"codeValue": "US",
+						"shortName": "United States"
+					}
+				],
+				"militaryStatusCode": {
+					"effectiveDate": "1999-04-27",
+					"codeValue": "R",
+					"shortName": "Retired"
+				},
+				"militaryClassificationCodes": [
+					{
+						"codeValue": "AFMV",
+						"shortName": "Armed Forces Medal Veteran"
+					}
+				],
+				"governmentIDs": [
+					{
+						"itemID": "1",
+						"idValue": "123-45-6016",
+						"nameCode": {
+							"codeValue": "SSN",
+							"shortName": "Social Security Number"
+						},
+						"countryCode": "US"
+					}
+				],
+				"legalName": {
+					"preferredSalutations": [
+						{
+							"salutationCode": {
+								"codeValue": "Mr",
+								"shortName": "Mr"
+							},
+							"typeCode": {
+								"codeValue": "S",
+								"shortName": "Social"
+							},
+							"sequenceNumber": 1
+						}
+					],
+					"givenName": "Anthony",
+					"familyName1": "Albright",
+					"formattedName": "Anthony Albright"
+				},
+				"legalAddress": {
+					"nameCode": {
+						"shortName": "Legal Residence"
+					},
+					"lineOne": "357 Millburn Avenue",
+					"cityName": "Millburn",
+					"countrySubdivisionLevel1": {
+						"subdivisionType": "state",
+						"codeValue": "NJ",
+						"shortName": "New Jersey"
+					},
+					"countryCode": "US",
+					"postalCode": "07041",
+					"geoCoordinate": {
+						"latitude": 40.727549,
+						"longitude": -74.2971543
+					}
+				},
+				"communication": {
+					"landlines": [
+						{
+							"itemID": "1",
+							"nameCode": {
+								"shortName": "Home Phone"
+							},
+							"countryDialing": "1",
+							"areaDialing": "973",
+							"dialNumber": "5553245",
+							"formattedNumber": "1 (973) 555-3245"
+						}
+					],
+					"mobiles": [
+						{
+							"itemID": "1",
+							"nameCode": {
+								"shortName": "Personal Cell"
+							},
+							"countryDialing": "1",
+							"areaDialing": "973",
+							"dialNumber": "7133851",
+							"formattedNumber": "1 (973) 713-3851"
+						}
+					],
+					"emails": [
+						{
+							"itemID": "1",
+							"nameCode": {
+								"shortName": "Personal Email"
+							},
+							"emailUri": "A.Albright@gmail.com"
+						}
+					],
+					"socialNetworks": [
+						{
+							"itemID": "1",
+							"uri": "http://www.facebook.com/AnthonyAlbright"
+						}
+					]
+				}
+			},
+			"workerDates": {
+				"originalHireDate": "2002-08-12"
+			},
+			"workerStatus": {
+				"statusCode": {
+					"codeValue": "A",
+					"shortName": "Active"
+				},
+				"reasonCode": {
+					"codeValue": "NH",
+					"shortName": "New Hire"
+				}
+			},
+			"photos": [
+				{
+					"itemID": "1",
+					"nameCode": {
+						"shortName": "portal pic"
+					},
+					"links": [
+						{
+							"href": "/hr/v1/worker/G4O73G9Z62SL2NFM/photoUri/A1316C0D49011201.jpg",
+							"rel": "/adp/image"
+						}
+					]
+				}
+			],
+			"businessCommunication": {
+				"landlines": [
+					{
+						"itemID": "1",
+						"countryDialing": "1",
+						"areaDialing": "973",
+						"dialNumber": "5553245",
+						"formattedNumber": "1 (973) 555-3245"
+					}
+				],
+				"mobiles": [
+					{
+						"itemID": "1",
+						"countryDialing": "1",
+						"areaDialing": "973",
+						"dialNumber": "7133851",
+						"formattedNumber": "1 (973) 713-3851"
+					}
+				],
+				"faxes": [
+					{
+						"itemID": "1",
+						"countryDialing": "1",
+						"areaDialing": "973",
+						"dialNumber": "123000",
+						"formattedNumber": "1 (973) 123-000"
+					}
+				],
+				"emails": [
+					{
+						"itemID": "1",
+						"emailUri": "Anthony.Albright@adpcoffee.com"
+					}
+				],
+				"internetAddresses": [
+					{
+						"itemID": "1",
+						"uri": "http://www.adpcoffee.com/AnthonyAlbright"
+					}
+				],
+				"instantMessages": [
+					{
+						"itemID": "1",
+						"uri": "A.Albright@gmail.com"
+					}
+				]
+			},
+			"workAssignments": [
+				{
+					"primaryIndicator": true,
+					"offerExtensionDate": "2002-07-12",
+					"offerAcceptanceDate": "2002-07-15",
+					"hireDate": "2002-08-12",
+					"expectedStartDate": "2002-08-12",
+					"actualStartDate": "2002-08-12",
+					"assignmentStatus": {
+						"statusCode": {
+							"codeValue": "A",
+							"shortName": "Active"
+						},
+						"reasonCode": {
+							"codeValue": "NH",
+							"shortName": "New Hire"
+						}
+					},
+					"workerTypeCode": {
+						"codeValue": "EE",
+						"shortName": "Employee"
+					},
+					"assignmentTermCode": {
+						"codeValue": "P",
+						"shortName": "Permanent"
+					},
+					"workLevelCode": {
+						"codeValue": "F",
+						"shortName": "Fulltime"
+					},
+					"nationalityContextCode": {
+						"codeValue": "D",
+						"shortName": "Domestic"
+					},
+					"vipIndicator": false,
+					"executiveIndicator": false,
+					"officerIndicator": false,
+					"highlyCompensatedIndicator": false,
+					"highlyCompensatedTypeCode": {
+						"codeValue": "HC3",
+						"shortName": "Highly Compensated Type 3"
+					},
+					"stockOwnerIndicator": true,
+					"stockOwnerPercentage": 0.2,
+					"workerGroups": [
+						{
+							"nameCode": {
+								"codeValue": "BE",
+								"shortName": "Benefit Eligibility"
+							},
+							"groupCode": {
+								"codeValue": "F",
+								"shortName": "FT-2014"
+							}
+						}
+					],
+					"jobCode": {
+						"codeValue": "NE-REG-MGR"
+					},
+					"jobTitle": "North-East Region Manager",
+					"occupationalClassifications": [
+						{
+							"itemID": "1",
+							"nameCode": {
+								"codeValue": "EEOC",
+								"shortName": "US Equal Employment Opportunity Commission"
+							},
+							"classificationCode": {
+								"codeValue": "041",
+								"shortName": "Executive/Senior Level Officials and Managers"
+							}
+						}
+					],
+					"wageLawCoverage": {
+						"wageLawNameCode": {
+							"codeValue": "FLSA",
+							"shortName": "Fair Labor Standards Act"
+						},
+						"coverageCode": {
+							"codeValue": "EX",
+							"shortName": "Exempt"
+						}
+					},
+					"workArrangementCode": {
+						"codeValue": "FOB",
+						"shortName": "Fully Office Based"
+					},
+					"standardHours": {
+						"hoursQuantity": 40.0,
+						"unitCode": {
+							"codeValue": "W",
+							"shortName": "Weekly"
+						}
+					},
+					"homeOrganizationalUnits": [
+						{
+							"itemID": "1",
+							"nameCode": {
+								"codeValue": "CORP",
+								"shortName": "Corporate"
+							},
+							"typeCode": {
+								"codeValue": "BU",
+								"shortName": "Business Unit"
+							}
+						}
+					],
+					"assignedOrganizationalUnits": [
+						{
+							"itemID": "1",
+							"nameCode": {
+								"codeValue": "CORP",
+								"shortName": "Corporate"
+							},
+							"typeCode": {
+								"codeValue": "BU",
+								"shortName": "Business Unit"
+							}
+						}
+					],
+					"homeWorkLocation": {
+						"address": {
+							"lineOne": "75 Maple Street",
+							"cityName": "Summit",
+							"countrySubdivisionLevel1": {
+								"subdivisionType": "state",
+								"codeValue": "NJ",
+								"shortName": "New Jersey"
+							},
+							"countryCode": "US",
+							"postalCode": "07901"
+						},
+						"nameCode": {
+							"codeValue": "NE",
+							"shortName": "North-East Region Office"
+						}
+					},
+					"assignedWorkLocations": [
+						{
+							"nameCode": {
+								"codeValue": "NE",
+								"shortName": "North-East Region Office"
+							},
+							"address": {
+								"lineOne": "75 Maple Street",
+								"cityName": "Summit",
+								"countrySubdivisionLevel1": {
+									"subdivisionType": "state",
+									"codeValue": "NJ",
+									"shortName": "New Jersey"
+								},
+								"countryCode": "US",
+								"postalCode": "07901",
+								"geoCoordinate": {
+									"latitude": 40.715365,
+									"longitude": -74.36019499999999
+								}
+							}
+						}
+					],
+					"remunerationBasisCode": {
+						"codeValue": "S",
+						"shortName": "Salaried"
+					},
+					"payCycleCode": {
+						"codeValue": "BW",
+						"shortName": "Bi-weekly"
+					},
+					"standardPayPeriodHours": {
+						"hoursQuantity": 80.0,
+						"unitCode": {
+							"codeValue": "B",
+							"shortName": "Bi-weekly"
+						}
+					},
+					"baseRemuneration": {
+						"monthlyRateAmount": {
+							"amountValue": 14650.08,
+							"currencyCode": "USD"
+						},
+						"annualRateAmount": {
+							"amountValue": 175801.0,
+							"currencyCode": "USD"
+						},
+						"payPeriodRateAmount": {
+							"amountValue": 6761.58,
+							"currencyCode": "USD"
+						},
+						"commissionRatePercentage": {
+							"percentageValue": 0.5,
+							"baseUnitCode": {
+								"codeValue": "AS",
+								"shortName": "Annual Sales"
+							}
+						}
+					},
+					"additionalRemunerations": [
+						{
+							"itemID": "1",
+							"typeCode": {
+								"codeValue": "B",
+								"shortName": "Bonus"
+							},
+							"intervalCode": {
+								"codeValue": "Y",
+								"shortName": "Yearly"
+							},
+							"nameCode": {
+								"codeValue": "AB",
+								"shortName": "Annual Bonus"
+							},
+							"rate": {
+								"amountValue": 5.0,
+								"unitCode": {
+									"codeValue": "Percent"
+								},
+								"baseUnitCode": {
+									"codeValue": "AS",
+									"shortName": "Annual Sales"
+								}
+							}
+						}
+					],
+					"reportsTo": [
+						{
+							"itemID": "1",
+							"positionID": "ROP-NE-1",
+							"associateOID": "G2O73G9Z62SL2NF2",
+							"workerID": {
+								"idValue": "1000008",
+								"schemeCode": {
+									"codeValue": "MI",
+									"shortName": "Manager ID"
+								}
+							},
+							"reportsToWorkerName": {
+								"givenName": "Corey",
+								"familyName1": "Hillard",
+								"formattedName": "Corey Hillard"
+							},
+							"reportsToRelationshipCode": {
+								"codeValue": "MGR",
+								"shortName": "Manager"
+							}
+						}
+					],
+					"payrollProcessingStatusCode": {
+						"effectiveDate": "2002-08-12",
+						"codeValue": "A",
+						"shortName": "Active"
+					},
+					"payrollFileNumber": "0000000019",
+					"payrollRegionCode": "0090",
+					"payScaleCode": {
+						"codeValue": "OPER",
+						"shortName": "Operations"
+					},
+					"payGradeCode": {
+						"codeValue": "EX3"
+					},
+					"payGradePayRange": {
+						"minimumRate": {
+							"amountValue": 150000.0,
+							"currencyCode": "USD",
+							"baseUnitCode": {
+								"codeValue": "Y",
+								"shortName": "Year"
+							}
+						},
+						"medianRate": {
+							"amountValue": 275000.0,
+							"currencyCode": "USD",
+							"baseUnitCode": {
+								"codeValue": "Y",
+								"shortName": "Year"
+							}
+						},
+						"maximumRate": {
+							"amountValue": 400000.0,
+							"currencyCode": "USD",
+							"baseUnitCode": {
+								"codeValue": "Y",
+								"shortName": "Year"
+							}
+						}
+					},
+					"compaRatio": 84.0
+				}
+			],
+			"links": [
+				{
+					"href": "/hr/v2/workers/G4O73G9Z62SL2NFM",
+					"rel": "self"
+				}
+			]
+		}
+	]
+}

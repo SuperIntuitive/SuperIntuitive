@@ -16,8 +16,7 @@ SI.Editor.Objects.Plugins = {
             style:{
                 width:"100%",
                 height:"100%",
-                backgroundColor:'green',
-
+                backgroundColor:SI.Editor.Style.FavoriteColor,
             },
         });
 
@@ -52,9 +51,9 @@ SI.Editor.Objects.Plugins = {
             });
         }
 
-        tabs.Items.Add("Local Plugins", SI.Editor.Objects.Plugins.Local.Build());
-        tabs.Items.Add("Plugins Repo", SI.Editor.Objects.Plugins.Repo.Build());
-        tabs.Items.Add("Plugin Editor", SI.Editor.Objects.Plugins.Editor.Build());
+        tabs.Items.Add("Local Plugins", SI.Editor.Objects.Plugins.Local.Draw());
+        tabs.Items.Add("Plugins Repo", SI.Editor.Objects.Plugins.Repo.Draw());
+        tabs.Items.Add("Plugin Editor", SI.Editor.Objects.Plugins.Editor.Draw());
 
         container.appendChild(tabs.Draw());
 
@@ -62,16 +61,195 @@ SI.Editor.Objects.Plugins = {
 
         return container; 
     },
+    Local: {
+        Content:null,
+        Draw: function () {
+            let style = SI.Editor.Objects.Plugins.Style;
+            let container = Ele('div', {});
+            let menu = Ele('div', {
+                id: 'si_edit_plugins_local_menu',
+                style: {
+                    backgroundColor: SI.Editor.Style.MenuColor,
+                    userSelect: 'none',
+                   // height:'25px'
+                },
+                appendTo: container,
+            });
+            let newPlugin = Ele('button', {
+                innerHTML: 'New Plugin',
+                style: {
+                    position:"relative",
+                    left:'85%',
+                    margin:'10px',
+
+                },
+                appendTo: menu,
+                onclick:function(){
+                    let newPluginName = prompt("Please enter a name for the new plugin");
+                    if (newPluginName != null) {
+                        let options = {
+                            Data: {
+                                KEY: "NewPlugin",
+                                "name": newPluginName
+                            }
+                        }
+                        SI.Editor.Ajax.Run(options);
+                    }
+                }
+            });
+
+
+            let tabs = new SI.Widget.Tab({
+                Id:"si_plugin_local_tabs",
+                BackgroundColor:  SI.Editor.Style.FavoriteColor,
+            });
+
+            let temp1 = Ele('div', {
+                id: 'si_plugin_local_temp1',
+                style:{
+                    backgroundColor: SI.Editor.Style.FavoriteColor,
+                    height:'100%',
+                    padding:'10px'
+                }
+            });
+            let temp2 = Ele('div', {
+                id: 'si_plugin_local_temp1',
+                style:{
+                    backgroundColor: SI.Editor.Style.FavoriteColor,
+                    height:'100%',
+                    padding:'10px'
+                }
+            });
+
+            let installed = SI.Editor.Data.Objects.Plugins.Current;
+            let setup = [];
+            for (let plugin in installed) {
+                if (setup.indexOf(plugin) === -1) {
+                    temp1.appendChild(SI.Editor.Objects.Plugins.Local.AddPlugin(plugin, installed[plugin]))
+                    setup.push(plugin);
+                }
+            }
+
+            let downloaded = SI.Editor.Data.Objects.Plugins.Downloaded;
+            for (let p in downloaded) {
+                let plugin = downloaded[p];
+                plugin = plugin.replace('.zip', '');
+                if (setup.indexOf(plugin) === -1) {
+                    temp2.appendChild(SI.Editor.Objects.Plugins.Local.AddPlugin(plugin, false))
+                    setup.push(plugin);
+                }
+            }
+
+
+            tabs.Items.Add("Utilities", temp1);
+            tabs.Items.Add("Games", temp2);
+
+            container.appendChild(tabs.Draw());
+
+            return container;
+        },
+        AddPlugin: function (name, vals) {
+            let style = SI.Editor.Objects.Plugins.Style;
+            let box = Ele('div', {
+                innerHTML: name+" ",
+                id: 'si_edit_plugin_box_' + name,
+                style: {
+                    position: 'relative',
+                    border: '2px solid black',
+                    width: '100px',
+                    padding: '10px',
+                    height: '200px',
+                    border: '2px groove black',
+                    textAlign: 'center',
+                    borderRadius: '8px',
+                    backgroundColor: SI.Editor.Style.BackgroundColor,
+                    color:SI.Editor.Style.TextColor,
+                },
+
+            });
+            let checked = true;
+            let isEnabled = "Uncheck to disable";
+            let disableTools = "";
+            if (vals == false) {
+                checked = false;
+                isEnabled = "Check to enable";
+                disableTools = "disabled";
+            }
+
+            let onoff = Ele('input', {
+                type: 'checkbox',
+                checked: checked,
+                title: isEnabled,
+                appendTo: box,
+                data: {
+                    plugin: name,
+                },
+                onchange: SI.Editor.Objects.Plugins.Local.ToggleEnabled
+            });
+
+            return box;
+        },
+        ToggleEnabled:function(){
+            if (this.checked) {
+                if (confirm("Are you sure you want to install the plugin: " + this.dataset.plugin)) {
+                    //install the plugin. extract the zip to its neighboring directory
+                    let options = {
+                        Data: {
+                            KEY: "InstallPlugin",
+                            "plugin": this.dataset.plugin
+                        }
+                    }
+                    SI.Editor.Ajax.Run(options);
+                    this.checked = true;
+
+                } else {
+                    this.checked = false;
+                    return false;
+                }
+
+            } else {
+                if (confirm("Are you sure you want to remove the plugin: " + this.dataset.plugin + "? You will lose any modifications that you made to this plugin.")) {
+                    //remove the plugin. just delete the directory. leave the zip where it is
+                    let options = {
+                        Data: {
+                            KEY: "UninstallPlugin",
+                            "plugin": this.dataset.plugin
+                        }
+                    }
+                    SI.Editor.Ajax.Run(options);
+                    this.checked = false;
+
+                } else {
+                    this.checked = true;
+                    return false;
+                }
+            }
+        },
+        Installed: function (plugin) {
+            SI.Tools.SuperAlert(plugin+' plugin has been enabled');
+            //add data to plugin UI and move it above the top uninstalled plugin
+            //add the plugin to Current
+            SI.Tools.Element.Reload.Script("si_plugin_script");
+            SI.Tools.Element.Reload.Style("si_plugins_style");
+        },
+        Uninstalled: function (plugin) {
+            SI.Tools.SuperAlert(plugin+' plugin has been disabled');
+            //add data to plugin UI and move it above the top uninstalled plugin
+            //add the plugin to Current
+            SI.Tools.Element.Reload.Script("si_plugin_script");
+            SI.Tools.Element.Reload.Style("si_plugins_style");
+        },
+    },
     Repo: {
         Content:null,
-        Build: function () {
+        Draw: function () {
             let container = Ele('div', {});
             let menu = Ele('div', {
                 id: 'si_edit_plugins_repo_menu',
                 style: {
                     width: '100%',
                     height: '75px',
-                    backgroundColor: SI.Editor.Objects.Plugins.Style.menucolor,
+                    backgroundColor: SI.Editor.Style.MenuColor,
                     position: 'relative',
                     paddingLeft: '10px',
                     userSelect: 'none',
@@ -83,7 +261,7 @@ SI.Editor.Objects.Plugins = {
                 style: {
                     width: '100%',
                     height: '500px',
-                    backgroundColor: SI.Editor.Objects.Plugins.Style.pagecolor,
+                    backgroundColor: SI.Editor.Style.FavoriteColor,
                     display: 'flex',
                     flexWrap: 'wrap',
                     overflow: 'scroll',
@@ -91,18 +269,6 @@ SI.Editor.Objects.Plugins = {
                 appendTo: container,
             });
             //Tools.StopOverscroll(content);
-
-            let title = Ele('span', {
-                innerHTML: 'Super Intuitive Plugins',
-                style: {
-                    position: 'absolute',
-                    top: '15px',
-                    left: '15px',
-                    color: SI.Editor.Objects.Plugins.Style.titlecolor,
-                    textSize: '18px',
-                },
-                appendTo: menu,
-            });
 
             SI.Editor.Objects.Plugins.Repo.Content = content;
             return container;
@@ -288,172 +454,16 @@ SI.Editor.Objects.Plugins = {
 
         },
     },
-    Local: {
-        Content:null,
-        Build: function () {
-            let style = SI.Editor.Objects.Plugins.Style;
-            let container = Ele('div', {});
-            let menu = Ele('div', {
-                id: 'si_edit_plugins_local_menu',
-                style: {
-                    width: '100%',
-                    height: '75px',
-                    backgroundColor: SI.Editor.Objects.Plugins.Style.menucolor,
-                    position: 'relative',
-                    paddingLeft: '10px',
-                    userSelect: 'none',
-                },
-                appendTo: container,
-            });
-            let content = Ele('div', {
-                id: 'si_edit_plugins_local_content',
-                style: {
-                    width: '100%',
-                    height: '550px',
-                    backgroundColor: SI.Editor.Objects.Plugins.Style.pagecolor,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    overflow: 'scroll',
-                },
-                appendTo: container,
-            });
-            let title = Ele('span', {
-                innerHTML: 'Local Plugins',
-                style: {
-                    position: 'absolute',
-                    top: '15px',
-                    left: '15px',
-                    color: SI.Editor.Objects.Plugins.Style.titlecolor,
-                    textSize: '18px',
-                },
-                appendTo: menu,
-            });
-
-            let installed = SI.Editor.Data.Objects.Plugins.Current;
-            let setup = [];
-            for (let plugin in installed) {
-                if (setup.indexOf(plugin) === -1) {
-                    content.appendChild(SI.Editor.Objects.Plugins.Local.AddPlugin(plugin, installed[plugin]))
-                    setup.push(plugin);
-                }
-            }
-
-            let downloaded = SI.Editor.Data.Objects.Plugins.Downloaded;
-            for (let p in downloaded) {
-                let plugin = downloaded[p];
-                plugin = plugin.replace('.zip', '');
-                if (setup.indexOf(plugin) === -1) {
-                    content.appendChild(SI.Editor.Objects.Plugins.Local.AddPlugin(plugin, false))
-                    setup.push(plugin);
-                }
-            }
-
-            SI.Editor.Objects.Plugins.Local.Content = content;
-            return container;
-        },
-        AddPlugin: function (name, vals) {
-            let style = SI.Editor.Objects.Plugins.Style;
-            let box = Ele('div', {
-                innerHTML: name+" ",
-                id: 'si_edit_plugin_box_' + name,
-                style: {
-                    position: 'relative',
-                    border: '2px solid black',
-                    width: '100px',
-                    margin: '10px',
-                    padding: '10px',
-                    height: '200px',
-                    border: '2px groove black',
-                    textAlign: 'center',
-                    borderRadius: '8px',
-                    backgroundColor: style.piboxcolor,
-                    color:SI.Editor.Objects.Plugins.Style.titlecolor,
-                },
-
-            });
-            let checked = true;
-            let isEnabled = "Uncheck to disable";
-            let disableTools = "";
-            if (vals == false) {
-                checked = false;
-                isEnabled = "Check to enable";
-                disableTools = "disabled";
-            }
-
-            let onoff = Ele('input', {
-                type: 'checkbox',
-                checked: checked,
-                title: isEnabled,
-                appendTo: box,
-                data: {
-                    plugin: name,
-                },
-                onchange: SI.Editor.Objects.Plugins.Local.ToggleEnabled
-            });
-
-            return box;
-        },
-        ToggleEnabled:function(){
-            if (this.checked) {
-                if (confirm("Are you sure you want to install the plugin: " + this.dataset.plugin)) {
-                    //install the plugin. extract the zip to its neighboring directory
-                    let options = {
-                        Data: {
-                            KEY: "InstallPlugin",
-                            "plugin": this.dataset.plugin
-                        }
-                    }
-                    SI.Editor.Ajax.Run(options);
-                    this.checked = true;
-
-                } else {
-                    this.checked = false;
-                    return false;
-                }
-
-            } else {
-                if (confirm("Are you sure you want to remove the plugin: " + this.dataset.plugin + "? You will lose any modifications that you made to this plugin.")) {
-                    //remove the plugin. just delete the directory. leave the zip where it is
-                    let options = {
-                        Data: {
-                            KEY: "UninstallPlugin",
-                            "plugin": this.dataset.plugin
-                        }
-                    }
-                    SI.Editor.Ajax.Run(options);
-                    this.checked = false;
-
-                } else {
-                    this.checked = true;
-                    return false;
-                }
-            }
-        },
-        Installed: function (plugin) {
-            SI.Tools.SuperAlert(plugin+' plugin has been enabled');
-            //add data to plugin UI and move it above the top uninstalled plugin
-            //add the plugin to Current
-            SI.Tools.Element.Reload.Script("si_plugin_script");
-            SI.Tools.Element.Reload.Style("si_plugins_style");
-        },
-        Uninstalled: function (plugin) {
-            SI.Tools.SuperAlert(plugin+' plugin has been disabled');
-            //add data to plugin UI and move it above the top uninstalled plugin
-            //add the plugin to Current
-            SI.Tools.Element.Reload.Script("si_plugin_script");
-            SI.Tools.Element.Reload.Style("si_plugins_style");
-        },
-    },
     Editor: {
         Content:null,
-        Build: function () {
+        Draw: function () {
             let container = Ele('div', {});
             let menu = Ele('div', {
                 id: 'si_edit_plugins_editor_menu',
                 style: {
                     width: '100%',
                     height: '75px',
-                    backgroundColor: SI.Editor.Objects.Plugins.Style.menucolor,
+                    backgroundColor: SI.Editor.Style.MenuColor,
                     position: 'relative',
                     paddingLeft: '10px',
                     userSelect: 'none',
@@ -465,7 +475,7 @@ SI.Editor.Objects.Plugins = {
                 style: {
                     width: '100%',
                     height: '550px',
-                    backgroundColor: SI.Editor.Objects.Plugins.Style.pagecolor,
+                    backgroundColor: SI.Editor.Style.FavoriteColor,
                     overflow: 'scroll',
                 },
                 appendTo: container,

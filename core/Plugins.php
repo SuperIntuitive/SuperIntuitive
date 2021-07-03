@@ -91,7 +91,7 @@ class Plugins {
 		
 		//Go to the si plugin repo and get the Plugins
 		//TODO add paging and a tracker so this can be fired when the repo is opened and if the user scrolls down the repo
-		$plugins = file_get_contents('http://plugins.superintuitive.net?');
+		$plugins = file_get_contents('https://plugins.superintuitive.net?');
 
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['MOREPLUGINS']= $plugins;
 
@@ -111,7 +111,7 @@ class Plugins {
 				}
 			}else{
 				$fname = $post['appname'];
-				$url = 'http://plugins.superintuitive.net/plugins/'.$fname;
+				$url = 'https://plugins.superintuitive.net/plugins/'.$fname;
 			}
 
 			$path = $_SERVER["DOCUMENT_ROOT"] . '/plugins/downloaded/'.$fname;
@@ -145,18 +145,15 @@ class Plugins {
 		}
 	}
 
-	public function InstallPlugin($post){
-	   
+	public function InstallPlugin($post){	   
 		if(isset($post['plugin'])){
 		    $zip = new ZipArchive;
 			$plugin = $post['plugin'];
 			Tools::Log("In Install: ".$plugin);
 			try{
-
 				if(file_exists ( $_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip" )){
 					Tools::Log('file exists');
 				}
-
 				Tools::Log($_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip");
 				if ($zip->open($_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip") === TRUE) {
 					Tools::Log("OPened Zip");
@@ -171,7 +168,6 @@ class Plugins {
 				Tools::Log($plugin." ".$ex->getMessage());
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGINFAILED']= $plugin." ".$ex->getMessage();
 			}
-
 			if( file_exists($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/install.json") ){
 				$installer = file_get_contents($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin."/install.json");
 				if($installer!= NULL){
@@ -203,20 +199,13 @@ class Plugins {
 											$data['attributes'][] = $attr;
 										}
 									}
-
 									Tools::Log($data);
-
 								}
 							}
 						}
-						
 					}
-
 				}
 			}
-
-
-			
 		}
 	}
 
@@ -258,10 +247,7 @@ class Plugins {
 			}
 		}
 		catch(Exception $e){
-
 		}
-
-
 	}
 
 	private function SavePluginSql($plugin){
@@ -527,6 +513,51 @@ class Plugins {
 		}
 	}
 
+	public function NewPlugin($post){
 
+		if(isset($post['name'])){
+			$name = $post['name'];
+			$zip = new ZipArchive();
+			$rootPath = realpath($_SERVER["DOCUMENT_ROOT"] . '/plugins/template');
+			$path = $_SERVER["DOCUMENT_ROOT"] . '/plugins/installed/'.$name.'.zip';
+	
+			if(file_exists($path )) {
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION']= "The plugin ".$post['name']." already exists in the installed directory";
+			}
+			else{
+				if ($zip->open($path, ZIPARCHIVE::CREATE) != TRUE) {
+					die ("Could not open archive");
+				}
+				$config = "
+				{
+					\"name\":$name
+				}
+				";
+				$zip->addFromString('config.json', $config);
+				$files = new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator($rootPath),
+					RecursiveIteratorIterator::LEAVES_ONLY
+				);
+				foreach ($files as $name => $file)
+				{
+					// Skip directories (they would be added automatically)
+					if (!$file->isDir())
+					{
+						// Get real and relative path for current file
+						$filePath = $file->getRealPath();
+						$relativePath = substr($filePath, strlen($rootPath) + 1);
+
+						// Add current file to archive
+						$zip->addFile($filePath, $relativePath);
+					}
+				}
+				$zip->close(); 
+
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['SUPERALERT']= "The plugin ".$post['name']." has been created";
+			}
+
+		}
+
+	}
 
 } 

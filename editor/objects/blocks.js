@@ -1075,9 +1075,7 @@ SI.Editor.Objects.Blocks = {
     },
     Promote: function (data) {
         data.KEY = 'BlockPromote';
-        let ajax = { Url: SI.Editor.Ajax.Url, Data: data, };
-        console.log(ajax);
-        SI.Editor.Ajax.Run(ajax);
+        SI.Editor.Ajax.Run({ Url: SI.Editor.Ajax.Url, Data: data});
     },
     Names: [],
     Blocks: [],

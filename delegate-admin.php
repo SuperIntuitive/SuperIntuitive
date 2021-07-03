@@ -117,6 +117,14 @@ if(Tools::UserHasRole('Admin')){
 				case "DeleteRole":
 					$sec = New Role();
 					$sec->Delete($post);
+					break;			
+				case "ActivateRole":
+					$role = new Role();
+					$role->Activate($post);
+					break;
+				case "DeactivateRole":
+					$role = New Role();
+					$role->Deactivate($post);
 					break;
 
 				//Language
@@ -156,8 +164,10 @@ if(Tools::UserHasRole('Admin')){
 					$pi = new Plugins();
 					$pi->UninstallPlugin($post);
 					 break;
-
-
+				case "NewPlugin":
+					$pi = new Plugins();
+					$pi->NewPlugin($post);
+					break;
 
 				case "NewSetting":
 					$set = new Setting();

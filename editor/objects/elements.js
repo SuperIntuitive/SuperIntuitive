@@ -333,7 +333,7 @@ SI.Editor.Objects.Elements = {
     MakeDropParent: function (ev, self) {
         self = (typeof self === 'undefined') ? this : self;
         if (SI.Tools.Is.Element(self)) {
-            if(SI.Editor.Objects.Elements.Selected.id !== self.id ){
+            if(SI.Editor.Objects.Elements.Selected && SI.Editor.Objects.Elements.Selected.id !== self.id ){
                 SI.Editor.Objects.Elements.DropParent = self;
                 SI.Editor.Objects.Elements.DropParent.classList.add("si-drop-parent");
     

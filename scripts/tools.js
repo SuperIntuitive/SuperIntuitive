@@ -1,5 +1,20 @@
 //prototypes
 
+/*
+Array.prototype.overlaps = function (a) {
+    for (const i = 0; i < a.length; i++) {
+        if (this.includes(a[i])) {
+            return true;
+        }
+    }
+    return false;
+};
+Array.prototype.myUcase = function () {
+    for (i = 0; i < this.length; i++) {
+        this[i] = this[i].toUpperCase();
+    }
+};
+*/
 String.prototype.replaceArray = function (find, replace) {   // so-5069464
     var replaceString = this;
     var regex;
@@ -26,11 +41,11 @@ if (!String.replaceAll) {
         return this.split(find).join(replace);
     };
 }
-String.prototype.trimChar = function (char){
+String.prototype.trimChar = function (char) {
     char = typeof char !== 'undefined' ? char : ' ';
     let string = this;
     while (string.charAt(0) === char) {
-            string = string.substring(1);
+        string = string.substring(1);
     }
     while (string.charAt(string.length - 1) === char) {
         string = string.substring(0, string.length - 1);
@@ -55,6 +70,7 @@ String.prototype.hexDecode = function () { //21647928
     }
     return back;
 };
+
 Element.prototype.remove = function () {
     this.parentElement.removeChild(this);
 };
@@ -71,13 +87,13 @@ Element.prototype.childNumber = function () {
 };
 Element.prototype.disableDown = function () {
     let eles = this.querySelectorAll(':not([disabled])');
-    for(ele in eles){
+    for (ele in eles) {
         ele.addAttribute('disabled');
     }
 };
 Element.prototype.enableDown = function () {
     let eles = this.querySelectorAll('[disabled]');
-    for(ele in eles){
+    for (ele in eles) {
         ele.removeAttribute('disabled');
     }
 };
@@ -249,7 +265,7 @@ SI.Tools = {
 
     },
     Object: {
-        Copy:function(obj){
+        Copy: function (obj) {
             let ret, value, key;
             if (typeof obj !== "object" || obj === null || typeof obj === "undefined") {
                 return obj;
@@ -492,11 +508,11 @@ SI.Tools = {
             }
         }
     },
-    Array:{
-        GetIndexByObjKVP:function(array, key, val){
+    Array: {
+        GetIndexByObjKVP: function (array, key, val) {
             debugger;
-            for(let i = 0; i<array.length;i++){
-                if(array[i][key] && array[i][key] === val){
+            for (let i = 0; i < array.length; i++) {
+                if (array[i][key] && array[i][key] === val) {
                     return i;
                 }
             }
@@ -979,13 +995,13 @@ SI.Tools = {
                 disp = ele.currentStyle ? ele.currentStyle.display : getComputedStyle(ele, null).display;
                 return disp === 'none' ? false : true;
             } else {
-                SI.Tools.Warn("Tried to determine if "+ele+" IsVisable. The element was null");
+                SI.Tools.Warn("Tried to determine if " + ele + " IsVisable. The element was null");
             }
         },
         Element: function (ele) {
             return (
                 typeof HTMLElement === "object" ? ele instanceof HTMLElement : //DOM2
-                ele && typeof ele === "object" && ele !== null && ele.nodeType === 1 && typeof ele.nodeName === "string"
+                    ele && typeof ele === "object" && ele !== null && ele.nodeType === 1 && typeof ele.nodeName === "string"
             );  //SO-384286
         },
         InlineElement: function (ele) {
@@ -1118,7 +1134,7 @@ SI.Tools = {
         }
         //check for lookups
         let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
-        if(lookup){
+        if (lookup) {
             lookup.CheckLookups();
         }
     },
@@ -1305,28 +1321,28 @@ SI.Tools = {
             }
             return off;
         },
-        Reload:{
-            Script:function(id){
+        Reload: {
+            Script: function (id) {
                 let script = document.getElementById(id);
-                let newsrc = script.src+"?"+Date.now();
+                let newsrc = script.src + "?" + Date.now();
                 script.remove();
-                Ele("script",{
-                    id:id,
-                    src:newsrc,
-                    defer:true,
-                    appendTo:'head'
+                Ele("script", {
+                    id: id,
+                    src: newsrc,
+                    defer: true,
+                    appendTo: 'head'
                 });
             },
-            Style:function(id){
+            Style: function (id) {
                 let style = document.getElementById(id);
-                let newhref = style.href+"?"+Date.now();
+                let newhref = style.href + "?" + Date.now();
                 style.remove();
-                Ele("link",{
-                    rel:'stylesheet',
-                    type:'text/css',
-                    id:id,
-                    href:newhref,
-                    appendTo:'head'
+                Ele("link", {
+                    rel: 'stylesheet',
+                    type: 'text/css',
+                    id: id,
+                    href: newhref,
+                    appendTo: 'head'
                 });
             }
         }
@@ -1539,7 +1555,7 @@ SI.Tools = {
             filename = filename.replace('url("', '').replace('")', '').replace('"', '');
             var re = /(?:\.([^.]+))?$/;
             var ext = re.exec(filename)[1];
-            
+
             let path = "";
             let isMedia = true;
             switch (ext) {
@@ -1561,7 +1577,7 @@ SI.Tools = {
                 case "xml":
                 case "csv":
                 case "xlsx":
-                case "xls": path = "/media/data/" ;
+                case "xls": path = "/media/data/";
                     break;
                 case "docx":
                 case "pdf": path = "/media/documents/";
@@ -1573,11 +1589,11 @@ SI.Tools = {
                     break;
             }
 
-            if(isMedia){
+            if (isMedia) {
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
                 path = window.location.origin + path + filename;
             }
-            
+
             return path;
         }
         return null;
@@ -1598,8 +1614,8 @@ SI.Tools = {
             ajax.onreadystatechange = function () {
                 if (ajax.readyState === 4 && ajax.status === 200) {
                     try {
-                        if (ajax.responseText !== null && ajax.responseText.length > 0) {                     
-                            json = JSON.parse(ajax.responseText.trim());                            
+                        if (ajax.responseText !== null && ajax.responseText.length > 0) {
+                            json = JSON.parse(ajax.responseText.trim());
                             options.Callback(json, options);
                         }
                     } catch (ex) {
@@ -1615,34 +1631,34 @@ SI.Tools = {
             return ajax;
         },
         Returned: function (response, options) {
-           // debugger;
+            // debugger;
             if (typeof response['Return'] !== 'undefined') {
                 let value = null;
                 let columns = null;
-                if (typeof response['Input']['Columns']!== 'undefined') {
+                if (typeof response['Input']['Columns'] !== 'undefined') {
                     columns = response['Input']['Columns'];
-                    if(typeof response[0]!== 'undefined') {
+                    if (typeof response[0] !== 'undefined') {
                         value = response[0][columns];
                     }
                 }
-                if(!value){
+                if (!value) {
                     if (typeof response['Return']['Entity']['Name'] !== 'undefined') {
                         value = response['Return']['Entity']['Name'];
                     }
                 }
-                if(value){
+                if (value) {
 
                     if (typeof response['Return']['Query'] !== 'undefined') {
                         queryElements = document.querySelectorAll(response['Return']['Query']);
                         for (var i = 0; i < queryElements.length; i++) {
 
 
-                            let ele = queryElements[i]; 
-                            switch(ele.tagName){
+                            let ele = queryElements[i];
+                            switch (ele.tagName) {
                                 case "INPUT": ele.value = value;
                                     break;
                                 default: ele.innerHTML = value;
-                                break;
+                                    break;
                             }
 
 
@@ -1652,8 +1668,8 @@ SI.Tools = {
             }
             //check for lookups
             let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
-           // debugger;
-            if(lookup){
+            // debugger;
+            if (lookup) {
                 lookup.CheckLookups();
             }
         },
@@ -1677,40 +1693,55 @@ SI.Tools = {
             return;
         }
     },
-    File:{
-        IsValid:function(fname){ //SO11100821
-            var rg1=/^[^\\/:\*\?"<>\|]+$/; // forbidden characters \ / : * ? " < > |
-            var rg2=/^\./; // cannot start with dot (.)
-            var rg3=/^(nul|prn|con|lpt[0-9]|com[0-9])(\.|$)/i; // forbidden file names
-            
-            return rg1.test(fname)&&!rg2.test(fname)&&!rg3.test(fname);
-            
-        }
-    },
-    Cookie:{
-        Get(name) {
-            var dc = document.cookie;
-            var prefix = name + "=";
-            var begin = dc.indexOf("; " + prefix);
-            if (begin == -1) {
-                begin = dc.indexOf(prefix);
-                if (begin != 0) return null;
-            }
-            else
-            {
-                begin += 2;
-                var end = document.cookie.indexOf(";", begin);
-                if (end == -1) {
-                end = dc.length;
+    File: {
+        IsValid: function (fname) { //SO11100821
+            var rg1 = /^[^\\/:\*\?"<>\|]+$/; // forbidden characters \ / : * ? " < > |
+            var rg2 = /^\./; // cannot start with dot (.)
+            var rg3 = /^(nul|prn|con|lpt[0-9]|com[0-9])(\.|$)/i; // forbidden file names
+            return rg1.test(fname) && !rg2.test(fname) && !rg3.test(fname);
+        },
+        IsOnServer: function(urlToFile) {
+            var xhr = new XMLHttpRequest();
+            debugger
+            xhr.open('HEAD', urlToFile, false);
+            xhr.onreadystatechange = function() {
+                debugger;
+                if (xhr.readyState === 4 && xhr.status == 200 ) {
+           
+                    return true;
+                }
+                else{
+                    return false;
                 }
             }
-            // because unescape has been deprecated, replaced with decodeURI
-            //return unescape(dc.substring(begin + prefix.length, end));
-            return decodeURI(dc.substring(begin + prefix.length, end));
-        } 
-
+            
+            xhr.send();
+        }
     },
-    Caret:{
+    Cookie: {
+        Get: function (cname) {                 //w3s
+            var name = cname + "=";
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for(var i = 0; i <ca.length; i++) {
+              var c = ca[i];
+              while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+              }
+              if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+              }
+            }
+            return "";
+        },
+        Set: function(cname, cvalue, exdays=90) {  
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays*24*60*60*1000));
+            var expires = "expires="+ d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+    },
+    Caret: {
         GetPosition(ele) {
             if (ele.contentEditable) {
                 ele.focus()
@@ -1725,21 +1756,20 @@ SI.Tools = {
         },
         SetPosition(ele, pos) {
             debugger;
-            if(ele != null) {
-                if(ele.createTextRange) {
+            if (ele != null) {
+                if (ele.createTextRange) {
                     var range = ctrl.createTextRange();
                     range.collapse(true);
                     range.moveEnd('character', pos);
                     range.moveStart('character', pos);
                     range.select();
                 }
-                else if (ele.setSelectionRange)
-                {
+                else if (ele.setSelectionRange) {
                     ele.focus();
-                    ele.setSelectionRange(pos,pos);
+                    ele.setSelectionRange(pos, pos);
                 }
                 else {
-                    if(ele.selectionStart) {
+                    if (ele.selectionStart) {
                         ele.focus();
                         ele.setSelectionRange(pos, pos);
                     }

@@ -29,6 +29,19 @@ SI.Editor.Objects.Security = {
         let newRollBtn = Ele('input', {
             type: 'button',
             value: 'New Role',
+            style:{
+                backgroundColor:SI.Editor.Style.FavoriteColor,
+                backgroundImage: 'radial-gradient( rgba(0,0,0,0), rgba(0,0,0,0), rgba(0,0,0,0), rgba(0,0,0,0), rgba(0,0,0,.5), rgba(0,0,0,.5), rgba(0,0,0,.5), rgba(0,0,0,.6), rgba(0,0,0,.7), rgba(0,0,0,.8), rgba(0,0,0,.9), rgba(0,0,0,1) )',
+                borderTopRightRadius: "50px 20px",
+                borderBottomRightRadius: "50px 20px",
+                borderBottomLeftRadius: "50px 20px",
+                borderTopLeftRadius: "50px 20px",
+                margin:'3px',
+                color:'white',
+                padding:'5px',
+                borderColor:'black'
+
+            },
             onclick: SI.Editor.Objects.Security.New,
             appendTo: roleFs,
         });
