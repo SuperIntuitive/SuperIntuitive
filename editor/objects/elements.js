@@ -168,7 +168,7 @@ SI.Editor.Objects.Elements = {
         if (typeof ele !== "undefined") {
             //Enter the unique classes into out data for future use.
             let classlist = ele.className.split(' ');
-            let classBlackList = ["si-editable-element"];
+            let classBlockedList = ["si-editable-element"];
             for (let c in classlist) {
                 if (classlist[c] !== "si-editable-element" && SI.Editor.Objects.Elements.Classes.indexOf(classlist[c]) === -1) {
                     // if (!classlist[c].startsWith("si-") && classlist[c] !== "")
@@ -187,9 +187,9 @@ SI.Editor.Objects.Elements = {
                 }
                 ele.id = newid;
             }
-            let blacklistedIds = ["si_colorscheme"];
+            let blockedIds = ["si_colorscheme"];
             //track the ids
-            if (blacklistedIds.indexOf(ele.id) === -1) {
+            if (blockedIds.indexOf(ele.id) === -1) {
                 //put the id in with the head ids or the body ids. 
                 if (ele.parentElement && ele.parentElement.tagName === 'HEAD') {
                     if (typeof SI.Editor.Objects.Elements.HeadIds[ele.id] === 'undefined')
@@ -331,7 +331,11 @@ SI.Editor.Objects.Elements = {
     },
     //Sets the parent of the element while being moved
     MakeDropParent: function (ev, self) {
+       
         self = (typeof self === 'undefined') ? this : self;
+
+        let json = SI.Tools.Element.AsJSON(self);
+       // debugger;
         if (SI.Tools.Is.Element(self)) {
             if(SI.Editor.Objects.Elements.Selected && SI.Editor.Objects.Elements.Selected.id !== self.id ){
                 SI.Editor.Objects.Elements.DropParent = self;

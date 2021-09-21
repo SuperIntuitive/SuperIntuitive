@@ -1305,7 +1305,7 @@ SI.Tools = {
             } while (document.getElementById(id));
             return id;
         },
-        GetTotalOffset(ele, stopid = null) {
+        GetTotalOffset: function(ele, stopid = null) {
             off = { left: 0, top: 0 };
             off.left += ele.offsetLeft;
             off.top += ele.offsetTop;
@@ -1345,14 +1345,78 @@ SI.Tools = {
                     appendTo: 'head'
                 });
             }
+        },
+        AsJSON: function(ele){
+
+            let json = {};
+            if(SI.Tools.Is.Element(ele, fulllineage = false)){
+
+                json.tag = ele.tagName; 
+
+
+                if(fulllineage){
+                    json.appendTo = SI.Tools.Element.AsJSON(ele.parentElement, true);
+                }
+                else{
+                    if('id' in ele.parentElement)
+                    json.appendTo = '#'+ele.parentElement.id;
+                }
+
+
+                for (let i = 0; i < ele.attributes.length; i++) {
+                    let attrib = ele.attributes[i];
+                    
+                    switch(attrib.name){
+
+                        case "className":   
+                            const classNames = attrib.value.split(' ');
+                            let classes;
+                            classNames.forEach(name => {
+                                classes+=name+' ';
+                            })
+                            json.class=classes.trim();
+                        break;
+
+                        case "style":
+                            let styles = attrib.value.split(";")
+                            let kvp = {}
+                            json.style={};
+                            for (let i=0;i<styles.length;i++) {
+                                let kvp = styles[i].split(":").map((item)=>item.trim());
+                                json.style[kvp[0]]=kvp[1];
+                            }
+                        break;
+
+                        case "dataset":
+                            json.data = {}
+                            for( let d in ele.dataset){         
+                                json.data[d]= dataset[d];
+                            }
+                        break;
+
+
+                        case 'innerHTML':
+                            json.innerHTML += attrib.value;
+                        break;
+
+                        default: 
+                            json[attrib.name] = attrib.value;
+                        break;
+
+                    }
+
+                }
+
+            }
+            return json;
         }
     },
     GetAllFunctions(obj = window) { //11279441
         let allfunctions = [];
-        let blacklist = ['webkitStorageInfo'];
+        let blockedlist = ['webkitStorageInfo'];
         //debugger;
         for (let i in obj) {
-            if (blacklist.indexOf(i) === -1 && (typeof obj[i]).toString() === "function") {
+            if (blockedlist.indexOf(i) === -1 && (typeof obj[i]).toString() === "function") {
                 allfunctions.push(obj[i].name);
             }
         }

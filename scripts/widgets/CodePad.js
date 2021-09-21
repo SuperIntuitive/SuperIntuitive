@@ -764,7 +764,7 @@ debugger;
                 let tmp = [];
                 for (let name in SI.Editor.Data.js_methods[category]) {
                     let rem = toRemove.indexOf(name);
-                    if (rem === -1) { //the blacklist
+                    if (rem === -1) { 
                         if (SI.Editor.Data.js_methods[category].hasOwnProperty(name)) {
                             if (SI.Editor.Data.js_methods[category][name].type === type) {
                                 tmp.push(name);
