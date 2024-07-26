@@ -1,5 +1,5 @@
 <?php
-
+namespace SuperIntuitive; 
 class Scripts {
 
 	public function __construct(){

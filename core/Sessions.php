@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive; 
 Tools::Autoload();
 class Sessions {
 	private $sessionId;
@@ -144,7 +145,7 @@ class Sessions {
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin'] = false;
 
 				$db = new Database();
-				$guestrules = $db->GetGuestRules(); //special case lookup functions because we dont have teh entities yet. 
+				$guestrules = $db->GetGuestRules(); //special case lookup functions because we dont have the entities yet. 
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['permissions'] = $guestrules;
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'][] = "Guest";
 			}else{

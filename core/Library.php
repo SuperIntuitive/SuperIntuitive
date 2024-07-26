@@ -1,5 +1,5 @@
 <?php
-
+namespace SuperIntuitive; 
 class Library {
 
 

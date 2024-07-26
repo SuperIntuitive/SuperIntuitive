@@ -1,5 +1,6 @@
-
 <?php
+namespace SuperIntuitive; 
+use \PDO;
 Tools::Autoload();
 class Setup {
 
@@ -7,7 +8,7 @@ class Setup {
 		$domdir = $_SERVER["DOCUMENT_ROOT"].'/domains';
 		if( is_dir($domdir) === false )
 		{
-			mkdir($domdir,0777);
+			mkdir($domdir,0777,true);
 		}
 		$coredir = $_SERVER["DOCUMENT_ROOT"].'/core';
 		chmod($coredir, 0777);
@@ -91,7 +92,7 @@ class Setup {
 		foreach($dbavail as $v){
 			$dboptions.="<option>$v</option>";
 		}
-		
+		$year = date('Y');
 		$host = $_SERVER['HTTP_HOST'];
 					
             return "<div>
@@ -237,13 +238,13 @@ class Setup {
 						</section>
 					</main>
 					<footer>
-					  <small>&copy; Copyright 2018, Super Intuitive</small>
+					  <small>&copy; Copyright $year, Super Intuitive</small>
 					</footer>
 					</div>
 					<script>
 						SI.Setup.Init();
 					</script>
-					";	
+					";//.phpinfo();	
 	}	
 
 	public function TestDatabase($post){
@@ -304,7 +305,7 @@ class Setup {
 			mkdir($dest, 0755);
 		}
 		//Copy the setup/media folder into the new domain folder
-		foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $item) {
+		foreach ($iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST) as $item) {
 			if ($item->isDir()) {
 				mkdir($dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName(), 0755);
 			} else {
@@ -315,8 +316,8 @@ class Setup {
 	}
 	private function DeleteDomainFolder($domain){
 		$dir = $_SERVER["DOCUMENT_ROOT"].'/domains/'.$domain;
-		$di = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
-		$ri = new RecursiveIteratorIterator($di, RecursiveIteratorIterator::CHILD_FIRST);
+		$di = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
+		$ri = new \RecursiveIteratorIterator($di, \RecursiveIteratorIterator::CHILD_FIRST);
 		foreach ( $ri as $file ) {
 			$file->isDir() ?  rmdir($file) : unlink($file);
 		}
@@ -329,34 +330,41 @@ class Setup {
 	    Tools::Log("In Replace Tokens");
 
 		Tools::Log("Replacing Guids");
-		$sqlstr = preg_replace_callback(
-			"(_SI_GUID_[1234567890]+)",
-			function ($matches) {
-				if(count($matches)>0){
 
-					$match = $matches[0];
-					//Tools::Log("Matches:".$match);
-					//Tools::Log("Matches:".print_r($matches,true));
-					$this->total++;
-					if(isset($this->guidTokens[$match])){
-						Tools::Log("Guid Match Exists for: ".$match.' Returning Guid: '.$this->guidTokens[$match]);
-						$found = $this->guidTokens[$match];
-						return $found;
-					}else{
-						$this->unique++;
-						$guid = new Guid(true);
-						$guid = $guid->ToString();
-						$this->guidTokens[$match] = $guid;
-						Tools::Log("Added Guid To List: ".$match.'->'.$guid);
-						//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
-						return $guid;
+		try {
+			$sqlstr = preg_replace_callback(
+				"/(_SI_GUID_[1234567890]+)/",
+				function ($matches) {
+					if(count($matches)>0){
+	
+						$match = $matches[0];
+						//Tools::Log("Matches:".$match);
+						//Tools::Log("Matches:".print_r($matches,true));
+						$this->total++;
+						if(isset($this->guidTokens[$match])){
+							Tools::Log("Guid Match Exists for: ".$match.' Returning Guid: '.$this->guidTokens[$match]);
+							$found = $this->guidTokens[$match];
+							return $found;
+						}else{
+							$this->unique++;
+							$guid = new Guid(true);
+							$guid = $guid->ToString();
+							$this->guidTokens[$match] = $guid;
+							Tools::Log("Added Guid To List: ".$match.'->'.$guid);
+							Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
+							return $guid;
+						}
+						Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
 					}
-					//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
-				}
-				//Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
-			},
-			$sqlstr
-		);
+					Tools::Log("GuidTokens: ".print_r($this->guidTokens,true));
+				},
+				$sqlstr,-1
+			);
+		} catch (Exception $ex) {
+			Tools::Log( $ex->getMessage() );
+		}
+
+
 		Tools::Log("Afterreplace Guids");
 		//replace all of the created on 
 		$sqlstr = str_replace("_SI_NOWTIME_"," CURRENT_TIMESTAMP() ",$sqlstr);
@@ -400,6 +408,10 @@ class Setup {
 		Tools::Log("Total: ".$this->total);
 		Tools::Log("Unique: ".$this->unique);
 
+	}
+
+	private function ReplaceTokensCallback(){
+		
 	}
 	private function CreateDbForRoot($connection,$post){
 		$pw = $this->RandomString();
@@ -528,19 +540,24 @@ class Setup {
 
 	}
 
-
+/**
+ * Setup SuperIntuitive
+ */
     public function SetupSuperIntuitive($post){		
+		
 		$connect = null;
 		$user = null;
 		$pw = null;
 		$db = null;
 		$domain = null;
+		
 		if(isset($post["dbtype"]) && isset($post["dbserver"]) && isset($post["dbport"]) && isset($post["dbuserradio"])){
 			$connect = $post["dbtype"].":host=".$post["dbserver"].":".$post["dbport"].';';
+			//If we are using a root or similar db user to setup and we want to setup a user and database
 			if($post["dbuserradio"]=='privuser' && isset($post["privuser"]) && isset($post["privpass"])){
 				$user = $post["privuser"];
 				$pw = $post["privpass"];
-			}
+			} //If we already have a user and database setup to use,
 			else if($post["dbuserradio"]=='existuser' && isset($post["existdb"]) && isset($post["existuser"]) && isset($post["existpass"])){
 			    $connect .="dbname=".$post["existdb"];
 				$user = $post["existuser"];
@@ -548,7 +565,7 @@ class Setup {
 				$db = $post["existdb"];
 			}
 		}
-
+		//If we need a user/db, creat it here
 		if($post["dbuserradio"]=='privuser'){
 		    Tools::Log("about to create the user/db for root", true);
 			
@@ -584,7 +601,7 @@ class Setup {
 			Tools::Log("Logging Test");
 			Tools::Log($test);
 			Tools::Log("Done Loggin Test");
-			if($test != "<?php class DbCreds { }"){
+			if($test != "<?php\nnamespace SuperIntuitive;\nclass DbCreds { }"){
 				$counter=1;
 				while (file_exists($dbcrds."_".$counter.".php")) {
 						$counter++;
@@ -601,6 +618,7 @@ class Setup {
 
 				//Create new dbcreds
 		$newcreds = '<?php
+		namespace SuperIntuitive;
 		class DbCreds {
 			protected $servername = "'.$post['dbserver'].'";
 			protected $username = "'.$user.'";
@@ -610,7 +628,7 @@ class Setup {
 		} ';
 		file_put_contents($dbcrds.".php", $newcreds);
 		Tools::Log("Built new Creds file",true);
-
+		
 		chmod($_SERVER["DOCUMENT_ROOT"].'/core', 0755);
 		//$dbms_schema = $_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql';
 		
@@ -620,7 +638,7 @@ class Setup {
 		//this is the dbc to build the database
 		$dbc=null;
 		try{
-		Tools::Log("Try to connect",true);
+		    Tools::Log("Try to connect",true);
 			$dbc = new PDO($connect, $user, $pw);
 			Tools::Log("Connected with db string: ".$connect, true);
 		} catch (PDOException $e) {

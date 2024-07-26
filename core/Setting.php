@@ -1,5 +1,6 @@
-﻿
 <?php
+namespace SuperIntuitive;
+Tools::Autoload();
 
 
 class Setting {

@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive; 
 Tools::Autoload();
 class Guid {
 	private $guid;
@@ -20,7 +21,7 @@ class Guid {
 	}
 	public function IsGuid($test){
 		$rx = new RegX();
-		return rx.Match($test,$rx->guid);
+		return rx->Match($test,$rx->guid);
 	}
 	public function ToString(){
 		return $this->guid;

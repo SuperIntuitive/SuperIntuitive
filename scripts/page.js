@@ -1,8 +1,9 @@
 <?php 
+namespace SuperIntuitive;
 header("Content-Type: application/javascript; charset: UTF-8");
 
 session_start();
-require_once '../core/Tools.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
 Tools::DefineServer();
 
 $finishedScript = 'if(!SI){var SI = {}};';

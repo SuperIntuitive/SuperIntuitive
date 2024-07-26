@@ -1,4 +1,5 @@
-﻿<?php
+<?php
+namespace SuperIntuitive;
 /*!
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen
@@ -7,8 +8,7 @@
  * @version   v0.9
  */
 //session_unset();
-
-require_once 'core/Tools.php';	//Include the static tools class
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR."SuperIntuitive".DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';//Include the static tools class
 Tools::Autoload('root');  //Run the auto include function from the root to get all the needed class files. 
 define("SI_ENTRY","PAGELOAD"); //as opposed to ajax or another method. incase we move into a function when both are done
 //Define the server. Get the hostname subdomain directory path and query string and put them in different defines. 
@@ -128,6 +128,7 @@ if($page != null){
 
 	//if(Tools::UserHasRole(""))
 	//Tools::Log($head);
+   // $body = phpinfo();
 ?>
 <!doctype html>
 <html lang="<?=$lang?>" style='height: 100%;'>

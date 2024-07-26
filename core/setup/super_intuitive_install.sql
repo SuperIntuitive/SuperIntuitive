@@ -281,6 +281,43 @@ INSERT INTO `securityroles` (`id`, `status`, `createdon`, `modifiedon`, `entity_
 (_SI_GUID_76, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_17, 'Tester', '{\"_SI_GUID_1\":{\"name\":\"blocks\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_16\":{\"name\":\"localtext\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_21\":{\"name\":\"media\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_19\":{\"name\":\"pages\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_22\":{\"name\":\"pagetemplates\",\"create\":\"false\",\"read\":\"false\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_13\":{\"name\":\"preferences\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_18\":{\"name\":\"relations\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_17\":{\"name\":\"securityroles\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_15\":{\"name\":\"sessions\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_20\":{\"name\":\"settings\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"},\"_SI_GUID_23\":{\"name\":\"users\",\"create\":\"false\",\"read\":\"true\",\"write\":\"false\",\"append\":\"false\",\"appendTo\":\"false\",\"delete\":\"false\"}}'),
 (_SI_GUID_54, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_17, 'Admin', '{\"_SI_GUID_1\":{\"name\":\"blocks\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_16\":{\"name\":\"localtext\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_21\":{\"name\":\"media\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_19\":{\"name\":\"pages\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_22\":{\"name\":\"pagetemplates\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_13\":{\"name\":\"preferences\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_18\":{\"name\":\"relations\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_17\":{\"name\":\"securityroles\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_15\":{\"name\":\"sessions\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_20\":{\"name\":\"settings\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"},\n\"_SI_GUID_23\":{\"name\":\"users\",\"create\":\"true\",\"read\":\"true\",\"write\":\"true\",\"append\":\"true\",\"appendTo\":\"true\",\"delete\":\"true\"}}');
 
+
+
+CREATE TABLE `users` (
+	`id` binary(16) NOT NULL,
+	`status` enum('active','inactive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+	`createdon` datetime NOT NULL DEFAULT current_timestamp(),
+	`modifiedon` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+	`entity_id` binary(16) DEFAULT NULL COMMENT 'entity:entities',
+	`name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+	`email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+	`password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+	`remembertoken` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+	`remembertime` bigint(20) DEFAULT NULL,
+	`preferences` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci  COMMENT='{"EN":"users", "SN":"user"}';
+
+INSERT INTO `users` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `name`, `email`, `password`, `remembertoken`, `remembertime`, `preferences`) VALUES
+(_SI_GUID_53, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_23, '__SI_USER_NAME__', '__SI_USER_EMAIL__', '__SI_USER_PASSWORD__', '', NULL, '{ \"open_links_in\":\"tab\", \"autosave\":true, \"help\":{ \"moz\":false, \"w3\":false } }');
+
+CREATE TABLE `settings` (
+	`id` binary(16) NOT NULL,
+	`status` enum('active','inactive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+	`createdon` datetime NOT NULL DEFAULT current_timestamp(),
+	`modifiedon` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+	`entity_id` binary(16) NOT NULL COMMENT 'entity:entities',
+	`settingname` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+	`settingvalue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci  COMMENT='{"EN":"settings", "SN":"setting"}';
+
+INSERT INTO `settings` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `settingname`, `settingvalue`) VALUES
+(_SI_GUID_77, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'NotificationEmail', '__SI_DEFAULT_NOTEEMAIL__'),
+(_SI_GUID_78, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'DefaultLanguage', '__SI_DEFAULT_LANGUAGE__'),
+(_SI_GUID_79, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'DefaultTimeZone', '__SI_DEFAULT_TIMEZONE__'),
+(_SI_GUID_80, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'AllowedFileTypes', '.jpg,.png'),
+(_SI_GUID_81, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'DefaultCurrency', '__SI_DEFAULT_CURRENCY__');
+
+
 CREATE TABLE `sessions` (
 	`id` binary(16) NOT NULL,
 	`createdon` datetime NOT NULL DEFAULT current_timestamp(),
@@ -334,40 +371,6 @@ CREATE TABLE `sessions` (
 	`request_time_float` decimal(15,4) DEFAULT NULL,
 	`request_time` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci  COMMENT='{"EN":"sessions", "SN":"session"}';
-
-CREATE TABLE `settings` (
-	`id` binary(16) NOT NULL,
-	`status` enum('active','inactive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
-	`createdon` datetime NOT NULL DEFAULT current_timestamp(),
-	`modifiedon` datetime DEFAULT NULL ON UPDATE current_timestamp(),
-	`entity_id` binary(16) NOT NULL COMMENT 'entity:entities',
-	`settingname` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-	`settingvalue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci  COMMENT='{"EN":"settings", "SN":"setting"}';
-
-INSERT INTO `settings` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `settingname`, `settingvalue`) VALUES
-(_SI_GUID_77, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'NotificationEmail', '__SI_DEFAULT_NOTEEMAIL__'),
-(_SI_GUID_78, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'DefaultLanguage', '__SI_DEFAULT_LANGUAGE__'),
-(_SI_GUID_79, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'DefaultTimeZone', '__SI_DEFAULT_TIMEZONE__'),
-(_SI_GUID_80, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'AllowedFileTypes', '.jpg,.png'),
-(_SI_GUID_81, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_20, 'DefaultCurrency', '__SI_DEFAULT_CURRENCY__');
-
-CREATE TABLE `users` (
-	`id` binary(16) NOT NULL,
-	`status` enum('active','inactive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
-	`createdon` datetime NOT NULL DEFAULT current_timestamp(),
-	`modifiedon` datetime DEFAULT NULL ON UPDATE current_timestamp(),
-	`entity_id` binary(16) DEFAULT NULL COMMENT 'entity:entities',
-	`name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-	`email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-	`password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-	`remembertoken` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-	`remembertime` bigint(20) DEFAULT NULL,
-	`preferences` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci  COMMENT='{"EN":"users", "SN":"user"}';
-
-INSERT INTO `users` (`id`, `status`, `createdon`, `modifiedon`, `entity_id`, `name`, `email`, `password`, `remembertoken`, `remembertime`, `preferences`) VALUES
-(_SI_GUID_53, 'active', '_SI_NOWTIME_', NULL, _SI_GUID_23, '__SI_USER_NAME__', '__SI_USER_EMAIL__', '__SI_USER_PASSWORD__', '', NULL, '{ \"open_links_in\":\"tab\", \"autosave\":true, \"help\":{ \"moz\":false, \"w3\":false } }');
 
 ALTER TABLE `blocks`
     ADD PRIMARY KEY (`id`),

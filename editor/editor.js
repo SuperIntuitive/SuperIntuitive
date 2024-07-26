@@ -1,10 +1,9 @@
-﻿///<reference path="..\scripts\tools.js" />
-
-<?php 
+<?php
+namespace SuperIntuitive;
 header("Content-Type: application/javascript; charset: UTF-8");
+
 session_start();
-require_once '../core/Tools.php';
-Tools::Autoload();
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
 Tools::DefineServer();
 
 error_reporting(E_ALL ^ E_WARNING); 
@@ -34,7 +33,7 @@ if (Tools::UserHasRole('Admin'))
             $currentPlugins[$plugin]['styles'] = array();
         }
         //get scripts
-        $scripts = glob( $_SERVER["DOCUMENT_ROOT"]. "/plugins/installed/".$plugin."/scripts/*.js" );  
+        $scripts = glob( $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR."installed".DIRECTORY_SEPARATOR.$plugin.DIRECTORY_SEPARATOR."scripts".DIRECTORY_SEPARATOR."*.js" );  
         if (count($scripts)>0) {
             foreach($scripts as $script) {
                 $name = pathinfo($script, PATHINFO_FILENAME);
@@ -42,7 +41,7 @@ if (Tools::UserHasRole('Admin'))
             }
         }
         //get styles
-        $styles = glob($_SERVER["DOCUMENT_ROOT"]. "/plugins/installed/".$plugin."/styles/*.css");
+        $styles = glob($_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR."installed".DIRECTORY_SEPARATOR.$plugin.DIRECTORY_SEPARATOR."styles".DIRECTORY_SEPARATOR."*.css");
         if (count($styles) > 0) {
             foreach($styles as $style) {
                 $name = pathinfo($style, PATHINFO_FILENAME);
@@ -200,14 +199,14 @@ if (Tools::UserHasRole('Admin'))
 
     $sessionPageData = json_encode($_SESSION['SI']);
 
-    $htmlElementsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/html_elements.json');
-    $htmlAttributesAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/html_attributes.json');
-    $cssPropertiesAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_properties.json');
-    $jsMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/js_methods.js');
-    $phpMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/php_methods.json');
-    $sqlMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/sql_methods.json');
-    $cssNew = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_new.json');
-    $cssPseudo = filemtime($_SERVER['DOCUMENT_ROOT'].'/editor/media/data/css_pseudo.json');
+    $htmlElementsAge = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."html_elements.json");
+    $htmlAttributesAge = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."html_attributes.json");
+    $cssPropertiesAge = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."css_properties.json");
+    $jsMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."js_methods.js");
+    $phpMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."php_methods.json");
+    $sqlMethodsAge = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."sql_methods.json");
+    $cssNew = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."css_new.json");
+    $cssPseudo = filemtime($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."editor".DIRECTORY_SEPARATOR."media".DIRECTORY_SEPARATOR."data".DIRECTORY_SEPARATOR."css_pseudo.json");
 
     $dataage = "html_elements: $htmlElementsAge,
             html_attributes: $htmlAttributesAge,

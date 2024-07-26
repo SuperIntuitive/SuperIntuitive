@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive; 
 /*!
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen

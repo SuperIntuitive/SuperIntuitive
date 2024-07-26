@@ -1,5 +1,7 @@
 <?php
-
+namespace SuperIntuitive; 
+use \PDO;
+Tools::Autoload();
 
 class Entity{
     //An entity represents a type of database table that meets specific requirements. 
@@ -594,6 +596,7 @@ class Entity{
 			}else if($action =='select'){
 			    //echo $select;
 				//$data->setFetchMode(PDO::FETCH_ASSOC); 
+				
 				$mydata = $data->fetchAll(PDO::FETCH_ASSOC);
 			    if(count($mydata)===0){
 					return null;
@@ -752,3 +755,5 @@ class Condition{
 		$this->Operator = $op;
 	}
 }
+
+

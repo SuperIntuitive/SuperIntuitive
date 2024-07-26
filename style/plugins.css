@@ -1,7 +1,11 @@
-﻿<?php
+<?php
+namespace SuperIntuitive;
 header("Content-type: text/css; charset: UTF-8");
+
 session_start();
-require_once '../core/Tools.php';
+$path = dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+//echo $path;
+require_once $path;
 Tools::DefineServer();
 
 //Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins']);

@@ -1,8 +1,12 @@
 <?php
+namespace SuperIntuitive; 
+
 Tools::Autoload();
 class Tools{
 	static $autoloaded = false;
 	static function Autoload($flag = 'core'){
+
+		
 		/*$allowedEntries = ["/index.php",
 						   "/delegate.php",
 						   "/style/plugins.css",
@@ -18,6 +22,12 @@ class Tools{
 		if(Tools::$autoloaded == false){
 			spl_autoload_register(function ($class) use ($flag) {
 				//These help 
+				$webroot = dirname(__DIR__);
+			
+				//dump the namespace in the class name
+				$class = str_replace('SuperIntuitive\\', "", $class);
+
+				//Map classes that exist in files named other than the class.php
 				if($class === "DataTable" || $class === "DataColumn" || $class === "DataRow" || $class === "DataSet" ){
 					$class = "Datatable";
 				}
@@ -30,14 +40,17 @@ class Tools{
 				if($class == "Role"){
 					$class = "Security";
 				}
-				$path = '';
-				switch($flag){
-					case 'core':$path = $class . '.php';break;
-					case 'root':$path = "core/$class" . '.php';break;
-					case 'subroot':$path = "../core/$class" . '.php';break;
+
+
+				$includeFile = $webroot.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.$class . '.php';
+				if (file_exists($includeFile)) {
+					require_once $includeFile;
+					Tools::$autoloaded = true;
+				} else {
+					Tools::Log("The file $includeFile does not exist <br/>");
 				}
-				require_once $path;
-				Tools::$autoloaded = true;
+
+				//echo $includeFile."<br>";
 			});
 		}
 	}
@@ -104,8 +117,8 @@ class Tools{
 		//}
 		
 		if(!is_file($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php")){
-			
-			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", '<?php class DbCreds { }');     // Save our content to the file.
+			$dbcreds = "<?php\nnamespace SuperIntuitive;\nclass DbCreds { }";
+			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", $dbcreds);     // Save our content to the file.
 		}
 	}
 	static function IsLocalhost($whitelist = ['127.0.0.1', '::1']) {
@@ -546,6 +559,11 @@ class Tools{
 	static function Trace(){
 		Tools::Log( debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3));
 	}
+	/// <summary>
+	/// SafeKey is designed to generate a safe (unique) key for an array to avoid overwriting existing keys. 
+	/// </summary>
+	/// <param name="$key">The initial key that you want to check or use.</param>
+	/// <param name="$array">The array in which you want to ensure the key is unique.</param>
 	static function SafeKey($key, $array){
 		if(!isset($array[$key])){
 			return $key;
@@ -563,9 +581,9 @@ class Tools{
 	}
 	static function DeleteDirectory($dir){
 		Tools::Log("IN DeleteDirectory:  ".$dir);
-			$files = new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-				RecursiveIteratorIterator::CHILD_FIRST
+			$files = new \RecursiveIteratorIterator(
+				new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+				\RecursiveIteratorIterator::CHILD_FIRST
 			);
 
 			foreach ($files as $fileinfo) {
@@ -575,6 +593,11 @@ class Tools{
 
 			rmdir($dir);
 	}
+	/// <summary>
+	/// SafeKey is designed to generate a safe (unique) key for an array to avoid overwriting existing keys. 
+	/// </summary>
+	/// <param name="$key">The initial key that you want to check or use.</param>
+	/// <param name="$array">The array in which you want to ensure the key is unique.</param>
 	static function ReplaceMultilangs($text){
 		//Gets all of the multilingual tags that appear in the text,
 		$matches = array();
@@ -635,9 +658,15 @@ class Tools{
 		return $text;
 	}
 	static function IsJson($string){
+		//return \json_validate($string);
 		$tmp = trim($string);
 		return (substr($string, 0, 1) == "{" ? TRUE : FALSE);
 	}
+
+	/// <summary>
+	/// JsonValidate validates a JSON string and handles various JSON parsing errors. Then return the decoded data in
+	/// </summary>
+	/// <param name="$string">The JSON string that needs to be validated and decoded.</param>
 	static function JsonValidate($string)  //SO-6041741
 	{
 		$result = json_decode($string);

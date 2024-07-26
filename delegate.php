@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive;
 /*!
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen
@@ -7,7 +8,8 @@
  * @version   v0.8
  */
 session_start();
-require_once 'core/Tools.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR."SuperIntuitive".DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+
 Tools::Autoload('root');
 Tools::DefineServer();
 

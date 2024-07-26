@@ -251,12 +251,13 @@
             });
         },
         TestDatabase: function () {      
-            debugger;            
+            //debugger;            
             let json = { "KEY": "TestDatabase" };
             json = SI.Setup.FormatForm(json)
             let ajax = new XMLHttpRequest();
             ajax.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
+                    //debugger;
                     let response = JSON.parse(this.responseText);
                     let check = document.getElementById('si_setup_dbsuccess');
                     if (response.outcome) {

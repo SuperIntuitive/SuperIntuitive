@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive;
 /*!
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen
@@ -8,7 +9,8 @@
  */
 
 session_start();
-require_once 'core/Tools.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR."SuperIntuitive".DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+
 Tools::Autoload('root');
 Tools::DefineServer();
 
@@ -101,6 +103,7 @@ if(Tools::UserHasRole('Admin')){
 					$admin = new Admin();
 					$admin->DeleteUser($post);
 					break;
+
 				//Security
 				case "GetUserRoles":
 					$admin = new Admin();
@@ -171,13 +174,14 @@ if(Tools::UserHasRole('Admin')){
 					$set = new Setting();
 					$set->Delete(null,$post);
 					break;
+
 				case "BuildBackupFile":
-					$db = new Database();
-					$db->BackupDatabase($post);
+					$admin = new Admin();
+					$admin->BackupDatabase($post);
 					break;	
 				case "BuildInstallerFile":
-					$db = new Database();
-					$db->BuildInstallerFile($post);
+					$admin = new Admin();
+					$admin->BuildInstallerFile($post);
 					break;
 
 

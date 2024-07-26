@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive; 
 Tools::Autoload();
 class User{
 

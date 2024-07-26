@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive; 
 Tools::Autoload();
 class Security {
 
@@ -42,9 +43,6 @@ class Role {
 	}
 	public function Assign($userid, $role){
 		
-
-
-
 	}
 
 	public function Delete($post){

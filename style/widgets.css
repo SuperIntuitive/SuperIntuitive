@@ -1,7 +1,13 @@
-﻿<?php
+﻿<?php 
+/*
+namespace SuperIntuitive;
 header("Content-type: text/css; charset: UTF-8");
-?>
 
+session_start();
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+Tools::DefineServer();
+*/
+?>
 
 /* Window */
 .siwi-window-pane {

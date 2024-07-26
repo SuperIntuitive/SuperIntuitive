@@ -1,5 +1,5 @@
 <?php
-
+namespace SuperIntuitive; 
 class test{
 
 public function EntityAction($entity, $action, $columns = '_ALL_'){

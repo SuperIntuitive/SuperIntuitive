@@ -1,4 +1,5 @@
 <?php
+namespace SuperIntuitive; 
 /*!
  * @overview superintuitive - a drag and drop webapp builder with point and click attribute and style editing.
  * @copyright Copyright (c) 2020 Robert Allen
@@ -7,6 +8,7 @@
  * @version   v0.8
  */
 Tools::Autoload();
+
 class Cookies {
 	public function __construct()
 	{

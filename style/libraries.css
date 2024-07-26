@@ -1,20 +1,26 @@
 <?php
+namespace SuperIntuitive;
 header("Content-type: text/css; charset: UTF-8");
+
 session_start();
-require_once '../core/Tools.php';
+$path = dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+//echo $path;
+require_once $path;
 Tools::DefineServer();
+
+
 if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['libraries'])) {
     $libraryids = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['libraries'];
-    Tools:: Autoload('subroot');
+    Tools::Autoload('subroot');
     $db = new Database();
     $guids = "";
     foreach($libraryids as $libid){
             $guids.= '0x'.$libid.',';
         }
         $guids = rtrim($guids, ',');
-        $libs = $db ->GetLibsByIds($guids, 'css');
+        $libs = $db->GetLibsByIds($guids, 'css');
 
-        foreach($libs as $name=> $lib){
+        foreach($libs as $name => $lib){
             echo '/*-!'.$name."!-*/ \n";
             echo $lib['CSS']."\n\n\n\n";
         }
