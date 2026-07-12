@@ -13,6 +13,7 @@ Tools::Autoload('root');  //Run the auto include function from the root to get a
 define("SI_ENTRY","PAGELOAD"); //as opposed to ajax or another method. incase we move into a function when both are done
 //Define the server. Get the hostname subdomain directory path and query string and put them in different defines. 
 Tools::DefineServer(); 
+Tools::SendSecurityHeaders();
 
 //Get Database and cms setup status
 $dbc = new Database();

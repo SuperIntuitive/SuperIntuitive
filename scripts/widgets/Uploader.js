@@ -111,6 +111,9 @@ SI.Widget.Uploader = function  (options) {
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', self.Options.ServerScript);
+        if (window.SI && SI.CSRF && SI.CSRF.Token) {
+            xhr.setRequestHeader('X-SI-CSRF', SI.CSRF.Token);
+        }
         xhr.onload = function () {
             self.ProgressBar.value = self.ProgressBar.innerHTML = 100;
         };

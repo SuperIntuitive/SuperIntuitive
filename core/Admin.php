@@ -173,17 +173,22 @@ class Admin {
 
 	public function SetPassword($post){
 		if ( isset($post['newpassword']) && isset($post['userid'])) {	
-			$user = new Entity("users");
-			$user->Id = $post['userid'];
+			$userId = Tools::FixGuid($post['userid']);
+			if(!$userId){
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=false;
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR']='Invalid user id.';
+				return;
+			}
+			$db = new Database();
+			$normalizedUserId = str_replace('0x', '', strtolower($userId));
 			$hash = password_hash($post['newpassword'], PASSWORD_DEFAULT);
-			//	echo $hash;
-			$user->Attributes->Add(new Attribute("password", $hash) ); 
 			try{
-				$user->Update();
+				$query = $db->DBC()->prepare("UPDATE `users` SET `password` = :password WHERE `id` = UNHEX(:userid)");
+				$query->execute(array(':password' => $hash, ':userid' => $normalizedUserId));
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=true;
 			
 			}
-			catch(Exception $e){
+			catch(\PDOException $e){
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=false;
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR']= $e->getMessage();
 			}

@@ -151,7 +151,17 @@ class Page {
 			if(isset($this->pageobjects['page']) && isset($this->pageobjects['page']['id'])){
 				$pageid = $this->pageobjects['page']['id'];
 				$settings = $db->GetRelatedEntities('pages',$pageid,'settings');
-				$settings = json_decode($settings,true);
+				if(is_array($settings)){
+					$settingsPairs = array();
+					foreach($settings as $setting){
+						if(isset($setting['settingname']) && isset($setting['settingvalue'])){
+							$settingsPairs[] = json_encode($setting['settingname']).':'.json_encode($setting['settingvalue']);
+						}
+					}
+					$settings = implode(',', $settingsPairs);
+				}else{
+					$settings = '';
+				}
 			}
 
 			$blocks = $this->pageobjects['blocks'];
@@ -180,6 +190,7 @@ class Page {
 				}
 			}
 			$blocksjson = json_encode($pageblocks);
+			$csrfToken = json_encode(Tools::GetCsrfToken());
 
 
 				$head.= 
@@ -188,6 +199,8 @@ if (!SI) { var SI = {}; }
 	SI.Page = {};
 	SI.Page.Settings = { $settings };
 	SI.Page.Blocks = $blocksjson;
+	SI.CSRF = {};
+	SI.CSRF.Token = $csrfToken;
 	SI.Widget = {};
 	SI.Widgets = {};
 	SI.User = {};
@@ -200,13 +213,15 @@ if (!SI) { var SI = {}; }
 				if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['preferences'])){
 					$prefs = json_encode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['preferences']);
 				}
+				$encodedName = json_encode((string)$name);
 				$head.= 
-"	SI.User.Name = '$name';
+"	SI.User.Name = $encodedName;
 	SI.User.Preferences = $prefs;";
 	
 			}else{
+				$guestName = json_encode('guest');
 				$head.= 
-"	SI.User.Name = 'guest';";
+"	SI.User.Name = $guestName;";
 			}
 
 			$head.= "</script>\n";

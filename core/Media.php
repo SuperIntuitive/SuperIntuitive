@@ -81,7 +81,7 @@ class Media {
 			//Tools::Log($id." ".$type." ".$url);
 
 			//The 4 images to move to the recycl bin
-			$path =  dirname($_SERVER['DOCUMENT_ROOT'].'/domains/'.$_SERVER['HTTP_HOST'].$url).'/';
+			$path =  dirname($_SERVER['DOCUMENT_ROOT'].'/domains/'.SI_DOMAIN_NAME.$url).'/';
 
 			$rBin = dirname($path).'/recycle/';
 

@@ -2,22 +2,24 @@
 namespace SuperIntuitive; 
 Tools::Autoload();
 class Plugins {
+	private $pluginRepoHost = 'plugins.superintuitive.net';
+	private $zipMagicHeaders = array('504b0304', '504b0506', '504b0708');
 	
 
 	public function __construct(){
 		$plugdir = $_SERVER["DOCUMENT_ROOT"] . "/plugins";
 		if (!is_dir($plugdir)) {
-			mkdir($plugdir,0644);
+			mkdir($plugdir,0755,true);
 		}
 
 		$dwnlddir = $_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded";
 		if (!is_dir($dwnlddir)) {
-			mkdir($dwnlddir,0644);
+			mkdir($dwnlddir,0755,true);
 		}
 
 		$instdir = $_SERVER["DOCUMENT_ROOT"] . "/plugins/installed";
 		if (!is_dir($instdir)) {
-			mkdir($instdir,0644);
+			mkdir($instdir,0755,true);
 		}			
 			
 	}
@@ -87,39 +89,159 @@ class Plugins {
 			}
 		}
 	}
+	private function SetPluginError($message, $key = 'ERROR'){
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'][$key] = $message;
+		return false;
+	}
+	private function RequirePluginStoreAccess(){
+		if(!Tools::CanAccessPluginStore()){
+			return $this->SetPluginError('Plugin management is only available to logged-in admins while the site is in dev deployment.');
+		}
+
+		return true;
+	}
+	private function NormalizePluginName($plugin){
+		$plugin = basename(str_replace('\\', '/', trim((string)$plugin)));
+		if(Tools::EndsWith(strtolower($plugin), '.zip')){
+			$plugin = substr($plugin, 0, -4);
+		}
+
+		if($plugin === '' || preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/', $plugin) !== 1){
+			return null;
+		}
+
+		return $plugin;
+	}
+	private function ResolveDownloadRequest($appname){
+		$appname = trim((string)$appname);
+		if($appname === ''){
+			return null;
+		}
+
+		$filename = basename(str_replace('\\', '/', $appname));
+		$url = null;
+		$parsed = parse_url($appname);
+		if($parsed !== false && !empty($parsed['scheme'])){
+			$scheme = strtolower($parsed['scheme']);
+			$host = strtolower($parsed['host'] ?? '');
+			if(($scheme !== 'http' && $scheme !== 'https') || $host !== $this->pluginRepoHost){
+				return null;
+			}
+			$filename = basename((string)($parsed['path'] ?? ''));
+			$url = $appname;
+		}
+
+		$filename = basename(str_replace('\\', '/', $filename));
+		if(!Tools::EndsWith(strtolower($filename), '.zip')){
+			$filename .= '.zip';
+		}
+
+		$plugin = $this->NormalizePluginName($filename);
+		if($plugin === null){
+			return null;
+		}
+
+		$filename = $plugin.'.zip';
+		if($url === null){
+			$url = 'https://'.$this->pluginRepoHost.'/plugins/'.rawurlencode($filename);
+		}
+
+		return array(
+			'plugin' => $plugin,
+			'filename' => $filename,
+			'url' => $url,
+		);
+	}
+	private function IsSafeArchiveEntry($entryName){
+		if(!is_string($entryName) || $entryName === '' || strpos($entryName, "\0") !== false){
+			return false;
+		}
+
+		$entryName = str_replace('\\', '/', $entryName);
+		if(substr($entryName, 0, 1) === '/' || preg_match('/^[A-Za-z]:\//', $entryName) === 1){
+			return false;
+		}
+
+		$parts = explode('/', $entryName);
+		foreach($parts as $part){
+			if($part === '..'){
+				return false;
+			}
+		}
+
+		return true;
+	}
+	private function ArchiveIsSafe($zip){
+		for($index = 0; $index < $zip->numFiles; $index++){
+			$entryName = $zip->getNameIndex($index);
+			if(!$this->IsSafeArchiveEntry($entryName)){
+				return false;
+			}
+		}
+
+		return true;
+	}
+	private function UploadErrorMessage($errorCode){
+		switch((int)$errorCode){
+			case UPLOAD_ERR_OK:
+				return null;
+			case UPLOAD_ERR_INI_SIZE:
+			case UPLOAD_ERR_FORM_SIZE:
+				return 'The uploaded plugin zip exceeds the server upload size limit.';
+			case UPLOAD_ERR_PARTIAL:
+				return 'The uploaded plugin zip was only partially received.';
+			case UPLOAD_ERR_NO_FILE:
+				return 'Select a plugin zip file to upload.';
+			default:
+				return 'The plugin zip could not be uploaded.';
+		}
+	}
+	private function LooksLikeZipFile($tmpPath){
+		if(!is_file($tmpPath) || !is_readable($tmpPath)){
+			return false;
+		}
+
+		$signature = @file_get_contents($tmpPath, false, null, 0, 4);
+		if($signature === false || strlen($signature) < 4){
+			return false;
+		}
+
+		return in_array(bin2hex($signature), $this->zipMagicHeaders, true);
+	}
 
 	public function GetMorePlugins(){
+		if(!$this->RequirePluginStoreAccess()){
+			return false;
+		}
 		
 		//Go to the si plugin repo and get the Plugins
 		//TODO add paging and a tracker so this can be fired when the repo is opened and if the user scrolls down the repo
 		$plugins = file_get_contents('http://plugins.superintuitive.net?');
+		if($plugins === false){
+			return $this->SetPluginError('Unable to reach the plugin repository right now.');
+		}
 
 		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['MOREPLUGINS']= $plugins;
 
 	}
 
 	public function DownloadPlugin($post){
+		if(!$this->RequirePluginStoreAccess()){
+			return false;
+		}
 	    if(isset( $post['appname'])){
 			set_time_limit(0);
-
-			if (strpos($post['appname'], '/') !== false) {
-			//get params on this
-				$fname = $post['appname'];
-				if(Tools::EndsWith(strtolower($fname), '.zip')){
-					$url = $fname;
-				}else{
-					Tools::Log("What is this path: ".$fname);
-				}
-			}else{
-				$fname = $post['appname'];
-				$url = 'http://plugins.superintuitive.net/plugins/'.$fname;
+			$download = $this->ResolveDownloadRequest($post['appname']);
+			if($download === null){
+				return $this->SetPluginError('Invalid plugin package request.');
 			}
 
+			$fname = $download['filename'];
+			$url = $download['url'];
 			$path = $_SERVER["DOCUMENT_ROOT"] . '/plugins/downloaded/'.$fname;
-			$file = fopen( $path, 'w+');
-			//$file = fopen($_SERVER["DOCUMENT_ROOT"] . '/plugins/downloaded', 'w+');
-			if(file_exists($url)){
-			Tools::Log("Yea we made the file");
+			$file = fopen($path, 'w+b');
+			if($file === false){
+				return $this->SetPluginError('Unable to create the downloaded plugin package.');
 			}
 			Tools::Log($path );
 			$curl = curl_init();
@@ -129,39 +251,120 @@ class Plugins {
 				CURLOPT_URL            => $url,
 				CURLOPT_RETURNTRANSFER => 1,
 				CURLOPT_FILE           => $file,
+				CURLOPT_FOLLOWLOCATION => false,
 				CURLOPT_TIMEOUT        => 50,
+				CURLOPT_SSL_VERIFYPEER => true,
+				CURLOPT_SSL_VERIFYHOST => 2,
 				CURLOPT_USERAGENT      => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
 			]);
 
 			Tools::Log("Getting the $fname zipfile");
 			$response = curl_exec($curl);
+			$httpCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
 			if($response === false) {
-
 				Tools::Log("FAILED to get the plugin ".curl_error($curl));
+				fclose($file);
+				curl_close($curl);
+				@unlink($path);
+				return $this->SetPluginError('Unable to download the requested plugin package.');
 			}
+			if($httpCode < 200 || $httpCode >= 300){
+				fclose($file);
+				curl_close($curl);
+				@unlink($path);
+				return $this->SetPluginError('The plugin repository did not accept the download request.');
+			}
+
+			fclose($file);
+			curl_close($curl);
 
 			//Tools::Log($response); // Do something with the response.
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['DOWNLOADEDPLUGIN']= $fname;
+		}else{
+			return $this->SetPluginError('No plugin package was specified.');
 		}
+	}
+	public function UploadPluginPackage($post){
+		if(!$this->RequirePluginStoreAccess()){
+			return false;
+		}
+
+		if(empty($_FILES['pluginzip']) || !is_array($_FILES['pluginzip'])){
+			return $this->SetPluginError('Select a plugin zip file to upload.');
+		}
+
+		$file = $_FILES['pluginzip'];
+		$error = $this->UploadErrorMessage($file['error'] ?? UPLOAD_ERR_NO_FILE);
+		if($error !== null){
+			return $this->SetPluginError($error);
+		}
+
+		if(empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])){
+			return $this->SetPluginError('The uploaded plugin package could not be verified.');
+		}
+
+		$originalName = basename((string)($file['name'] ?? ''));
+		if(!Tools::EndsWith(strtolower($originalName), '.zip')){
+			return $this->SetPluginError('Plugin packages must be uploaded as .zip files.');
+		}
+
+		$plugin = $this->NormalizePluginName($originalName);
+		if($plugin === null){
+			return $this->SetPluginError('Plugin zip filenames may only use letters, numbers, dashes, and underscores.');
+		}
+
+		if(!$this->LooksLikeZipFile($file['tmp_name'])){
+			return $this->SetPluginError('The uploaded file is not a valid zip archive.');
+		}
+
+		$filename = $plugin.'.zip';
+		$targetPath = $_SERVER["DOCUMENT_ROOT"].'/plugins/downloaded/'.$filename;
+		if(!@move_uploaded_file($file['tmp_name'], $targetPath)){
+			return $this->SetPluginError('The plugin package could not be saved to the server.');
+		}
+		@chmod($targetPath, 0644);
+
+		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['DOWNLOADEDPLUGIN'] = $filename;
+		return true;
 	}
 
 	public function InstallPlugin($post){
+		if(!$this->RequirePluginStoreAccess()){
+			return false;
+		}
 	   
 		if(isset($post['plugin'])){
-		    $zip = new ZipArchive;
-			$plugin = $post['plugin'];
+			if(!class_exists('ZipArchive')){
+				return $this->SetPluginError('Plugin installation requires the PHP zip extension.', 'INSTALLPLUGINFAILED');
+			}
+		    $zip = new \ZipArchive;
+			$plugin = $this->NormalizePluginName($post['plugin']);
+			if($plugin === null){
+				return $this->SetPluginError('Invalid plugin name.');
+			}
 			Tools::Log("In Install: ".$plugin);
 			try{
+				$zipPath = $_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip";
+				$installPath = $_SERVER["DOCUMENT_ROOT"] . "/plugins/installed/".$plugin;
 
-				if(file_exists ( $_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip" )){
+				if(file_exists($zipPath)){
 					Tools::Log('file exists');
+				}else{
+					return $this->SetPluginError('The requested plugin package was not found.', 'INSTALLPLUGINFAILED');
 				}
 
-				Tools::Log($_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip");
-				if ($zip->open($_SERVER["DOCUMENT_ROOT"] . "/plugins/downloaded/".$plugin.".zip") === TRUE) {
+				Tools::Log($zipPath);
+				if ($zip->open($zipPath) === TRUE) {
+					if(!$this->ArchiveIsSafe($zip)){
+						$zip->close();
+						return $this->SetPluginError('The plugin archive contains unsafe paths and was rejected.', 'INSTALLPLUGINFAILED');
+					}
+					if(!is_dir($installPath)){
+						mkdir($installPath, 0755, true);
+					}
 					Tools::Log("OPened Zip");
-					$zip->extractTo($_SERVER["DOCUMENT_ROOT"] . "/plugins/installed/".$plugin);
+					$zip->extractTo($installPath);
 					$zip->close();
 					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['INSTALLPLUGIN']= $plugin;
 				} else {
@@ -222,9 +425,15 @@ class Plugins {
 	}
 
 	public function UninstallPlugin($post){
+		if(!$this->RequirePluginStoreAccess()){
+			return false;
+		}
 		if(isset($post['plugin'])){
 			try{
-				$plugin = $post['plugin'];
+				$plugin = $this->NormalizePluginName($post['plugin']);
+				if($plugin === null){
+					return $this->SetPluginError('Invalid plugin name.');
+				}
 				Tools::Log("IN Uninstall");
 				$this->RemovePluginSQL($plugin);
 				Tools::DeleteDirectory($_SERVER["DOCUMENT_ROOT"]."/plugins/installed/".$plugin);
@@ -245,16 +454,21 @@ class Plugins {
 
 			$schema = "SELECT table_name
 			FROM INFORMATION_SCHEMA.TABLES
-			WHERE table_schema = '$db->databaseName' && table_name LIKE $tblwildcard
+			WHERE table_schema = :schema AND table_name LIKE :wildcard
 			GROUP BY table_name;";
 
 			$tables = $db->DBC()->prepare($schema);
-			//print_r($data);
+			$tables->bindValue(':schema', $db->databaseName);
+			$tables->bindValue(':wildcard', $tblwildcard);
 			$tables->execute( );
 			//Drop the plugins tables 
+			$prefixPattern = '/^'.preg_quote($plugin, '/').'_[A-Za-z0-9_]+$/';
 			foreach ($tables as $table) {
 				$tablename = $table['table_name'];
-				$drop = $db->PDO()->prepare("DROP TABLE $tablename;");
+				if(preg_match($prefixPattern, $tablename) !== 1){
+					continue;
+				}
+				$drop = $db->DBC()->prepare("DROP TABLE `".str_replace('`', '``', $tablename)."`;");
 				$drop->execute();
 			}
 		}

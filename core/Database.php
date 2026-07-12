@@ -464,22 +464,22 @@ class Database extends DbCreds
 		$sid =session_id();
 		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['sessions'])){
 			$entityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['sessions']['instanceguid'];	
-		//	Tools::Log("logging session");
-		//	Tools::Log($entityId);
-			$session = json_encode($_SESSION);
-			$server = json_encode($_SERVER);
-			$binds = array(":sessionid"=>$sid,":session"=>$session,":ipaddress"=>$ip,":server"=>$server);
 			$guid = new Guid(true);
 			$g = $guid->ToString();
-			$insert = "INSERT INTO `sessions`(`id`,`entity_id`,`sessionid`,`sessiondata`,`ipaddress`, `server` ) 
-						VALUES ($g,$entityId,:sessionid,:session,:ipaddress,:server ) ON DUPLICATE KEY UPDATE count = count + 1;";
-			//echo $insert;
+			$userId = 'NULL';
+			if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'])){
+				$userId = Tools::FixGuid($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id']);
+			}
+			$binds = array(":sessionid"=>$sid,":ipaddress"=>$ip);
+			$insert = "INSERT INTO `sessions`(`id`,`entity_id`,`sessionid`,`user_id`,`ipaddress`) 
+						VALUES ($g,$entityId,:sessionid,$userId,:ipaddress) 
+						ON DUPLICATE KEY UPDATE `count` = `count` + 1, `user_id` = $userId, `ipaddress` = :ipaddress;";
 			try{
 				$sql = $this->pdo->prepare($insert);
 				$sql->execute($binds);
 				$sql = null;
-			}catch( PDOException $Exception ){
-			
+			}catch( \PDOException $Exception ){
+				Tools::Error("Session log failure: ".$Exception->getMessage(), true);
 			}
 		}
 	}
@@ -492,9 +492,10 @@ class Database extends DbCreds
 		}
 
 		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
-		$page = new Entity("pages");
-		$page->Attributes->Add(new Attribute("path",SI_URI));
-	    $mypage = $page->Retrieve();
+		$pageEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['pages']['instanceguid'];
+		$pageQuery = $this->pdo->prepare("SELECT HEX(`id`) AS `id`, `name`, `path`, HEX(`redirecttopage_id`) AS `redirecttopage_id`, `$deploymentlevel-options` AS `options` FROM `pages` WHERE `entity_id` = $pageEntityId AND `path` = :path LIMIT 1");
+		$pageQuery->execute(array(':path' => SI_URI));
+	    $mypage = $pageQuery->fetchAll(PDO::FETCH_ASSOC);
 		if($mypage === null){
 			Tools::Log("Error the page could not be returned.");
 			exit();

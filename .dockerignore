@@ -1,0 +1,9 @@
+.git
+.vs
+domains
+logs
+core/DbCreds.php
+plugins/downloaded
+plugins/installed
+sql/backups
+sql/installer
