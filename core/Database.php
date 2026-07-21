@@ -12,6 +12,11 @@ Tools::Autoload();
 
 class Database extends DbCreds 
 {
+	const INSTALL_STATE_FRESH = 'fresh_install';
+	const INSTALL_STATE_READY = 'installed_ok';
+	const INSTALL_STATE_DB_ERROR = 'installed_db_error';
+	const INSTALL_STATE_PARTIAL = 'partial_install';
+
 	private $pdo = null;
 	private $entityLookup = array();
 	private $pageGuid = null;
@@ -19,6 +24,7 @@ class Database extends DbCreds
 	private $pageStatusReason = null;
 	private $dbSchema = null;
 	private $entityTables = array();
+	private $requiredInstallTables = array('domains', 'entities', 'settings', 'users', 'pages', 'relations');
 	public  $databaseName = null;
 
 	public function __construct(){
@@ -28,6 +34,118 @@ class Database extends DbCreds
 	}
 	public function DBC(){
 		return $this->pdo;
+	}
+	public static function GetInstallLockPath(){
+		return $_SERVER["DOCUMENT_ROOT"].'/core/install.lock';
+	}
+	private function HasConfiguredDbCreds(){
+		$creds = new DbCreds();
+		return isset($creds->servername)
+			&& isset($creds->username)
+			&& isset($creds->password)
+			&& isset($creds->database)
+			&& isset($creds->dbtype)
+			&& trim((string)$creds->servername) !== ''
+			&& trim((string)$creds->username) !== ''
+			&& trim((string)$creds->database) !== ''
+			&& trim((string)$creds->dbtype) !== '';
+	}
+	private function HasInstallLock(){
+		return is_file(self::GetInstallLockPath());
+	}
+	private function GetExistingInstallTables(){
+		if($this->pdo === null || $this->pdo === false || empty($this->databaseName)){
+			return array();
+		}
+
+		$placeholders = implode(',', array_fill(0, count($this->requiredInstallTables), '?'));
+		$sql = "SELECT `table_name`
+			FROM INFORMATION_SCHEMA.TABLES
+			WHERE `table_schema` = ?
+			AND `table_name` IN ($placeholders)";
+
+		try{
+			$stmt = $this->pdo->prepare($sql);
+			$params = array_merge(array($this->databaseName), $this->requiredInstallTables);
+			$stmt->execute($params);
+			$tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+			return is_array($tables) ? $tables : array();
+		}
+		catch(\PDOException $ex){
+			Tools::Error("Install table lookup failed: ".$ex->getMessage(), true);
+		}
+
+		return array();
+	}
+	private function HasInstallMarkerSetting(){
+		if($this->pdo === null || $this->pdo === false){
+			return false;
+		}
+
+		try{
+			$stmt = $this->pdo->prepare("SELECT `settingvalue` FROM `settings` WHERE `settingname` = :settingname LIMIT 1");
+			$stmt->execute(array(':settingname' => 'SiteInstalled'));
+			$value = $stmt->fetchColumn();
+			if($value === false){
+				return false;
+			}
+
+			return in_array(strtolower(trim((string)$value)), array('1', 'true', 'yes'), true);
+		}
+		catch(\PDOException $ex){
+			Tools::Error("Install marker lookup failed: ".$ex->getMessage(), true);
+		}
+
+		return false;
+	}
+	private function HasLegacyInstalledData(){
+		if($this->pdo === null || $this->pdo === false){
+			return false;
+		}
+
+		try{
+			$domains = (int)$this->pdo->query("SELECT COUNT(*) FROM `domains`")->fetchColumn();
+			$entities = (int)$this->pdo->query("SELECT COUNT(*) FROM `entities`")->fetchColumn();
+			$users = (int)$this->pdo->query("SELECT COUNT(*) FROM `users`")->fetchColumn();
+			return $domains > 0 && $entities > 0 && $users > 0;
+		}
+		catch(\PDOException $ex){
+			Tools::Error("Legacy install lookup failed: ".$ex->getMessage(), true);
+		}
+
+		return false;
+	}
+	public function GetInstallState(){
+		$hasInstallLock = $this->HasInstallLock();
+		$hasConfiguredCreds = $this->HasConfiguredDbCreds();
+
+		if($this->pdo === null || $this->pdo === false){
+			if($hasInstallLock || $hasConfiguredCreds){
+				return self::INSTALL_STATE_DB_ERROR;
+			}
+
+			return self::INSTALL_STATE_FRESH;
+		}
+
+		$existingTables = $this->GetExistingInstallTables();
+		$tableCount = count($existingTables);
+		if($tableCount === 0){
+			return self::INSTALL_STATE_FRESH;
+		}
+
+		if($tableCount < count($this->requiredInstallTables)){
+			return self::INSTALL_STATE_PARTIAL;
+		}
+
+		if($this->HasInstallMarkerSetting() || $this->HasLegacyInstalledData()){
+			return self::INSTALL_STATE_READY;
+		}
+
+		if($hasInstallLock || $hasConfiguredCreds){
+			return self::INSTALL_STATE_PARTIAL;
+		}
+
+		return self::INSTALL_STATE_FRESH;
 	}
 	private function Connect(){
 		if($this->pdo){
@@ -54,11 +172,7 @@ class Database extends DbCreds
 		}
 	}
 	public function IsCmsSetup(){
-		if($this->pdo === null || $this->pdo === false ){
-			return false;
-		}else{
-			return true;
-		}
+		return $this->GetInstallState() === self::INSTALL_STATE_READY;
 	}	
 	public function Execute($sql){
 		$exc = $this->pdo->prepare($sql);

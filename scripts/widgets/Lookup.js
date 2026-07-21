@@ -37,13 +37,11 @@ SI.Widget.Lookup = function (options) {
     this.CheckLookups = function(){
         let lookups = document.querySelectorAll("input[type=lookup]");
         if (lookups) {
-            for (let i in lookups) {
-                if (lookups.hasOwnProperty(i)) {
-                    lookup = lookups[i];
-                    if (typeof lookup.dataset.stage !== 'ready') {
-                        self.Init(lookup);
-                        lookup.dataset.stage = "ready";
-                    }
+            for (let i = 0; i < lookups.length; i++) {
+                let lookup = lookups[i];
+                if (lookup.dataset.stage !== 'ready') {
+                    self.Init(lookup);
+                    lookup.dataset.stage = "ready";
                 }
             }
         }

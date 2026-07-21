@@ -216,7 +216,7 @@ class Plugins {
 		
 		//Go to the si plugin repo and get the Plugins
 		//TODO add paging and a tracker so this can be fired when the repo is opened and if the user scrolls down the repo
-		$plugins = file_get_contents('http://plugins.superintuitive.net?');
+		$plugins = file_get_contents('https://plugins.superintuitive.net?');
 		if($plugins === false){
 			return $this->SetPluginError('Unable to reach the plugin repository right now.');
 		}

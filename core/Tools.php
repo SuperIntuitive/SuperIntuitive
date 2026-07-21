@@ -590,6 +590,86 @@ class Tools{
 
 		return 'live';
 	}
+	static function GetStaticAssetVersion($path){
+		return Tools::BuildAssetVersion(array($path));
+	}
+	static function GetPluginBundleVersion($assetType){
+		$assetType = strtolower((string)$assetType);
+		$plugins = array();
+		if(defined('SI_DOMAIN_NAME') && defined('SI_SUBDOMAIN_NAME')
+			&& !empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])
+			&& is_array($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])){
+			$plugins = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'];
+		}
+
+		sort($plugins, SORT_NATURAL | SORT_FLAG_CASE);
+		$paths = array();
+		$context = array('deployment='.Tools::GetCurrentDeployment(), 'type='.$assetType);
+
+		if($assetType === 'styles'){
+			$paths[] = $_SERVER['DOCUMENT_ROOT'].'/style/plugins.css';
+			$paths[] = $_SERVER['DOCUMENT_ROOT'].'/core/Deployment.php';
+			$subdirectory = 'styles';
+			$extension = 'css';
+		}
+		else{
+			$paths[] = $_SERVER['DOCUMENT_ROOT'].'/scripts/plugins.js';
+			$subdirectory = 'scripts';
+			$extension = 'js';
+		}
+
+		foreach($plugins as $plugin){
+			$context[] = 'plugin='.$plugin;
+			$pluginFiles = glob($_SERVER['DOCUMENT_ROOT'].'/plugins/installed/'.$plugin.'/'.$subdirectory.'/*.'.$extension);
+			if(is_array($pluginFiles)){
+				$paths = array_merge($paths, $pluginFiles);
+			}
+		}
+
+		return Tools::BuildAssetVersion($paths, $context);
+	}
+	private static function BuildAssetVersion($paths, $context = array()){
+		$signature = array();
+
+		foreach($context as $value){
+			$value = trim((string)$value);
+			if($value !== ''){
+				$signature[] = 'context:'.$value;
+			}
+		}
+
+		foreach($paths as $path){
+			$path = (string)$path;
+			if($path !== '' && is_file($path)){
+				$signature[] = 'file:'.str_replace('\\', '/', $path).'|'.filesize($path).'|'.filemtime($path);
+			}
+		}
+
+		if(count($signature) === 0){
+			return '0';
+		}
+
+		sort($signature, SORT_NATURAL | SORT_FLAG_CASE);
+		return Tools::FastHash(implode("\n", $signature));
+	}
+	private static function FastHash($value){
+		static $algorithm = null;
+
+		if($algorithm === null){
+			$available = hash_algos();
+			foreach(array('xxh3', 'xxh128', 'crc32c', 'crc32b', 'md5') as $candidate){
+				if(in_array($candidate, $available, true)){
+					$algorithm = $candidate;
+					break;
+				}
+			}
+			if($algorithm === null){
+				$algorithm = 'md5';
+			}
+		}
+
+		return hash($algorithm, (string)$value);
+	}
 	static function CanAccessPluginStore(){
 		return Tools::UserIsLoggedIn()
 			&& Tools::UserHasRole('Admin')

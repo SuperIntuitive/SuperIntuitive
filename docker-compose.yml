@@ -29,5 +29,21 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  phpmyadmin:
+    image: phpmyadmin:latest
+    profiles:
+      - tools
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${SI_PHPMYADMIN_PORT:-8081}:80"
+    restart: unless-stopped
+
 volumes:
   mariadb_data:

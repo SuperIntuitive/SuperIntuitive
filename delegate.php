@@ -38,6 +38,21 @@ if(isset($post['KEY']) && !in_array($post['KEY'], $csrfExemptKeys, true) && !Too
 	exit();
 }
 
+$setupKeys = array('SetupSuperIntuitive', 'TestDatabase', 'TestDomain');
+if(isset($post['KEY']) && in_array($post['KEY'], $setupKeys, true)){
+	$db = new Database();
+	$installState = $db->GetInstallState();
+	if($installState !== Database::INSTALL_STATE_FRESH){
+		$status = ($installState === Database::INSTALL_STATE_DB_ERROR) ? 503 : 409;
+		$message = ($installState === Database::INSTALL_STATE_DB_ERROR)
+			? 'This site is already installed. Setup is disabled while the database is unavailable.'
+			: 'This site is already installed. Setup is disabled.';
+		http_response_code($status);
+		echo json_encode(array(array('ERROR' => $message, 'INSTALLSTATE' => $installState)));
+		exit();
+	}
+}
+
 if(isset($post['KEY'])){
 	$key = $post['KEY'];
 	switch($key){
@@ -68,35 +83,24 @@ if(isset($post['KEY'])){
 				break;
 		//Setup functions for use only if not already setup
 		case "SetupSuperIntuitive":	
-				$db = new Database();
-				if(!$db->IsCmsSetup() ){
-				    Tools::Log("Setting up the Super Intuitive.");
-					$setup = new Setup();
-					$setup->SetupSuperIntuitive($post);
-				}else{
-					Tools::Log("Attempted overwrite of database.");
-				}
+				Tools::Log("Setting up the Super Intuitive.");
+				$setup = new Setup();
+				$setup->SetupSuperIntuitive($post);
 				break;
 		case "TestDatabase":
-				$db = new Database();
-				if( !$db->IsCmsSetup() ){
 				Tools::Log("Testing the Database.");
 				$setup = new Setup();
 				$setup->TestDatabase($post);
-				}else{
-					Tools::Log("Attempted overwrite of database.");
-				}
 			    break;
 		case "TestDomain":
-				$db = new Database();
-				if( !$db->IsCmsSetup() && isset($post['domain'])){
+				if(isset($post['domain'])){
 				Tools::Log("Testing the Domain.");
 				$setup = new Setup();
 				$result = $setup->TestDomain($post['domain']);
 				Tools::Log("Result: ".$result);
 				echo json_encode(array('outcome' => $result));
 				}else{
-					Tools::Log("It is too late to check a domain this way. Use the editor.");
+					Tools::Log("No domain was supplied for setup domain testing.");
 				}
 			    break;
 

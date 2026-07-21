@@ -17,15 +17,41 @@ Tools::SendSecurityHeaders();
 
 //Get Database and cms setup status
 $dbc = new Database();
-$issetup = $dbc->IsCmsSetup();
+$installState = $dbc->GetInstallState();
 
 //The variable that holds the Page() object instance
 $page = null;
-if(!$issetup){
+if($installState === Database::INSTALL_STATE_FRESH){
 	//The cms needs to be setup.
+	Tools::ConfigureSessionCookieParams();
+	if(session_status() !== PHP_SESSION_ACTIVE){
+		session_start();
+	}
 	$_SESSION['Installing'] = true; 
 	//Tell the page object to get the setup page. 
 	$page = new Page("%SETUP%");
+}
+else if($installState !== Database::INSTALL_STATE_READY){
+	http_response_code($installState === Database::INSTALL_STATE_DB_ERROR ? 503 : 409);
+?>
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>SuperIntuitive Unavailable</title>
+	</head>
+	<body>
+		<h1>SuperIntuitive is temporarily unavailable.</h1>
+		<p>
+			<?php if($installState === Database::INSTALL_STATE_DB_ERROR){ ?>
+			This site has already been installed, but the database is currently unavailable.
+			<?php } else { ?>
+			This installation is incomplete. Setup has been disabled until an administrator repairs it.
+			<?php } ?>
+		</p>
+	</body>
+</html>
+<?php
+	exit();
 }
 else{
 

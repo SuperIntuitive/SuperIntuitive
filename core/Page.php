@@ -130,7 +130,11 @@ class Page {
 		    }
 			//echo json_last_error();			
 			
-			$t = time();
+			$pluginsStyleVersion = Tools::GetPluginBundleVersion('styles');
+			$librariesVersion = Tools::GetStaticAssetVersion($_SERVER['DOCUMENT_ROOT'].'/style/libraries.css');
+			$widgetsVersion = Tools::GetStaticAssetVersion($_SERVER['DOCUMENT_ROOT'].'/style/widgets.css');
+			$toolsVersion = Tools::GetStaticAssetVersion($_SERVER['DOCUMENT_ROOT'].'/scripts/tools.js');
+			$pluginsScriptVersion = Tools::GetPluginBundleVersion('scripts');
 
 			$head = "";
 
@@ -228,17 +232,17 @@ if (!SI) { var SI = {}; }
 			
 			$head .= "
 		<style id='si_htmlstyle'>html{width: 100%; height:1vh; overflow-x: hidden;}</style>
-		<link rel='stylesheet' type='text/css' id='si_plugins_style' href='/style/plugins.css?$t'>
+		<link rel='stylesheet' type='text/css' id='si_plugins_style' href='/style/plugins.css?$pluginsStyleVersion'>
 		<link rel='stylesheet' type='text/css' id='si_page_style' href='/style/page.css?$lastModified'>
-		<link rel='stylesheet' type='text/css' href='/style/libraries.css?$t'>
-		<link rel='stylesheet' type='text/css' href='/style/widgets.css?$t'>
+		<link rel='stylesheet' type='text/css' href='/style/libraries.css?$librariesVersion'>
+		<link rel='stylesheet' type='text/css' href='/style/widgets.css?$widgetsVersion'>
 		<style id='si_page_media'>
 			@media (prefers-color-scheme: light) {#si_colorscheme {color:white}}
 			@media (prefers-color-scheme: dark) {#si_colorscheme {color:black}}
 		</style>
 
 
-		<script src='/scripts/tools.js?$t' defer ></script>\n";
+		<script src='/scripts/tools.js?$toolsVersion' defer ></script>\n";
 
 		$widgetfiles = scandir('scripts/widgets');
 		//Tools::Log($widgetfiles);
@@ -274,7 +278,7 @@ if (!SI) { var SI = {}; }
 			}
 
 						$head .= "
-		<script src='/scripts/plugins.js?$t' defer id='si_plugin_script'></script>
+			<script src='/scripts/plugins.js?$pluginsScriptVersion' defer id='si_plugin_script'></script>
 		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
 		";
 

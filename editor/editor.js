@@ -2324,7 +2324,7 @@ SI.Editor = {
                     try {
                         if (ajax.responseText != null && ajax.responseText.length > 0) {
                            // console.log(ajax.responseText);
-                            json = JSON.parse(ajax.responseText.trim());
+                            let json = JSON.parse(ajax.responseText.trim());
                             SI.Editor.Ajax.Complete(json,options);
                         }
                     } catch (ex) {

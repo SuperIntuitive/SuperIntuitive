@@ -1602,11 +1602,14 @@ SI.Tools = {
             var ajax = new XMLHttpRequest();
             ajax.open("POST", "/api.v1.php", true);
             ajax.setRequestHeader("Content-Type", "application/json");
+            if (window.SI && SI.CSRF && SI.CSRF.Token) {
+                ajax.setRequestHeader("X-SI-CSRF", SI.CSRF.Token);
+            }
             ajax.onreadystatechange = function () {
                 if (ajax.readyState === 4 && ajax.status === 200) {
                     try {
                         if (ajax.responseText !== null && ajax.responseText.length > 0) {                     
-                            json = JSON.parse(ajax.responseText.trim());                            
+                            let json = JSON.parse(ajax.responseText.trim());
                             options.Callback(json, options);
                         }
                     } catch (ex) {

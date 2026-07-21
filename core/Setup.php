@@ -473,6 +473,39 @@ class Setup {
 
         return $randstring;
     }
+	private function WriteInstallLock(){
+		$payload = array(
+			'installed_on' => date('c'),
+			'domain' => defined('SI_DOMAIN_NAME') ? SI_DOMAIN_NAME : null,
+		);
+		file_put_contents(Database::GetInstallLockPath(), json_encode($payload));
+	}
+	private function PersistInstallMarkers($dbc){
+		try{
+			$check = $dbc->prepare("SELECT COUNT(*) FROM `settings` WHERE `settingname` = :settingname");
+			$check->execute(array(':settingname' => 'SiteInstalled'));
+			if((int)$check->fetchColumn() === 0){
+				$settingId = (new Guid(true))->ToString();
+				$insert = "INSERT INTO `settings` (`id`,`status`,`createdon`,`modifiedon`,`entity_id`,`settingname`,`settingvalue`)
+					SELECT $settingId, 'active', CURRENT_TIMESTAMP(), NULL, `id`, :settingname, :settingvalue
+					FROM `entities`
+					WHERE `name` = 'settings'
+					LIMIT 1";
+				$stmt = $dbc->prepare($insert);
+				$stmt->execute(array(':settingname' => 'SiteInstalled', ':settingvalue' => '1'));
+			}
+		}
+		catch(\PDOException $ex){
+			Tools::Log("Failed to persist SiteInstalled marker: ".$ex->getMessage(), true);
+		}
+
+		try{
+			$this->WriteInstallLock();
+		}
+		catch(\Throwable $ex){
+			Tools::Log("Failed to write install lock: ".$ex->getMessage(), true);
+		}
+	}
 	public function CreateDomain($domain){
 	
 		Tools::Log($_SERVER["DOCUMENT_ROOT"].'/sql/super_intuitive-.sql', true);
@@ -685,6 +718,7 @@ class Setup {
 		}
 	
 		if($outcome){
+			$this->PersistInstallMarkers($dbc);
 			$result = array("outcome" => true, "time" => "5000", "message"=>"Congratulations!<br />Setup is Complete.<br />Welcome to Super Intuitive!" );
 			echo json_encode($result);
 			session_unset(); 
@@ -693,4 +727,4 @@ class Setup {
 		}
 	}
 
-} 
+}
