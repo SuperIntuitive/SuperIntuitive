@@ -2,13 +2,8 @@
 SI.Editor.Objects.User = {
     Draw: function () {
         let base = Ele('div', {
-            style: {
-                width: "100%",
-                height: "100%",
-                overflow: "scroll",
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
-            },
+            class: 'si-tool-body',
+
         });
 
         let newuser = Ele('button', {
@@ -26,7 +21,7 @@ SI.Editor.Objects.User = {
             id: 'si_edit_users_rolewindow',
             innerHTML: "",
             style: {
-                backgroundColor: SI.Editor.Style.MenuColor,
+
                 top: '0px',
                 left: '0px',
                 position: 'relative',

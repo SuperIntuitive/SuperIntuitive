@@ -1,7 +1,8 @@
 
 SI.Editor.Objects.Media = {
     Draw : function(){
-        let container = Ele("div", {});
+        let container = Ele("div", {
+            class: 'si-tool-body',});
         var tabs = new SI.Widget.Tab({});
 
         tabs.Items.Add('Images', SI.Editor.Objects.Media.MediaTab('Images'));
@@ -42,18 +43,6 @@ SI.Editor.Objects.Media = {
         //Left Menu
         let menu = Ele('div', {
             class: 'si-media-menu',
-            style: {
-                position: 'relative',
-                top: "0px",
-                bottom: "205px",
-                width: '220px',
-                height: '280px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                padding: '20px',
-                color: SI.Editor.Style.TextColor,
-                overflowY: 'scroll',
-                overflowX: 'hidden'
-            },
             appendTo: container
         });
         //Left Menu Fields
@@ -203,7 +192,7 @@ SI.Editor.Objects.Media = {
 
             }
 
-            let promotelabel = "Rollback";
+            let promotelabel = "Save Live to Rollback";
             if (deployment === "dev") {
                 promotelabel = "Promote To Test";
             } else if (deployment === "test") {
@@ -212,17 +201,16 @@ SI.Editor.Objects.Media = {
             Ele('button', {
                 id: 'si_media_' + tabname + '_' + Deploy + 'Promote',
                 title: promotelabel,
+                class: 'si-deployment-promote',
+                type: 'button',
                 style: {
                     float: 'right',
                     marginRight: '10px',
                     marginTop: '10px',
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '9px',
                     backgroundColor: bgcolor,
                 },
                 data: {
-                    Deployment: deployment,
+                    deployment: deployment,
                 },
                 onclick: function (e) {
                     SI.Editor.Objects.Media.Promote(this, e);
@@ -239,7 +227,7 @@ SI.Editor.Objects.Media = {
                 width: '540px',
                 height: "24px",
                 top: '0px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 left: '260px'
             },
             appendTo: container,
@@ -249,18 +237,6 @@ SI.Editor.Objects.Media = {
         var mediascroller = Ele('div', {
             id: 'si_edit_mediascroller_' + tabname,
             class: 'si-edit-mediascroller',
-            style: {
-                position: 'absolute',
-                display: 'inline-block',
-                padding: '6px',
-                overflow: 'auto',
-                left: '260px',
-                top: '24px',
-                width: '538px',
-                height: '100%',
-                backgroundColor: SI.Editor.Style.FavoriteColor,
-                paddingRight: '0px'
-            },
             appendTo: container
         });
 
@@ -277,7 +253,7 @@ SI.Editor.Objects.Media = {
                         //debugger;
                         if (validPath.indexOf("/media/fonts/")>-1) {
                             //if we have a font, hack in the font @ style 
-                            
+
                             let fontpath = SI.Tools.GetMediaFilePath("dev_" + data['path'],true);
                             let fontname = validPath.replace(/^.*(\\|\/|\:)/, '');
                             fontname = fontname.substring(fontname.lastIndexOf('.') + 1);
@@ -354,13 +330,13 @@ SI.Editor.Objects.Media = {
 
                     scroller.appendChild(tile.Container);
                 }
-                
 
-       
+
+
             }
         }
 
-        
+
     },
     OnChange : function (ev,self) {
         let deploys = ["dev", "test", "live"];
@@ -456,7 +432,11 @@ SI.Editor.Objects.Media = {
         let preview = previewSource[0];
         let category = previewSource[1];
         let source = previewSource[2];
-        document.getElementById(preview).src = source;
+        const element = document.getElementById(preview);
+        if (!element) return;
+        element.src = source;
+        const player = element.closest('audio,video');
+        if (player) player.load();
     },
     Recycle : function () {
 

@@ -2,8 +2,22 @@
 .vs
 domains
 logs
-core/DbCreds.php
+core/DbCreds*
+core/setup.token
+core/setup.lock
+core/install.lock
+.env*
+*cookies.txt
 plugins/downloaded
 plugins/installed
 sql/backups
 sql/installer
+
+core_sipl/config.local.json
+core_sipl/config.*.local.json
+core_sipl/setup-config*.json
+core_sipl/setup-config*.tmp
+core_sipl/runtime
+
+# Built application distributions
+/dist/

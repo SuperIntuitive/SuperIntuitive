@@ -1,0 +1,16 @@
+var _capabilities: Map = {:}
+
+fn inspect() -> Map {
+    if not _capabilities.isEmpty { return _capabilities }
+    let capabilities: Map = {"mysqlApi": true, "mysqlDriver": true, "namedParameters": true, "transactions": true, "phpBcryptVerify": auth.passwordVerify("Sipl-interop-2026", "$2y$10$XTyXvFDJKaLGPgSxxFGHQ.jBWulChGNIUp68j9PEhSIYn8J9ofQue"), "phpBcryptHash": false, "multipartUploads": false, "peerAddress": false, "phpSessionInterop": false}
+    let testHash = auth.bcryptHash("SIPL compatibility probe")
+    capabilities["phpBcryptHash"] = testHash.startsWith("$2b$") and auth.passwordVerify("SIPL compatibility probe", testHash)
+    try {
+        let probe = sql.connect("mysql:host=127.0.0.1;port=9;dbname=probe", "probe", "probe")
+        probe.close()
+    } fail {
+        if fail.why.contains("driver unavailable") { capabilities["mysqlDriver"] = false }
+    }
+    _capabilities = capabilities
+    return capabilities
+}

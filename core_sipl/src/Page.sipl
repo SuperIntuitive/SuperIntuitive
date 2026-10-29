@@ -1,0 +1,73 @@
+use Database
+use Entity
+use Relations
+use Security
+use Tools
+use Config
+
+fn load(context: Map, pathname: String) -> Map {
+    var requested = pathname
+    if requested.startsWith("/") { requested = requested.slice(1) }
+    if requested == "index.php" { requested = "" }
+    let level = context["deployment"]
+    let scope = Security.scope(context, "pages")
+    var page = Database.one("SELECT LOWER(HEX(id)) AS id, name, path, LOWER(HEX(redirecttopage_id)) AS redirecttopage_id, `" + level + "-options` AS options FROM pages WHERE path=:path AND entity_id=UNHEX(:scope) AND status='active' LIMIT 1", {"path": requested, "scope": scope})
+    if page == none { fail("PAGE_NOT_FOUND") }
+    let restrictions = Relations.children(context, "pages", page["id"], "securityroles", ["name"])
+    if not restrictions.isEmpty and not restrictions.any(fn(role) => Security.hasRole(context, role["name"])) { fail("FORBIDDEN") }
+    page["blocks"] = Relations.children(context, "pages", page["id"], "blocks", ["id", "name", "html", "script", "style"])
+    page["settings"] = {:}
+    if context["scopes"].contains("settings") {
+        for setting in Relations.children(context, "pages", page["id"], "settings", ["settingname", "settingvalue"]) { page["settings"][setting["settingname"]] = setting["settingvalue"] }
+    }
+    return page
+}
+
+fn save(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let id = Tools.guid(Tools.get(Tools.get(post, "body", {:}), "data", {:}).get("guid"))
+    let options = post.copy()
+    let updates: Map = {:}
+    options.remove("KEY")
+    if options.contains("path") {
+        let target = Tools.pagePath(Tools.required(options, "path"))
+        let dupe = Database.one("SELECT id FROM pages WHERE path=:path AND id<>UNHEX(:id) AND entity_id=UNHEX(:scope)", {"path": target, "id": id, "scope": Security.scope(context, "pages")})
+        if dupe != none { return {"PAGESAVED": {"DUPE": true}} }
+        updates["path"] = target
+        options.remove("path")
+    }
+    if options.contains("name") { updates["name"] = Tools.required(options, "name")
+        options.remove("name") }
+    if options.contains("redirect") {
+        let redirect = options["redirect"]
+        updates["redirecttopage_id"] = none
+        if redirect != none and redirect != "" { updates["redirecttopage_id"] = Tools.guid(redirect) }
+        options.remove("redirect")
+    }
+    updates["dev-options"] = Tools.options(options)
+    if not Entity.update(context, "pages", id, updates) { fail("PAGE_SAVE_FAILED") }
+    let response: Map = {"PAGESAVED": {"PAGEUPDATED": "true"}}
+    if updates.contains("path") { response["PAGESAVED"]["CURRENTDBPAGEPATH"] = updates["path"]
+        if updates["path"].isEmpty { response["PAGESAVED"]["CURRENTDBPAGEPATH"] = "_ROOT_" } }
+    return response
+}
+
+fn create(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    var source = post.get("page", post)
+    if source.type == "String" { source = {"name": source, "path": source} }
+    let name = Tools.required(source, "name")
+    let target = Tools.pagePath(Tools.text(source.get("path"), name))
+    let attrs: Map = {"name": name, "path": target}
+    for level in ["dev", "test", "live"] { attrs[level + "-options"] = {"head": {"title": name}, "body": {"style": {:}, "data": {:}}} }
+    let id = Entity.create(context, "pages", attrs)
+    return {"PAGECREATED": {id: target}}
+}
+
+fn clearRedirect(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    Entity.update(context, "pages", Tools.required(post, "pageid"), {"redirecttopage_id": none})
+    return {"PAGESAVED": {"PAGEUPDATED": "true"}}
+}

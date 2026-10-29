@@ -1,0 +1,231 @@
+use ../src/Tools
+use ../src/Database
+use ../src/Security
+use ../src/Entity
+use ../src/Deployment
+use ../src/Block
+use ../src/Config
+use ../src/Editor
+use ../src/RateLimit
+use ../src/Content
+use ../src/Localtext
+use ../src/Admin
+use ../src/Server
+use ../src/Plugins
+use ../src/Page
+use ../src/User
+use ../src/Assets
+
+var _checks = 0
+fn check(value: Bool, message: String) {
+    assert(value, message)
+    _checks += 1
+}
+fn rejects(operation: Function, code: String) {
+    var rejected = false
+    try { operation() }
+    fail { rejected = fail.why.contains(code) }
+    check(rejected, "Expected rejection: " + code)
+}
+
+type Recorder {
+    var columns: List
+    var rows: List
+    var replies: List
+    var statements: List
+    var parameters: List
+    var events: List
+    fn query(statement: String, parameters) {
+        self.statements.push(statement)
+        self.parameters.push(parameters.copy())
+        self.columns = []
+        self.rows = []
+        if not self.replies.isEmpty {
+            let reply = self.replies[0]
+            self.replies.removeAt(0)
+            self.columns = reply["columns"]
+            self.rows = reply["rows"]
+        }
+    }
+    fn execute(statement: String, parameters) -> Int {
+        self.statements.push(statement)
+        self.parameters.push(parameters.copy())
+        return 1
+    }
+    fn begin() { self.events.push("begin") }
+    fn commit() { self.events.push("commit") }
+    fn rollback() { self.events.push("rollback") }
+}
+
+fn recording(replies: List) {
+    let connection = Recorder([], [], replies, [], [], [])
+    Database.attachForTests(connection)
+    return connection
+}
+fn context() -> Map {
+    let scopes: Map = {"blocks": "0x" + "1".repeat(32), "relations": "0x" + "2".repeat(32), "pages": "0x" + "3".repeat(32), "users": "0x" + "4".repeat(32), "settings": "0x" + "5".repeat(32), "securityroles": "0x" + "6".repeat(32)}
+    let schema: Map = {:}
+    let permissions: Map = {:}
+    for name, scope in scopes {
+        let columns = ["id", "entity_id", "name", "dev-options", "test-options", "live-options", "dev-html", "test-html", "live-html", "rollback-html", "dev-script", "test-script", "live-script", "rollback-script", "dev-style", "test-style", "live-style", "dev-order", "test-order", "live-order", "parent_id", "child_id"]
+        let attributes: Map = {"id": {"type": "primary"}, "name": {"type": "text"}, "options": {"deployable": "true"}, "html": {"deployable": "true"}, "script": {"deployable": "true"}, "style": {"deployable": "true"}, "order": {"deployable": "true"}}
+        if name == "users" { columns.push("email")
+            columns.push("status")
+            attributes["email"] = {"type": "text"}
+            attributes["status"] = {"type": "text"} }
+        if name == "pages" { columns.push("path")
+            attributes["path"] = {"type": "text"} }
+        schema[name] = {"columns": columns, "attributes": attributes, "instanceguid": scope}
+        permissions[scope] = {"read": true, "write": true, "create": true, "delete": true}
+    }
+    return {"scopes": scopes, "schema": schema, "user": {"id": "0x" + "a".repeat(32), "name": "Test", "roles": ["Admin"], "permissions": permissions}, "deployment": "dev"}
+}
+fn start() {
+    Config.setForTests({"root": path.absolute("."), "domain": "localhost", "subdomain": ""})
+    check(Tools.guid("0x" + "A".repeat(32)) == "a".repeat(32), "GUID normalization")
+    check(Tools.guid("b".repeat(32)) == "b".repeat(32), "Unprefixed GUID")
+    rejects(fn() { Tools.guid("x".repeat(32)) }, "INVALID_GUID")
+    rejects(fn() { Tools.identifier("blocks; DROP TABLE users") }, "INVALID_IDENTIFIER")
+    let seen: Map = {:}
+    for i in 0..100 {
+        let id = Tools.newGuid()
+        check(id.length == 32 and not seen.contains(id), "Cryptographic GUID format and uniqueness")
+        seen[id] = true
+    }
+    check(Tools.secureEquals("secret", "secret"), "Constant-time comparison")
+    check(not Tools.secureEquals("secret", "other"), "Comparison mismatch")
+    check(Tools.passwordValid("abcdefghij"), "Ten-byte password")
+    check(not Tools.passwordValid("abcdefghi"), "Nine-byte password rejected")
+    check(Tools.passwordValid("é".repeat(36)), "Password limit measured in UTF-8 bytes")
+    check(not Tools.passwordValid("é".repeat(37)), "UTF-8 byte maximum")
+    let value: Map = {"tag": "div", "style": {:}, "settings": {"quote": "O'Reilly", "backslash": "C:\\folder\\file", "unicode": "Café 日本語 🚀", "enabled": false, "missing": none, "emptyObject": {:}, "emptyArray": []}, "widgets": {:}}
+    let encoded = json.stringify(value, true)
+    check(Tools.options(encoded) == encoded, "Existing JSON bytes retained")
+    let decoded = json.parse(Tools.options(value))
+    check(decoded["settings"]["emptyObject"].type == "Map", "Empty object preserved")
+    check(decoded["settings"]["emptyArray"].type == "List", "Empty array preserved")
+    check(decoded["settings"]["enabled"] == false, "Boolean preserved")
+    check(decoded["settings"]["missing"] == none, "JSON null preserved")
+    check(decoded["settings"]["unicode"] == value["settings"]["unicode"], "Unicode preserved")
+    rejects(fn() { Tools.options(json.stringify(encoded)) }, "OPTIONS_MUST_BE_OBJECT")
+    rejects(fn() { Tools.options([]) }, "OPTIONS_MUST_BE_OBJECT")
+    rejects(fn() { Tools.options("null") }, "OPTIONS_MUST_BE_OBJECT")
+    rejects(fn() { Tools.options("broken") }, "INVALID_OPTIONS_JSON")
+    check(not Tools.scriptJson({"x": "</script>"}).contains("</script>"), "Inline script JSON is HTML safe")
+    check(Tools.fillTemplate("🚀 __ONE__ / __TWO__", {"__ONE__": "__TWO__", "__TWO__": "Café"}) == "🚀 __TWO__ / Café", "Template substitution is single-pass and Unicode safe")
+    check(Tools.domainValid("localhost") and Tools.domainValid("example.test"), "Valid domains")
+    check(not Tools.domainValid("a..test") and not Tools.domainValid("-a.test") and not Tools.domainValid("a.test/../"), "Invalid domains")
+    check(Tools.pagePath("") == "" and Tools.pagePath("about/team") == "about/team", "Root and nested page paths")
+    rejects(fn() { Tools.pagePath("//outside.test") }, "INVALID_PAGE_PATH")
+    rejects(fn() { Tools.pagePath("a/../secret") }, "INVALID_PAGE_PATH")
+    let css = Plugins.rebaseCss("a\{background:url('../image.png')\} b\{src:url(https://example.test/a.woff)\} c\{src:url(data:font/woff;base64,abc)\}", "fixture")
+    check(css.contains("/plugins/installed/fixture/styles/../image.png"), "Bundled plugin CSS retains relative asset URLs")
+    check(css.contains("url(https://example.test/a.woff)") and css.contains("url(data:font/woff;base64,abc)"), "External and inline plugin assets remain unchanged")
+    let token = Localtext.newToken()
+    check(regex.compile("^[A-Z]\{20\}$").isMatch(token), "Localtext token matches existing PHP markers")
+    let constants = Content.constants({"DefaultTimeZone": "America/New_York", "__BRAND__": "Super Intuitive"}, time.parse("2026-10-28T01:00:00Z"))
+    check(constants["__NOW.DAY__"] == "27" and constants["__NOW.DAYSHORT__"] == "27th", "Constants honor the configured timezone")
+    check(Content.substitute("🚀 __BRAND__ __NOW.YEAR__", constants) == "🚀 Super Intuitive 2026", "Named constants and Unicode")
+    check(Content.substitute("__FIRST__", {"__FIRST__": "__SECOND__", "__SECOND__": "recursive"}) == "__SECOND__", "Content replacements cannot cascade")
+    check(Server.operationReply(Tools.portGap("EXAMPLE"), false)["status"] == 501, "Unported features are explicit")
+    let sharedTools = Assets.readStatic("/scripts/tools.js")["body"]
+    check(not sharedTools.contains("<?php") and sharedTools.contains("AddPhp:"), "Literal PHP comment text cannot block the shared JavaScript")
+    check(not Assets.readStatic("/style/widgets.css")["body"].contains("<?php"), "Widget CSS is served without executing or leaking PHP")
+    let current = context()
+    let newPageRecording = recording([])
+    let newPage = Page.create(current, {"page": "new-page"})
+    check(newPage["PAGECREATED"].values() == ["new-page"], "New page response matches the existing browser callback")
+    check(newPageRecording.parameters[0].values().contains("new-page"), "New page data uses bound parameters")
+    recording([{"columns": ["id", "relationsId", "name", "rules"], "rows": [["b".repeat(32), "c".repeat(32), "Tester", ""]]}])
+    let retrievedRoles = User.dispatch(current, "GetUserRoles", {"userid": "a".repeat(32)})
+    check(retrievedRoles["RETRIEVEDROLES"]["b".repeat(32)] == "c".repeat(32), "User role response maps role IDs to relation IDs")
+    recording([{"columns": ["id", "name", "email", "status"], "rows": [["a".repeat(32), "<script>name</script>", "user@example.test", "active"]]}])
+    let users = Editor.userTable(current)
+    check(users.contains("<td>1</td><td>" + "a".repeat(32) + "</td>"), "User table places the GUID in the column consumed by existing callbacks")
+    check(not users.contains("<script>name</script>") and users.contains("&lt;script&gt;name"), "User table escapes account names")
+    let adminRecording = recording([])
+    check(Admin.dispatch(current, "NewEntity", {:})["code"] == "PORT_FEATURE_PENDING" and adminRecording.statements.isEmpty, "Pending entity DDL cannot leave partial tables")
+    let multilingual = context()
+    multilingual["settings"] = {"DefaultLanguage": "en", "DefaultTimeZone": "UTC"}
+    multilingual["request"] = {"headers": {"accept-language": "fr-CA,fr;q=0.9,en;q=0.8"}}
+    multilingual["schema"]["localtext"] = {"columns": ["_en", "_fr"]}
+    multilingual["scopes"]["localtext"] = "0x" + "7".repeat(32)
+    let translation = recording([{"columns": ["name", "_fr", "_en"], "rows": [["A".repeat(20), "Bonjour 🚀", "Hello"]]}])
+    check(Content.expand(multilingual, "SI_MULTILANG_" + "A".repeat(20)) == "Bonjour 🚀", "Scoped multilingual text uses requested language fallback")
+    check(translation.statements[0].contains("entity_id=UNHEX(:scope)") and translation.parameters[0]["n0"] == "A".repeat(20), "Translation uses tenant scope and bound tokens")
+    let raw = "text'); DROP TABLE users; -- \\" + "日本語"
+    let insert = recording([])
+    let id = Entity.create(current, "blocks", {"name": raw, "dev-options": encoded})
+    check(Tools.guid(id).length == 32, "Entity create ID")
+    check(not insert.statements[0].contains(raw), "SQL value is never interpolated")
+    check(insert.parameters[0].values().contains(raw), "SQL injection string is bound as data")
+    check(insert.parameters[0].values().contains(encoded), "JSON bound once")
+    rejects(fn() { Entity.create(current, "blocks", {"entity_id": "0x" + "f".repeat(32)}) }, "IMMUTABLE_OWNERSHIP")
+    rejects(fn() { Entity.retrieve(current, "blocks", "bad", {:}, ["name"]) }, "INVALID_GUID")
+    let update = recording([{"columns": ["found"], "rows": [[1]]}])
+    check(Entity.update(current, "blocks", "b".repeat(32), {"dev-script": "null"}), "Update succeeds")
+    check(update.parameters.last.values().contains("null"), "Literal null is not SQL NULL")
+    check(update.statements.last.contains("entity_id=UNHEX(:_scope)"), "Update has tenant scope")
+    check(update.parameters.last["_scope"] == "1".repeat(32), "Tenant parameter is bound")
+    let limited = context()
+    limited["user"]["permissions"]["0x" + "1".repeat(32)]["write"] = "false"
+    rejects(fn() { Entity.update(limited, "blocks", "b".repeat(32), {"name": "denied"}) }, "FORBIDDEN")
+    check(Security.hasRole(current, "Guest"), "Guest membership is implicit")
+    let source = recording([{"columns": ["source"], "rows": [[encoded]]}])
+    Deployment.promote(current, {"entityname": "blocks", "entityid": "b".repeat(32), "attribute": "options", "deployment": "test"})
+    check(source.events == ["begin", "commit"], "Promotion transaction commits")
+    check(source.statements.last.replace(bytes.fromList([96]).decodeUtf8(), "").contains("test-options=dev-options"), "Promotion is an exact SQL column copy")
+    check(not source.statements.last.contains(encoded), "Promotion does not double-encode JSON")
+    let malformed = recording([{"columns": ["source"], "rows": [[json.stringify(encoded)]]}])
+    rejects(fn() { Deployment.promote(current, {"entityname": "blocks", "entityid": "b".repeat(32), "attribute": "options", "deployment": "test"}) }, "OPTIONS_MUST_BE_OBJECT")
+    check(malformed.events == ["begin", "rollback"], "Malformed source rolls back")
+    check(malformed.statements.length == 1, "Malformed source cannot update destination")
+    rejects(fn() { Deployment.promote(current, {"entityname": "relations", "entityid": "b".repeat(32), "attribute": "options", "deployment": "rollback"}) }, "UNKNOWN_COLUMN")
+    let saved = recording([{"columns": ["name"], "rows": [["Menu"]]}, {"columns": ["found"], "rows": [[1]]}, {"columns": ["found"], "rows": [[1]]}])
+    let response = Block.save(current, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "name": "Menu", "html": raw, "options": value})
+    check(response["BLOCKSAVED"] == "Menu", "Block save response contract")
+    check(saved.events == ["begin", "commit"], "Content and layout share one transaction")
+    check(saved.statements.filter(fn(statement) => statement.startsWith("UPDATE")).length == 2, "Both writes occur inside the transaction")
+    let invalid = recording([])
+    rejects(fn() { Block.save(current, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "options": []}) }, "OPTIONS_MUST_BE_OBJECT")
+    check(invalid.statements.isEmpty, "Invalid options cause no partial writes")
+    let transformed = Deployment.mediaPaths("<img src='/media/images/photo.png'><img src='https://external.test/media/images/photo.png'>", "dev")
+    check(transformed.contains("/media/images/dev_photo.png"), "Local media preview")
+    check(transformed.contains("https://external.test/media/images/photo.png"), "External URL retained")
+    check(Deployment.mediaPaths(transformed, "dev") == transformed, "Media rewriting is idempotent")
+    check(RateLimit.allow("unit", 1, 300), "First rate-limit allowance")
+    check(not RateLimit.allow("unit", 1, 300), "Rate limit cannot be bypassed by another session")
+    let editorContext = context()
+    editorContext["domain"] = "localhost"
+    editorContext["subdomain"] = ""
+    for table, fields in {"settings": ["settingname", "settingvalue"], "securityroles": ["rules"]} {
+        for field in fields { editorContext["schema"][table]["columns"].push(field)
+            editorContext["schema"][table]["attributes"][field] = {"type": "text"} }
+    }
+    for table, fields in {"media": ["id", "name", "path", "hash", "mime"], "localtext": ["id", "name", "_en", "options"]} {
+        let scope = "0x" + Tools.newGuid()
+        editorContext["scopes"][table] = scope
+        editorContext["user"]["permissions"][scope] = {"read": true}
+        editorContext["schema"][table] = {"columns": fields, "attributes": {:}}
+        for field in fields { editorContext["schema"][table]["attributes"][field] = {"type": "text"} }
+    }
+    let modelQueries = recording([
+        {"columns": ["id", "settingname", "settingvalue"], "rows": [["a".repeat(32), "DefaultLanguage", "en"]]},
+        {"columns": ["id", "name", "rules"], "rows": [["b".repeat(32), "Admin", json.stringify({:})]]},
+        {"columns": ["id", "name", "path", "options"], "rows": [["c".repeat(32), "Home", "", json.stringify({:})]]},
+        {"columns": ["id", "name", "_en", "options"], "rows": []},
+        {"columns": ["id", "name", "path", "hash", "mime"], "rows": []},
+        {"columns": [], "rows": []},
+        {"columns": ["id", "name", "email", "status"], "rows": [["a".repeat(32), "Fixture User", "fixture@example.test", "active"]]}
+    ])
+    let model = Editor.model(editorContext, {"blocks": []})
+    check(model["$rolesdata"][0]["rules"].type == "Map", "Editor roles remain structured objects")
+    check(regex.compile(model["$PasswordStrength"]).isMatch("abcdefghij") and not regex.compile(model["$PasswordStrength"]).isMatch("abcdefghi"), "Native editor password rule accepts ten characters")
+    check(model["$settings2"][0].contains("id") and model["$myLangs"] == ["en"], "Editor model carries setting IDs and supported languages")
+    check(modelQueries.replies.isEmpty, "Native editor materializes all expected frontend datasets")
+    let rendered = Editor.renderModel(model)
+    check(not rendered.contains("<?php") and not rendered.contains("<?="), "Editor output has no PHP")
+    check(not rendered.contains("__SIPL_SLOT_"), "Editor slots are filled")
+    if system.args.length > 0 { fs.writeText(system.args[0], rendered) }
+    print("SIPL unit and SQL-contract checks passed: {_checks}")
+}

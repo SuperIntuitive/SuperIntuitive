@@ -17,6 +17,7 @@ SI.Widget.Tree = function (options) {
     let self = this;
     //debugger;
     let dir = Ele("ul", {
+        id: this.Id,
         style: {
             backgroundColor: "#333",
             listStyleType: 'none',
@@ -69,14 +70,13 @@ SI.Widget.Tree = function (options) {
                         append: btn,
                         appendTo: dir
                     });
-                    let suboptions = options;
-                    suboptions.Leaves = this.Options.Leaves[i];
+                    let suboptions = Object.assign({}, options, {Id: SI.Tools.Element.SafeId('TreeBranch'), Leaves: this.Options.Leaves[i]});
                     li.appendChild(new SI.Widget.Tree(suboptions));
 
                     break;
                 default:
                     Ele("li", {
-                        innerHTML: i + ":" + object[i],
+                        innerText: i + ": " + this.Options.Leaves[i],
                         style: {
                             backgroundColor: "#888",
                             color: '#000',
@@ -92,5 +92,6 @@ SI.Widget.Tree = function (options) {
         }
     }
 
+    this.Container = dir;
     return dir;
 };

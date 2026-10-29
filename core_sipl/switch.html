@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Intuitive · Backend preview</title>
+<link rel="stylesheet" href="public/switch.css">
+<script defer src="public/backend-switch.js"></script>
+</head>
+<body class="si-backend-launcher">
+<header><a class="si-backend-brand" href="/">superintuitive<span>.</span></a><span class="si-backend-eyebrow">PARALLEL VALIDATION</span></header>
+<main>
+<p class="si-backend-eyebrow">PHP → SIPL</p>
+<h1>Choose the backend.</h1>
+<p class="si-backend-intro">Keep using PHP while you test the native SIPL implementation. Each backend has its own sign-in session.</p>
+<div class="si-backend-grid">
+<section class="si-backend-card">
+<p class="si-backend-eyebrow">CURRENT IMPLEMENTATION</p><h2>PHP</h2>
+<p>The existing site and installer remain available.</p>
+<label for="si-php-origin">Site address</label><input id="si-php-origin" type="url" value="http://localhost:8090" spellcheck="false">
+<button type="button" data-open-backend="php">Open PHP</button>
+</section>
+<section class="si-backend-card">
+<p class="si-backend-eyebrow">PARALLEL IMPLEMENTATION</p><h2>SIPL</h2>
+<p>Uses the same MySQL schema and endpoint contracts.</p>
+<label for="si-sipl-origin">Preview address</label><input id="si-sipl-origin" type="url" value="http://localhost:8092" spellcheck="false">
+<div class="si-backend-actions"><button type="button" data-open-backend="sipl">Open SIPL preview</button><button class="si-backend-secondary" type="button" id="si-check-backend">Check runtime</button></div>
+<p id="si-backend-status" role="status" aria-live="polite">Start the SIPL server, then check its runtime capabilities.</p>
+</section>
+</div>
+<p class="si-backend-note">Switching opens the other server. It does not copy sessions, change the database schema, or silently forward SIPL mutations to PHP. Save your edits before switching.</p>
+</main>
+</body>
+</html>

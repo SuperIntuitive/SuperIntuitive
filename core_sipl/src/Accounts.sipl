@@ -1,0 +1,89 @@
+use Config
+use Database
+use Tools
+use Security
+use Sessions
+use RateLimit
+use Runtime
+
+fn refresh(context: Map, request: Map) {
+    let user = context["user"]
+    if not user.get("loggedin", false) { return }
+    let record = Database.one("SELECT LOWER(HEX(id)) AS id, name, email, password, preferences FROM users WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope) AND status='active'", {"id": Tools.guid(user["id"]), "scope": Security.scope(context, "users")})
+    if record == none {
+        Sessions.clearUser(request)
+        context["user"] = Security.guest()
+        context["user"]["permissions"] = Security.guestPermissions(context)
+        Sessions.setLevel(request, "live")
+        context["deployment"] = "live"
+        return
+    }
+    if not Tools.secureEquals(user.get("auth_hash", ""), record["password"]) {
+        Sessions.clearUser(request)
+        context["user"] = Security.guest()
+        context["user"]["permissions"] = Security.guestPermissions(context)
+        Sessions.setLevel(request, "live")
+        context["deployment"] = "live"
+        return
+    }
+    let rows = Security.roleRows(context, record["id"])
+    user["roles"] = rows.map(fn(row) => row["name"])
+    if user["roles"].isEmpty { user["roles"] = ["Guest"] }
+    user["permissions"] = Security.mergeRules(rows)
+    user["name"] = record["name"]
+    user["email"] = record["email"]
+    if not Security.hasRole(context, "Admin") {
+        if context["deployment"] == "dev" or not Security.hasRole(context, "Tester") {
+            context["deployment"] = "live"
+            Sessions.setLevel(request, "live")
+        }
+    }
+    Sessions.setUser(request, user)
+}
+
+fn login(context: Map, request: Map, post: Map) -> Map {
+    let email = Tools.text(post.get("email"), "").toLower()
+    if not RateLimit.login(email) { return {"ERROR": "Too many login attempts.", "code": "RATE_LIMITED"} }
+    // Never rewrite bcrypt hashes to an incompatible format while PHP and SIPL coexist.
+    if not Config.get("allowNativePasswords", false) and not Runtime.inspect()["phpBcryptVerify"] { return Tools.gap("PHP_BCRYPT_VERIFY") }
+    if Tools.truth(post.get("rememberme", false)) { return Tools.gap("PHP_REMEMBER_TOKEN_COMPATIBILITY") }
+    let password = post.get("password", none)
+    if password.type != "String" or bytes.encodeUtf8(password).length > 72 { return {"LOGINFAIL": "TRUE"} }
+    let user = Database.one("SELECT LOWER(HEX(id)) AS id, name, email, password, preferences FROM users WHERE LOWER(email)=:email AND entity_id=UNHEX(:scope) AND status='active' LIMIT 1", {"email": email, "scope": Security.scope(context, "users")})
+    if user == none or user.get("password").type != "String" {
+        auth.passwordVerify(password, "$2y$10$XTyXvFDJKaLGPgSxxFGHQ.jBWulChGNIUp68j9PEhSIYn8J9ofQue")
+        return {"LOGINFAIL": "TRUE"}
+    }
+    if (user["password"].startsWith("$2") or user["password"].startsWith("$argon")) and not Runtime.inspect()["phpBcryptVerify"] { return Tools.gap("PHP_BCRYPT_VERIFY") }
+    if not auth.passwordVerify(password, user["password"]) { return {"LOGINFAIL": "TRUE"} }
+    let current: Map = {"loggedin": true, "id": "0x" + user["id"], "name": user["name"], "email": user["email"], "auth_hash": user["password"], "roles": [], "permissions": {:}, "preferences": {:}}
+    if user["preferences"].type == "String" and json.isValid(user["preferences"]) { current["preferences"] = json.parse(user["preferences"]) }
+    context["user"] = current
+    refresh(context, request)
+    Sessions.authenticated(request, current)
+    var level = "live"
+    if Security.hasRole(context, "Admin") { level = "dev" }
+    Sessions.setLevel(request, level)
+    return {"REFRESH": "TRUE"}
+}
+
+fn logout(request: Map) -> Map {
+    Sessions.logout(request)
+    return {"REFRESH": "TRUE"}
+}
+
+fn changePassword(context: Map, post: Map) -> Map {
+    if not Runtime.inspect()["phpBcryptVerify"] or not Runtime.inspect()["phpBcryptHash"] { return Tools.gap("PHP_BCRYPT_HASH_AND_VERIFY") }
+    let user = context["user"]
+    if not user.get("loggedin", false) { fail("FORBIDDEN") }
+    if Tools.text(post.get("email"), "").toLower() != user["email"].toLower() { fail("FORBIDDEN") }
+    let password = Tools.required(post, "password")
+    let replacement = Tools.required(post, "newpassword")
+    if not Tools.passwordValid(replacement) { fail("INVALID_PASSWORD") }
+    if not auth.passwordVerify(password, user["auth_hash"]) { fail("LOGIN_FAILED") }
+    let updated = auth.bcryptHash(replacement)
+    Database.execute("UPDATE users SET password=:password, remembertoken='', remembertime=NULL WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)", {"password": updated, "id": Tools.guid(user["id"]), "scope": Security.scope(context, "users")})
+    user["auth_hash"] = updated
+    Sessions.setUser(context["request"], user)
+    return {"PASSWORDCHANGED": true}
+}

@@ -1,0 +1,18 @@
+use Config
+use Database
+use Security
+use Sessions
+
+fn load(request: Map) -> Map {
+    let context: Map = {"request": request, "domain": Config.get("domain", "localhost"), "subdomain": Config.get("subdomain", ""), "scopes": Database.scopes(), "schema": Database.schema(), "user": Security.guest(), "deployment": "live"}
+    if context["scopes"].isEmpty { fail("SITE_NOT_FOUND") }
+    context["settings"] = {:}
+    if context["scopes"].contains("settings") {
+        for setting in Database.query("SELECT settingname,settingvalue FROM settings WHERE entity_id=UNHEX(:scope) AND status='active'", {"scope": Security.scope(context, "settings")}) { context["settings"][setting["settingname"]] = setting["settingvalue"] }
+    }
+    context["user"]["permissions"] = Security.guestPermissions(context)
+    let current = Sessions.user(request)
+    if current != none { context["user"] = current }
+    context["deployment"] = Sessions.level(request)
+    return context
+}

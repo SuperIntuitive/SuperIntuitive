@@ -1,0 +1,82 @@
+use Database
+use Entity
+use Relations
+use Tools
+use Security
+
+fn defaults() -> Map { return {"tag": "div", "style": {"position": "relative", "width": "100%", "height": "500px"}} }
+
+fn save(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let id = Tools.guid(post.get("guid"))
+    let relation = Tools.guid(post.get("relationsId"))
+    let content: Map = {:}
+    let layout: Map = {:}
+    for field in ["name", "html", "script", "style"] {
+        if post.contains(field) {
+            let value = Tools.required(post, field)
+            var target = "dev-" + field
+            if field == "name" { target = "name" }
+            content[target] = value
+        }
+    }
+    if post.contains("options") { layout["dev-options"] = Tools.options(post["options"]) }
+    if post.contains("order") { layout["dev-order"] = Tools.number(post["order"], 0, 2147483647) }
+    return Database.transaction(fn() {
+        let row = Database.one("SELECT b.name FROM blocks b INNER JOIN relations r ON r.child_id=b.id AND r.childentity_id=b.entity_id WHERE b.id=UNHEX(:block) AND b.entity_id=UNHEX(:blocks) AND r.id=UNHEX(:relation) AND r.entity_id=UNHEX(:relations) FOR UPDATE", {"block": id, "blocks": Security.scope(context, "blocks"), "relation": relation, "relations": Security.scope(context, "relations")})
+        if row == none { fail("INVALID_BLOCK_RELATION") }
+        if not content.isEmpty { if not Entity.update(context, "blocks", id, content) { fail("BLOCK_SAVE_FAILED") } }
+        if not layout.isEmpty { if not Entity.update(context, "relations", relation, layout) { fail("LAYOUT_SAVE_FAILED") } }
+        return {"BLOCKSAVED": post.get("name", row["name"])}
+    })
+}
+
+fn relate(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let blockId = Tools.guid(post.get("blockid"))
+    let pageId = Tools.guid(post.get("pageid"))
+    let found = Entity.retrieve(context, "blocks", blockId, {:}, ["id", "name", "html", "script", "style", "options"])
+    if found.isEmpty { fail("BLOCK_NOT_FOUND") }
+    let block = found[0]
+    var settings = defaults()
+    if block.get("options").type == "String" and json.isValid(block["options"]) {
+        let parsed = json.parse(block["options"])
+        if parsed.type == "Map" and parsed.contains("tag") { settings = parsed }
+    }
+    let order = Tools.number(post.get("order", 0), 0, 2147483647)
+    let relation = Relations.create(context, "pages", pageId, "blocks", blockId, order, settings)
+    return {"BLOCKRELATED": {"NAME": block["name"], "ID": "0x" + blockId, "RELID": relation, "ORDER": order, "HTML": block.get("html", ""), "SCRIPT": block.get("script", ""), "STYLE": block.get("style", ""), "OPTIONS": json.stringify(settings)}}
+}
+
+fn create(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let name = Tools.required(post, "name").trim()
+    if name.isEmpty or name.length > 255 { fail("INVALID_BLOCK_NAME") }
+    let attributes: Map = {"name": name}
+    let columns = Entity.definition(context, "blocks")["columns"]
+    for level in ["dev", "test", "live", "rollback"] {
+        for field in ["order", "options", "html", "script", "style", "modified"] {
+            let column = level + "-" + field
+            if not columns.contains(column) { continue }
+            if field == "order" { attributes[column] = 0 }
+            else if field == "options" { attributes[column] = defaults() }
+            else if field == "modified" { attributes[column] = "1970-01-01 00:00:00" }
+            else { attributes[column] = "" }
+        }
+    }
+    return Database.transaction(fn() {
+        let id = Entity.create(context, "blocks", attributes)
+        let link = post.copy()
+        link["blockid"] = id
+        return relate(context, link)
+    })
+}
+
+fn remove(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    Relations.remove(context, Tools.required(post, "linkid"))
+    return {"BLOCKREMOVED": "Block removed"}
+}

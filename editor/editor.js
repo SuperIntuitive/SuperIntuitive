@@ -10,6 +10,11 @@ Tools::SendSecurityHeaders();
 
 error_reporting(E_ALL ^ E_WARNING); 
 
+if(!Tools::UserHasRole('Admin')){
+    http_response_code(403);
+    exit();
+}
+
    // echo $siobj;
 if (Tools::UserHasRole('Admin')) 
 {
@@ -159,13 +164,18 @@ if (Tools::UserHasRole('Admin'))
     $dt->Numbered = true;
     $dt->Selectable = true;
 
+    foreach($users as &$editorUser){
+        foreach($editorUser as &$editorValue){
+            $editorValue = htmlspecialchars((string)$editorValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+        unset($editorValue);
+    }
+    unset($editorUser);
     $dt->LoadArray($users);
 
-    $usrconfstyle = 'height:28px; width:28px; margin:3px; background-size:contain;';
     $configbts = [
-        "<input type='button'  title='Change Password' style=' $usrconfstyle background-image: url(\\\"/editor/media/icons/resetpw.png\\\");' onclick='SI.Editor.Objects.User.ChangePassword(this)' />",
-        "<input type='button'  title='Manage Roles'    style=' $usrconfstyle background-image: url(\\\"/editor/media/icons/securityroles.png\\\");' onclick='SI.Editor.Objects.User.GetRoles(this)' />",
-        "<!--<input type='button'  value='DELETE'   onclick='SI.Editor.Objects.User.Delete(this)' />-->",
+        "<button type='button' class='si-tool-action' title='Change Password' onclick='SI.Editor.Objects.User.ChangePassword(this)'>Password</button>",
+        "<button type='button' class='si-tool-action' title='Manage Roles' onclick='SI.Editor.Objects.User.GetRoles(this)'>Roles</button>",
     ];
     $confbtn = new DataColumn("Configure");
     $confbtn->Default = implode($configbts);
@@ -373,17 +383,17 @@ SI.Editor = {
                 Properties: {},
                 PseudoClasses: [],
                 PseudoElements: [],
-                Colors: "<?= $coloroptions ?>", 
+                Colors: <?= json_encode($coloroptions) ?>,
             },
             Language: {
-                All : "<?= $langoptions ?>",
+                All : <?= json_encode($langoptions) ?>,
             },
         },
         Objects: {
             Blocks: <?= $blockObjects ?>,
             Pages: <?= $pageObjects ?>,
             Media: <?= $mediaObjects ?>,
-            Users: "<?= $usertable ?>",
+            Users: <?= json_encode($usertable) ?>,
             Entities: {
                 Count: <?= $recordCount ?>,
                 Definitions: <?= $entityDefinitions ?>,
@@ -396,10 +406,10 @@ SI.Editor = {
             },
             Language: {
                 Current: <?= $localtexts ?>,
-                CurrentPreference: "<?= SI_LANGS ?>",
+                CurrentPreference: <?= json_encode(SI_LANGS) ?>,
                 Installed: <?= $myLangs ?>,
-                SupportedLanguages: "<?= $supportedLanguages ?>",
-                Options: "<?= $langoptions ?>"
+                SupportedLanguages: <?= json_encode($supportedLanguages) ?>,
+                Options: <?= json_encode($langoptions) ?>
             },
             Deployment: {
                 Levels: {
@@ -407,28 +417,19 @@ SI.Editor = {
                         Label: "",
                         ToolTip: 'Promote to Test',
                         BackgroundColor: "green",
-                        MinWidth: "18px",
-                        MinHeight: "18px",
                         Shadow: '3px 3px 3px rgba(0,128,0,0.2)',
-                        BorderRadius: '9px',
                     },
                     live: {
                         Label: "",
                         ToolTip: 'Promote to Live',
                         BackgroundColor: "yellow",
-                        MinWidth: "18px",
-                        MinHeight: "18px",
                         Shadow: '3px 3px 3px rgba(255,255,0,0.2)',
-                        BorderRadius: '9px',
                     },
                     rollback: {
                         Label: "",
                         ToolTip: 'Save to Rollback',
                         BackgroundColor: "red",
-                        MinWidth: "18px",
-                        MinHeight: "18px",
                         Shadow: '3px 3px 3px rgba(255,0,0,0.2)',
-                        BorderRadius: '9px',
                     }
                 },
                 UI: function (options) {
@@ -459,23 +460,17 @@ SI.Editor = {
                         for (let deployment in deployments) {
                             //debugger;
                             let props = deployments[deployment];
+                            const supported = SI.Editor.Data.Objects.Entities.Definitions[options.EntityName]?.attributes[options.Attribute]?.deployments || [];
+                            const unavailable = !supported.includes(deployment);
                             Ele("button", {
                                 id: 'si_edit_promote_' + options.Attribute + "_" + deployment,
-                                title: props.ToolTip,
+                                class: 'si-deployment-promote',
+                                type: 'button',
+                                disabled: unavailable,
+                                title: unavailable ? 'This field has no ' + deployment + ' storage in the current database schema.' : props.ToolTip,
                                 style: {
-                                    display: "inline-block",
-                                    borderRadius: props.BorderRadius,
-                                    border: 'none',
                                     boxShadow: props.Shadow,
-                                    margin: "4px",
-                                    marginLeft: "7px",
-                                    padding: "2px",
-                                    paddingLeft: "5px",
-                                    paddingRight: "5px",
-                                    height: "18px",
                                     backgroundColor: props.BackgroundColor,
-                                    minWidth: props.MinWidth,
-                                    cursor: 'pointer',
                                 },
                                 data: {
                                     entityid: options.EntityId,
@@ -493,7 +488,14 @@ SI.Editor = {
                                     let data = { KEY: 'Promote', deployment: deployment, entityname: entityname, entityid: entityid, attribute: attribute };
                                     let ajax = { Url: SI.Editor.Ajax.Url, Data: data, };
                                     //   console.log(ajax);
-                                    SI.Editor.Ajax.Run(ajax);
+                                    this.disabled = true;
+                                    const button = this;
+                                    const request = SI.Editor.Ajax.Run(ajax);
+                                    request.timeout = 20000;
+                                    request.addEventListener('loadend', function () {
+                                        button.disabled = false;
+                                        if (request.status !== 200) SI.Tools.SuperAlert('Deployment failed. Refresh the page and try again.', 4000);
+                                    });
 
                                     e.stopPropagation();
                                 },
@@ -688,7 +690,7 @@ SI.Editor = {
                                             SI.Editor.Data.DataLists.MediaRules[ctxt] = [];
                                         }
                                       
-                                        mediaRules = rule.cssRules;
+                                        let mediaRules = rule.cssRules;
                                         for (let k = 0; k < mediaRules.length; k++) {
                                             SI.Editor.Data.DataLists.MediaRules[ctxt].push(mediaRules[k].cssText);
                                         }
@@ -751,6 +753,32 @@ SI.Editor = {
     },
     UI:{
         Container: null,
+        IconPaths: {
+            save: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2ZM7 3v6h10V3M7 21v-8h10v8',
+            saveAll: 'M3 7v14h14M7 3h12l2 2v12H7V3Zm3 0v5h8V3m-8 14v-6h8v6',
+            newBlock: 'M13 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 10h11M10 10v11m9-20v6m-3-3h6',
+            import: 'M14 3H5v18h14V8l-5-5Zm0 0v5h5M7 13h8m-3-3 3 3-3 3',
+            template: 'M3 3h18v18H3V3Zm0 6h18M9 9v12',
+            delete: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7',
+            code: 'm8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18',
+            style: 'm9 14 9-11 3 3-11 9M9 14c-3-2-5 1-5 4 0 2-1 3-2 3 4 1 8 0 8-4v-2l-1-1Z',
+            deployment: 'm3 7 9-4 9 4-9 4-9-4Zm0 5 9 4 9-4M3 17l9 4 9-4',
+            settings: 'M3 5h8m4 0h6M11 2v6M3 12h3m4 0h11M6 9v6M3 19h11m4 0h3M14 16v6',
+            widgets: 'M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm11 3.5h7m-3.5-3.5v7',
+            eraser: 'm3 14 9-11 9 7-9 11H7l-4-4v-3Zm5-6 9 7m-5 6h9'
+        },
+        IconButton: function (options) {
+            const {Icon, ...attributes} = options;
+            attributes.class = [attributes.class, 'si-tool-icon-button'].filter(Boolean).join(' ');
+            attributes.type = 'button';
+            const button = Ele('button', attributes);
+            // Opaque vector strokes keep all actions equally clear at any display scale.
+            const path = this.IconPaths[Icon];
+            const source = path ? 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + path + '"/></svg>') : Icon;
+            button.style.setProperty('--si-tool-icon', 'url(' + JSON.stringify(source) + ')');
+            if (attributes.title) button.setAttribute('aria-label', attributes.title);
+            return button;
+        },
         Init: function (){
             //Initialize main visible panel
             SI.Editor.UI.DrawAppContainer();
@@ -770,86 +798,57 @@ SI.Editor = {
             SI.Editor.UI.SetDocumentEvents();
  
         },
-        SetDocumentEvents: function(ev) {
-            //if the rott si menu is open, spawn the browser context menu. if not open the root si menu
-            document.oncontextmenu = function (e) {
-                let element = document.getElementById('si_edit_main_menu');
-                let v = element.currentStyle ? element.currentStyle.display : getComputedStyle(element, null).display;
-                if (v != 'none') {
-                } else {
-                    let mm = document.getElementById('si_edit_main_menu');
-                    mm.style.top = e.pageY + 'px';//e.clientY + "px";
-                    mm.style.left = e.pageX + 'px';//e.clientX + "px";
-                    mm.style.display = 'block';
-                    e.preventDefault();
-                    return false;
-                }
-             };
-
-            window.onbeforeunload = function (ev) {
-                ev.preventDefault();
-                let list = '';
-                let blocks = SI.Editor.Data.Objects.Blocks;
-                for (let block in blocks) {
-                    if (blocks.hasOwnProperty(block)) {
-                        if (blocks[block].IsDirty) {
-                          //  debugger;
-                            list += block+ ", ";
-                        }
-                    }
-                }
-                if (list != '') {
-                    //To google. I really wish this worked.
-                    return ev.returnValue = 'There are unsaved changes in blocks: ' + list + '. Leave now?';
-                   // return 'There are unsaved changes in blocks: ' + list + '. Leave now?';
-                }             
+        SetDocumentEvents: function () {
+            SI.Editor.Objects.Placement.Init();
+            document.oncontextmenu = function (event) {
+                if (event.target.closest('#si_edit_container')) return;
+                const menu = SI.Editor.UI.MainMenu.Element;
+                const selected = SI.Editor.Objects.Elements.Selected;
+                const target = event.target.closest('.si-editable-element');
+                // Keep native text-field menus unless this click clears the selected item.
+                if ((!target || target !== selected) && event.target.closest('input,textarea,[contenteditable="true"]')) return;
+                SI.Editor.Objects.Placement.Cancel();
+                if (target && target === selected) SI.Editor.Objects.Elements.SelectNone();
+                else if (target) SI.Editor.Objects.Elements.Select(null, target.id);
+                menu.style.display = 'block';
+                menu.style.left = Math.max(0, Math.min(event.clientX, innerWidth - 80)) + 'px';
+                menu.style.top = Math.max(0, Math.min(event.clientY, innerHeight - 120)) + 'px';
+                event.preventDefault();
             };
-
-            let map = {}; //  so-5203407
-            onkeydown = onkeyup = function (e) {
-                let selected = SI.Editor.Objects.Elements.Selected;
-                let isFocused = (document.activeElement === selected);      //so-36430561
-                let movable = true;
-                if (selected) {
-                    //we only move by arrows if we have a position and the doc does not have a selected element so the arroews dont break textbox navigation
-                    if (typeof selected.style.position === 'undefined' || selected.style.position === 'static' || isFocused) {
-                        movable = false;
-                    }
+            window.onbeforeunload = function (event) {
+                if (!SI.Editor.DeploymentSwitchAccepted && Object.values(SI.Editor.Data.Objects.Blocks).some(block => block.IsDirty)) {
+                    event.preventDefault();
+                    event.returnValue = '';
                 }
-
-                e = e || event; // to deal with IE
-                map[e.keyCode] = e.type == 'keydown';
-                let inc = (e.ctrlKey) ? 1 : 5;
-
-                if (map[37]) { //Left Arrow
-                    if (movable)
-                    SI.Editor.Objects.Elements.MoveBy(-inc, 0);
-                } 
-                if (map[38]) {//Up Arrow
-                    if (movable)
-                    SI.Editor.Objects.Elements.MoveBy(0,-inc);
+            };
+            window.addEventListener('keydown', function (event) {
+                const selected = SI.Editor.Objects.Elements.Selected;
+                const typing = event.target.isContentEditable || event.target.closest('input,textarea,select,[role="textbox"]');
+                if (event.key === 'Escape') {
+                    SI.Editor.Objects.Placement.Cancel();
+                    SI.Editor.UI.MainMenu.Element.style.display = 'none';
+                    if (!typing) SI.Editor.Objects.Elements.SelectNone();
+                    return;
                 }
-                if (map[39]) {//Right Arrow
-                    if (movable)
-                    SI.Editor.Objects.Elements.MoveBy(inc, 0);
+                if (!selected) return;
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's' && (!typing || event.target.closest('#si_edit_edit_menuitem'))) {
+                    event.preventDefault();
+                    if (typing) event.target.dispatchEvent(new Event('change', {bubbles: true}));
+                    SI.Editor.UI.EditPanel.SaveSelected();
+                    return;
                 }
-                if (map[40]) {//Down Arrow
-                    if (movable)
-                    SI.Editor.Objects.Elements.MoveBy(0,inc);
+                if (typing || event.target.closest('#si_edit_container,.si-window-container')) return;
+                const movements = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
+                if (movements[event.key] && /^(absolute|relative|fixed)$/.test(getComputedStyle(selected).position)) {
+                    event.preventDefault();
+                    const increment = event.shiftKey ? 10 : 1;
+                    SI.Editor.Objects.Elements.MoveBy(movements[event.key][0] * increment, movements[event.key][1] * increment);
                 }
-                if (map[46]) {//Delete Key
-                    if (confirm("Delete Element: " + selected.id + "?")) {
-                        SI.Editor.Objects.Elements.Remove(selected);
-                    } else {
-                        map[e.keyCode] = false;
-                    }
-                    delete map[46]; 
+                if (event.key === 'Delete' && !event.repeat) {
+                    event.preventDefault();
+                    if (confirm('Delete ' + selected.tagName.toLowerCase() + ' #' + selected.id + '?')) SI.Editor.Objects.Elements.Remove(selected);
                 }
-                if (map[90] && e.ctrlKey) { //ctrl-z should undo
-                    document.execCommand('undo');
-                }
-                //alert(e.keyCode);
-            }
+            });
         },
         DrawAppContainer: function () {
             //create the container that all visible editor.js items will be containd in.
@@ -870,16 +869,9 @@ SI.Editor = {
                 //Main Menu Box	
                 var mainMenu = Ele('div', {
                     id: 'si_edit_main_menu',
-                    class: 'si-window-container',//hack to make this play like a window
+                    class: 'si-window-container si-editor-menu',//hack to make this play like a window
                     draggable: true,
-                    style: {
-                        width: '75px',
-                        color: SI.Editor.Style.TextColor,
-                        position: 'absolute',
-                        display: 'none',
-                        zIndex: '995',
-                        left: '100px',
-                    },
+                    style: {display: 'none'},
                     onmouseenter: function () {
                         var winds = document.getElementsByClassName("si-window-container");
                         for (let i = 0; i < winds.length; i++) {
@@ -898,7 +890,7 @@ SI.Editor = {
                     ondragstart: function (e) {
                         //Need to add the mouse to menu offset so that it can be determined below.
                         //debugger;
-                        if (e.target.id.split('_')[0] == "dragger") { return; }
+                        if (e.target !== this && e.target.closest("#si_edit_add_menuitem,#si_edit_edit_menuitem")) { e.preventDefault(); return; }
                         this.dataset.mOffX = e.offsetX;
                         this.dataset.mOffY = e.offsetY;
                         SI.Editor.UI.MainMenu.IsDragging = true;
@@ -910,7 +902,7 @@ SI.Editor = {
                     },
                     ondragover: function (e) { e.preventDefault(); },
                     ondragend: function (e) {
-                        //debugger;
+                        if (!SI.Editor.UI.MainMenu.IsDragging) return;
                         SI.Editor.UI.MainMenu.IsDragging = false;
                         //get mouse offsets when the menu was clicked. this way it does not snap to the upper right on drop.
                         let moX = this.dataset.mOffX;
@@ -928,23 +920,13 @@ SI.Editor = {
                 //Menu Items Table
                 var mainMenuTable = Ele('table', {
                     id: 'si_edit_main_menu_table',
-                    style: {
-                        width: '100%',
-                        borderCollapse: 'separate',      
-                        borderSpacing: '0px',
-                    }
+                    class: 'si-editor-menu-list'
                 });
                 //Menu Items 
                 let mainMenuItems = ['add', 'edit', 'tools'];
                 //debugger;
                 for (let mi in mainMenuItems) {
                     let val = mainMenuItems[mi];
-                    let brdrad = '0px';
-                    let bdrcol = 'black black ' + SI.Editor.Style.BackgroundColor + ' black' ;
-                    switch (val) {
-                        case 'add': brdrad = '5px 5px 0px 0px'; break;
-                        case 'tools': brdrad = '0px 0px 0px 5px'; break;
-                    }
                     var mainMenuRow = Ele('tr', {});
                     let txt = val.toLowerCase().replace(/\b[a-z]/g, function (letter) {
                         return letter.toUpperCase();
@@ -952,22 +934,17 @@ SI.Editor = {
                     let menuitem = Ele('td', {
                         innerHTML: txt,
                         id: 'si_' + val + '_menu_item',
-                        style: {
-                            cursor : 'pointer',                  
-                            borderTopWidth : '0px',
-                            borderLeftWidth : '0px',
-                            textAlign: 'center',
-                            backgroundColor: SI.Editor.Style.BackgroundColor,
-                            borderRadius: brdrad,
-                            border: '1px black solid',
-                            borderColor: bdrcol,
-                        },
+                        class: 'si-editor-nav-item',
                         onclick: function (e) { SI.Editor.UI.MainMenu.SelectMenu('si_edit_' + val + '_menuitem') },
+                        tabIndex: 0,
+                        onkeydown: function (event) {
+                            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }
+                        },
                         appendTo: mainMenuRow,
                     });
-                    if (val === 'tools') {
-                        menuitem.style.borderBottom = '1px black solid';
-                    }
+                    menuitem.setAttribute('role', 'button');
+                    menuitem.setAttribute('aria-controls', 'si_edit_' + val + '_menuitem');
+                    menuitem.setAttribute('aria-expanded', 'false');
                     mainMenuTable.appendChild(mainMenuRow);
                 }
                 //Append Main Menu at the end
@@ -975,346 +952,131 @@ SI.Editor = {
                 //Close Editor x button	
                 mainMenu.appendChild(Ele('button', {
                     id: 'close-editor',
+                    title: 'Close editor menu',
                     innerHTML: 'X',
-                    style: {
-                        width: '26px',
-                        height: '20px',
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        color: SI.Editor.Style.TextColor,
-                        position: 'relative',
-                        top: '-1px',
-                        float: 'right',
-                        fontSize: '12px',
-                        border: '1px black solid',
-                        borderRadius: '0px 0px 5px 5px',
-                    },
-                    onclick: function () { SI.Editor.Style.SetTheme(); mainMenu.style.display = 'none'; },
+                    onclick: function () { SI.Editor.UI.MainMenu.Close(); },
                 }));
                 SI.Editor.UI.Container.appendChild(mainMenu);
                 SI.Editor.UI.MainMenu.Element = document.getElementById('si_edit_main_menu');
             }, 
+            Close: function () {
+                SI.Editor.Objects.Placement.Cancel();
+                SI.Editor.Objects.Elements.SelectNone();
+                SI.Editor.Style.SetTheme();
+                SI.Editor.UI.MainMenu.Element.style.display = 'none';
+            },
             //Hide/Unhide sub menus when item selected
-            SelectMenu: function(menu) {
-                //for now we want something selected before openeing the edit menu
-                if (menu == "si_edit_edit_menuitem" && SI.Editor.Objects.Elements.Selected == null) {
-                    alert("Please select an element to edit.");
-                    return false;
+            SelectMenu: function (menu) {
+                const panel = document.getElementById(menu);
+                if (!panel) return;
+                if (menu === 'si_edit_edit_menuitem' && !SI.Editor.Objects.Elements.Selected) {
+                    SI.Tools.SuperAlert('Right-click an element to select it, then choose Edit.', 2500);
+                    return;
                 }
-                if (menu && SI.Tools.Is.Visible(menu)) {
-                    SI.Tools.Style.FadeOut(menu, 200);
+                const opening = getComputedStyle(panel).display === 'none';
+                for (const id of ['si_edit_add_menuitem', 'si_edit_edit_menuitem', 'si_edit_tools_menuitem']) {
+                    const other = document.getElementById(id);
+                    other.getAnimations().forEach(animation => animation.cancel());
+                    const active = opening && id === menu;
+                    other.style.display = active ? 'block' : 'none';
+                    document.getElementById('si_' + id.replace('si_edit_', '').replace('_menuitem', '') + '_menu_item').setAttribute('aria-expanded', String(active));
                 }
-                else {
-                    let menus = ["si_edit_add_menuitem", "si_edit_edit_menuitem", "si_edit_tools_menuitem"];
-                    menus.forEach(function (_menu) {
-                        if (menu === _menu) {
-                            SI.Tools.Style.FadeIn(_menu, 200);
-                        } else {
-                            if (_menu && SI.Tools.Is.Visible(_menu)) {
-                                SI.Tools.Style.FadeOut(_menu, 200);
-                            }
-                        }
-                    });
-                }
+                if (!opening) return;
+                const main = SI.Editor.UI.MainMenu.Element;
+                panel.style.maxWidth = Math.max(180, innerWidth - panel.offsetLeft - 24) + 'px';
+                const extent = panel.offsetLeft + panel.getBoundingClientRect().width;
+                main.style.left = Math.max(8, Math.min(parseFloat(main.style.left) || 0, innerWidth - extent - 12)) + 'px';
+                main.style.top = Math.max(8, Math.min(parseFloat(main.style.top) || 0, innerHeight - panel.offsetTop - panel.getBoundingClientRect().height - 12)) + 'px';
+                // Visibility changes synchronously; an old fade timer cannot hide a new panel.
+                panel.animate({opacity: [0, 1]}, {duration: 120});
             },
             IsDragging:false,
         },
         AddPanel: {
             Init: function () {
-                var htmlattrs = JSON.parse(localStorage.getItem("html_attributes"));
-                //Add Menu		
-                var tagMenu = Ele('div', {
-                    id: 'si_edit_add_menuitem',
-                    style: {
-                        width: '200px',
-                        height : '220px',
-                        backgroundColor : SI.Editor.Style.BackgroundColor,
-                        position : 'absolute',
-                        top : '0px',
-                        left : '75px',
-                        display : 'none',
-                        padding : '0',
-                        fontSize: '.8em',
-                    },
-                    onscroll: function (e) {
-                       e.stopPropagation();
-                    },
-                });
-                SI.Editor.UI.AddPanel.SetupTabs(tagMenu);
-                //Append the new menu to the main menu.
-                SI.Editor.UI.MainMenu.Element.appendChild(tagMenu);
-            },
-            SetupTabs: function (newMenu) {
-                let tabs = new SI.Widget.Tab({Id:"si_edit_add_tab"});
-                //create the tabbox
-                let tabTags = Ele('div', {
-                    id: 'si_edit_add_tag',
-                    style:{
-                        width : "96%",
-                        height : "200px",
-                        backgroundColor : "black",
-                        paddingLeft: '5px',
-                        overflow : 'auto',
-                    }
-                });
-                //tags.appendChild(tabTags);
-                let tagscroll = SI.Editor.UI.AddPanel.TagScroller();
-                tabTags.appendChild(tagscroll);
-                
-                var tabWidgets = Ele('div', {
-                    id: 'si_edit_add_widget',
-                    style: {
-                        width: "96%",
-                        height: "200px",
-                        backgroundColor: "black",
-                        paddingLeft: '5px',
-                        overflow: 'auto',
-                    }
-                });
-                
-                var widgetbox = SI.Editor.UI.AddPanel.Widgetbox();
-                tabWidgets.appendChild(widgetbox);
-
-                tabs.Items.Add("Tags", tabTags);
-                tabs.Items.Add("Widgets", tabWidgets);
-
-                newMenu.appendChild(tabs.Draw());
-            },
-            Widgetbox: function () {
-                //The container holds all
-                let widgetscontainer = Ele('div', {
-                    style: {
-                        width: '100%',
-                        height:'100%',
-                    },
-                });
-                //The table makes it easy to add widgets in a column
-                let widgettable = Ele('table', {
-                    style: { backgroundColor: SI.Editor.Style.BackgroundColor, width: '100%' }
-                });
-                //For each individual widget, add a instance.
-                let widgets = SI.Widget;
-                for (let widget in widgets) {
-                    let widgetrow = document.createElement('tr');
-                    let tddragger = document.createElement('td');
-                    var widgetDragger = Ele('div', {
-                        id: "si_edit_widgetdragger" + widget,
-                        style: {
-                            backgroundImage: "url('/editor/media/icons/widgets.png')",
-                            backgroundSize: "cover",
-                            width: '24px',
-                            height: '24px'
-                        },
-                        data: {
-                            type: widget,
-                        },
-                        draggable: true,
-                        ondragstart: function (ev) {
-                            //  this.dragging = true;
-                            ev.effectAllowed = "copyMove";
-                            ev.dataTransfer.setData("Text", widget);
-                        },
-                        ondrag: function (ev) {
-                            SI.Editor.UI.MainMenu.IsDragging = false;
-                            //console.log(e);
-                            if (ev.buttons === 3) { //both buttons down
-                                ev.preventDefault();
-                                return false;
-                            }
-
-                        },
-                        ondragtransfer: function (ev) {
-                            ev.dataTransfer.dropEffect = "copy";
-                        },
-                        ondragend: function (e) {
-                            e.stopPropagation();
-                            //debugger;
-                            if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent)) {
-                                let widget = e.target.dataset.type;
-                                let parent = SI.Editor.Objects.Elements.DropParent;
-                                let options = { "Parent": parent, "Top": e.clientY + "px", "Left": e.clientX+'px' }
-                                let block = SI.Tools.Element.GetBlock(parent).id.replace("si_block_", "");
-                                if (block) {
-                                    //debugger;
-                                    SI.Editor.Objects.Widgets.AddInstance(block, widget, options);
-                                    SI.Editor.Data.Objects.Blocks[block].IsDirty = true;
-                                }
-                            }
-                            else {
-                                alert("Please make sure you drop on a block. Go to the Page tool to make blocks");
+                const panel = Ele('div', {id: 'si_edit_add_menuitem', class: 'si-add-palette', style: {display: 'none'}});
+                const heading = Ele('div', {class: 'si-add-heading', appendTo: panel});
+                heading.textContent = 'Add to your page';
+                const hint = Ele('p', {class: 'si-add-hint', appendTo: panel});
+                hint.textContent = 'Drag an item onto the page to preview it. Or click an item, then click where it belongs. Esc cancels.';
+                const search = Ele('input', {id: 'si_edit_add_search', type: 'search', placeholder: 'Find a tag or widget…', appendTo: panel});
+                search.setAttribute('aria-label', 'Find a tag or widget');
+                const tabs = Ele('div', {class: 'si-add-tabs', appendTo: panel});
+                tabs.setAttribute('role', 'tablist');
+                for (const kind of ['tag', 'widget']) {
+                    const button = Ele('button', {id: 'si_edit_add_' + kind + '_tab', type: 'button', innerText: kind === 'tag' ? 'Tags' : 'Widgets', appendTo: tabs});
+                    button.setAttribute('role', 'tab');
+                    button.setAttribute('aria-controls', 'si_edit_add_' + kind);
+                    button.onclick = function () { SI.Editor.UI.AddPanel.Show(kind); };
+                    button.onkeydown = function (event) {
+                        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            const other = kind === 'tag' ? 'widget' : 'tag';
+                            SI.Editor.UI.AddPanel.Show(other);
+                            document.getElementById('si_edit_add_' + other + '_tab').focus();
+                        }
+                    };
+                    const list = Ele('div', {id: 'si_edit_add_' + kind, class: 'si-add-list', appendTo: panel});
+                    list.setAttribute('role', 'tabpanel');
+                    list.setAttribute('aria-labelledby', button.id);
+                    if (kind === 'tag') {
+                        const seen = new Set();
+                        for (const group of Object.values(SI.Editor.Data.html_elements)) {
+                            for (const tag of Object.values(group)) {
+                                const name = tag.n.trim().toLowerCase();
+                                if (seen.has(name) || /^(html|head|body|base|meta|title|link)$/.test(name)) continue;
+                                seen.add(name);
+                                SI.Editor.UI.AddPanel.Item(list, {kind, name, defaults: tag.def}, tag.ln + ' <' + name + '>', tag.d);
                             }
                         }
-                    });
-                    tddragger.appendChild(widgetDragger);
-                    var tddata = document.createElement('td');
-                    tddata.innerHTML = widget;
-                    widgetrow.appendChild(tddragger);
-                    widgetrow.appendChild(tddata);
-                    widgettable.appendChild(widgetrow);
-                }
-                widgetscontainer.appendChild(widgettable);
-                return widgetscontainer;
-            },
-            TagScroller: function() {
-                var tagsview = Ele('div', {
-                    ondrop: function (e) {
-                        //alert();
-                        e.stopPropagation();
-                        e.preventDefault();
-                        return false;
-                    }
-                });
-                
-                for (let group in SI.Editor.Data.html_elements) {
-                    if (SI.Editor.Data.html_elements.hasOwnProperty(group)) {
-                        let tagbox = Ele('div', { innerHTML : group });
-                        let tagtable = Ele('table', {
-                            style:{backgroundColor: SI.Editor.Style.BackgroundColor, width:'100%'}
-                        });
-                        //debugger;
-                        let tagGroup = SI.Editor.Data.html_elements[group]; 
-
-                        for (let prop in tagGroup) {
-                            if (tagGroup.hasOwnProperty(prop)) {
-                               
-                                var ele = tagGroup[prop].n;
-                                var tg = tagGroup[prop].t;
-
-
-                                if (tagGroup[prop].def) {
-                                    var def = JSON.stringify(tagGroup[prop].def);
-                                } else {
-                                    def = false;
-                                }
-                                
-                                var tagsrow = document.createElement('tr'); 
-                                var tddragger = document.createElement('td');
-
-                                var imDragger = Ele('div', {
-                                    id: "dragger_" + ele,
-                                    style: {
-                                        backgroundImage : "url('/editor/media/icons/dragaround.png')",
-                                        backgroundSize : "cover",
-                                        width : '24px',
-                                        height : '24px'
-                                    },
-                                    data: {
-                                        default:def,
-                                    },
-                                    draggable: true,
-                                    ondragstart : function (ev) {
-                                      //  this.dragging = true;
-
-                                        ev.effectAllowed = "copyMove";
-                                        ev.dataTransfer.setData("Text", ele);
-                                    },
-                                    ondrag: function (e) {
-                                        SI.Editor.UI.MainMenu.IsDragging = false;
-                                        //console.log(e);
-                                        if (e.buttons === 3) { //both buttons down
-                                            e.preventDefault();
-                                            return false;
-                                        }
-
-                                    },
-                                    ondragtransfer: function (ev) {
-                                        ev.dataTransfer.dropEffect = "copy";
-                                    },
-                                    ondragend: function (e) {
-
-                                        e.stopPropagation();
-                                        //debugger;
-                                        if (SI.Tools.Is.Element(SI.Editor.Objects.Elements.DropParent) ) {
-                                            //debugger;
-                                            var tag = e.target.id.split('_')[1].trim();
-                                            var isempty = SI.Tools.Is.EmptyElement(tag);
-                                            var isinline =SI.Tools.Is.EmptyElement(tag);
-                                            let def = null;
-                                            // console.log('isEmpty:' + isempty);
-                                            if (e.target.dataset.default) {
-                                                def = JSON.parse(e.target.dataset.default);
-                                            }
-                                            // var obj = document.createElement(tag);
-                                            //debugger;
-                                            var obj = Ele(tag, def);
-                                            
-
-                                            if (!isempty && obj.innerHTML.length === 0 ) {
-                                                obj.innerHTML = tag;
-                                            }
-
-                                            if (tag == "script") {
-                                                obj.innerHTML = "console.log('Your script starts here')";
-                                            }
-                                            obj.style.position = 'absolute';
-                                            //obj.style.position = 'relative';
-                                            obj = SI.Editor.Objects.Elements.Editable(obj);
-                                            //debugger;
-                                            if (SI.Editor.Objects.Elements.DropParent != null) {
-                                                if (typeof SI.Editor.Objects.Elements.DropParent.id != "undefined" && SI.Editor.Objects.Elements.DropParent.id.startsWith('si_block_')){
-                                                    obj.style.top = e.pageY - parseInt(SI.Editor.Objects.Elements.DropParent.offsetTop) + "px";
-                                                    obj.style.left = e.pageX - parseInt(SI.Editor.Objects.Elements.DropParent.offsetLeft) + "px";
-                                                   // var b = new EditBox(obj);
-                                                    
-                                                    SI.Editor.Objects.Elements.DropParent.appendChild(obj);
-                                                }
-                                                else {
-                                                    var ot =SI.Tools.GetElementOffset(SI.Editor.Objects.Elements.DropParent, 'offsetTop');
-                                                    var ol =SI.Tools.GetElementOffset(SI.Editor.Objects.Elements.DropParent, 'offsetLeft');
-                                                    obj.style.top = e.pageY - ot + "px";
-                                                    obj.style.left = e.pageX - ol+ "px";
-                                                    //var b = new EditBox(obj);
-                                                    SI.Editor.Objects.Elements.DropParent.appendChild(obj);
-                                                }
-                                            }
-                                            //make block dirty so that we can tell the user to save it before leaving
-                                            let block =SI.Tools.Element.GetBlock(obj).id.replace("si_block_", "");
-                                            if (block) {
-                                                SI.Editor.Data.Objects.Blocks[block].IsDirty = true;
-                                            }
-                                            
-                                        }
-                                        else
-                                        {
-                                            alert("Please make sure you drop on a block. Go to the Page tool to make blocks");
-                                        }
-                                    }
-                                });
-                                
-                                tddragger.appendChild(imDragger);
-                                var tddata = document.createElement('td');
-                                tddata.innerHTML = tagGroup[prop].ln;
-
-                                tagsrow.appendChild(tddragger);
-                                tagsrow.appendChild(tddata);
-
-                                SI.Editor.Objects.Settings.Help.Show("tags", tagGroup[prop], tagsrow);
-
-                                tagtable.appendChild(tagsrow);
-                            }
+                    } else {
+                        for (const name of Object.keys(SI.Widget).sort()) {
+                            // Lookup manages existing lookup fields; it has no standalone page element.
+                            if (typeof SI.Widget[name] === 'function' && name !== 'Lookup') SI.Editor.UI.AddPanel.Item(list, {kind, name}, name === 'Accordian' ? 'Accordion' : name, 'Add a ' + name + ' widget');
                         }
-                        tagbox.appendChild(tagtable);
-                        tagsview.appendChild(tagbox);
                     }
                 }
-                Ele("div", { style: { height: '16px', position: 'relative' }, appendTo: tagsview });//hack to fix the bottom row of the scrolls. This is probably a tabs issue. further investigate.
-                return tagsview;
+                const empty = Ele('p', {id: 'si_edit_add_empty', class: 'si-add-hint', innerText: 'No matching items. Try another name.', style: {display: 'none'}, appendTo: panel});
+                empty.setAttribute('role', 'status');
+                search.oninput = function () { SI.Editor.UI.AddPanel.Filter(); };
+                SI.Editor.UI.MainMenu.Element.appendChild(panel);
+                SI.Editor.UI.AddPanel.Show('tag');
             },
+            Item: function (list, item, label, description) {
+                const button = Ele('button', {id: item.kind === 'tag' ? 'dragger_' + item.name : 'si_edit_widgetdragger' + item.name, type: 'button', class: 'si-add-item', draggable: true, appendTo: list});
+                button.textContent = label;
+                button.title = description + ' — drag to preview, or click to choose a position';
+                button.dataset.search = (label + ' ' + description).toLowerCase();
+                button.ondragstart = function (event) { SI.Editor.Objects.Placement.Begin(event, item); };
+                button.ondragend = function (event) { event.stopPropagation(); SI.Editor.Objects.Placement.Cancel(); };
+                button.onclick = function (event) { SI.Editor.Objects.Placement.Begin(event, item); };
+            },
+            Show: function (kind) {
+                this.Kind = kind;
+                for (const tab of ['tag', 'widget']) {
+                    document.getElementById('si_edit_add_' + tab).hidden = tab !== kind;
+                    const button = document.getElementById('si_edit_add_' + tab + '_tab');
+                    button.setAttribute('aria-selected', String(tab === kind));
+                    button.tabIndex = tab === kind ? 0 : -1;
+                }
+                this.Filter();
+            },
+            Filter: function () {
+                const query = document.getElementById('si_edit_add_search').value.trim().toLowerCase();
+                const list = document.getElementById('si_edit_add_' + this.Kind);
+                let count = 0;
+                for (const item of list.children) { item.hidden = !item.dataset.search.includes(query); if (!item.hidden) count++; }
+                document.getElementById('si_edit_add_empty').style.display = count ? 'none' : 'block';
+            }
         },
         EditPanel: {
             //Init: build the panel, setup and populate the tabs.
             Init: function () {
                 var editMenu = Ele('div', {
                     id: 'si_edit_edit_menuitem',
-                    style: {
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
-                        position: 'absolute',
-                        top: '20px',
-                        left: '75px',
-                        display: 'none',
-                        width: '485px',
-                        height: '329px',
-                    },
-                    draggable: true,
+                    class: 'si-editor-properties',
+                    style: {display: 'none'},
+                    draggable: false,
                     ondragover: function (e) { e.preventDefault();},
                     ondragstart: function (e) {
                         
@@ -1323,26 +1085,78 @@ SI.Editor = {
                     },
 
                 });
-                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab' });
+                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab', OnChange: function (selected) {
+                    for (const tab of editMenu.querySelectorAll('[role="tab"]')) {
+                        tab.setAttribute('aria-selected', String(tab === selected));
+                        tab.tabIndex = tab === selected ? 0 : -1;
+                    }
+                }});
                 tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
                 tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
                 tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
                // tabs.Items.Add('Styles2', SI.Editor.UI.EditPanel.DrawStyles2());
+                const toolbar = Ele('div', {class: 'si-edit-selection-toolbar', appendTo: editMenu});
+                const selection = Ele('div', {class: 'si-edit-selection-copy', appendTo: toolbar});
+                Ele('span', {class: 'si-edit-selection-label', innerText: 'Selected element', appendTo: selection});
+                Ele('span', {id: 'si_edit_selection_summary', innerText: 'Right-click an element to edit it.', appendTo: selection});
+                Ele('button', {id: 'si_edit_save_selected', type: 'button', innerText: 'Save block', disabled: true, onclick: SI.Editor.UI.EditPanel.SaveSelected, appendTo: toolbar});
                 editMenu.appendChild(tabs.Draw());
+                editMenu.setAttribute('role', 'region');
+                editMenu.setAttribute('aria-label', 'Edit selected element');
+                const tabItems = Array.from(editMenu.querySelectorAll('.si-edit-edit-tab-tabitem'));
+                editMenu.querySelector('#si_edit_edit_tab > ul').setAttribute('role', 'tablist');
+                for (const [index, tab] of tabItems.entries()) {
+                    tab.setAttribute('role', 'tab');
+                    tab.setAttribute('aria-selected', String(index === 0));
+                    tab.tabIndex = index === 0 ? 0 : -1;
+                    const content = document.getElementById(tab.id.replace('_tabitem_', '_tabcontent_')) || editMenu.querySelector('#' + tab.id.replace('_tabitem_', '_tabcontent_'));
+                    tab.setAttribute('aria-controls', content.id);
+                    content.setAttribute('role', 'tabpanel');
+                    content.setAttribute('aria-labelledby', tab.id);
+                    tab.addEventListener('keydown', function (event) {
+                        let next;
+                        if (event.key === 'ArrowRight') next = (index + 1) % tabItems.length;
+                        if (event.key === 'ArrowLeft') next = (index + tabItems.length - 1) % tabItems.length;
+                        if (event.key === 'Home') next = 0;
+                        if (event.key === 'End') next = tabItems.length - 1;
+                        if (event.key === 'Enter' || event.key === ' ') next = index;
+                        if (next === undefined) return;
+                        event.preventDefault();
+                        tabItems[next].click();
+                        tabItems[next].focus();
+                    });
+                }
+                for (const type of ['input', 'change', 'keyup']) {
+                    editMenu.addEventListener(type, function (event) {
+                        if (event.target.matches('.si-edit-attribute')) {
+                            const selected = SI.Editor.Objects.Elements.Selected;
+                            if (selected && (type !== 'keyup' || event.key.length === 1 || ['Backspace', 'Delete', 'Enter'].includes(event.key))) SI.Editor.Objects.Elements.MarkDirty(selected);
+                        }
+                    });
+                }
                 SI.Editor.UI.MainMenu.Element.appendChild(editMenu);
+            },
+            SaveSelected: function () {
+                const element = SI.Editor.Objects.Elements.Selected;
+                const block = element && element.closest('.si-block');
+                if (block) SI.Editor.Objects.Blocks.Save(block.id.replace('si_block_', ''), 'html');
+            },
+            SelectionSummary: function () {
+                const selected = SI.Editor.Objects.Elements.Selected;
+                const block = selected && selected.closest('.si-block');
+                const name = block && block.id.replace('si_block_', '');
+                const data = name && SI.Editor.Data.Objects.Blocks[name];
+                const summary = document.getElementById('si_edit_selection_summary');
+                if (summary) summary.textContent = selected ? selected.tagName.toLowerCase() + ' #' + selected.id + (data && data.IsDirty ? ' · Unsaved changes' : '') : 'Right-click an element to edit it.';
+                const save = document.getElementById('si_edit_save_selected');
+                if (save) save.disabled = !block;
             },
             //Draw the Main tab 
             DrawMain: function (e) {
                 //Container
                 let container = Ele('div', {
                     id: 'si_main_view',
-                    style: {
-                        height: '329px',
-                        backgroundColor: 'black',
-                        color: SI.Editor.Style.TextColor,
-                        padding: '15px',
-                        overflowY: 'scroll',
-                    },
+                    class: 'si-edit-panel-body',
                     ondrag: function () {
                         return false;
                     },
@@ -1351,9 +1165,7 @@ SI.Editor = {
                 //Menubox
                 let menu = Ele('div', {
                     id: "si_edit_main_menubox",
-                    style: {
-                        position: 'relative',
-                    },
+                    class: 'si-edit-actions',
                     appendTo: container,
                 });
                 //Select Button
@@ -1364,23 +1176,14 @@ SI.Editor = {
                         handlePanels(panel);
                         refreshSelects();
                     },
-                    style: {
-                       
-                    },
+
                     appendTo: menu,
                 });
 
                 let selectpanel = Ele('div', {
                     id: "si_edit_main_selectpanel",
                     class:"si-edit-main-panel",
-                    style: {
-                        backgroundColor: 'silver',
-                        display: 'none',
-                        position: 'absolute',
-                        marginLeft: '0px',
-                        padding: '3px',
-                        color:'black',
-                    },
+                    style: {display: 'none'},
                     appendTo: menu,
                 });
 
@@ -1393,10 +1196,7 @@ SI.Editor = {
 
                         SI.Editor.Objects.Blocks.Select(blk.id);
                     },
-                    style: {
-                        display: 'block',
-                        width: '74px',
-                    },
+                    class: 'si-edit-panel-action',
                     appendTo: selectpanel,
                 });
 
@@ -1417,20 +1217,13 @@ SI.Editor = {
                             }
                         }
                     },
-                    style: {
-                        display: 'block',
-                        width: '74px',
-                    },
+                    class: 'si-edit-panel-action',
                     appendTo: selectpanel,
                 });
 
                 Ele('span', { innerHTML: "By id", appendTo: selectpanel});
                 let selectbyid = Ele('select', {
-                    style: {
-                        width: "30px",
-                        marginLeft:"10px"
-                        
-                    },
+                    class: 'si-edit-control',
                     onmouseenter: function (e) { refreshSelects(); },
                     onchange: function (e) {                      
                         let ele = document.getElementById(this.value)
@@ -1537,47 +1330,29 @@ SI.Editor = {
                         handlePanels(panel);
                         refreshParents();
                     },
-                    style: {
-                        marginLeft: '5px',
-                    },
+
                     appendTo: menu,
                 });
                 let parentpanel = Ele('div', {
                     id: "si_edit_main_parentpanel",
                     class: "si-edit-main-panel",
-                    style: {
-                        backgroundColor: 'silver',
-                        display: 'none',
-
-                        position: 'absolute',
-                        marginLeft: '58px',
-                        padding: '3px',
-                    },
+                    style: {display: 'none'},
                     appendTo: menu,
                 });
                 let selectedParentLabel = Ele('span', {
                     innerHTML: "Parent:",
-                    style: {
-                        color: 'black',
-                        display: 'block',
-                    },
+                    class: 'si-edit-panel-label',
                     appendTo: parentpanel,
                 });
                 let selectedParentValue = Ele('span', {
                     innerHTML: "NothingSelected",
-                    style: {
-                        color: 'blue',
-                        display: 'block',
-                    },
+                    class: 'si-edit-panel-value',
                     appendTo: parentpanel,
                 });
                 Ele('hr', { appendTo: parentpanel,});
                 let changeParentLabel = Ele('span', {
                     innerHTML: "Change Parent",
-                    style: {
-                        color: 'black',
-                        display:'block',
-                    },
+                    class: 'si-edit-panel-label',
                     appendTo: parentpanel,
                 });
 
@@ -1665,15 +1440,14 @@ SI.Editor = {
 
                 //Delete Button
                 let remove = Ele('button', {
+                    class: "si-edit-delete",
                     innerHTML: "Delete",
                     onclick: function (e) {
                         if (confirm("Delete Element " + SI.Editor.Objects.Elements.Selected.id+"???")) {
                             SI.Editor.Objects.Elements.Remove(SI.Editor.Objects.Elements.Selected);
                         } 
                     },
-                    style: {
-                        marginLeft: '5px',
-                    },
+
                     appendTo: menu,
                 });
 
@@ -1685,30 +1459,19 @@ SI.Editor = {
                         handlePanels(panel);
 
                     },
-                    style: {
-                        marginLeft: '5px',
-                    },
+
                     appendTo: menu,
                 });
                 let advancedpanel = Ele('div', {
                     id: "si_edit_main_advancedpanel",
                     class: "si-edit-main-panel",
-                    style: {
-                        backgroundColor: 'silver',
-                        display: 'none',
-                        position: 'absolute',
-                        marginLeft: '178px',
-                        padding: '7px',
-                        color: 'black',
-                    },
+                    style: {display: 'none'},
                     appendTo: menu,
                 });
                 let multilinguallbl = Ele('span', {
                     innerHTML: 'Multilingual ',
                     title: "translate the text into other languages",
-                    style: {
-                        fontSize: '.6em',
-                    },    
+                    class: 'si-edit-panel-label',
                     appendTo: advancedpanel,
                 });
                 //MULTILINGUAL SELECT
@@ -1790,9 +1553,7 @@ SI.Editor = {
                 let ignoreInnerlbl = Ele('span', {
                     innerHTML: 'Ignore innerHTML on Save ',
                     title:"This is useful when personal data may be present in an element and should not be saved to the block database. eg: Logged In: MyUserName",
-                    style: {
-                        fontSize:'.6em',
-                    },
+                    class: 'si-edit-panel-label',
                     appendTo: advancedpanel,
                 });
                 let ignoreInner = Ele('input', {
@@ -1812,10 +1573,7 @@ SI.Editor = {
 
                 let maintable = Ele("table", {
                     id: "si_edit_main_shotrcuttable",
-                    style: {
-                        height: '100%',
-                        paddingBottom: '40px',
-                    },
+                    class: 'si-edit-property-table',
                     appendTo: container,
                 });
 
@@ -1841,51 +1599,24 @@ SI.Editor = {
             DrawAttributes: function (e) {
                 var attrsview = Ele('div', {
                     id: 'si_attribute_view',
-                    style: {
-                        height: '329px',
-                        overflowY: 'scroll',
-                    },
+                    class: 'si-edit-panel-body',
                     
                 });
                 //Tools.StopOverscroll(attrsview); //this is meant to make the screen not scroll past the window. it needs work
-                var pretable = Ele('table', {
-                    style: {
-                        width: '100%',  
-                    }
-                });
-                var fnamerow = document.createElement('tr');
-                var fnameLabel = document.createElement('td');
-                fnameLabel.innerHTML = 'friendly name';
-                fnamerow.appendChild(fnameLabel);
-                var fnameLabel = document.createElement('td');
-                fnameLabel.innerHTML = '<input />';
-                fnamerow.appendChild(fnameLabel);
-
                 for (let group in SI.Editor.Data.html_attributes) {
                     //           console.log(eletype + "  " + prop);
                     if (SI.Editor.Data.html_attributes.hasOwnProperty(group)) {
 
                         var attrsbox = Ele('div', {
+                            class: 'si-edit-property-group',
                             innerHTML: group,
-                            style: {
-                                backgroundColor: 'black',
-                                color: SI.Editor.Style.TextColor,
-                                paddingLeft: '10px',
-                            },
                         });         
                         if (group != 'GLOBAL' && group != 'EVENT') {
                             attrsbox.classList.add('si-attribute-group');
                             attrsbox.id = 'si_attribute_group_' + group.trim();
                             attrsbox.style.display = 'none';
                         }
-                        var attrstable = Ele('table', {
-                            style: {
-                                width: '100%',
-                                borderCollapse: 'collapse',
-                                userSelect: false,
-                                backgroundColor: SI.Editor.Style.BackgroundColor,
-                            }
-                        });
+                        var attrstable = Ele('table', {class: 'si-edit-property-table'});
                         for (let attribute in SI.Editor.Data.html_attributes[group]) {
                             if (SI.Editor.Data.html_attributes[group].hasOwnProperty(attribute)) {
                                 let editableAttributeRow = SI.Editor.Objects.Elements.Attributes.Widget({ "Group": group, "Index": attribute });
@@ -1894,8 +1625,6 @@ SI.Editor = {
                                 }
                             }
                         }
-
-                        Ele("tr", { append: Ele('td', { innerHTML: '|' }), appendTo: attrstable });//hack to fix the bottom row of the scrolls. This is probably a tabs issue. further investigate.
                         
                         attrsbox.appendChild(attrstable);
                         attrsview.appendChild(attrsbox);
@@ -1910,11 +1639,7 @@ SI.Editor = {
 
                 var styleview = Ele('div', {
                     id: 'si_style_view',
-                    style: {
-                        height: '329px',
-                        overflowX: 'hidden',
-                        overflowY: 'scroll',
-                    },
+                    class: 'si-edit-panel-body',
                 });
                 
                // var eletype = ele.tagName.toLowerCase();
@@ -1924,20 +1649,12 @@ SI.Editor = {
                         if (!group.startsWith("Pseudo") && group!=="At Selectors" ) {
                             //Make the group box
                             let stylebox = Ele('div', {
+                                class: 'si-edit-property-group',
                                 innerHTML: group,
-                                style: {
-                                    backgroundColor: 'black',
-                                    color: SI.Editor.Style.TextColor,
-                                    paddingLeft: "10px",
-                                },
                                 appendTo: styleview,
                             });
                             let styletable = Ele('table', {
-                                style: {
-                                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                                    color: SI.Editor.Style.TextColor,
-                                    width: '100%',
-                                },
+                                class: 'si-edit-property-table',
                                 appendTo: stylebox,
                             });
                             //Loop through all of the possible styles and create a user interface for them :)
@@ -1952,7 +1669,6 @@ SI.Editor = {
                         }
                     }
                 }
-                Ele("div",{style: {height:"18px",}, appendTo:styleview });//hack to fix the bottom of the scrolls. This is probably a tabs issue. further investigate.
                 return styleview;
             },
 
@@ -2095,15 +1811,16 @@ SI.Editor = {
             //Clears the Attributes or the Styles
             Clear: {
                 Attributes: function () {
-                    SI.Tools.Class.Loop("si-edit-attribute", function (ele) {
-                        if (!ele.dataset.siPreserve) {
-                            ele.value = "";
+                    document.querySelectorAll("#si_edit_edit_menuitem .si-edit-attribute").forEach(function (ele) {
+                        if (ele.dataset.siPreserve !== 'true') {
+                            if (ele.type === 'checkbox' || ele.type === 'radio') ele.checked = false;
+                            else ele.value = "";
                         }
                     });
                 },
                 Styles: function () {
-                   SI.Tools.Class.Loop("si-edit-style", function (ele) {
-                       if (!ele.dataset.siPreserve) {
+                   document.querySelectorAll("#si_edit_edit_menuitem .si-edit-style").forEach(function (ele) {
+                       if (ele.dataset.siPreserve !== 'true') {
                            ele.value = "";
                        }
                     });
@@ -2117,22 +1834,11 @@ SI.Editor = {
                 //Make a div for the tools panel
                 var toolsMenu = Ele('div', {
                     id: 'si_edit_tools_menuitem',
-                    style: {
-                        backgroundColor : SI.Editor.Style.BackgroundColor,
-                        position : 'absolute',
-                        top : '45px',
-                        left : '74px',
-                        display : 'none',
-                    }
+                    style: {display: 'none'}
                 });
 
                 //put a table in it so stuff stacks nice
-                var toolsMenuTable = Ele('table', {
-                    style: {
-                        width: '100%',
-                        borderCollapse : "collapse",
-                    }
-                });
+                var toolsMenuTable = Ele('table', {class: 'si-editor-menu-list'});
 
                 for (let i in SI.Editor.UI.ToolsPanel.ToolWindows) {
                  //   debugger;
@@ -2140,13 +1846,9 @@ SI.Editor = {
 
                     var menuRow = toolsMenuTable.insertRow(i);
                     var menuItem = menuRow.insertCell(0);
-                    menuItem.style.border = 'solid 1px #000';
+                    menuItem.className = 'si-editor-menu-action';
                     menuItem.innerHTML = title;
                     menuItem.id = 'si_edit_'+title.toLowerCase()+"_trigger";
-                    menuItem.style.textAlign = 'center';
-                    menuItem.style.cursor = 'pointer';
-                    menuItem.style.paddingLeft = '5px';
-                    menuItem.style.paddingRight = '5px';
                     menuItem.onclick = SI.Editor.UI.ToolsPanel.OpenToolWindow;
                 }
                 toolsMenu.appendChild(toolsMenuTable);
@@ -2338,6 +2040,7 @@ SI.Editor = {
             let stringdata = JSON.stringify(options.Data);
             //debugger;
             ajax.send(stringdata);
+            return ajax;
         },
         Complete: function (json,options) {
             //debugger;

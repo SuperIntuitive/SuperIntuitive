@@ -1,0 +1,29 @@
+use Tools
+var _settings: Map = {:}
+
+fn load() -> Map {
+    let names = ["SI_SIPL_DSN", "SI_SIPL_DB_USER", "SI_SIPL_DB_PASSWORD", "SI_SIPL_PORT", "SI_SIPL_DOMAIN", "SI_SETUP_TOKEN"]
+    let values = env.read(names)
+    var settings: Map = {"root": path.absolute("."), "host": "127.0.0.1", "port": 8092, "domain": "localhost", "subdomain": "", "dsn": "", "dbUser": "", "dbPassword": "", "secureCookies": false, "allowNativePasswords": false, "phpOrigin": "http://localhost:8090", "setupToken": ""}
+    var source = path.absolute("core_sipl/config.local.json")
+    if system.args.length > 0 { source = path.absolute(system.args[0]) }
+    if system.args.length > 0 or fs.isFile(source) {
+        settings = config.merge(settings, config.load(source, [source]))
+    }
+    for name, field in {"SI_SIPL_DSN": "dsn", "SI_SIPL_DB_USER": "dbUser", "SI_SIPL_DB_PASSWORD": "dbPassword", "SI_SIPL_DOMAIN": "domain", "SI_SETUP_TOKEN": "setupToken"} {
+        if values.get(name) != none { settings[field] = values[name] }
+    }
+    if values.get("SI_SIPL_PORT") != none { settings["port"] = values["SI_SIPL_PORT"].toInt() }
+    if settings["port"].type != "Int" { fail("INVALID_PORT") }
+    if settings["port"] < 0 or settings["port"] > 65535 { fail("INVALID_PORT") }
+    if not settings["dsn"].isEmpty and not settings["dsn"].startsWith("mysql:") and not settings["dsn"].startsWith("mariadb:") { fail("MYSQL_REQUIRED_NO_SCHEMA_CONVERSION") }
+    if not Tools.domainValid(settings["domain"]) { fail("INVALID_DOMAIN") }
+    _settings = settings
+    return settings
+}
+
+fn setForTests(settings: Map) { _settings = settings }
+fn install(settings: Map) { _settings = config.merge(_settings, settings) }
+fn current() -> Map { return _settings }
+fn get(name: String, fallback) { return _settings.get(name, fallback) }
+fn root(relative: String) -> String { return path.join(_settings.get("root", path.absolute(".")), relative) }

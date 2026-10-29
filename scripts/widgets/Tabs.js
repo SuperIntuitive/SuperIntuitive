@@ -125,7 +125,7 @@ SI.Widget.Tab = function  (options) {
         });
         //debugger;
         let tabs = Ele("ul", {
-            class: this.BaseClass+"-tabmenu",
+            class: this.BaseClass+"-tabmenu si-tab-list",
             style: {
                 listStyle: 'none',
                 whiteSpace: 'nowrap',
@@ -139,6 +139,7 @@ SI.Widget.Tab = function  (options) {
             appendTo: container,
         });
 
+        tabs.setAttribute('role', 'tablist');
         //log(this.Items.Count);
         //loop the digits and make the lis
         for (let i = 0; i < this.Items.Count; i++) {
@@ -163,7 +164,7 @@ SI.Widget.Tab = function  (options) {
 
             let tabitem = Ele("li", {
                 id: this.Id+'_tabitem_' + key.replace(' ', '_'),
-                class: this.BaseClass+"-tabitem",
+                class: this.BaseClass+"-tabitem si-tab-item",
                 style: {
                     display: 'inline',
                     border: this.Options.Border,
@@ -183,6 +184,8 @@ SI.Widget.Tab = function  (options) {
                     SI.Tools.Class.Loop(self.BaseClass+"-tabitem", function (item) {
                         item.style.backgroundColor = options.TabBackgroundColor;
                         item.style.filter = options.TabFilter;
+                        item.setAttribute('aria-selected', 'false');
+                        item.tabIndex = -1;
                     });
                     SI.Tools.Class.Loop(self.BaseClass+"-tabcontent", function (item) {
                         item.style.display = 'none';
@@ -190,6 +193,8 @@ SI.Widget.Tab = function  (options) {
 
                     //this.style.backgroundColor = options.SelectedTabBackgroundColor;
                     this.style.filter = options.SelectedTabFilter;
+                    this.setAttribute('aria-selected', 'true');
+                    this.tabIndex = 0;
 
                     let contentid = this.id.replace('_tabitem_', '_tabcontent_');
                     //    console.log(contentid);
@@ -213,6 +218,10 @@ SI.Widget.Tab = function  (options) {
                 },
             });
 
+            tabitem.setAttribute('role', 'tab');
+            tabitem.setAttribute('aria-selected', String(first));
+            tabitem.setAttribute('aria-controls', tabitem.id.replace('_tabitem_', '_tabcontent_'));
+            tabitem.tabIndex = first ? 0 : -1;
             if (first) {
                 SelectedId = tabitem.id;
             } 
@@ -238,7 +247,7 @@ SI.Widget.Tab = function  (options) {
             //Create the element
             let content = Ele('div', {
                 id: this.Id+'_tabcontent_' + key.replace(' ', '_'),
-                class: this.BaseClass+"-tabcontent",
+                class: this.BaseClass+"-tabcontent si-tab-panel",
                 style: {
                     minHeight: '100%',
                     backgroundColor: '#DDD',
@@ -248,6 +257,8 @@ SI.Widget.Tab = function  (options) {
                     display: disp,
                 }
             });
+            content.setAttribute('role', 'tabpanel');
+            content.setAttribute('aria-labelledby', tabitem.id);
             //the incomming content can be a string to add to inner, or an element to append
             if (typeof val === 'string') {
                 content.innerHTML = val;

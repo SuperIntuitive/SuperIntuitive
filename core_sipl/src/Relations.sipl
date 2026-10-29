@@ -1,0 +1,31 @@
+use Database
+use Entity
+use Security
+use Tools
+
+fn create(context: Map, parentType: String, parentId: String, childType: String, childId: String, order, options) -> String {
+    let parentScope = Security.scope(context, parentType)
+    let childScope = Security.scope(context, childType)
+    let parent = Database.one("SELECT 1 AS found FROM `" + parentType + "` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)", {"id": Tools.guid(parentId), "scope": parentScope})
+    let child = Database.one("SELECT 1 AS found FROM `" + childType + "` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)", {"id": Tools.guid(childId), "scope": childScope})
+    if parent == none or child == none { fail("CROSS_SITE_RELATION") }
+    let attributes: Map = {"parententity_id": "0x" + parentScope, "childentity_id": "0x" + childScope, "parent_id": parentId, "child_id": childId, "note": parentType + "_" + childType, "live-order": 0, "test-order": 0, "dev-order": Tools.number(order, 0, 2147483647), "live-options": {:}, "test-options": {:}, "dev-options": options}
+    return Entity.create(context, "relations", attributes)
+}
+
+fn children(context: Map, parentType: String, parentId: String, childType: String, columns: List) -> List {
+    let expressions = []
+    for field in columns {
+        let resolved = Entity.column(context, childType, field, true)
+        var expression = "child.`" + resolved + "`"
+        if Entity.binary(resolved) { expression = "LOWER(HEX(" + expression + "))" }
+        expressions.push(expression + " AS `" + field + "`")
+    }
+    let level = context["deployment"]
+    expressions.push("LOWER(HEX(r.id)) AS relationsId")
+    expressions.push("r.`" + level + "-order` AS relationsOrder")
+    expressions.push("r.`" + level + "-options` AS relationsOptions")
+    return Database.query("SELECT " + expressions.join(",") + " FROM `" + parentType + "` parent INNER JOIN relations r ON r.parent_id=parent.id AND r.parententity_id=parent.entity_id INNER JOIN `" + childType + "` child ON child.id=r.child_id AND child.entity_id=r.childentity_id WHERE parent.id=UNHEX(:id) AND parent.entity_id=UNHEX(:parent_scope) AND child.entity_id=UNHEX(:child_scope) AND r.entity_id=UNHEX(:relation_scope) AND parent.status='active' AND child.status='active' AND r.status='active' ORDER BY r.`" + level + "-order`, r.id", {"id": Tools.guid(parentId), "parent_scope": Security.scope(context, parentType), "child_scope": Security.scope(context, childType), "relation_scope": Security.scope(context, "relations")})
+}
+
+fn remove(context: Map, id: String) -> Bool { return Entity.remove(context, "relations", id) }

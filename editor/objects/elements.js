@@ -1,6 +1,7 @@
 
 SI.Editor.Objects.Elements = {
     //Loops through all elements and makes them editable 
+    EditableNodes: new WeakSet(),
     Init: function () {
         document.querySelectorAll('*').forEach(function (node) {
             let tn = node.tagName;
@@ -12,14 +13,28 @@ SI.Editor.Objects.Elements = {
         });
     },
     //Completely removes an element
-    Remove: function (ele) {
-        if (ele !== null) {
-            ele.parentElement.removeChild(ele);
-            SI.Editor.UI.EditPanel.Clear.Attributes();
-            SI.Editor.UI.EditPanel.Clear.Styles();
-        } else {
-            console.log("Nothing To Delete!");
+    Remove: function (element) {
+        if (!element || !element.closest('.si-block')) return;
+        SI.Editor.Objects.Elements.MarkDirty(element);
+        const block = element.closest('.si-block').id.replace('si_block_', '');
+        for (const widget of [element, ...element.querySelectorAll('[data-si-widget]')]) {
+            if (widget.dataset.siWidget) SI.Editor.Objects.Widgets.Forget(block, widget.id);
         }
+        SI.Editor.Objects.Elements.SelectNone();
+        element.remove();
+        SI.Editor.Objects.Widgets.RefreshInstances();
+        SI.Editor.UI.EditPanel.Clear.Attributes();
+        SI.Editor.UI.EditPanel.Clear.Styles();
+    },
+    MarkDirty: function (element) {
+        const block = element && element.closest('.si-block');
+        const name = block && block.id.replace('si_block_', '');
+        const data = name && SI.Editor.Data.Objects.Blocks[name];
+        if (data) {
+            data.IsDirty = true;
+            data.EditRevision = (data.EditRevision || 0) + 1;
+        }
+        SI.Editor.UI.EditPanel.SelectionSummary();
     },
     //A list of all of the editable elements ids.
     HeadIds: [],
@@ -29,57 +44,38 @@ SI.Editor.Objects.Elements = {
     //Holds the currently selected element type=element
     Selected: null,
     //Removes selection from all elements.
-    SelectNone: function () {
-        //debugger;
-        var selecteds = document.getElementsByClassName("si-editor-selected");
-        if (selecteds.length > 0) {
-            for (let node in selecteds) {
-                let ele = selecteds[node];
-                if (SI.Tools.Is.Element(ele)) {
-                    //remove its selected events
-                    // ele.removeEventListener('dragenter', SI.Editor.Objects.Elements.MakeDropParent);
-                    //  ele.removeEventListener('dragstart', SI.Editor.Objects.Elements.MoveStart);
-                    //  ele.removeEventListener('dragend', SI.Editor.Objects.Elements.MoveEnd);
-                    //remove/replace any styles or attributes that make this selected
-                    if (typeof ele.classList !== 'undefined' && ele.classList.contains("si-editor-selected")) {
-                        ele.classList.remove("si-editor-selected");
-                        // Cycle over each attribute on the element
-                        for (let i = 0; i < ele.attributes.length; i++) {
-                            // Store reference to current attr
-                            attr = ele.attributes[i];
-                            // If attribute nodeName starts with 'data-'
-                            if (attr.nodeName.startsWith('data-si')) {
-                                // Log its name (minus the 'data-' part), and its value
-                                if (attr.nodeName.startsWith('data-sistyle_')) {
-                                    let prop = attr.nodeName.replace('data-sistyle_', '');
-                                    if (attr.nodeValue === 'null') {
-                                        ele.style[prop] = "";
-                                    } else {
-                                        ele.style[prop] = attr.nodeValue;
-                                    }
-                                    ele.removeAttribute(attr.nodeName);
-                                    //Compinsate for the removed attribute in the for loop to get the next one
-                                    i--;
-                                }
-                                else if (attr.nodeName.startsWith('data-siattr_')) {
-                                    let attribute = attr.nodeName.replace('data-siattr_', '');
-                                    if (attr.nodeValue !== 'null') {
-                                        ele.setAttribute(attribute, attr.nodeValue);
-                                    } else {
-                                        ele.removeAttribute(attribute);
-                                    }
-                                    ele.removeAttribute(attr.nodeName);
-                                    i--;
-                                }
-                            }
-                        }
-                    }
+    SelectNone: function (keepEditPanel = false) {
+        for (const element of document.querySelectorAll('.si-editor-selected')) {
+            element.classList.remove('si-editor-selected');
+            for (const attribute of Array.from(element.attributes)) {
+                if (attribute.name.startsWith('data-sistyle_')) {
+                    element.style.setProperty(attribute.name.replace('data-sistyle_', ''), attribute.value === 'null' ? '' : attribute.value);
+                    element.removeAttribute(attribute.name);
+                } else if (attribute.name.startsWith('data-siattr_')) {
+                    const name = attribute.name.replace('data-siattr_', '');
+                    if (attribute.value === 'null') element.removeAttribute(name);
+                    else element.setAttribute(name, attribute.value);
+                    element.removeAttribute(attribute.name);
                 }
-            };
+            }
         }
         SI.Editor.Objects.Elements.Selected = null;
+        SI.Editor.Objects.Elements.DropParent = null;
+        SI.Editor.Objects.Blocks.Select();
+        const hud = document.getElementById('si_edit_hud_selectedelement');
+        if (hud) hud.textContent = '';
+        if (!keepEditPanel) {
+            SI.Editor.UI.EditPanel.Clear.Attributes();
+            SI.Editor.UI.EditPanel.Clear.Styles();
+            const panel = document.getElementById('si_edit_edit_menuitem');
+            if (panel) {
+                panel.getAnimations().forEach(animation => animation.cancel());
+                panel.style.display = 'none';
+            }
+            document.getElementById('si_edit_menu_item')?.setAttribute('aria-expanded', 'false');
+        }
+        SI.Editor.UI.EditPanel.SelectionSummary();
     },
-    //Selects a single element.
     Select: function (ev, id) {
         //debugger;
         //this can come from an event handeler aka double click on a element OR frm a list. If not from a handeler, we need to supply the element id.
@@ -97,26 +93,25 @@ SI.Editor.Objects.Elements = {
         //now were pretty sre self = the element to select. 
         //Qualify / Disqualify self selection
         //If it is a block DQ
-        if (self.classList && self.classList.contains('si-block') || self.classList.contains('si-deployment-control')) {
+        if (!(self instanceof HTMLElement) || !self.closest('.si-block') || self.classList.contains('si-block') || self.classList.contains('si-deployment-control')) {
             return; //we dont select blocks
         }
 
-        //if it is already selected, then unselect it and hide the edit window.
-        if (self.classList && self.classList.contains('si-editor-selected')) {
-            SI.Editor.Objects.Elements.SelectNone();
-            document.getElementById('si_edit_edit_menuitem').style.display = 'none'; //hide the edit menu
+        // Keep a repeated selection stable; Escape explicitly clears it.
+        if (self.classList.contains('si-editor-selected')) {
+            if (ev && ev.stopPropagation) ev.stopPropagation();
             return;
         }
 
-        //unselect everything before we select the new element.
-        SI.Editor.Objects.Elements.SelectNone();
+        // Replace the selection while keeping an open properties panel in place.
+        SI.Editor.Objects.Elements.SelectNone(true);
 
         //In the edit menu setup all self elements styles and attributes.
         SI.Editor.UI.EditPanel.SetSelectedElementValues(self);
 
         //Add whatever we need to make self Selected
         //since were comindering the box shadow for selection we should keep a copy of/if there is a set one
-        if (typeof self.style.boxShadow.length > 0) {
+        if (self.style.boxShadow.length > 0) {
             self.setAttribute('data-sistyle_box-shadow', self.style.boxShadow);
         } else {
             self.setAttribute('data-sistyle_box-shadow', null);
@@ -124,11 +119,7 @@ SI.Editor.Objects.Elements = {
         self.style.boxShadow = '0px 0px 20px 1px rgba(255, 255, 0, 0.3), inset 0px 0px 20px 1px rgba(255, 255, 0, 0.3)';
 
         //all selected elements are draggable, and turned off when unselected. But what if it is supposed to be draggable? it should not turn off. store it. 
-        if (typeof self.draggable.length > 0) {
-            self.setAttribute('data-siattr_draggable', self.draggable);
-        } else {
-            self.setAttribute('data-siattr_draggable', null);
-        }
+        self.setAttribute('data-siattr_draggable', self.getAttribute('draggable') === null ? 'null' : self.getAttribute('draggable'));
         self.draggable = true;
 
         self.addEventListener('dragenter', SI.Editor.Objects.Elements.MakeDropParent);
@@ -146,6 +137,7 @@ SI.Editor.Objects.Elements = {
 
         //Lastly make the global Selected element be self one.
         SI.Editor.Objects.Elements.Selected = self;
+        SI.Editor.UI.EditPanel.SelectionSummary();
 
         //Select the block that is parent to the element
         let block = SI.Tools.Element.GetBlock(self);
@@ -154,7 +146,7 @@ SI.Editor.Objects.Elements = {
         }
 
 
-        if (typeof ev !== 'undefined') {
+        if (ev && ev.stopPropagation) {
             ev.stopPropagation();
         }
 
@@ -162,7 +154,9 @@ SI.Editor.Objects.Elements = {
     //Makes a simple element into a editable element
     Editable: function (ele) {
         //debugger;
-        if (typeof ele !== "undefined") {
+        if (ele instanceof HTMLElement && ele.closest('.si-block') && !ele.classList.contains('si-block') && !ele.closest('[data-si-editor-only]')) {
+            if (SI.Editor.Objects.Elements.EditableNodes.has(ele)) return ele;
+            SI.Editor.Objects.Elements.EditableNodes.add(ele);
             //Enter the unique classes into out data for future use.
             let classlist = ele.className.split(' ');
             let classBlackList = ["si-editable-element"];
@@ -235,89 +229,27 @@ SI.Editor.Objects.Elements = {
     },
     //Moves the selected element plus or minus 
     MoveBy: function (x, y) {
-        //debugger;
-        var selected = SI.Editor.Objects.Elements.Selected;
-        if (selected) {
-            if (typeof selected.style.position === 'undefined' || selected.style.position === 'static') {
-                SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
-            }
-            let oldx = parseInt(selected.style.left);
-            let oldy = parseInt(selected.style.top);
-            selected.style.left = (oldx + x) + 'px';
-            selected.style.top = (oldy + y) + 'px';
-        }
+        const selected = SI.Editor.Objects.Elements.Selected;
+        if (!selected || !/^(absolute|relative|fixed)$/.test(getComputedStyle(selected).position)) return;
+        const style = getComputedStyle(selected);
+        const left = parseFloat(style.left);
+        const top = parseFloat(style.top);
+        selected.style.left = ((Number.isFinite(left) ? left : selected.offsetLeft) + x) + 'px';
+        selected.style.top = ((Number.isFinite(top) ? top : selected.offsetTop) + y) + 'px';
+        SI.Editor.Objects.Elements.MarkDirty(selected);
+        SI.Editor.UI.EditPanel.SetSelectedElementValues(selected);
     },
-    //Sets the start info when dragging starts
-    MoveStart: function (ev) {
-        let style = window.getComputedStyle(this);
-        //debugger;
-        if (!style.position || style.position === 'static') {
-            SI.Tools.SuperAlert("The element\'s positioning is static thus it cannot be moved. To move the element, first change the css position property");
+    MoveStart: function (event) {
+        if (SI.Editor.Objects.Elements.Selected !== this || !/^(absolute|relative|fixed)$/.test(getComputedStyle(this).position)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
         }
-        else {
-            if (SI.Editor.Objects.Elements.Selected !== null && SI.Editor.Objects.Elements.Selected.id === this.id) {
-                //make the drop Parent this parent to avoid ambiguity;
-                SI.Editor.Objects.Elements.MakeDropParent(this.parentElement);
-                //debugger;
-                this.dataset.offsetparent = this.offsetParent;
-                this.dataset.parentid = this.parentElement.id;
-                this.dataset.mOffX = ev.offsetX;
-                this.dataset.mOffY = ev.offsetY;
-
-
-                let hud = document.getElementById("si_edit_hud_draggingelement");
-                if(hud){
-                    hud.innerHTML = this.id;
-                    if (this.offsetParent === document.body) {
-                        document.getElementById("si_edit_hud_offsetparent").innerHTML = 'body';
-                    } else {
-                        document.getElementById("si_edit_hud_offsetparent").innerHTML = this.offsetParent.id;
-                    }
-                    document.getElementById("si_edit_hud_parentid").innerHTML = this.parentElement.id;
-                    document.getElementById("si_edit_hud_offsetx").innerHTML = ev.offsetX;
-                    document.getElementById("si_edit_hud_offsety").innerHTML = ev.offsetY;
-                }
-            }
-        }
-        if (ev.stopPropagation)
-            ev.stopPropagation();
+        SI.Editor.Objects.Placement.Begin(event, {kind: 'move', element: this});
     },
-    //Sets the position when the move ends. NEEDS WORK
-    MoveEnd: function (ev) {
-        //this.style.display = 'initial';
-        if (SI.Editor.Objects.Elements.Selected !== null && SI.Editor.Objects.Elements.Selected.id === this.id) {
-            //debugger;
-            let self = this;
-            let x = ev.pageX;
-            let y = ev.pageY;
-
-            if (SI.Editor.Objects.Elements.DropParent.id === self.id) {
-                SI.Editor.Objects.Elements.DropParent.id = self.parentElement.id;
-            }
-
-            let dropOffset = SI.Tools.Element.GetTotalOffset(SI.Editor.Objects.Elements.DropParent);
-
-            let ol = dropOffset.left;
-            let ot = dropOffset.top;
-
-            if (SI.Editor.Objects.Elements.DropParent.id !== self.parentElement.id) {
-                SI.Editor.Objects.Elements.DropParent.appendChild(self);
-            }
-
-            self.style.left = x - ol - self.dataset.mOffX + 'px';
-            self.style.top = y - ot - self.dataset.mOffY + 'px';
-
-            //clean all this up
-            self.removeAttribute('data-offsetParent');
-            self.removeAttribute('data-parentid');
-            self.removeAttribute('data-mOffX');
-            self.removeAttribute('data-mOffY');
-
-            //var x = (evt.pageX - $('#element').offset().left) + self.frame.scrollLeft();
-            //var y = (evt.pageY - $('#element').offset().top) + self.frame.scrollTop();
-        }
-        if (ev.stopPropagation)
-            ev.stopPropagation();
+    MoveEnd: function (event) {
+        event.stopPropagation();
+        SI.Editor.Objects.Placement.Cancel();
     },
     //Sets the parent of the element while being moved
     MakeDropParent: function (ev, self) {
@@ -379,7 +311,7 @@ SI.Editor.Objects.Elements = {
 
             let attrobj = SI.Editor.Data.html_attributes[options.Group][options.Index];
 
-            let attrrow = document.createElement('tr');
+            let attrrow = Ele('tr', {class: 'si-edit-property-row'});
 
             let getAffected = function () {
                 let ele = null;
@@ -396,13 +328,9 @@ SI.Editor.Objects.Elements = {
             }
             //The Attribute label
             let attrdata = Ele('td', {
-                class: 'si-attribute-selection',
+                class: 'si-attribute-selection si-edit-property-label',
                 innerHTML: attrobj.n,
-                style: {
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                    borderBottom: 'solid 1px ' + SI.Editor.Style.TextColor,
-                    paddingLeft: '10px',
-                },
+
                 appendTo: attrrow,
             });
 
@@ -436,7 +364,7 @@ SI.Editor.Objects.Elements = {
             }
             else if (attrobj.dt === 'SCRIPT') {
                 attrInput = document.createElement('textarea');
-                attrInput.style.height = '16px';
+                attrInput.classList.add('si-edit-code');
                 attrInput.placeholder = 'Javascript';
                 // if (effectid) { attrInput.setAttribute("data-effectid", effectid); }
                 attrInput.onchange = function (e) {
@@ -452,45 +380,19 @@ SI.Editor.Objects.Elements = {
                     }
                 }
             }
-            else if (attrobj.dt === 'INNERHTML') {
-                if (!SI.Tools.Is.EmptyElement(attrobj.n)) {
-                    attrInput = Ele('textarea', {
-                        style: {
-                            width: '229px',
-                            height: '57px',
-                        },
-                        onkeyup: function (e) {
-                            let ele = getAffected();
-                            let text = this.value;
-                            if (text.length > 0) {
-                                SI.Editor.Objects.Elements.Selected.innerHTML = text;
-                            } else {
-                                SI.Editor.Objects.Elements.Selected.innerHTML = "";
-                            }
-                        }
-                    });
-                }
-            }
-            else if (attrobj.dt === 'INNERTEXT') {
-                if (!SI.Tools.Is.EmptyElement(attrobj.n)) {
-                    attrInput = Ele('textarea', {
-                        style: {
-                            width: '229px',
-                            height: '57px',
-                        },
-                        onkeyup: function (e) {
-                            let ele = getAffected();
-                            let text = this.value;
-                            if (text.length > 0) {
-                                ele.innerText = text;
-                            } else {
-                                ele.innerText = "";
-                            }
-
-                        }
-                    });
-
-                }
+            else if (attrobj.dt === 'INNERHTML' || attrobj.dt === 'INNERTEXT') {
+                attrInput = Ele('textarea', {class: 'si-edit-code'});
+                const updateContent = function () {
+                    const element = getAffected();
+                    if (!element || SI.Tools.Is.EmptyElement(element.tagName.toLowerCase())) return;
+                    const property = attrobj.dt === 'INNERHTML' ? 'innerHTML' : 'innerText';
+                    if (element[property] === this.value) return;
+                    element[property] = this.value;
+                    element.querySelectorAll('*').forEach(child => SI.Editor.Objects.Elements.Editable(child));
+                    SI.Editor.Objects.Elements.MarkDirty(element);
+                };
+                attrInput.oninput = updateContent;
+                attrInput.onkeyup = updateContent;
             }
             else if (attrobj.dt === 'TEXT') {
                 attrInput = document.createElement('input');
@@ -896,11 +798,18 @@ SI.Editor.Objects.Elements = {
                 attrInput.classList.add(options.AccessClass);
             }
             //  attrInput.setAttribute('data-attr', attrobj.n);
-            attrInput.classList.add("si-edit-attribute");   //to clear all the attrs
+            attrInput.classList.add("si-edit-attribute", "si-edit-control");
+            attrInput.setAttribute("aria-label", attrobj.n);   //to clear all the attrs
             attrInput.classList.add("si-edit-attribute-" + options.Group + "-" + attrobj.n); //to set the field
             attrInput.setAttribute("data-si-preserve", options.Preserve);
             attrInput.id = "si_edit_attribute_" + options.Group + "_" + attrobj.n + "_" + RandId;
 
+            // Text attributes respond to paste and input methods as well as key presses.
+            if (attrInput.onkeyup && !attrInput.oninput) attrInput.oninput = attrInput.onkeyup;
+            for (const type of ['input', 'change']) attrInput.addEventListener(type, function () {
+                const affected = getAffected();
+                if (affected && affected.closest('.si-block')) SI.Editor.Objects.Elements.MarkDirty(affected);
+            });
             if (options.OnChange) {
                 attrInput.addEventListener("change", function (ev) {
                     options.OnChange(ev, this);
@@ -908,9 +817,7 @@ SI.Editor.Objects.Elements = {
             }
 
            let attroptionbox = Ele('td', {
-                style: {
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                },
+                class: 'si-edit-property-value',
                 append: attrInput,
                 appendTo: attrrow,
             });
@@ -918,10 +825,7 @@ SI.Editor.Objects.Elements = {
            let attrdescriptionbox = Ele('td', {
                 innerHTML: "?",
                 title: attrobj.d,
-                style: {
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                    cursor: 'help',
-                },
+                class: 'si-edit-property-help',
                 appendTo: attrrow,
             });
             //Help links
@@ -990,30 +894,22 @@ SI.Editor.Objects.Elements = {
             //The Row to be returned. 
             let cssrow = Ele('tr', {
                 draggable: options.Draggable,
-                class: "si-edit-style-propertyrow",
-                style: {
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                    width: '90%'
-                }
+                class: "si-edit-style-propertyrow si-edit-property-row"
             });
             //if (styleobj.a) {
             //    cssrow.classList.add("si-edit-style-animatable");
             //}
             //add the label
             let csslabel = Ele('td', {
-                class: "si-edit-style-propertyname",
+                class: "si-edit-style-propertyname si-edit-property-label",
                 innerHTML: styleobj.n,
-                style: {
-                    borderBottom: 'solid 1px gray',
-                    paddingLeft: '10px',
-                    color: SI.Editor.Style.TextColor,
-                    textShadow: "1px 2px #000000",
-                },
+
                 appendTo: cssrow,
             });
-            var container = document.createElement('div');
+            var container = Ele('div', {class: 'si-edit-style-control'});
             //add the user interface
             let styleoptionbox = Ele('td', {
+                class: 'si-edit-property-value',
                 append: container,
                 appendTo: cssrow,
             });
@@ -1022,12 +918,19 @@ SI.Editor.Objects.Elements = {
             //The first thing is the input that shows the selected value.
             this.css_value = Ele('input', {
                 id: "si_edit_style_" + styleobj.n + "_" + RandId,
-                class: "si-edit-style-propertyvalue",
-                readOnly: true,
-                value: options.InitialValue,
-                style: {
-                    width: '80%'
+                class: "si-edit-style-propertyvalue si-edit-control",
+                readOnly: false,
+                title: 'Type a CSS value, or click to choose one.',
+                oninput: function () {
+                    if (this.value && !CSS.supports(styleobj.n, this.value)) {
+                        this.setCustomValidity('Enter a valid value for ' + styleobj.n + '.');
+                        return;
+                    }
+                    this.setCustomValidity('');
+                    AssignStyle(this.value);
                 },
+                value: options.InitialValue,
+
                 data: {
                     "si-animatable": styleobj.a,
                     "si-style-prop": styleobj.n,
@@ -1046,7 +949,8 @@ SI.Editor.Objects.Elements = {
                 appendTo: container
             });
 
-            if (options.AAffected === null) {
+            this.css_value.setAttribute('aria-label', styleobj.n);
+            if (options.Affected === null) {
                 this.css_value.classList.add("si-edit-style");
                 this.css_value.classList.add("si-edit-style-" + styleobj.n);
             }
@@ -1056,31 +960,19 @@ SI.Editor.Objects.Elements = {
 
             this.css_value_clear = Ele('button', {
                 id: "si_edit_style_clear_" + styleobj.n + "_" + RandId,
-                style: {
-                    backgroundImage: "url('/editor/media/icons/eraser.png')",
-                    backgroundPosition: 'center',
-                    width: '21px',
-                    height: '21px',
-                    position: 'relative',
-                    top: '1px',
-                    float: 'right',
-                    marginLeft: '3px',
-                    backgroundSize: 'cover',
-                    display: 'inline-block',
-                },
+                class: 'si-edit-clear-style',
+                innerText: '×',
+                title: 'Clear ' + styleobj.n,
                 onclick: function () {
                     DeleteStyle();
                 },
                 appendTo: container,
             });
+            this.css_value_clear.setAttribute('aria-label', 'Clear ' + styleobj.n);
             this.css_table = Ele('table', {
                 id: "si_edit_style_table_" + styleobj.n + "_" + RandId,
-                style: {
-                    borderCollapse: 'collapse',
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                    width: '160px',
-                    display: 'none',
-                },
+                class: 'si-edit-style-options',
+                style: {display: 'none'},
                 appendTo: container,
             });
 
@@ -1110,6 +1002,10 @@ SI.Editor.Objects.Elements = {
 
                 if (ele) {
                     ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = val;
+                    if (ele.closest('.si-block')) {
+                        SI.Editor.Objects.Elements.MarkDirty(ele);
+                        SI.Editor.Objects.Widgets.UpdatePlacement(ele);
+                    }
                 }
 
                 //allow the user to pass in a OnChange function
@@ -1159,6 +1055,7 @@ SI.Editor.Objects.Elements = {
                         classes[i].value = null;
                     }
                     SI.Editor.Objects.Elements.Selected.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
+                    SI.Editor.Objects.Elements.MarkDirty(SI.Editor.Objects.Elements.Selected);
                 }
                 if (options.Removable) {
                     //debugger;
@@ -1631,10 +1528,7 @@ SI.Editor.Objects.Elements = {
             let styledescriptionbox = Ele('td', {
                 innerHTML: "?",
                 title: styleobj.d,
-                class: 'help',
-                style: {
-                    cursor: 'help'
-                },
+                class: 'help si-edit-property-help',
                 appendTo: cssrow
             });
 

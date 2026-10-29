@@ -1,0 +1,202 @@
+use Config
+use Runtime
+use Database
+use Tools
+use Sessions
+use Security
+use Context
+use Accounts
+use Entity
+use Dispatcher
+use SetupAuthorization
+use Page
+use Render
+use Assets
+use Plugins
+use Library
+use Setup
+use SetupView
+use SetupFiles
+
+fn jsonReply(value, status: Int) -> Map {
+    return {"status": status, "body": Tools.scriptJson(value), "headers": {"Content-Type": "application/json; charset=utf-8"}}
+}
+
+fn operationReply(value: Map, array: Bool) -> Map {
+    var status = 200
+    if ["RUNTIME_CAPABILITY_REQUIRED", "PORT_FEATURE_PENDING"].contains(value.get("code", "")) { status = 501 }
+    if value.get("code", "") == "RATE_LIMITED" { status = 429 }
+    if array { return jsonReply([value], status) }
+    return jsonReply(value, status)
+}
+
+fn failure(detail: String, array: Bool) -> Map {
+    var reason = detail
+    if not regex.compile("^[A-Z0-9_]+$").isMatch(reason) { reason = "INTERNAL_ERROR" }
+    let messages = {"FORBIDDEN": "You do not have permission for this operation.", "CSRF_INVALID": "Your session changed. Refresh the page and try again.", "MYSQL_NOT_CONFIGURED": "Configure the SIPL MySQL connection before using this backend.", "MYSQL_CONNECTOR_BUILD": "The supplied SIPL executable was built without the MySQL connector.", "INSTALLER_LOCKED": "This site is already installed. Setup is disabled.", "PAGE_NOT_FOUND": "Page not found.", "ASSET_NOT_FOUND": "Asset not found.", "SITE_NOT_FOUND": "This domain is not registered in the database."}
+    var status = 400
+    if reason == "INTERNAL_ERROR" { status = 500 }
+    if reason == "FORBIDDEN" or reason == "CSRF_INVALID" or reason == "SETUP_AUTH_REQUIRED" or reason == "SETUP_KEY_INVALID" { status = 403 }
+    if reason == "INSTALLER_LOCKED" or reason == "INSTALLATION_INCOMPLETE" { status = 409 }
+    if reason == "PAGE_NOT_FOUND" or reason == "SITE_NOT_FOUND" or reason == "ASSET_NOT_FOUND" { status = 404 }
+    if reason == "MYSQL_NOT_CONFIGURED" { status = 503 }
+    if reason == "MYSQL_CONNECTOR_BUILD" or reason == "DYNAMIC_ASSET_NOT_PORTED" { status = 501 }
+    let value = Tools.error(messages.get(reason, "The operation could not be completed."), reason)
+    if array { return jsonReply([value], status) }
+    return jsonReply(value, status)
+}
+
+fn context(request: Map) -> Map {
+    if not Database.configured() { fail("MYSQL_NOT_CONFIGURED") }
+    if not Runtime.inspect()["mysqlDriver"] { fail("MYSQL_CONNECTOR_BUILD") }
+    let current = Context.load(request)
+    Accounts.refresh(current, request)
+    return current
+}
+
+fn post(request: Map) -> Map {
+    if not Sessions.validate(request) { fail("CSRF_INVALID") }
+    if request["path"] == "/filehandeler.php" {
+        let user = Sessions.user(request)
+        if user == none or not user.get("roles", []).contains("Admin") { fail("FORBIDDEN") }
+        return operationReply(Tools.gap("MULTIPART_UPLOAD_AND_MEDIA_VALIDATION"), false)
+    }
+    let source = request["body"].decodeUtf8()
+    if not json.isValid(source) { fail("INVALID_JSON") }
+    let data = json.parse(source)
+    if data.type != "Map" { fail("INVALID_JSON_OBJECT") }
+    let pathname = request["path"]
+    if pathname == "/delegate.php" {
+        let action = Tools.required(data, "KEY")
+        if ["AuthorizeSetup", "TestDatabase", "TestDomain", "SetupSuperIntuitive"].contains(action) { return operationReply(Dispatcher.setup(request, data), false) }
+        if action == "Logout" { return operationReply(Accounts.logout(request), true) }
+        if action == "LoginAttempt" and not Runtime.inspect()["phpBcryptVerify"] and not Config.get("allowNativePasswords", false) { return operationReply(Tools.gap("PHP_BCRYPT_VERIFY"), true) }
+        return operationReply(Dispatcher.general(context(request), request, data), true)
+    }
+    let user = Sessions.user(request)
+    if user == none or not user.get("roles", []).contains("Admin") { fail("FORBIDDEN") }
+    let current = context(request)
+    if pathname == "/api.v1.php" { return operationReply(Entity.api(current, data), false) }
+    if pathname == "/delegate-admin.php" { return operationReply(Dispatcher.admin(current, data), false) }
+    fail("UNKNOWN_ENDPOINT")
+}
+
+fn dispatch(request: Map) {
+    let pathname = request["path"]
+    let method = request["method"]
+    if not Assets.safePath(pathname) { return jsonReply(Tools.error("Private path.", "FORBIDDEN"), 403) }
+    if pathname == "/__sipl/status" and method == "GET" {
+        let response = jsonReply({"backend": "sipl", "stage": "parallel-validation", "databaseConfigured": Database.configured(), "capabilities": Runtime.inspect()}, 200)
+        response["headers"]["Access-Control-Allow-Origin"] = "*"
+        return response
+    }
+    if pathname == "/__sipl/bootstrap" and method == "GET" { return jsonReply({"backend": "sipl", "csrf": Sessions.csrf(request), "deployment": Sessions.level(request)}, 200) }
+    if pathname == "/__sipl/deployment.js" and method == "GET" { return {"body": fs.readText(Config.root("core_sipl/generated/deployment.js")), "headers": {"Content-Type": "application/javascript; charset=utf-8"}} }
+    if pathname == "/core_sipl/switch.html" and method == "GET" { return {"body": fs.readText(Config.root("core_sipl/switch.html")), "headers": {"Content-Type": "text/html; charset=utf-8"}} }
+    let endpoints = ["/delegate.php", "/delegate-admin.php", "/api.v1.php", "/filehandeler.php"]
+    if endpoints.contains(pathname) {
+        if method != "POST" { return jsonReply(Tools.error("POST required.", "METHOD_NOT_ALLOWED"), 405) }
+        return post(request)
+    }
+    for prefix in ["/core/", "/core_sipl/", "/tests/", "/test/", "/sql/", "/logs/", "/docker/", "/plugins/downloaded/", "/domains/"] {
+        if pathname.startsWith(prefix) and not Assets.staticAsset(pathname) { return jsonReply(Tools.error("Private path.", "FORBIDDEN"), 403) }
+    }
+    if method != "GET" and method != "HEAD" { return jsonReply(Tools.error("Method not allowed.", "METHOD_NOT_ALLOWED"), 405) }
+    if pathname.startsWith("/media/") {
+        if Assets.safeMedia(pathname) {
+            let initial = Assets.initialMedia(pathname)
+            if initial != none { return initial }
+            return none
+        }
+        return operationReply(Tools.gap("SANDBOXED_MEDIA_RESPONSE_HEADERS"), false)
+    }
+    if pathname == "/editor/editor.js" {
+        let user = Sessions.user(request)
+        if user == none or not user.get("roles", []).contains("Admin") { fail("FORBIDDEN") }
+        return {"body": Assets.editor(context(request), request), "headers": {"Content-Type": "application/javascript; charset=utf-8"}}
+    }
+    if ["/scripts/page.js", "/style/page.css"].contains(pathname) {
+        var field = "script"
+        if pathname.endsWith(".css") { field = "style" }
+        return {"body": Assets.bundle(context(request), request, field), "headers": {"Content-Type": Assets.contentType(pathname)}}
+    }
+    if ["/scripts/plugins.js", "/style/plugins.css"].contains(pathname) {
+        let current = context(request)
+        var kind = "script"
+        if pathname.endsWith(".css") { kind = "style" }
+        return {"body": Plugins.bundle(kind, current["deployment"]), "headers": {"Content-Type": Assets.contentType(pathname)}}
+    }
+    if pathname == "/style/libraries.css" { return {"body": Library.bundle(context(request), request, "css"), "headers": {"Content-Type": Assets.contentType(pathname)}} }
+    if Assets.staticAsset(pathname) { return Assets.readStatic(pathname) }
+    if pathname.endsWith(".php") and pathname != "/index.php" { fail("FORBIDDEN") }
+    if ["/", "/index.php"].contains(pathname) {
+        if SetupFiles.pending() { return {"status": 409, "body": "<!doctype html><html><head><title>Installation incomplete</title></head><body><h1>Installation is incomplete.</h1><p>Setup is locked to protect existing data. Inspect core/setup.lock and the pending configuration locally. Restarting safely finishes an already committed installation; a partially imported schema requires administrator repair.</p></body></html>", "headers": {"Content-Type": "text/html; charset=utf-8"}} }
+        if Setup.fresh() { return {"body": SetupView.render(request), "headers": {"Content-Type": "text/html; charset=utf-8"}} }
+    }
+    let current = context(request)
+    let page = Page.load(current, pathname)
+    if page.get("redirecttopage_id") != none {
+        let target = Entity.retrieve(current, "pages", page["redirecttopage_id"], {:}, ["path"])
+        if not target.isEmpty { return {"status": 302, "body": "", "headers": {"Location": "/" + Tools.pagePath(target[0]["path"])}} }
+    }
+    web.sessionSet(request, Sessions.key("pagePath"), pathname)
+    return {"body": Render.renderPage(current, request, page), "headers": {"Content-Type": "text/html; charset=utf-8"}}
+}
+
+fn handle(request: Map) {
+    var response = none
+    let hostname = request["headers"].get("host", "").split(":")[0].toLower()
+    let domain = Config.get("domain", "localhost").toLower()
+    let subdomain = Config.get("subdomain", "")
+    if not ["localhost", "127.0.0.1", domain, subdomain + "." + domain].contains(hostname) { return jsonReply(Tools.error("Invalid host.", "INVALID_HOST"), 400) }
+    try { response = dispatch(request) }
+    fail {
+        var array = request["path"] == "/delegate.php"
+        if array {
+            let source = request["body"].decodeUtf8()
+            if json.isValid(source) {
+                let data = json.parse(source)
+                if data.type == "Map" and ["AuthorizeSetup", "TestDatabase", "TestDomain", "SetupSuperIntuitive"].contains(data.get("KEY", "")) { array = false }
+            }
+        }
+        response = failure(fail.why, array)
+    }
+    if response != none and [501, 503].contains(response.get("status", 200)) and request["method"] == "GET" and request["headers"].get("accept", "").contains("text/html") {
+        let body = json.parse(response["body"])
+        var message = body
+        if body.type == "List" { message = body[0] }
+        response["body"] = Tools.fillTemplate(fs.readText(Config.root("core_sipl/public/unavailable.html")), {"__MESSAGE__": Tools.escapeHtml(message.get("ERROR", "A runtime prerequisite is unavailable."))})
+        response["headers"]["Content-Type"] = "text/html; charset=utf-8"
+    }
+    if response == none { return none }
+    if response.type == "String" { response = {"body": response, "headers": {:}} }
+    let payload = response.get("body", "")
+    var length = 0
+    if payload.type == "String" { length = bytes.encodeUtf8(payload).length }
+    if payload.type == "Bytes" { length = payload.length }
+    if length > 1048576 { response = operationReply(Tools.gap("CONFIGURABLE_DYNAMIC_RESPONSE_LIMIT"), false) }
+    let headers = response.get("headers", {:})
+    headers["X-Content-Type-Options"] = "nosniff"
+    headers["X-Frame-Options"] = "SAMEORIGIN"
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    headers["Cache-Control"] = "no-store, private"
+    headers["X-SuperIntuitive-Backend"] = "sipl"
+    response["headers"] = headers
+    return response
+}
+
+fn run() {
+    var settings = Config.load()
+    Runtime.inspect()
+    Setup.initialize()
+    settings = Config.current()
+    if settings["host"] != "127.0.0.1" and not settings["secureCookies"] { fail("SECURE_COOKIES_REQUIRED_FOR_PUBLIC_LISTENER") }
+    web.sessions({"cookie": "si_sipl_session", "idleTimeout": 1800, "absoluteTimeout": 43200, "sameSite": "Lax", "secure": settings["secureCookies"], "maxSessions": 4096})
+    var root = Config.root("domains/" + settings["domain"])
+    if not fs.isDirectory(root) { root = Config.root("core_sipl/public") }
+    else { Assets.mediaRoot(settings["domain"]) }
+    let options: Map = {"host": settings["host"]}
+    if settings.contains("certFile") { options["certFile"] = settings["certFile"]
+        options["keyFile"] = settings["keyFile"] }
+    web.serve(root, settings["port"], handle, options)
+}

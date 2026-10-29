@@ -130,6 +130,9 @@ class Database extends DbCreds
 		$existingTables = $this->GetExistingInstallTables();
 		$tableCount = count($existingTables);
 		if($tableCount === 0){
+			if($hasInstallLock || $hasConfiguredCreds){
+				return self::INSTALL_STATE_PARTIAL;
+			}
 			return self::INSTALL_STATE_FRESH;
 		}
 
@@ -163,9 +166,10 @@ class Database extends DbCreds
 				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 				PDO::ATTR_EMULATE_PREPARES   => false,
 			];
-			$this->pdo = new PDO("$creds->dbtype:host=$creds->servername;dbname=$creds->database;charset=utf8", $creds->username, $creds->password,$options);
+			$port = isset($creds->port) ? (int)$creds->port : 3306;
+			$this->pdo = new PDO("$creds->dbtype:host=$creds->servername;port=$port;dbname=$creds->database;charset=utf8mb4", $creds->username, $creds->password,$options);
 		}
-		catch(PDOException $ex)
+		catch(\PDOException $ex)
 		{
 		    $this->pdo = false;
 			Tools::Error("Database connection error: ".$ex->getMessage(),true);
@@ -190,10 +194,10 @@ class Database extends DbCreds
 				FROM domains
 				INNER JOIN subdomains ON domains.id = subdomains.domain_id 
 				INNER JOIN entities ON domains.id = entities.domain_id AND subdomains.id = entities.subdomain_id
-				WHERE domains.name = :domain AND subdomains.name = :subdomain");
+				WHERE domains.name = :domain AND subdomains.name = :subdomain AND domains.status = 'active' AND subdomains.status = 'active' AND entities.status = 'active'");
 			$data->execute( array(':domain'=>SI_DOMAIN_NAME,':subdomain'=>SI_SUBDOMAIN_NAME) );
 		}
-		catch(PDOException $ex)
+		catch(\PDOException $ex)
 		{
 		    $this->pdo = false;
 			Tools::Error("Database connection error: ".$ex->getMessage(),true);
@@ -300,9 +304,13 @@ class Database extends DbCreds
 			//Now add our entities and their data to the object
 			//For each column in the whole database
 			$entities = array();
+            $deploymentColumns = array();
 			foreach ($data as $row) {
 			//	Tools::Log($row,true);
 				$entity = $row['table_name'];
+                if(preg_match('/^(dev|test|live|rollback)-(.+)$/D', $row['column_name'], $deploymentColumn)){
+                    $deploymentColumns[$entity][$deploymentColumn[2]][] = $deploymentColumn[1];
+                }
 				$entityoptions = $row['table_comment'];
 				$field = $row['column_name'];
 				$type = $row['column_type'];
@@ -516,6 +524,11 @@ class Database extends DbCreds
 			}
 			//Tools::Log($entities, true);
 			
+            foreach($deploymentColumns as $table => $fields){
+                foreach($fields as $field => $levels){
+                    $entities[$table]['attributes'][$field]['deployments'] = $levels;
+                }
+            }
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'] = $entities;
 		}
 	}
@@ -575,7 +588,9 @@ class Database extends DbCreds
 	public function LogSession(){
 
 	    $ip = Tools::GetIpAddress();
-		$sid =session_id();
+		// Audit records identify sessions without storing their bearer cookies.
+		// Keep the fingerprint within the legacy 26-character column.
+		$sid = substr(hash('sha256', session_id()), 0, 26);
 		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['sessions'])){
 			$entityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['sessions']['instanceguid'];	
 			$guid = new Guid(true);
@@ -584,10 +599,10 @@ class Database extends DbCreds
 			if(!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'])){
 				$userId = Tools::FixGuid($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id']);
 			}
-			$binds = array(":sessionid"=>$sid,":ipaddress"=>$ip);
+			$binds = array(":sessionid"=>$sid,":ipaddress"=>$ip, ':update_ipaddress' => $ip);
 			$insert = "INSERT INTO `sessions`(`id`,`entity_id`,`sessionid`,`user_id`,`ipaddress`) 
 						VALUES ($g,$entityId,:sessionid,$userId,:ipaddress) 
-						ON DUPLICATE KEY UPDATE `count` = `count` + 1, `user_id` = $userId, `ipaddress` = :ipaddress;";
+						ON DUPLICATE KEY UPDATE `count` = `count` + 1, `user_id` = $userId, `ipaddress` = :update_ipaddress;";
 			try{
 				$sql = $this->pdo->prepare($insert);
 				$sql->execute($binds);
@@ -607,7 +622,7 @@ class Database extends DbCreds
 
 		$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
 		$pageEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['pages']['instanceguid'];
-		$pageQuery = $this->pdo->prepare("SELECT HEX(`id`) AS `id`, `name`, `path`, HEX(`redirecttopage_id`) AS `redirecttopage_id`, `$deploymentlevel-options` AS `options` FROM `pages` WHERE `entity_id` = $pageEntityId AND `path` = :path LIMIT 1");
+		$pageQuery = $this->pdo->prepare("SELECT HEX(`id`) AS `id`, `name`, `path`, HEX(`redirecttopage_id`) AS `redirecttopage_id`, `$deploymentlevel-options` AS `options` FROM `pages` WHERE `entity_id` = $pageEntityId AND `path` = :path AND `status` = 'active' LIMIT 1");
 		$pageQuery->execute(array(':path' => SI_URI));
 	    $mypage = $pageQuery->fetchAll(PDO::FETCH_ASSOC);
 		if($mypage === null){
@@ -616,6 +631,19 @@ class Database extends DbCreds
 		}
 	    $pageobjects['page'] = array();
 	    if(count($mypage)){
+
+            // Enforce assigned page roles before loading blocks or following redirects.
+            $roleQuery = $this->pdo->prepare("SELECT `securityroles`.`name` FROM `relations`
+                INNER JOIN `securityroles` ON `securityroles`.`id` = `relations`.`child_id`
+                WHERE `relations`.`parent_id` = UNHEX(:pageid) ");
+            $roleQuery->execute(array(':pageid' => $mypage[0]['id']));
+            $requiredRoles = $roleQuery->fetchAll(PDO::FETCH_COLUMN);
+            if(count($requiredRoles) > 0 && !Tools::UserHasRole('Admin') && !Tools::UserHasRole($requiredRoles)){
+                unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']);
+                http_response_code(403);
+                header('Cache-Control: no-store');
+                exit('You do not have permission to view this page.');
+            }
 
 			//if there is a redirect do it.
 			if(isset($mypage[0]['redirecttopage_id'])){
@@ -632,15 +660,6 @@ class Database extends DbCreds
 					exit();
 				}
 			}
-
-			//look for security roles
-			//Tools::Log('In GetPageData: Logging Roles');
-		    //Tools::Log( $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'] );
-			$rolesneeded = $this->GetRelatedEntities('pages',$mypage[0]['id'],'securityroles');
-			//Tools::Log("roles needed");
-			//Tools::Log($rolesneeded);
-
-
 
 			$pageobjects['page']['name']= $mypage[0]['name'];
 			$pageobjects['page']['id']= $mypage[0]['id'];
@@ -722,84 +741,37 @@ class Database extends DbCreds
 		}
 		return $pageobjects;
 	}
-	public function NewRelatedEntity($entityName,$entityId,$relatedEntityName, $relatedEntityId, $devorder = 0, $devoptions = null ){
-
-
-		$relayid = new Guid(true);
-		$relayid = $relayid->ToString(); //a random guid
-		$relayEntityId = false;
-
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['relations']['instanceguid'])){
-		    $relayEntityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['relations']['instanceguid'];
-		}else{
-			return;
-		}
-
-		//for now just dont make dupes. I need to fix retireves parameters
-		$dupe = new Entity('relations');
-		$dupe->Attributes->Add(new Attribute('parent_id',$entityId));
-		$dupe->Attributes->Add(new Attribute('child_id',$relatedEntityId));
-	    //	$dupes = $dupe->Retrieve();
-
-	    //	Tools::Log("Logging Dupes:",true);
-		//Tools::Log($dupes,true);
-	    //	Tools::Log("Done Logging Dupes:",true);
-
-
-		if($relayEntityId !== FALSE){
-
-			$entityId = Tools::FixGuid($entityId);//clean the ids
-			$relatedEntityId = Tools::FixGuid($relatedEntityId);
-			
-
-			$entityNameId = $entityName;
-			$relatedEntityNameId = $relatedEntityName;
-			//print_r($this->entityLookup);
-			//this allows the entity to be supplied ether as a string-name or its guid. 
-			//In the end it becomes a guid after looking it up
-			if(!Tools::StartsWith($entityName,'0x')){
-			
-				//$entityNameId = $this->entityLookup[$entityNameId];
-				$entityNameId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$entityNameId]['instanceguid'];
-			}else{
-				$entityName = Tools::GetEnityFromGuid($entityNameId);
-
-				//$entityName = array_search($entityNameId,$this->entityLookup);
-			}
-			//ho $eType;
-			//print_r($this->entityLookup);
-			if(!Tools::StartsWith($relatedEntityNameId,'0x')){
-				$relatedEntityNameId =  $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'][$relatedEntityNameId]['instanceguid']; 
-			}else{
-				$relatedEntityName =  Tools::GetEnityFromGuid($relatedEntityNameId); //array_search($relatedEntityNameId,$this->entityLookup);
-			}
-
-			$notes = array();
-			$notes['PrimaryEntityName']= $entityName;
-			$notes['RelatedEntityName']= $relatedEntityName;
-			$jsonnote = json_encode($notes);
-
-
-			$note = $entityName."_".$relatedEntityName;
-
-			$devopt1 = "";
-			$devopt2 = "";
-			if($devoptions!= null){
-				$devopt1 = ",`dev-options`";
-				$devopt2 = ",:devoptions";
-			}
-
-			$sql = "INSERT INTO `relations` (`id`,`entity_id`,`parententity_id`,`childentity_id`,`parent_id`,`child_id`,`dev-order`,`note`$devopt1) VALUES($relayid,$relayEntityId,$entityNameId,$relatedEntityNameId,$entityId,$relatedEntityId,$devorder,:note$devopt2);";
-			Tools::Log($sql,true);
-			$data = $this->pdo->prepare($sql);
-			if($devoptions == null){
-				$data->execute(array(':note'=>$note));
-			}else{
-				$data->execute(array(':note'=>$note, ':devoptions'=> $devoptions ));
-			}
-			return $relayid;
-		}
-	}
+	public function NewRelatedEntity($entityName, $entityId, $relatedEntityName, $relatedEntityId, $devorder = 0, $devoptions = null){
+        $entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'] ?? array();
+        $entityId = Tools::FixGuid($entityId);
+        $relatedEntityId = Tools::FixGuid($relatedEntityId);
+        $order = filter_var($devorder, FILTER_VALIDATE_INT);
+        foreach(array($entityName, $relatedEntityName) as $name){
+            if(!is_string($name) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $name) || !isset($entities[$name]['instanceguid'])){
+                return false;
+            }
+        }
+        if($entityId === false || $relatedEntityId === false || $order === false){
+            return false;
+        }
+        // Both records must belong to this domain and subdomain, even for admins.
+        foreach(array(array($entityName, $entityId), array($relatedEntityName, $relatedEntityId)) as $record){
+            $query = $this->pdo->prepare("SELECT 1 FROM `".$record[0]."` WHERE id = UNHEX(:id) AND entity_id = UNHEX(:scope)");
+            $query->execute(array(':id' => substr($record[1], 2), ':scope' => substr(Tools::FixGuid($entities[$record[0]]['instanceguid']), 2)));
+            if(!$query->fetchColumn()){
+                return false;
+            }
+        }
+        $relation = new Entity('relations');
+        foreach(array('parententity_id' => $entities[$entityName]['instanceguid'], 'childentity_id' => $entities[$relatedEntityName]['instanceguid'],
+            'parent_id' => $entityId, 'child_id' => $relatedEntityId, 'live-order' => 0, 'test-order' => 0, 'dev-order' => $order, 'note' => $entityName.'_'.$relatedEntityName) as $key => $value){
+            $relation->Attributes->Add(new Attribute($key, $value));
+        }
+        if($devoptions !== null){
+            $relation->Attributes->Add(new Attribute('dev-options', $devoptions));
+        }
+        return $relation->Create();
+    }
 	public function RemoveRelation($linkid){
 		$linkid = Tools::FixGuid($linkid);
 		Tools::Log("Remove Relations ".$linkid);
@@ -816,95 +788,47 @@ class Database extends DbCreds
 			}
 		}
 	}
-	public function GetRelatedEntities($entityName,$entityGuid,$relatedEntityName,$columns = null){
-		//ERROR non loggedin users get undefined here.
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'])){
-		    $entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];
-		}else{
-			return;
-		}
-	    //	print_r($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]);
-		if($relatedEntityName == 'securityroles'){
-			//Tools::Log('securityroles:'.$entities['relations']['instanceguid'],true);
-				
-		}
-
-	    if(isset($entities['relations']['instanceguid'])){
-			$relationEntityId = $entities['relations']['instanceguid'];	 
-
-			$eType =$entityName;
-			if(!Tools::StartsWith($entityName,'0x')){
-				$eType = $entities[$eType];
-			}else{
-				$entityName = array_search($eType,$entities);
-			}
-			$sType =$relatedEntityName;
-			if(!Tools::StartsWith($sType,'0x')){
-				if(!empty($entities[$sType]))
-				$sType = $entities[$sType];
-			}else{
-				$searchType = array_search($sType,$entities);
-			}
-
-			if(Tools::StartsWith($entityGuid ,'0x') && strlen($entityGuid) === 34){
-				$select = "SELECT ";
-				$deploymentlevel = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
-
-				$defselect = "HEX(`relations`.`id`) AS relationsId,  `relations`.`modifiedon` AS relationsModifiedOn,  `relations`.`$deploymentlevel-options` AS relationsOptions,  `relations`.`$deploymentlevel-order` AS relationsOrder,";
-
-				if($columns == null){		
-				    $select.=" $defselect $relatedEntityName.*, HEX(`$relatedEntityName`.`id`) AS id ";
-				}else{
-					$ctype = gettype($columns);
-							
-					if($ctype =='string'){
-						if(strpos($columns,',') !== false){
-						    $cols = '';
-							$pieces = explode(',',$columns);
-							foreach($pieces as $v){
-								if(Tools::EndsWith($v,'_id') || $v == 'id'){
-								$select.= 'HEX(`'.$relatedEntityName.'`.`'.$v."`) AS $v,";
-								}else{
-									$select.=$relatedEntityName.'.'.$v.',';
-								}
-							}
-							$select = rtrim($select,',');
-					    }else{
-						    if(Tools::EndsWith($columns,'_id') || $columns == 'id'){
-								$select.= 'HEX(`'.$relatedEntityName.'`.`'.$columns."`) AS $columns,";
-							}else{
-								$select.=$relatedEntityName.'.'.$columns;
-							}
-						}
-						$select = str_replace("SELECT ","SELECT $defselect",$select);
-					}else if($ctype =='array'){
-					
-					}
-				}
-
-				$sql = "
-					$select
-					FROM $entityName
-					INNER JOIN `relations` ON `$entityName`.`id`=`relations`.`parent_id`
-					INNER JOIN `$relatedEntityName` ON `$relatedEntityName`.`id`=`relations`.`child_id`
-					WHERE `$entityName`.`id` = $entityGuid
-					ORDER BY  `relations`.`$deploymentlevel-order` ASC
-				";
-
-				$data = $this->pdo->prepare($sql);
-				$data->execute();
-				if($data->rowCount() == 0){
-					return null;
-				}
-				$relations = array();
-				foreach ($data as $row) {
-					$relations[] = $row ;
-				}
-				return $relations;
-			}
-		}
-		return null;
-	}
+	public function GetRelatedEntities($entityName, $entityGuid, $relatedEntityName, $columns = null){
+        $entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'] ?? array();
+        $entityGuid = Tools::FixGuid($entityGuid);
+        $deployment = Tools::GetCurrentDeployment();
+        if($entityGuid === false || !in_array($deployment, array('live', 'test', 'dev'), true)){
+            return array();
+        }
+        foreach(array($entityName, $relatedEntityName, 'relations') as $name){
+            if(!is_string($name) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $name) || !isset($entities[$name]['instanceguid'])){
+                return array();
+            }
+        }
+        $select = "HEX(r.id) AS relationsId, r.modifiedon AS relationsModifiedOn, r.`$deployment-options` AS relationsOptions, r.`$deployment-order` AS relationsOrder";
+        if($columns === null){
+            $select .= ", child.*, HEX(child.id) AS id";
+        }else{
+            if(!is_string($columns)){
+                return array();
+            }
+            foreach(explode(',', $columns) as $column){
+                $column = trim($column, " `");
+                if(!preg_match('/^[A-Za-z_][A-Za-z0-9_-]*$/D', $column)){
+                    return array();
+                }
+                $select .= Tools::EndsWith($column, '_id') || $column === 'id'
+                    ? ", HEX(child.`$column`) AS `$column`" : ", child.`$column`";
+            }
+        }
+        $query = $this->pdo->prepare("SELECT $select FROM `$entityName` parent
+            INNER JOIN relations r ON r.parent_id = parent.id AND r.parententity_id = parent.entity_id
+            INNER JOIN `$relatedEntityName` child ON child.id = r.child_id AND child.entity_id = r.childentity_id
+            WHERE parent.id = UNHEX(:id) AND parent.entity_id = UNHEX(:parent_scope)
+            AND child.entity_id = UNHEX(:child_scope) AND r.entity_id = UNHEX(:relation_scope)
+            AND parent.status = 'active' AND child.status = 'active' AND r.status = 'active'
+            ORDER BY r.`$deployment-order` ASC");
+        $query->execute(array(':id' => substr($entityGuid, 2),
+            ':parent_scope' => substr(Tools::FixGuid($entities[$entityName]['instanceguid']), 2),
+            ':child_scope' => substr(Tools::FixGuid($entities[$relatedEntityName]['instanceguid']), 2),
+            ':relation_scope' => substr(Tools::FixGuid($entities['relations']['instanceguid']), 2)));
+        return $query->fetchAll();
+    }
 	public function GetPageLibraries(){
 		$cols= "id,name";
 		$data = array();
@@ -1267,63 +1191,65 @@ class Database extends DbCreds
 			$up->execute();
 		}
 	}
-	public function Promote($post){
-		//deployment: deployment, entityname: entityname, entityid: entityid, attribute: attribute
-		if(isset($post['deployment']) && isset($post['entityname']) && isset($post['entityid']) && isset($post['attribute'])){
-			$deployment = $post['deployment'];
-			$entityname = $post['entityname'];
-			$entityid = $post['entityid'];
-			$attribute = $post['attribute'];
-
-			 Tools::Log("Updating:  $deployment  $entityname  $entityid  $attribute");
-
-
-			$ournewfield = null;
-			switch($deployment){
-				case "test": $ournewfield = "dev-$attribute";break;
-				case "live": $ournewfield = "test-$attribute";break; //dont forget to drop one in rollback a few hours later
-				case "rollback": $ournewfield = "live-$attribute";break;
-				default : return false;; //no idea what is going on but bailing.
-			}
-
-			//make an entity to search for the field			
-			$ent = new Entity($entityname);
-			//add the ID to look for
-			$ent->Id = $entityid;
-			//we need to get the field. 
-			$found = $ent->Retrieve($ournewfield);
-			
-			if(count($found)===1){
-			    $ent2 = new Entity($entityname);
-				$ent2->Id = $entityid;
-				//We found the Entity
-				$attributeData = $found[0][$ournewfield];
-				
-				if($attribute === 'html'){
-				    $thingsToRemoveBeforePromotion = array('class="si-editable-element"',
-					                                       'si-editable-element',
-														   'si-editable-ignoreinner',
-														   );
-					$attributeData = str_replace($thingsToRemoveBeforePromotion,'',$attributeData);
-				}
-				
-				$ent2->Attributes->Add(new Attribute("$deployment-$attribute",$attributeData) );
-				//Tools::Log($ent);
-				try{
-				    $success = $ent2->Update();
-					Tools::Log("Updated ".$attribute." successfully");
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PROMOTED'] = $attribute.' has been promoted to '.$deployment.' in '.$entityname;
-				}
-				catch(Exception $ex){
-				    //Tools::Log("Updated Failed: ". $ex->getMessage());
-				    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex->getMessage();
-				}
-				
-				//Tools::Log('success', true);
-				//Tools::Log($success, true);
-			}
-		}
-	}
+    public function Promote($post){
+        $bu =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME];
+        $fail = function($message) use (&$bu){ $bu['AJAXRETURN']['ERROR'] = $message; return false; };
+        if(!Tools::UserHasRole('Admin') || !is_array($post)){
+            return $fail('Only administrators can promote content.');
+        }
+        $target = $post['deployment'] ?? null;
+        $table = $post['entityname'] ?? null;
+        $attribute = $post['attribute'] ?? null;
+        $id = Tools::FixGuid($post['entityid'] ?? null);
+        $sources = array('test' => 'dev', 'live' => 'test', 'rollback' => 'live');
+        if(!is_string($target) || !isset($sources[$target]) || !is_string($table) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $table)
+            || !is_string($attribute) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $attribute) || $id === false){
+            return $fail('The deployment request is invalid.');
+        }
+        $definition = $bu['entities'][$table] ?? array();
+        $scope = Tools::FixGuid($definition['instanceguid'] ?? null);
+        if($scope === false || !filter_var($definition['attributes'][$attribute]['deployable'] ?? false, FILTER_VALIDATE_BOOLEAN)){
+            return $fail('This field does not support deployment.');
+        }
+        $permissions = $bu['user']['permissions'][$scope] ?? array();
+        if(!filter_var($permissions['read'] ?? false, FILTER_VALIDATE_BOOLEAN) || !filter_var($permissions['write'] ?? false, FILTER_VALIDATE_BOOLEAN)){
+            return $fail('You do not have permission to promote this content.');
+        }
+        $sourceColumn = $sources[$target].'-'.$attribute;
+        $targetColumn = $target.'-'.$attribute;
+        try{
+            // Identifiers must exist in this schema; values and record scope remain bound parameters.
+            $schema = $this->pdo->prepare('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=:schema AND TABLE_NAME=:table');
+            $schema->execute(array(':schema' => $this->databaseName, ':table' => $table));
+            $columns = $schema->fetchAll(PDO::FETCH_COLUMN);
+            if(!in_array($sourceColumn, $columns, true) || !in_array($targetColumn, $columns, true)){
+                return $fail($target === 'rollback' ? 'This field has no rollback storage in the current database schema.' : 'The source or target deployment field is unavailable.');
+            }
+            $this->pdo->beginTransaction();
+            $find = $this->pdo->prepare('SELECT `'.$sourceColumn.'` AS source FROM `'.$table.'` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope) FOR UPDATE');
+            $params = array(':id' => substr($id, 2), ':scope' => substr($scope, 2));
+            $find->execute($params);
+            $row = $find->fetch(PDO::FETCH_ASSOC);
+            if(!$row){
+                $this->pdo->rollBack();
+                return $fail('The source record was not found in this site.');
+            }
+            if($attribute === 'options' && Tools::EncodeOptions($row['source']) === false){
+                $this->pdo->rollBack();
+                return $fail('Source options are invalid or double-encoded JSON. The target was left unchanged.');
+            }
+            // Copy in SQL: no JSON encoding, escaping, NULL-string conversion, or editor text replacement.
+            $update = $this->pdo->prepare('UPDATE `'.$table.'` SET `'.$targetColumn.'`=`'.$sourceColumn.'` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)');
+            $update->execute($params);
+            $this->pdo->commit();
+            $bu['AJAXRETURN']['PROMOTED'] = $attribute.($target === 'rollback' ? ' saved to rollback in ' : ' promoted to '.$target.' in ').$table;
+            return true;
+        }catch(\Throwable $error){
+            if($this->pdo->inTransaction()) $this->pdo->rollBack();
+            Tools::Log('Promotion failed: '.$error->getMessage());
+            return $fail('Deployment failed. The target was left unchanged.');
+        }
+    }
 
 } 
 

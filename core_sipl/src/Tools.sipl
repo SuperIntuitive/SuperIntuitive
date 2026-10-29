@@ -1,0 +1,125 @@
+fn get(value, key: String, fallback) {
+    if value.type == "Map" { return value.get(key, fallback) }
+    return fallback
+}
+
+fn text(value, fallback: String) -> String {
+    if value.type == "String" { return value }
+    return fallback
+}
+
+fn truth(value) -> Bool {
+    return value == true or value == 1 or value == "true" or value == "1"
+}
+
+fn identifier(value) -> String {
+    if value.type != "String" { fail("INVALID_IDENTIFIER") }
+    if not regex.compile("^[A-Za-z_][A-Za-z0-9_]\{0,63\}$").isMatch(value) { fail("INVALID_IDENTIFIER") }
+    return value
+}
+
+fn guid(value) -> String {
+    if value.type != "String" { fail("INVALID_GUID") }
+    var result = value.toLower()
+    if result.startsWith("0x") { result = result.slice(2) }
+    if not regex.compile("^[0-9a-f]\{32\}$").isMatch(result) { fail("INVALID_GUID") }
+    return result
+}
+
+fn newGuid() -> String {
+    let token = auth.randomToken(16).replace("-", "+").replace("_", "/")
+    return bytes.fromBase64(token + "==").toHex()
+}
+
+fn now() -> Int { return time.now().unixSeconds.toInt() }
+
+fn secureEquals(left, right) -> Bool {
+    if left.type != "String" or right.type != "String" { return false }
+    return bytes.encodeUtf8(left).secureEquals(bytes.encodeUtf8(right))
+}
+
+fn passwordValid(value) -> Bool {
+    if value.type != "String" { return false }
+    let length = bytes.encodeUtf8(value).length
+    return length >= 10 and length <= 72 and not value.contains("\0")
+}
+
+fn options(value) -> String {
+    if value.type == "String" {
+        if not json.isValid(value) { fail("INVALID_OPTIONS_JSON") }
+        if json.parse(value).type != "Map" { fail("OPTIONS_MUST_BE_OBJECT") }
+        return value
+    }
+    if value.type != "Map" { fail("OPTIONS_MUST_BE_OBJECT") }
+    return json.stringify(value)
+}
+
+fn escapeHtml(value) -> String {
+    return "{value}".replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
+}
+
+fn scriptJson(value) -> String {
+    return json.stringify(value).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+}
+
+fn safeId(value: String) -> String {
+    var result = regex.compile("[^A-Za-z0-9_]").replace(value, "_")
+    if result.isEmpty { return "item" }
+    if regex.compile("^[0-9]").isMatch(result) { result = "id" + result }
+    return result
+}
+
+fn required(data: Map, key: String) -> String {
+    let value = data.get(key, none)
+    if value.type != "String" { fail("INVALID_FIELD_" + key) }
+    return value
+}
+
+fn number(value, minimum: Int, maximum: Int) -> Int {
+    var parsed = value
+    if value.type == "String" { parsed = value.toInt() }
+    if parsed.type != "Int" { fail("INVALID_INTEGER") }
+    if parsed < minimum or parsed > maximum { fail("INVALID_INTEGER") }
+    return parsed
+}
+
+fn error(message: String, code: String) -> Map {
+    return {"ERROR": message, "code": code}
+}
+
+fn gap(capability: String) -> Map {
+    return {"ERROR": "This operation needs SIPL runtime support: " + capability, "code": "RUNTIME_CAPABILITY_REQUIRED", "capability": capability}
+}
+
+fn portGap(feature: String) -> Map {
+    return {"ERROR": "This feature is still being ported to SIPL: " + feature, "code": "PORT_FEATURE_PENDING", "feature": feature}
+}
+
+fn fillTemplate(source: String, replacements: Map) -> String {
+    let parts = []
+    var offset = 0
+    for occurrence in regex.compile("__[A-Z0-9_]+__").findAll(source) {
+        parts.push(source.slice(offset, occurrence["start"]))
+        parts.push(replacements.get(occurrence["text"], occurrence["text"]))
+        offset = occurrence["end"]
+    }
+    parts.push(source.slice(offset))
+    return parts.join("")
+}
+
+fn domainValid(value) -> Bool {
+    if value.type != "String" or value.isEmpty or value.length > 253 { return false }
+    for label in value.split(".") {
+        if label.isEmpty or label.length > 63 { return false }
+        if not regex.compile("^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$").isMatch(label) { return false }
+    }
+    return true
+}
+
+fn pagePath(value) -> String {
+    if value.type != "String" { fail("INVALID_PAGE_PATH") }
+    if value.startsWith("/") or not regex.compile("^[A-Za-z0-9_.~/-]*$").isMatch(value) { fail("INVALID_PAGE_PATH") }
+    if value.isEmpty { return value }
+    for part in value.split("/") { if part.isEmpty or part.startsWith(".") { fail("INVALID_PAGE_PATH") } }
+    return value
+}

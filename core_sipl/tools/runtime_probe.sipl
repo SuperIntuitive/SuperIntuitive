@@ -1,0 +1,14 @@
+use ../src/Runtime
+fn start() {
+    let checks: Map = {"runtime": "0.4.0", "securityRevision": system.securityRevision}
+    let capabilities = Runtime.inspect()
+    checks["bcryptVerify"] = capabilities["phpBcryptVerify"]
+    checks["bcryptHash"] = capabilities["phpBcryptHash"]
+    checks["mysqlDriver"] = capabilities["mysqlDriver"]
+    try {
+        let db = sql.connect("mysql:host=127.0.0.1;port=9;dbname=probe", "probe", "probe")
+        checks["mysqlProbe"] = db.driver
+        db.close()
+    } fail { checks["mysqlProbe"] = fail.why }
+    print(json.stringify(checks))
+}

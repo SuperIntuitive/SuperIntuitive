@@ -15,17 +15,12 @@ SI.Editor.Objects.Styler = {
         //Init draws both the workspace and the codeview.
         SI.Editor.Objects.Styler.Container = Ele("div", {
             id: "si_styler_container",
+            class: 'si-tool-body si-tool-editor-body',
         });
 
         let mainmenu = Ele('div', {
-            style: {
-                position: 'relative',
-                width: '99%',
-                height: '24px',
-                paddingLeft: '5px',
-                backgroundColor: SI.Editor.Style.MenuColor,
-                border: 'solid 1px ' + SI.Editor.Style.BackgroundColor,
-            },
+            class: 'si-tool-toolbar',
+
             appendTo: SI.Editor.Objects.Styler.Container,
         });
 
@@ -42,8 +37,10 @@ SI.Editor.Objects.Styler = {
             onclick: function (e) {
                 if (this.checked) {
                     document.getElementById('si_styler_codeview').style.display = 'block';
+                    document.getElementById('si_styler_workspace').style.display = 'none';
                 } else {
                     document.getElementById('si_styler_codeview').style.display = 'none';
+                    document.getElementById('si_styler_workspace').style.display = 'block';
                 }
             },
             appendTo: codeOrGuiCbLabel,
@@ -77,7 +74,7 @@ SI.Editor.Objects.Styler = {
                 SI.Editor.Objects.Styler.LoadedSheet = stylesheet;
 
                 SI.Editor.Objects.Styler.LoadStyleCode(style);
- 
+
             },
             appendTo: mainmenu,
         });
@@ -185,11 +182,13 @@ SI.Editor.Objects.Styler = {
         //Workspace: The non-coder friendly area for developing css style sheets.  
         SI.Editor.Objects.Styler.Workspace = Ele("div", {
             id: "si_styler_workspace",
+            class: 'si-tool-workspace',
             style: {
+                display: 'none',
                 position: 'absolute',
                 width: '100%',
                 height: '95%',
-                backgroundColor: SI.Editor.Style.FavoriteColor,
+
                 overflow: 'auto',
             },
             ondragenter: function (e) { e.preventDefault(); },
@@ -206,6 +205,7 @@ SI.Editor.Objects.Styler = {
         //The Codeview- possible future removal if caode pad does not need it 
         SI.Editor.Objects.Styler.Codeview = Ele("div", {
             id: "si_styler_codeview",
+            class: 'si-tool-code-view',
             style: {
                 position: 'absolute',
                 width: '100%',
@@ -213,7 +213,7 @@ SI.Editor.Objects.Styler = {
                 paddingBottom: '20px',
                 backgroundColor: '#282e2b',
                 overflow: 'auto',
-                backgroundImage: "url('/editor/media/images/blackslate.jpg')",
+
                 backgroundSize: 'cover',
             },
             ondragenter: function (e) { e.preventDefault(); },
@@ -316,7 +316,7 @@ SI.Editor.Objects.Styler = {
 
         //Loop through all of the styles in the stylesheet and put them in an object
         for (let s in allstyles) {
-           
+
             if (typeof allstyles[itter] !== 'undefined' && typeof allstyles[itter + 1] !== 'undefined') {
                 let selector = allstyles[itter];
                 let tmp;
@@ -354,8 +354,8 @@ SI.Editor.Objects.Styler = {
             id: "si_styler_stylebox_" + rand,
             style: {
                 width: '97%',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
+
+
                 display: 'table',
                 marginLeft: '1%',
                 textAlign: 'top',
@@ -393,10 +393,10 @@ SI.Editor.Objects.Styler = {
                 //debugger;
                 let b = this.checked;
                  SI.Tools.Class.Loop("si-styler-stylebox", function (ele) {
-                    ele.style.backgroundColor = SI.Editor.Style.BackgroundColor;
+                    ele.classList.remove('si-tool-selected');
                 });
                  SI.Tools.Class.Loop("si-styler-selectorcontainer", function (ele) {
-                    ele.style.backgroundColor = SI.Editor.Style.BackgroundColor;
+                    ele.classList.remove('si-tool-selected');
                 });
 
                  SI.Tools.Class.Loop("si-styler-stylebox-selector", function (ele) {
@@ -404,8 +404,8 @@ SI.Editor.Objects.Styler = {
                 });
 
                 if (this.parentElement !== SI.Editor.Objects.Styler.SelectedStyle && b) {
-                    this.parentElement.style.backgroundColor = 'rgb(92, 95, 107)';
-                    this.parentElement.querySelector(".si-styler-selectorcontainer").style.backgroundColor = 'rgb(92, 95, 107)';
+                    this.parentElement.classList.add('si-tool-selected');
+                    this.parentElement.querySelector(".si-styler-selectorcontainer").classList.add("si-tool-selected");
                     SI.Editor.Objects.Styler.SelectedStyle = this.parentElements;
                     this.checked = true;
                 } else {
@@ -422,8 +422,8 @@ SI.Editor.Objects.Styler = {
             class: "si-styler-selectorcontainer",
             style: {
                 padding: '10px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
+
+
                 display: 'table-cell',
                 width: '38%'
             },
@@ -450,8 +450,8 @@ SI.Editor.Objects.Styler = {
             let propertiesbox = Ele('table', {
                 id: "si_styler_propertiestable_" + rand,
                 style: {
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
-                    color: SI.Editor.Style.TextColor,
+
+
                     width: '100%',
                     borderCollapse: 'collapse',
                 },
@@ -512,7 +512,7 @@ SI.Editor.Objects.Styler = {
                     if (typeof kvp[1] !== "undefined") {
                         //determine if we have a comment
                         if (kvp[0].indexOf('_COMMENT__') !== -1) {
-                            
+
                             kvp[0] = kvp[0].replace('_COMMENT__', '');
                             let tmp = kvp[0].split('__');
                             let num = tmp.shift().trim();
@@ -534,7 +534,7 @@ SI.Editor.Objects.Styler = {
                             kvp[0] = tmp.join('').trim();
                         }
                         if (kvp.length > 2) {
-                           
+
                             let k = kvp[0];
                             kvp.shift();
                             let v = kvp.join(':');
@@ -561,7 +561,7 @@ SI.Editor.Objects.Styler = {
                 let propertiesbox = Ele('textarea', {
                     id: "si_styler_propertiestable_" + rand,
                     style: {
-                        backgroundColor: SI.Editor.Style.BackgroundColor,
+
                         color: "lightgreen",
                         width: '95%',
                         height: (comment.length / 100 * 24) + 'px',
@@ -637,7 +637,7 @@ SI.Editor.Objects.Styler = {
          SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
     },
     Selector : function (options) {
-        
+
         this.Defaults = {
             "Selector": "body",
             "Order":0,
@@ -769,7 +769,7 @@ SI.Editor.Objects.Styler = {
                 document.getElementById('si_styler_selector_menu_new').style.display = 'block';
             }
         }
-                
+
         return selectorbox;
     },
     InitSelectorMenu : function (options) {
@@ -843,7 +843,7 @@ SI.Editor.Objects.Styler = {
                         SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
                     }
                     else if (SI.Editor.Objects.Styler.SelectorMenuEffects.tagName === "SPAN") {
-                     
+
                         let picked = this.options[this.selectedIndex];
                         SI.Editor.Objects.Styler.Add(picked.innerHTML, this.parentElement.parentElement.parentElement.parentElement);
                     }
@@ -957,7 +957,7 @@ SI.Editor.Objects.Styler = {
                 marginLeft:"24px",
             },
             onclick: function () {
-              
+
                 let menu = document.getElementById('si_styler_selectormenu');
                 menu.style.display = 'none';
                  SI.Tools.Element.SetParent(menu, document.getElementById('si_styler_container'));
@@ -1008,7 +1008,7 @@ SI.Editor.Objects.Styler = {
                     newParent.innerHTML = '';
                     let aniname = Ele('input', {
                         type: 'list',
-                        
+
                         placeholder: "Animation Name",
                         style: {
                             marginLeft: '8px',
@@ -1078,7 +1078,7 @@ SI.Editor.Objects.Styler = {
                         if (parseInt(sel.dataset.order) === 0) {
                             allSels +=  SI.Tools.String.TrimR(sel.innerText,'+');
                         } else {
-                           
+
                             allSels += ",\n" +  SI.Tools.String.TrimR(sel.innerText, '+');
                         }
                     }
@@ -1182,4 +1182,3 @@ SI.Editor.Objects.Styler = {
     }
 
 }
- 

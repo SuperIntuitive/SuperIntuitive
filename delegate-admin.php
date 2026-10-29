@@ -27,8 +27,14 @@ if($_SERVER['REQUEST_METHOD'] !== 'POST'){
 if(Tools::UserHasRole('Admin')){
 	//Get post from here
 	$post = $multipartPost;
+	$jsonPost = null;
 	if(empty($post)){
-		$post = json_decode(file_get_contents("php://input"), true);
+        $rawPost = file_get_contents("php://input");
+        $post = json_decode($rawPost, true);
+        $jsonPost = json_decode($rawPost);
+        if(($post['KEY'] ?? null) === 'BlockSave' && $jsonPost instanceof \stdClass && property_exists($jsonPost, 'options')){
+            $post['options'] = $jsonPost->options;
+        }
 	}
 	if(!is_array($post)){
 		$post = array();
@@ -71,7 +77,7 @@ if(Tools::UserHasRole('Admin')){
 					break;
 				case "PageSave": 
 					$page = new Page(null);
-					$page->Save($post); 
+					$page->Save($post, $jsonPost);
 					break;
 				case "RemoveRedirect": 
 					$page = new Page(null);

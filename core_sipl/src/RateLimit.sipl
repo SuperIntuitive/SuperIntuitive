@@ -1,0 +1,21 @@
+use Tools
+var _buckets: Map = {:}
+
+fn allow(name: String, limit: Int, window: Int) -> Bool {
+    let current = Tools.now()
+    let keys = _buckets.keys()
+    for key in keys {
+        if current - _buckets[key]["start"] >= window { _buckets.remove(key) }
+    }
+    if not _buckets.contains(name) {
+        if _buckets.length >= 1024 { return false }
+        _buckets[name] = {"start": current, "count": 0}
+    }
+    let bucket = _buckets[name]
+    bucket["count"] += 1
+    return bucket["count"] <= limit
+}
+
+fn login(email: String) -> Bool {
+    return allow("global-login", 60, 300) and allow("login:" + email.toLower(), 10, 300)
+}

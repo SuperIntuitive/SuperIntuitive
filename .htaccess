@@ -2,6 +2,14 @@ ErrorDocument 403 /si403.php
 
 RewriteEngine On
 RewriteBase /
+# Private runtime data, repository metadata and development artifacts.
+RewriteRule (^|/)\.(?!well-known(?:/|$)) - [F,L,NC]
+RewriteRule ^(?:core|logs|sql|docker|tests|test)(?:/|$) - [F,L,NC]
+RewriteRule ^plugins/downloaded(?:/|$) - [F,L,NC]
+RewriteRule ^(?:domains/[^/]+/)?media/(?:[^/]+/)?recycle(?:/|$) - [F,L,NC]
+RewriteRule (?:^|/)[^/]*cookies\.txt$ - [F,L,NC]
+# Uploaded content must never be interpreted as server-side code or configuration.
+RewriteRule ^(?:domains/[^/]+/)?media/.*\.(?:php[0-9]*|phtml|pht|phar|cgi|pl|py|sh|shtml)(?:[./]|$) - [F,L,NC]
 RewriteCond %{HTTP_HOST} ^127\.0\.0\.1(?::\d+)?$ [NC]
 RewriteRule ^(media/(images|audio|data|documents|fonts|icons|videos)/.*)$ domains/localhost/$1 [L]
 RewriteCond %{HTTP_HOST} ^([^:]+)(?::\d+)?$ [NC]
@@ -15,5 +23,8 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ /index.php?path=$1 [NC,L,QSA]
 
 Options All -Indexes
-php_value  upload_max_filesize  1000M
+<IfModule mod_php.c>
+    php_value upload_max_filesize 24M
+    php_value post_max_size 32M
+</IfModule>
 

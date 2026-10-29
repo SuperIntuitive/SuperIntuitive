@@ -28,7 +28,9 @@ if(Tools::UserHasRole('Admin')){ //ToBe removed when Roles is integrated into en
 		exit();
 	}
     //Tools::Log("IN API as Admin",true);
-    $post = json_decode( file_get_contents("php://input"), true);
+    $rawPost = file_get_contents("php://input");
+    $post = json_decode($rawPost, true);
+    $jsonPost = json_decode($rawPost);
 	if(isset($_POST)){unset($_POST);}
 	if(isset($_GET)){unset($_GET);}
 	if(isset($post["Entity"]) && isset($post["Entity"]['Name']) && isset($post["Operation"])){
@@ -44,9 +46,19 @@ if(Tools::UserHasRole('Admin')){ //ToBe removed when Roles is integrated into en
 		if(isset( $post["Entity"]['Attributes'])){
 			$attributes = $post["Entity"]['Attributes'];
 			foreach($attributes as $k=>$v){
-				if(is_array($v)){
-					$v = json_encode($v);//handle json input
-				}
+                if(isset($jsonPost->Entity->Attributes) && $jsonPost->Entity->Attributes instanceof \stdClass && property_exists($jsonPost->Entity->Attributes, $k)){
+                    $v = $jsonPost->Entity->Attributes->$k;
+                }
+                if(preg_match('/^(?:(?:dev|test|live|rollback)-)?options$/D', $k)){
+                    $v = Tools::EncodeOptions($v);
+                    if($v === false){
+                        http_response_code(400);
+                        echo json_encode(array('ERROR' => 'Options must be a valid JSON object.'));
+                        exit();
+                    }
+                }else if(is_array($v) || is_object($v)){
+                    $v = json_encode($v, JSON_THROW_ON_ERROR);
+                }
 				$ent->Attributes->Add(new Attribute($k,$v) );
 			}
 		}
@@ -58,6 +70,9 @@ if(Tools::UserHasRole('Admin')){ //ToBe removed when Roles is integrated into en
 			case "Update": $data = $ent->Update(); break;
 			case "Delete": break;//
 			default:break;
+		}
+		if(!is_array($data)){
+			$data = array('Success' => $data === true);
 		}
 		//Tools::Log($data,true);
 		$data['Return']['Entity'] = array();

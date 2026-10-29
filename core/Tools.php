@@ -1,6 +1,9 @@
 <?php
 namespace SuperIntuitive; 
 
+require_once __DIR__.'/PhpRuntime.php';
+PhpRuntime::RequirePatched();
+
 Tools::Autoload();
 class Tools{
 	static $autoloaded = false;
@@ -31,7 +34,7 @@ class Tools{
 				if($class === "DataTable" || $class === "DataColumn" || $class === "DataRow" || $class === "DataSet" ){
 					$class = "Datatable";
 				}
-				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute" || $class === "Filter" ){
+				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute" || $class === "AttributeCollection" || $class === "Filter" ){
 					$class = "Entity";
 				}
 				if($class == "QueryParameter"){
@@ -55,6 +58,13 @@ class Tools{
 		}
 	}
 	static function DefineServer(){
+		$requestHost = $_SERVER['HTTP_HOST'] ?? '';
+		if(!is_string($requestHost) || !preg_match('/^([A-Za-z0-9.-]+)(?::([0-9]{1,5}))?$/D', $requestHost, $hostMatch)
+			|| !Tools::IsSafeDomain($hostMatch[1])
+			|| (isset($hostMatch[2]) && ((int)$hostMatch[2] < 1 || (int)$hostMatch[2] > 65535))){
+			http_response_code(400);
+			exit('Invalid host.');
+		}
 
 		$url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 		//since we do not use apache virtual hosts to partition the domains, this could be anything. If it was bad it wouldnt get by the vhosts.
@@ -76,7 +86,7 @@ class Tools{
 		//$host = "some.sub.that.is.stupid.superintuitive.com"; //check to make sure sillyness works when im programming this thing on localhost
 		//Make the host as usable as we can.
 		//remove any www bs subdomain.
-		$host = ltrim($host,"www."); //figure out if we are a localhost
+		$host = preg_replace('/^www\./i', '', $host);
 		$host = strtolower($host); //i dont want to deal with any caps in the domain name and the path. just incase.
 	    $path = ltrim($path,"/");
 	    //	$path = strtolower($path);
@@ -120,11 +130,33 @@ class Tools{
 			$dbcreds = "<?php\nnamespace SuperIntuitive;\nclass DbCreds { }";
 			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", $dbcreds);     // Save our content to the file.
 		}
+		if(session_status() === PHP_SESSION_ACTIVE && Tools::UserIsLoggedIn()){
+			(new Login())->RefreshSession();
+		}
+	}
+	static function IsValidPassword($password){
+		return is_string($password) && strlen($password) >= 10 && strlen($password) <= 72
+			&& strpos($password, "\0") === false;
+	}
+	private static function GetSetupToken(){
+		$expected = getenv('SI_SETUP_TOKEN');
+		if($expected === false || $expected === ''){
+			$path = $_SERVER['DOCUMENT_ROOT'].'/core/setup.token';
+			$expected = !is_link($path) && is_file($path) ? trim((string)file_get_contents($path, false, null, 0, 257)) : '';
+		}
+		return is_string($expected) && strlen($expected) >= 32 && strlen($expected) <= 256 ? $expected : null;
+	}
+	static function ValidateSetupToken($token){
+		$expected = self::GetSetupToken();
+		return is_string($token) && $expected !== null && hash_equals($expected, $token);
+	}
+	static function GetSetupTokenFingerprint(){
+		$expected = self::GetSetupToken();
+		return $expected === null ? null : hash('sha256', $expected.'|'.(realpath($_SERVER['DOCUMENT_ROOT']) ?: $_SERVER['DOCUMENT_ROOT']));
 	}
 	static function IsSecureRequest(){
 		if((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-			|| (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)
-			|| (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')){
+			|| (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)){
 			return true;
 		}
 
@@ -172,6 +204,12 @@ class Tools{
 		header('X-Content-Type-Options: nosniff');
 		header('Referrer-Policy: strict-origin-when-cross-origin');
 		header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+		// HTML and generated assets contain session-specific tokens and content.
+		header('Cache-Control: no-store, private');
+	}
+	static function IsSafeDomain($domain){
+		return is_string($domain) && strlen($domain) <= 253
+			&& preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/Di', $domain) === 1;
 	}
 	static function IsLocalhost($whitelist = ['127.0.0.1', '::1']) {
 		if(isset($_SERVER['REMOTE_ADDR']) && in_array($_SERVER['REMOTE_ADDR'], $whitelist, true)){
@@ -189,6 +227,10 @@ class Tools{
 		return false;
 	}
 	static function Log($data,$filetype='log'){
+		// Debug dumps may contain passwords, tokens, or full SQL statements.
+		if(getenv('SI_DEBUG_LOG') !== '1'){
+			return;
+		}
 		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.'.$filetype;
 		if(file_exists($log)){
 			if (time() - filemtime($log) > 5) {
@@ -320,19 +362,7 @@ class Tools{
 		*/
 	}
 	static function GetIpAddress(){
-		if (!empty($_SERVER['HTTP_CLIENT_IP']))   //check ip from share internet
-		{
-		  $ip=$_SERVER['HTTP_CLIENT_IP'];
-		}
-		elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))   //to check ip is pass from proxy
-		{
-		  $ip=$_SERVER['HTTP_X_FORWARDED_FOR'];
-		}
-		else
-		{
-		  $ip=$_SERVER['REMOTE_ADDR'];
-		}
-		return $ip;
+		return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 	}
 	static function GetRequestHeader($headerName){
 		$serverKey = 'HTTP_'.strtoupper(str_replace('-', '_', $headerName));
@@ -478,20 +508,12 @@ class Tools{
 	static function StartsWithNumber($string) {
 		return strlen($string) > 0 && ctype_digit(substr($string, 0, 1));
     }
-	static function FixGuid($guid){
-	
-		if(strlen($guid)== 32 || strlen($guid)== 34){
-			$guid = strtolower($guid);
-			if(!Tools::StartsWith($guid,'0x') ){
-				$guid = '0x'.$guid;
-			}else{
-
-			}
-			return $guid;
-		//	Tools::Log("Error! The Guid: ".$guid." is not the right length",true);
-		}
-		return false;
-	}
+    static function FixGuid($guid){
+        if(is_string($guid) && preg_match('/^(?:0x)?[a-f0-9]{32}$/Di', $guid)){
+            return '0x'.strtolower(preg_replace('/^0x/i', '', $guid));
+        }
+        return false;
+    }
 	static function NeedsHex($column){
 		$r = null;
 		if(Tools::EndsWith($column, '_id') || $column=='id'|| $column=='createdby'|| $column=='modifiedby' || $column=='hash'){
@@ -508,6 +530,27 @@ class Tools{
 		}
 		return $okid;
 	}
+    // Options are JSON objects. Keep existing JSON text intact; encode native objects once.
+    static function EncodeOptions($value){
+        if(is_string($value)){
+            $decoded = json_decode($value);
+            return json_last_error() === JSON_ERROR_NONE && $decoded instanceof \stdClass ? $value : false;
+        }
+        if(is_array($value)){
+            if(array_is_list($value)){
+                return false;
+            }
+            $value = (object)$value;
+        }
+        if(!$value instanceof \stdClass){
+            return false;
+        }
+        try{
+            return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+        }catch(\JsonException $error){
+            return false;
+        }
+    }
 	static function CleanDeployableField($field){
 		if(Tools::StartsWith($field,"live-")){
 			return substr($field, 5);
@@ -517,6 +560,9 @@ class Tools{
 		}
 		else if(Tools::StartsWith($field,"dev-")){
 			return substr($field, 4);
+		}
+		else if(Tools::StartsWith($field,"rollback-")){
+			return substr($field, 9);
 		}
 		else{
 			return $field;
@@ -581,11 +627,12 @@ class Tools{
 	static function GetCurrentDeployment(){
 		if(defined('SI_DOMAIN_NAME') && defined('SI_SUBDOMAIN_NAME')
 			&& !empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'])){
-			return $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
+            $level = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
+            return in_array($level, array('live', 'test', 'dev'), true) ? $level : 'live';
 		}
 
 		if(defined('SI_DEPLOYMENT')){
-			return SI_DEPLOYMENT;
+			return in_array(SI_DEPLOYMENT, array('live', 'test', 'dev'), true) ? SI_DEPLOYMENT : 'live';
 		}
 
 		return 'live';
@@ -885,9 +932,7 @@ class Tools{
 		return $text;
 	}
 	static function IsJson($string){
-		//return \json_validate($string);
-		$tmp = trim($string);
-		return (substr($string, 0, 1) == "{" ? TRUE : FALSE);
+		return is_string($string) && substr(ltrim($string), 0, 1) === '{';
 	}
 
 	/// <summary>
@@ -938,12 +983,10 @@ class Tools{
 		//https://gist.github.com/LucaRosaldi/5676962
 		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
 			$langs = explode( ',', $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
-			if ( empty( $available ) ) {
-			  return $langs[0];
-			}
 			foreach ( $langs as $lang ){
-				$lang = substr( $lang, 0, 2 );
-				if( in_array( $lang, $available ) ) {
+				$lang = strtolower(trim(explode(';', $lang, 2)[0]));
+				if(preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/D', $lang)
+					&& (empty($available) || in_array($lang, $available, true))){
 					return $lang;
 				}
 			}

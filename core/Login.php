@@ -1,247 +1,235 @@
 <?php
-namespace SuperIntuitive; 
+namespace SuperIntuitive;
 Tools::Autoload();
 class Login {
-	private function SetRememberCookie($name, $value, $expires){
-		setcookie($name, $value, Tools::GetCookieOptions($expires));
-	}
+    private function SetRememberCookie($name, $value, $expires){
+        setcookie($name, $value, Tools::GetCookieOptions($expires));
+    }
 
-	private function ClearRememberCookie($name){
-		setcookie($name, '', Tools::GetCookieOptions(time() - 3600));
-	}
+    private function ClearRememberCookies(){
+        foreach(array('remembermetoken', 'remembermetime') as $name){
+            setcookie($name, '', Tools::GetCookieOptions(time() - 3600));
+            unset($_COOKIE[$name]);
+        }
+    }
 
-	private function FindActiveUserByEmail($email){
-		$db = new Database();
-		$query = $db->DBC()->prepare("SELECT HEX(`id`) AS `id`, `name`, `email`, `password`, `preferences` FROM `users` WHERE `email` = :email AND `status` = 'active' LIMIT 1");
-		$query->execute(array(':email' => $email));
-		$user = $query->fetch();
-		return ($user === false) ? null : $user;
-	}
+    private function FindScopedUser($condition, $params){
+        $db = new Database();
+        $query = $db->DBC()->prepare("SELECT HEX(u.id) AS id, u.name, u.email, u.password, u.preferences
+            FROM users u
+            INNER JOIN entities e ON e.id = u.entity_id AND e.name = 'users' AND e.status = 'active'
+            INNER JOIN domains d ON d.id = e.domain_id AND d.status = 'active'
+            INNER JOIN subdomains s ON s.id = e.subdomain_id AND s.domain_id = d.id AND s.status = 'active'
+            WHERE d.name = :domain AND s.name = :subdomain AND u.status = 'active' AND ".$condition." LIMIT 1");
+        $query->execute(array_merge(array(':domain' => SI_DOMAIN_NAME, ':subdomain' => SI_SUBDOMAIN_NAME), $params));
+        $user = $query->fetch();
+        return $user === false ? null : $user;
+    }
 
-	private function FindRememberedUser($token, $time){
-		$db = new Database();
-		$query = $db->DBC()->prepare("SELECT HEX(`id`) AS `id`, `name`, `email`, `password`, `preferences` FROM `users` WHERE `remembertoken` = :token AND `remembertime` = :time AND `status` = 'active' LIMIT 1");
-		$query->execute(array(':token' => $token, ':time' => $time));
-		$user = $query->fetch();
-		return ($user === false) ? null : $user;
-	}
+    private function FindActiveUserByEmail($email){
+        return $this->FindScopedUser('u.email = :email', array(':email' => $email));
+    }
 
-	private function FindUserRoles($userId){
-		$db = new Database();
-		$normalizedId = str_replace('0x', '', strtolower($userId));
-		$query = $db->DBC()->prepare("SELECT `securityroles`.`name`, `securityroles`.`rules` FROM `relations` INNER JOIN `securityroles` ON `securityroles`.`id` = `relations`.`child_id` WHERE `relations`.`parent_id` = UNHEX(:userid)");
-		$query->execute(array(':userid' => $normalizedId));
-		$roles = $query->fetchAll();
-		return is_array($roles) ? $roles : array();
-	}
+    private function FindRememberedUser($token, $time){
+        if(!is_string($token) || !preg_match('/^[a-f0-9]{64}$/D', $token)
+            || !is_int($time) || $time <= 0 || $time > time() || $time < time() - 30 * 86400){
+            return null;
+        }
+        return $this->FindScopedUser('u.remembertoken = :token AND u.remembertime = :time',
+            array(':token' => substr(hash('sha256', $token), 0, 32), ':time' => $time));
+    }
 
-	private function UpdateRememberMe($userId, $token = '', $time = null){
-		$db = new Database();
-		$normalizedId = str_replace('0x', '', strtolower($userId));
-		$query = $db->DBC()->prepare("UPDATE `users` SET `remembertoken` = :token, `remembertime` = :remembertime WHERE `id` = UNHEX(:userid)");
-		$query->bindValue(':token', $token);
-		if($time === null){
-			$query->bindValue(':remembertime', null, \PDO::PARAM_NULL);
-		}else{
-			$query->bindValue(':remembertime', $time);
-		}
-		$query->bindValue(':userid', $normalizedId);
-		$query->execute();
-	}
+    private function FindUserRoles($userId){
+        $db = new Database();
+        $query = $db->DBC()->prepare("SELECT sr.name, sr.rules FROM relations r
+            INNER JOIN users u ON u.id = r.parent_id AND u.entity_id = r.parententity_id
+            INNER JOIN entities ue ON ue.id = u.entity_id
+            INNER JOIN securityroles sr ON sr.id = r.child_id AND sr.entity_id = r.childentity_id AND sr.status = 'active'
+            INNER JOIN entities se ON se.id = sr.entity_id AND se.domain_id = ue.domain_id AND se.subdomain_id = ue.subdomain_id
+            INNER JOIN entities re ON re.id = r.entity_id AND re.domain_id = ue.domain_id AND re.subdomain_id = ue.subdomain_id
+            WHERE u.id = UNHEX(:userid) AND r.status = 'active'");
+        $query->execute(array(':userid' => substr(Tools::FixGuid($userId), 2)));
+        return $query->fetchAll();
+    }
 
-	private function UpdatePasswordHash($userId, $hash){
-		$db = new Database();
-		$normalizedId = str_replace('0x', '', strtolower($userId));
-		$query = $db->DBC()->prepare("UPDATE `users` SET `password` = :password WHERE `id` = UNHEX(:userid)");
-		$query->execute(array(':password' => $hash, ':userid' => $normalizedId));
-	}
+    private function ApplyRoles($userId){
+        $user =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user'];
+        $previous = array($user['roles'] ?? array(), $user['permissions'] ?? array());
+        $user['roles'] = array();
+        $user['permissions'] = array();
+        foreach($this->FindUserRoles($userId) as $role){
+            $user['roles'][] = $role['name'];
+            $rules = json_decode($role['rules'], true);
+            if(!is_array($rules)){
+                continue;
+            }
+            foreach($rules as $entityId => $permissions){
+                $entityId = Tools::FixGuid($entityId);
+                if($entityId === false || !is_array($permissions)){
+                    continue;
+                }
+                foreach(array('create', 'read', 'write', 'delete', 'append', 'appendTo') as $action){
+                    $grant = filter_var($permissions[$action] ?? false, FILTER_VALIDATE_BOOLEAN);
+                    $user['permissions'][$entityId][$action] = ($user['permissions'][$entityId][$action] ?? false) || $grant;
+                }
+            }
+        }
+        if(empty($user['roles'])){
+            $user['roles'] = array('Guest');
+        }
+        if($previous !== array($user['roles'], $user['permissions'])){
+            unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page'], $_SESSION['SITMP']);
+        }
+        $deployment =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
+        if(!in_array($deployment, array('live', 'test', 'dev'), true)) $deployment = 'live';
+        if(!in_array('Admin', $user['roles'], true)){
+            if(!in_array($deployment, array('live', 'test'), true) || !in_array('Tester', $user['roles'], true)){
+                $deployment = 'live';
+            }
+        }
+    }
 
-	public function Attempt($post){
-		if(isset($post['email']) && isset($post['password'])){
-			if (filter_var($post['email'], FILTER_VALIDATE_EMAIL)){
-				Tools::Log("ATTEMPTING TO LOGIN USER:".$post['email']);
-				$ouruser = $this->FindActiveUserByEmail($post['email']);
+    private function UpdateRememberMe($userId, $token = '', $time = null){
+        $db = new Database();
+        $query = $db->DBC()->prepare("UPDATE users SET remembertoken = :token, remembertime = :time WHERE id = UNHEX(:userid)");
+        $query->execute(array(':token' => $token, ':time' => $time, ':userid' => substr(Tools::FixGuid($userId), 2)));
+    }
 
-				if($ouruser !== null){
-					//check if the password checks out.
-					$dbpass = $ouruser['password'];
-					//Tools::Log("PASS:",$dbpass);
-					if (password_verify($post['password'], $dbpass)) {
-						//if remember me is set, then make a guid and the time and set it in the database
-						$this->Verified($ouruser,$post);
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
-						sleep(2); //help make the page load right the first time.
-						return true;
-					} 
-				}
-				else{
-				
-				}
-			}
-			//$this->Logout();
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['LOGINFAIL'] = 'TRUE';
-			sleep(5);//were in no hurry to give up the results of an incorrect attempt.
-			return false;
-		}
-		else{
-			return false;
-		}
-	}
+    private function InvalidateSession(){
+        unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]);
+        unset($_SESSION['SITMP']);
+        $this->ClearRememberCookies();
+        if(session_status() === PHP_SESSION_ACTIVE){
+            session_regenerate_id(true);
+        }
+    }
 
-	public function Remembered(){
-		//Tools::Log('In Remembered');
-		//Tools::Log($_COOKIE);
-		if(isset($_COOKIE['remembermetoken']) && isset($_COOKIE['remembermetime'])){
-			Tools::Log("about to try to recognise the user");
-			$ouruser = $this->FindRememberedUser($_COOKIE['remembermetoken'], (int)$_COOKIE['remembermetime']);
-			Tools::Log($ouruser);
-			if($ouruser !== null){
-				Tools::Log('Verified by cookies');
-				//if remember me is set, then make a guid and the time and set it in the database
-				$this->Verified($ouruser, null);
-				return true;	
-			}
-		}
-		return false;
-	}
+    public function RefreshSession(){
+        if(!Tools::UserIsLoggedIn()){
+            return false;
+        }
+        $session = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user'];
+        $id = Tools::FixGuid($session['id'] ?? null);
+        try{
+            $user = $id === false ? null : $this->FindScopedUser('u.id = UNHEX(:id)', array(':id' => substr($id, 2)));
+            if($user === null || !is_string($session['auth_hash'] ?? null)
+                || !hash_equals(hash('sha256', $user['password']), $session['auth_hash'])
+                || ($session['authenticated_at'] ?? 0) < time() - 12 * 3600
+                || ($session['last_activity'] ?? 0) < time() - 1800){
+                $this->InvalidateSession();
+                return false;
+            }
+            $this->ApplyRoles($id);
+            $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['last_activity'] = time();
+            return true;
+        } catch(\Throwable $ex){
+            $this->InvalidateSession();
+            http_response_code(503);
+            header('Cache-Control: no-store');
+            exit('Unable to validate this session. Please try again.');
+        }
+    }
 
-	private function Verified($ouruser, $post){
-					Tools::Log($ouruser);
-		if(session_status() === PHP_SESSION_ACTIVE){
-			session_regenerate_id(true);
-		}
-		if(isset($post['rememberme'])){
-			if($post['rememberme']){
-				Tools::Log('rememberme is true');
-				$exptime = time() + (30 * 24 * 60 * 60);
-				$token = bin2hex(random_bytes(32));
-				$mtime = time();
-				Tools::Log('Setting Cookies');
-				$this->SetRememberCookie("remembermetoken", $token, $exptime);
-				$this->SetRememberCookie("remembermetime", (string)$mtime, $exptime);
+    public function Attempt($post){
+        $return =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'];
+        if(!RateLimit::RequireAllowance('login')){
+            $return['LOGINFAIL'] = 'TRUE';
+            return false;
+        }
+        $valid = is_string($post['email'] ?? null) && filter_var($post['email'], FILTER_VALIDATE_EMAIL)
+            && is_string($post['password'] ?? null) && strlen($post['password']) <= 72 && strpos($post['password'], "\0") === false;
+        $user = $valid ? $this->FindActiveUserByEmail($post['email']) : null;
+        // Spend equivalent password work for unknown accounts, without blocking workers with sleeps.
+        $hash = $user['password'] ?? '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
+        $verified = password_verify($valid ? $post['password'] : '', $hash);
+        if($user !== null && $verified){
+            $this->Verified($user, $post);
+            $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
+            return true;
+        }
+        $return['LOGINFAIL'] = 'TRUE';
+        return false;
+    }
 
-				Tools::Log('Setting Cookie data in db');
-				$this->UpdateRememberMe($ouruser['id'], $token, $mtime);
+    public function Remembered(){
+        if(Tools::UserIsLoggedIn()){
+            return false;
+        }
+        $timestamp = $_COOKIE['remembermetime'] ?? null;
+        if(!is_string($timestamp) || !ctype_digit($timestamp)){
+            return false;
+        }
+        $user = $this->FindRememberedUser($_COOKIE['remembermetoken'] ?? null, (int)$timestamp);
+        if($user === null){
+            $this->ClearRememberCookies();
+            return false;
+        }
+        $this->Verified($user, array('rememberme' => true));
+        return true;
+    }
 
-			}else{
-			    Tools::Log('rememberme is false');
-				unset($_COOKIE['remembermetoken']); 
-				$this->ClearRememberCookie('remembermetoken'); 
-				unset($_COOKIE['remembermetime']); 
-				$this->ClearRememberCookie('remembermetime'); 
-				Tools::Log('rememberme is false');
-				Tools::Log('Setting Cookie data in db');
-				$this->UpdateRememberMe($ouruser['id']);
-			}
-		}
+    private function Verified($ouruser, $post){
+        session_regenerate_id(true);
+        unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page'], $_SESSION['SITMP']);
+        if(($post['rememberme'] ?? false) === true){
+            $token = bin2hex(random_bytes(32));
+            $timestamp = time();
+            $this->UpdateRememberMe($ouruser['id'], substr(hash('sha256', $token), 0, 32), $timestamp);
+            $this->SetRememberCookie('remembermetoken', $token, $timestamp + 30 * 86400);
+            $this->SetRememberCookie('remembermetime', (string)$timestamp, $timestamp + 30 * 86400);
+        }else{
+            $this->ClearRememberCookies();
+            $this->UpdateRememberMe($ouruser['id']);
+        }
+        $bu =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME];
+        $bu['user'] = array('loggedin' => true, 'id' => Tools::FixGuid($ouruser['id']),
+            'name' => $ouruser['name'], 'email' => $ouruser['email'], 'prefs' => array(),
+            'preferences' => json_decode($ouruser['preferences'] ?? '{}', true),
+            'auth_hash' => hash('sha256', $ouruser['password']), 'authenticated_at' => time(), 'last_activity' => time());
+        $this->ApplyRoles($ouruser['id']);
+        $bu['deployment'] = Tools::UserHasRole('Admin') ? 'dev' : 'live';
+    }
 
-		$usersession = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user'];
+    public function Logout(){
+        if(Tools::UserIsLoggedIn()){
+            $this->UpdateRememberMe($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id']);
+        }
+        $this->InvalidateSession();
+        $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
+    }
 
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin'] = true;
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'] = '0x'.$ouruser['id'];
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['name'] = $ouruser['name'];
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['email'] = $ouruser['email'];
-		
-		//TODO: set this up in the database somewhere.  
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs']['open_links_in'] = 'tab'; //open external links in a window or tab
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs']['help']['moz'] = false;
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs']['help']['w3'] = false; 
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['prefs']['autosave'] = true;
-		if(isset($ouruser['preferences'])){
-		    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['preferences'] = json_decode($ouruser['preferences']);
-		}
-		
+    public function Verify($post){
+        if(!RateLimit::RequireAllowance('login') || !Tools::UserIsLoggedIn()
+            || !is_string($post['email'] ?? null) || !filter_var($post['email'], FILTER_VALIDATE_EMAIL)
+            || !is_string($post['password'] ?? null) || strlen($post['password']) > 72){
+            return false;
+        }
+        $user = $this->FindActiveUserByEmail($post['email']);
+        return $user !== null && Tools::FixGuid($user['id']) === Tools::FixGuid($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'])
+            && password_verify($post['password'], $user['password']);
+    }
 
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'] = array();
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['permissions']=array();
-
-		//$preferences = $db->GetRelatedEntities("users",'0x'.$ouruser['id'] ,"preferences");
-
-
-		//Goto Database and get the users SecurityRoles. 
-		$roles = $this->FindUserRoles($ouruser['id']);
-		Tools::Log("Number of user roles: ".count($roles));
-		if(count($roles)==0){
-			//the user does not have a role yet. we will give them guest
-			Tools::Log("The user has no roles so they will get guest rolls.");
-			$db = new Database();
-			$guestrules = $db->GetGuestRules(); 
-			Tools::Log($guestrules);
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['permissions'] = $guestrules;
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'][] = "Guest";
-		}else{	
-			foreach($roles as $role){
-				//Tools::Log("Setting the Logged in Roles", true);
-				if(!in_array($role['name'], $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'])){
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['roles'][] = $role['name'];
-					$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['permissions'] = json_decode($role['rules'],true);
-				}
-			}
-		}
-
-
-
-		if(Tools::UserHasRole('Admin')) {
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] = "dev";
-			Tools::Log("User is Admin");
-		}else{
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] = "live";
-			Tools::Log("User is NOT Admin", true);
-		}
-	}
-	public function Logout(){
-		if(isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'])){
-			$userId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'];
-			unset($_COOKIE['remembermetoken']); 
-			$this->ClearRememberCookie('remembermetoken'); 
-			unset($_COOKIE['remembermetime']); 
-			$this->ClearRememberCookie('remembermetime'); 
-			$this->UpdateRememberMe($userId);
-		}
-		session_destroy();
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['REFRESH'] = 'TRUE';
-	}
-	public function Verify($post){
-		if(isset($post['email']) && isset($post['password']) && filter_var($post['email'], FILTER_VALIDATE_EMAIL)){
-			$ouruser = $this->FindActiveUserByEmail($post['email']);
-			if($ouruser !== null && password_verify($post['password'], $ouruser['password'])){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	public function ChangePassword($post){
-		if(empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'])){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED'] = false;
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'You must be logged in to change your password.';
-			return false;
-		}
-
-		if(!isset($post['newpassword']) || strlen(trim($post['newpassword'])) === 0){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED'] = false;
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'A new password is required.';
-			return false;
-		}
-
-		if(!$this->Verify($post)){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED'] = false;
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'Current credentials are invalid.';
-			return false;
-		}
-
-		$hash = password_hash($post['newpassword'], PASSWORD_DEFAULT);
-		try{
-			$this->UpdatePasswordHash($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'], $hash);
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED'] = true;
-			return true;
-		}
-		catch(\PDOException $e){
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED'] = false;
-			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = $e->getMessage();
-		}
-
-		return false;
-	}
-
+    public function ChangePassword($post){
+        $return =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'];
+        $return['PASSWORDCHANGED'] = false;
+        if(!Tools::UserIsLoggedIn() || !Tools::IsValidPassword($post['newpassword'] ?? null) || !$this->Verify($post)){
+            $return['ERROR'] = 'Check the current credentials and use a new password of 10 to 72 bytes.';
+            return false;
+        }
+        try{
+            $hash = password_hash($post['newpassword'], PASSWORD_DEFAULT);
+            $db = new Database();
+            $id = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['id'];
+            $query = $db->DBC()->prepare("UPDATE users SET password = :password, remembertoken = '', remembertime = NULL WHERE id = UNHEX(:id)");
+            $query->execute(array(':password' => $hash, ':id' => substr($id, 2)));
+            $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['auth_hash'] = hash('sha256', $hash);
+            session_regenerate_id(true);
+            $this->ClearRememberCookies();
+            $return['PASSWORDCHANGED'] = true;
+            return true;
+        }catch(\PDOException $ex){
+            $return['ERROR'] = 'Unable to change the password.';
+            return false;
+        }
+    }
 }

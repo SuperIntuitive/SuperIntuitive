@@ -124,7 +124,9 @@ class Plugins {
 		if($parsed !== false && !empty($parsed['scheme'])){
 			$scheme = strtolower($parsed['scheme']);
 			$host = strtolower($parsed['host'] ?? '');
-			if(($scheme !== 'http' && $scheme !== 'https') || $host !== $this->pluginRepoHost){
+			if($scheme !== 'https' || $host !== $this->pluginRepoHost
+				|| isset($parsed['user']) || isset($parsed['pass'])
+				|| (isset($parsed['port']) && $parsed['port'] !== 443)){
 				return null;
 			}
 			$filename = basename((string)($parsed['path'] ?? ''));
@@ -744,4 +746,4 @@ class Plugins {
 
 
 
-} 
+}

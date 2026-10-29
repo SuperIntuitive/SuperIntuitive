@@ -1,0 +1,10 @@
+use Tools
+use Security
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    // No raw multipart parser or confined, no-follow binary mutation API is
+    // exposed. Do not replace those with shell commands or unchecked paths.
+    if action == "MediaPromote" or action == "MediaRecycle" { return Tools.gap("CONFINED_BINARY_FILE_MUTATION") }
+    return Tools.gap("MULTIPART_UPLOAD_AND_MEDIA_VALIDATION")
+}

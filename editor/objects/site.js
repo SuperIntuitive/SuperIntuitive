@@ -1,12 +1,8 @@
 ﻿SI.Editor.Objects.Site = {
     Draw: function () {
         let base = Ele('div', {
-            style: {
-                width: '100%',
-                height: '100%',
-                backgroundColor: SI.Editor.Style.FavoriteColor,
-                overflowY: 'scroll'
-            }
+            class: 'si-tool-body',
+
         });
 
         let fldNewPage = Ele('fieldset', {
@@ -99,8 +95,8 @@
                     append: Ele('legend', {
                         innerHTML: "Domain",
                         style: {
-                            backgroundColor: '#d3d9de',
-                            color: '#374049',
+
+
                             paddingLeft: '5px',
                             paddingRight: '5px',
                             border: '2px groove gray',
@@ -133,8 +129,8 @@
                             append: Ele('legend', {
                                 innerHTML: "SubDomain",
                                 style: {
-                                    backgroundColor: '#d3d9de',
-                                    color: '#374049',
+
+
                                     paddingLeft: '5px',
                                     paddingRight: '5px',
                                     border: '2px groove gray',
@@ -163,13 +159,13 @@
                                 let pg = Ele('fieldset', {
                                     id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
                                     style: {
-                                        backgroundColor: '#a8b3bd',
+
                                     },
                                     append: Ele('legend', {
                                         innerHTML: pgname,
                                         style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
+
+
                                             paddingLeft: '5px',
                                             paddingRight: '5px',
                                             border: '2px groove gray',
@@ -210,13 +206,13 @@
                                 let parentEntBox = Ele('fieldset', {
                                     id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
                                     style: {
-                                        backgroundColor: '#a8b3bd',
+
                                     },
                                     append: Ele('legend', {
                                         innerHTML: "Parent Entities",
                                         style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
+
+
                                             paddingLeft: '5px',
                                             paddingRight: '5px',
                                             border: '2px groove gray',
@@ -229,13 +225,13 @@
                                 let childEntBox = Ele('fieldset', {
                                     id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
                                     style: {
-                                        backgroundColor: '#a8b3bd',
+
                                     },
                                     append: Ele('legend', {
                                         innerHTML: "Child Entities",
                                         style: {
-                                            backgroundColor: '#d3d9de',
-                                            color: '#374049',
+
+
                                             paddingLeft: '5px',
                                             paddingRight: '5px',
                                             border: '2px groove gray',
@@ -304,13 +300,13 @@
                                             pg = Ele('fieldset', {
                                                 id: 'si_edit_site_domain_' + page['domainName'] + '_' + buname + '_' + pgname,
                                                 style: {
-                                                    backgroundColor: '#a8b3bd',
+
                                                 },
                                                 append: Ele('legend', {
                                                     innerHTML: cEntName,
                                                     style: {
-                                                        backgroundColor: '#d3d9de',
-                                                        color: '#374049',
+
+
                                                         paddingLeft: '5px',
                                                         paddingRight: '5px',
                                                         border: '2px groove gray',
@@ -330,7 +326,7 @@
                                             innerHTML: relation.note,
                                             style: {
                                                 display: 'inline-block',
-                                                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                                             },
                                             appendTo: pg,
                                         });

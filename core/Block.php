@@ -15,87 +15,86 @@ class Block {
 	public function __destruct(){
 	}
 
-	function Save($post){
-	
-		if(isset($post['guid'])){
-			
-			$block = new Entity("blocks"); //name  script style html 
-			$block->Id = $post['guid'];
-			
-			$relations = new Entity("relations"); //Order and Options, both deployable
-			$relations->Id = $post['relationsId'];
-
-			//The fields that could possibly be saved in a block. we dont have to save all of them all the time, but all options must be saved as one
-			$fields = array('order','options','name','script','style','html');
-           
-			foreach($fields as $field){
-				if(isset($post[$field] ))
-				{
-					switch($field){
-						case 'name': $block->Attributes->Add(new Attribute("name",$post[$field] ) ); 
-							break;
-						case 'options':
-								$json =  json_encode($post[$field]);
-								$relations->Attributes->Add(new Attribute("dev-options", $json ) ); 
-							break;
-						case 'order':
-								$relations->Attributes->Add(new Attribute("dev-order", $post[$field] ) ); 
-							break;
-						case 'html':
-							$html = $post[$field];
-							//Tools::Log($html,true);
-							$html = str_replace('/dev_','/',$html);
-
-							$html = str_replace('class="si-editable-element"','',$html);
-							$html = str_replace('si-editable-element','',$html);
-
-
-							//Tools::Log($html.true);
-						//	$html = str_replace('media/images/dev_"','media/images/',$html);
-						//	$html = str_replace('media/audio/dev_"','media/audio/',$html);
-						//	$html = str_replace('media/data/dev_"','media/data/',$html);
-						//	$html = str_replace('media/documents/dev_"','media/documents/',$html);
-						//	$html = str_replace('media/font/dev_"','media/font/',$html);
-						//	$html = str_replace('media/videos/dev_"','media/videos/',$html);
-							$block->Attributes->Add(new Attribute("dev-$field",$html ) );
-							break;
-						case 'style':
-						    $style = $post[$field];
-							$style = str_replace('/dev_','/',$style);
-							$block->Attributes->Add(new Attribute("dev-$field",$style ) );
-							break;
-						case 'script':
-						    $script = $post[$field];
-							$script = str_replace('/dev_','/',$script);
-							$block->Attributes->Add(new Attribute("dev-$field",$script ) );
-							break;
-						default: $block->Attributes->Add(new Attribute("dev-$field",$post[$field] ) );
-							break;
-					}
-
-				}
-			}
-
-			try
-			{
-				//Tools::Log($block);
-				//Tools::Log($relations);
-				if($block->Attributes->Count>0){
-					$block->Update();
-				}
-				if($relations->Attributes->Count>0){
-					$relations->Update();
-				}
-				
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKSAVED'] = $post['name'];
-			}
-			catch(Exception $ex)
-			{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['EXCEPTION'] = $ex;
-			}
-		}
-
-	}
+    function Save($post){
+        $bu =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME];
+        $fail = function($message) use (&$bu){ $bu['AJAXRETURN']['ERROR'] = $message; return false; };
+        if(!Tools::UserHasRole('Admin') || Tools::GetCurrentDeployment() !== 'dev' || !is_array($post)){
+            return $fail('Block editing is only available in Dev.');
+        }
+        $blockId = Tools::FixGuid($post['guid'] ?? null);
+        $relationId = Tools::FixGuid($post['relationsId'] ?? null);
+        $scopes = array();
+        foreach(array('blocks', 'relations') as $name){
+            $scope = Tools::FixGuid($bu['entities'][$name]['instanceguid'] ?? null);
+            $permissions = $bu['user']['permissions'][$scope] ?? array();
+            if($scope === false || !filter_var($permissions['write'] ?? false, FILTER_VALIDATE_BOOLEAN)){
+                return $fail('You do not have permission to save this block.');
+            }
+            $scopes[$name] = $scope;
+        }
+        if($blockId === false || $relationId === false){
+            return $fail('The block or page link is invalid.');
+        }
+        $blockFields = $relationFields = array();
+        foreach(array('name', 'html', 'script', 'style') as $field){
+            if(array_key_exists($field, $post)){
+                $value = $post[$field];
+                if(!is_string($value)){
+                    return $fail('Block content must be text.');
+                }
+                // Saved media URLs remain deployment-neutral.
+                if($field !== 'name') $value = preg_replace('~(/media/(?:images|audio|videos?|data|fonts|icons|documents)/)dev_~', '$1', $value);
+                $blockFields[$field === 'name' ? 'name' : 'dev-'.$field] = $value;
+            }
+        }
+        if(array_key_exists('options', $post)){
+            $json = Tools::EncodeOptions($post['options']);
+            if($json === false){
+                return $fail('Block options must be a valid JSON object.');
+            }
+            $relationFields['dev-options'] = $json;
+        }
+        if(array_key_exists('order', $post)){
+            $order = filter_var($post['order'], FILTER_VALIDATE_INT);
+            if($order === false || $order < 0 || $order > 2147483647){
+                return $fail('Block order must be a nonnegative integer.');
+            }
+            $relationFields['dev-order'] = $order;
+        }
+        $db = new Database();
+        $pdo = $db->DBC();
+        try{
+            $pdo->beginTransaction();
+            $find = $pdo->prepare('SELECT b.name FROM blocks b INNER JOIN relations r ON r.child_id=b.id AND r.childentity_id=b.entity_id
+                WHERE b.id=UNHEX(:block) AND b.entity_id=UNHEX(:block_scope) AND r.id=UNHEX(:relation) AND r.entity_id=UNHEX(:relation_scope) FOR UPDATE');
+            $find->execute(array(':block' => substr($blockId, 2), ':block_scope' => substr($scopes['blocks'], 2), ':relation' => substr($relationId, 2), ':relation_scope' => substr($scopes['relations'], 2)));
+            $row = $find->fetch(\PDO::FETCH_ASSOC);
+            if(!$row){
+                $pdo->rollBack();
+                return $fail('This block does not belong to the supplied page link.');
+            }
+            foreach(array(array('blocks', $blockId, $blockFields), array('relations', $relationId, $relationFields)) as $record){
+                if(!$record[2]) continue;
+                $sets = $params = array();
+                foreach($record[2] as $field => $value){
+                    $parameter = ':value'.count($sets);
+                    $sets[] = '`'.$field.'`='.$parameter;
+                    $params[$parameter] = $value;
+                }
+                $params[':id'] = substr($record[1], 2);
+                $params[':scope'] = substr($scopes[$record[0]], 2);
+                $update = $pdo->prepare('UPDATE `'.$record[0].'` SET '.implode(',', $sets).' WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)');
+                $update->execute($params);
+            }
+            $pdo->commit();
+            $bu['AJAXRETURN']['BLOCKSAVED'] = $post['name'] ?? $row['name'];
+            return true;
+        }catch(\Throwable $error){
+            if($pdo->inTransaction()) $pdo->rollBack();
+            Tools::Log('Block save failed: '.$error->getMessage());
+            return $fail('The block could not be saved. No changes were committed.');
+        }
+    }
 	function New($post){
 		try{
 			if( isset($post['name']) && isset($post['order']) ){
@@ -156,7 +155,7 @@ class Block {
 			$options = !isset($post['options']) ? null : $post['options'];
 			if($pageid && $blockid && ($order!==null)){
 				//get the block that were relating to the page
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED'] = array();
+				$result = array();
 				$entity = new Entity('blocks');
 				$entity->Id = $blockid;
 				$myblock = $entity->Retrieve()[0];
@@ -167,20 +166,20 @@ class Block {
 						$options = $myblock['options'];
 					}
 
-					if($options===null || strlen($options<2)){ //finally if we still have no options
+					if($options===null || strlen($options)<2){ //finally if we still have no options
 						$options = '{"tag":"div","style":{"position":"static","left":"0px","top":"0px","width":"100%","height":"500px"}}';
 					}
 					if(isset($myblock['name'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['NAME'] = $myblock['name'];
+						$result['NAME'] = $myblock['name'];
 					}
 					if(isset($myblock['html'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['HTML'] = $myblock['html'];
+						$result['HTML'] = $myblock['html'];
 					}
 					if(isset($myblock['style'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['STYLE'] = $myblock['style'];
+						$result['STYLE'] = $myblock['style'];
 					}
 					if(isset($myblock['script'])){
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['SCRIPT'] = $myblock['script'];
+						$result['SCRIPT'] = $myblock['script'];
 					}
 
 					$db = new Database();
@@ -189,10 +188,13 @@ class Block {
 
 					if($relatedid != null){
 
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['ID'] = $blockid;
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['RELID'] = $relatedid;
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['OPTIONS'] = $options;
-						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED']['ORDER'] = $order;
+						$result['ID'] = $blockid;
+						$result['RELID'] = $relatedid;
+						$result['OPTIONS'] = $options;
+						$result['ORDER'] = $order;
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['BLOCKRELATED'] = $result;
+					} else {
+						$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'The block could not be added to this page.';
 					}
 					return $relatedid;
 				}

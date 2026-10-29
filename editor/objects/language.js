@@ -16,12 +16,8 @@
         // var localtext = SI.Editor.Data.Objects.Entities.Definitions.localtext.attributes;
         //Base
         let base = Ele('div', {
-            style: {
-                width: '100%',
-                height: '100%',
-                padding: '20px',
-                backgroundColor: SI.Editor.Style.FavoriteColor,
-            },
+            class: 'si-tool-body',
+
 
         });
         //top menu
@@ -146,7 +142,7 @@
                 height: '150px',
                 width: '95%',
                 top: '0px',
-                backgroundColor: 'grey',
+
                 color: 'white',
                 overflowY: 'scroll',
                 overflowX: 'auto',
@@ -297,8 +293,8 @@
                 style: {
                     minHeight: '500px',
                     width: '100%',
-                    color: 'black',
-                    backgroundColor: 'silver',
+
+
                     padding: '15px',
                 },
                 onkeyup: langSync,

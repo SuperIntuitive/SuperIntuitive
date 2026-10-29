@@ -1,0 +1,12 @@
+use ../src/Config
+use ../src/Database
+use ../src/Runtime
+fn start() {
+    Config.load()
+    let connection = Database.connection()
+    connection.query("SELECT 1 AS connected", {:})
+    assert(connection.rows[0][0] == 1, "Database read-only connection check")
+    let scopes = Database.scopes()
+    print(json.stringify({"connected": true, "tenantRegistered": not scopes.isEmpty, "mysqlDriver": Runtime.inspect()["mysqlDriver"], "bcryptVerify": Runtime.inspect()["phpBcryptVerify"], "bcryptHash": Runtime.inspect()["phpBcryptHash"]}))
+    connection.close()
+}

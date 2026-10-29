@@ -3,14 +3,8 @@ SI.Editor.Objects.Settings = {
     Draw: function () {
 
         let container = Ele('div', {
-            style: {
-                width: "100%",
-                height: "100%",
-                overflow: "auto",
-                padding: '20px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
-            },
+            class: 'si-tool-body',
+
         });
 
 
@@ -239,7 +233,7 @@ SI.Editor.Objects.Settings = {
         let settings = SI.Editor.Data.Objects.Settings;
 
         for (let index in settings) {
-            
+
             if (settings.hasOwnProperty(index)) {
                 let setting = settings[index];
                 let name = setting.settingname;
@@ -275,7 +269,7 @@ SI.Editor.Objects.Settings = {
             let name = setting[1];
             let val = setting[2];
             SI.Editor.Objects.Settings.Add(name, val);
-            
+
             SI.Editor.Data.Objects.Settings.push( {"id":id,"settingname": name,'settingvalue': val} );
             //update the page
             SI.Editor.Objects.Page.AddSetting(name);
@@ -395,6 +389,13 @@ SI.Editor.Objects.Settings = {
                         let domain = obj.domain;
                         let path = domain + codeobj[site];
                         let icon = new SI.Widget.IconLink({ "Parent": appendTo, "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n + " on " + company })
+                        icon.Container.classList.add('si-edit-doc-cell');
+                        const link = icon.Container.querySelector('a');
+                        if (link) {
+                            link.classList.add('si-edit-doc-link');
+                            link.title = 'Look up ' + codeobj.n + ' on ' + company;
+                            link.setAttribute('aria-label', link.title);
+                        }
                         //  appendTo.appendChild(icon.Container);
                     }
                 }
@@ -408,8 +409,8 @@ SI.Editor.Objects.Settings = {
             style: {
                 width: "100%",
                 height: "100%",
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
+
+
                 fontSize: '10px',
             },
         });
@@ -535,7 +536,7 @@ SI.Editor.Objects.Settings = {
                 height: "100%",
                 backgroundColor:'#111',
                 overflow: "scroll",
-                color:SI.Editor.Style.TextColor,
+
             },
         });
         //debugger;

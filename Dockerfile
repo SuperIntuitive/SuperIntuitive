@@ -1,4 +1,7 @@
-FROM php:8.2-apache
+FROM php:8.2.35-apache
+
+COPY core/PhpRuntime.php /usr/local/lib/superintuitive/PhpRuntime.php
+RUN php -r 'require "/usr/local/lib/superintuitive/PhpRuntime.php"; \SuperIntuitive\PhpRuntime::RequirePatched();'
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libzip-dev \

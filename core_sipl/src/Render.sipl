@@ -1,0 +1,96 @@
+use Config
+use Tools
+use Security
+use Sessions
+use Deployment
+use Content
+
+fn bootstrap(context: Map, request: Map, page: Map) -> String {
+    let blockData: Map = {:}
+    for block in page["blocks"] {
+        var options: Map = {:}
+        if block["relationsOptions"].type == "String" and json.isValid(block["relationsOptions"]) {
+            let parsed = json.parse(block["relationsOptions"])
+            if parsed.type == "Map" { options = parsed }
+        }
+        blockData[block["name"]] = {"Settings": options.get("settings", {:}), "Widgets": options.get("widgets", {:})}
+    }
+    let values: Map = {"__SETTINGS__": page.get("settings", {:}), "__BLOCKS__": blockData, "__CSRF__": Sessions.csrf(request), "__USER__": context["user"]["name"], "__PREFERENCES__": context["user"].get("preferences", {:}), "__BACKEND__": {"current": "sipl", "phpOrigin": Config.get("phpOrigin", "http://localhost:8090"), "siplOrigin": ""}}
+    var source = fs.readText(Config.root("core_sipl/generated/page-bootstrap.js.tmpl"))
+    let replacements: Map = {:}
+    for marker, value in values { replacements[marker] = Tools.scriptJson(value) }
+    return "<script>" + Tools.fillTemplate(source, replacements) + "</script>"
+}
+
+fn deploymentControls(context: Map) -> String {
+    if not Security.hasRole(context, "Admin") and not Security.hasRole(context, "Tester") { return "" }
+    var result = "<div id='si_deployment_controls' class='si-deployment-control' style='position:fixed;right:14px;bottom:14px;z-index:996;display:flex;gap:3px;padding:5px;background:#121d30'>"
+    for level, color in {"live": "red", "test": "yellow", "dev": "green"} {
+        if level == "dev" and not Security.hasRole(context, "Admin") { continue }
+        var disabled = ""
+        if context["deployment"] == level { disabled = " disabled" }
+        result += "<button type='button' id='si_deployment_control_" + level + "' class='si-deployment-control' title='" + level + "' onclick='SI.Deployment.Change(this)' style='border:0;border-radius:50%;width:16px;height:16px;background:" + color + "'" + disabled + "></button>"
+    }
+    return result + "</div>"
+}
+
+fn renderPage(context: Map, request: Map, page: Map) -> String {
+    var options: Map = {:}
+    if page["options"].type == "String" and json.isValid(page["options"]) {
+        let parsed = json.parse(page["options"])
+        if parsed.type == "Map" { options = parsed }
+    }
+    let head = options.get("head", {:})
+    var title = head.get("title", page["name"])
+    if context["deployment"] != "live" { title = context["deployment"] + " - " + title }
+    var output = "<!doctype html><html lang='en'><head><meta id='si_meta_charset' charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title id='si_pagetitle'>" + Tools.escapeHtml(title) + "</title>"
+    let meta = head.get("meta", {:})
+    for kind, entries in meta {
+        if entries.type != "Map" { continue }
+        var attribute = kind
+        if kind == "httpEquiv" { attribute = "http-equiv" }
+        if not ["name", "http-equiv", "property"].contains(attribute) { continue }
+        for name, content in entries { output += "<meta id='si_meta_" + name.replace("-", "_") + "' " + attribute + "='" + Tools.escapeHtml(name) + "' content='" + Tools.escapeHtml(content) + "'>" }
+    }
+    if head.get("favicon").type == "String" { output += "<link rel='icon' id='si_favicon' href='" + Tools.escapeHtml(head["favicon"]) + "'>" }
+    output += bootstrap(context, request, page)
+    for file in ["plugins.css", "page.css", "libraries.css", "widgets.css"] { output += "<link rel='stylesheet' id='si_" + file.replace(".css", "") + "_style' href='/style/" + file + "'>" }
+    output += "<script defer src='/core_sipl/public/backend-switch.js'></script><script defer src='/scripts/tools.js'></script>"
+    for file in fs.list(Config.root("scripts/widgets")) {
+        if file.endsWith(".js") { output += "<script defer src='/scripts/widgets/" + Tools.escapeHtml(file) + "'></script>" }
+    }
+    if Security.hasRole(context, "Admin") and context["deployment"] == "dev" {
+        output += "<link rel='stylesheet' href='/editor/editor.css'><script defer src='/editor/editor.js'></script>"
+        for file in fs.list(Config.root("editor/objects")) {
+            if file.endsWith(".js") { output += "<script defer src='/editor/objects/" + Tools.escapeHtml(file) + "'></script>" }
+        }
+    }
+    if Security.hasRole(context, "Admin") or Security.hasRole(context, "Tester") { output += "<script src='/__sipl/deployment.js'></script>" }
+    output += "<script defer src='/scripts/page.js'></script><script defer src='/scripts/plugins.js'></script>"
+    var bodyStyle = ""
+    let body = options.get("body", {:})
+    for property, value in body.get("style", {:}) {
+        if regex.compile("^[A-Za-z-]+$").isMatch(property) { bodyStyle += property + ":" + "{value}" + ";" }
+    }
+    output += "<style id='si_bodystyle'>body\{ " + bodyStyle.replace("<", "\\3c ") + " \}</style></head>"
+    output += "<body data-guid='0x" + page["id"] + "'><i id='si_colorscheme'></i>"
+    for block in page["blocks"] {
+        var attributes: Map = {:}
+        if block["relationsOptions"].type == "String" and json.isValid(block["relationsOptions"]) {
+            let parsed = json.parse(block["relationsOptions"])
+            if parsed.type == "Map" { attributes = parsed }
+        }
+        let tag = attributes.get("tag", "div")
+        if not ["div", "section", "article", "header", "footer", "nav", "main", "aside", "span"].contains(tag) { fail("INVALID_BLOCK_TAG") }
+        var styles = ""
+        for property, value in attributes.get("style", {:}) {
+            if regex.compile("^[A-Za-z-]+$").isMatch(property) { styles += property + ":" + "{value}" + ";" }
+        }
+        var content = Tools.text(block.get("html"), "")
+        content = Content.expand(context, content)
+        content = Deployment.mediaPaths(content, context["deployment"])
+        let order = block["relationsOrder"]
+        output += "<" + tag + " id='si_block_" + Tools.safeId(block["name"]) + "' class='si-block' data-order='" + "{order}" + "' style='" + Tools.escapeHtml(styles) + "'>" + content + "</" + tag + ">"
+    }
+    return output + deploymentControls(context) + "</body></html>"
+}

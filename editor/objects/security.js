@@ -1,69 +1,99 @@
 ﻿
 SI.Editor.Objects.Security = {
     Draw: function () {
-        let base = Ele('div', {
-            id: "si_edit_security_base",
-            style: {
-                width: "100%",
-                height: "100%",
-                overflow: "scroll",
-                backgroundColor: 'teal',
-                color: SI.Editor.Style.TextColor,
-            },
-        });
-
-        let roleFs = Ele('fieldset', {
-            id: "si_edit_security_rolesfs",
-            style: {
-                marginTop: '10px',
-                backgroundColor: 'black',
-            },
-            append: Ele("legend", {
-                innerHTML: "Roles",
-            }),
-            appendTo: base,
-        });
-
-        let newRollBtn = Ele('input', {
+        const base = Ele('div', {id: 'si_edit_security_base', class: 'si-tool-body si-tool-tabs-body si-security-roles'});
+        const navigation = Ele('div', {class: 'si-security-role-nav', appendTo: base});
+        const tabs = Ele('div', {id: 'si_edit_security_role_tabs', class: 'si-tab-list', appendTo: navigation});
+        tabs.setAttribute('role', 'tablist');
+        tabs.setAttribute('aria-label', 'Security roles');
+        Ele('button', {
+            id: 'si_edit_security_new_role',
             type: 'button',
-            value: 'New Role',
+            class: 'si-tool-action',
+            innerText: 'New Role',
             onclick: SI.Editor.Objects.Security.New,
-            appendTo: roleFs,
+            appendTo: navigation,
         });
-        let srdata = SI.Editor.Data.Objects.Security.Roles;
-        for (let i in srdata) {
-            let roleent = srdata[i];
-            roleFs.appendChild(SI.Editor.Objects.Security.DrawRoleControls(roleent));
+        Ele('div', {id: 'si_edit_security_rolesfs', class: 'si-security-role-panels', appendTo: base});
+        for (const role of Object.values(SI.Editor.Data.Objects.Security.Roles)) {
+            SI.Editor.Objects.Security.AddRoleTab(role, false, base);
         }
-
+        const first = tabs.firstElementChild;
+        if (first) SI.Editor.Objects.Security.SelectRoleTab(first, false, base);
+        tabs.addEventListener('keydown', function (event) {
+            const items = Array.from(tabs.children);
+            const index = items.indexOf(event.target);
+            if (index === -1) return;
+            let next;
+            if (event.key === 'ArrowRight') next = (index + 1) % items.length;
+            if (event.key === 'ArrowLeft') next = (index + items.length - 1) % items.length;
+            if (event.key === 'Home') next = 0;
+            if (event.key === 'End') next = items.length - 1;
+            if (next === undefined) return;
+            event.preventDefault();
+            SI.Editor.Objects.Security.SelectRoleTab(items[next], true, base);
+        });
         return base;
+    },
+    AddRoleTab: function (role, select = true, base = document.getElementById('si_edit_security_base')) {
+        const tabs = base.querySelector('#si_edit_security_role_tabs');
+        const existing = Array.from(tabs.children).find(tab => tab.dataset.rolename.toLowerCase() === role.name.toLowerCase());
+        if (existing) {
+            if (select) SI.Editor.Objects.Security.SelectRoleTab(existing, true, base);
+            return;
+        }
+        const controls = SI.Editor.Objects.Security.DrawRoleControls(role);
+        const key = controls.id.replace('si_edit_security_rulefs_', '');
+        const panel = Ele('div', {
+            id: 'si_edit_security_role_panel_' + key,
+            class: 'si-tab-panel si-security-role-panel',
+            append: controls,
+            appendTo: base.querySelector('#si_edit_security_rolesfs'),
+        });
+        panel.hidden = true;
+        panel.setAttribute('role', 'tabpanel');
+        const tab = Ele('button', {
+            id: 'si_edit_security_role_tab_' + key,
+            type: 'button',
+            class: 'si-tab-item',
+            innerText: role.name,
+            data: {rolename: role.name},
+            onclick: function () { SI.Editor.Objects.Security.SelectRoleTab(this, false, base); },
+            appendTo: tabs,
+        });
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-selected', 'false');
+        tab.setAttribute('aria-controls', panel.id);
+        tab.tabIndex = -1;
+        panel.setAttribute('aria-labelledby', tab.id);
+        if (select) SI.Editor.Objects.Security.SelectRoleTab(tab, true, base);
+    },
+    SelectRoleTab: function (tab, focus = false, base = document.getElementById('si_edit_security_base')) {
+        for (const item of base.querySelectorAll('[role="tab"]')) {
+            item.setAttribute('aria-selected', String(item === tab));
+            item.tabIndex = item === tab ? 0 : -1;
+        }
+        for (const panel of base.querySelectorAll('[role="tabpanel"]')) panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+        if (focus) {
+            tab.focus();
+            tab.scrollIntoView({block: 'nearest', inline: 'nearest'});
+        }
     },
     DrawRoleControls: function (roleent) {
         let rolenameid = SI.Tools.Element.SafeId(roleent.name);
         let roleFs = Ele('fieldset', {
             id: "si_edit_security_rulefs_" + rolenameid,
-            style: {
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-            },
-            append: Ele("legend", {
-                innerHTML: roleent.name,
-                style: {
-                    cursor: 'pointer',
-                },
-                onclick: SI.Editor.Objects.Security.ShowHideRole,
-            }),
+            class: 'si-security-role-controls',
+            append: Ele('legend', {innerText: roleent.name}),
         });
 
-        roleentid = "NEW";
+        let roleentid = "NEW";
         if (roleent.id) {
             roleentid = '0x' + roleent.id;
         }
 
         let controlbox = Ele('section', {
-            class: 'si-edit-security-entity-box-' + rolenameid,
-            style: {
-                display: 'block',
-            },
+            class: 'si-security-role-actions si-edit-security-entity-box-' + rolenameid,
             appendTo: roleFs,
         });
 
@@ -76,9 +106,7 @@ SI.Editor.Objects.Security = {
                     roleid: roleentid,
                     rolename: roleent.name,
                 },
-                style: {
-                    margin: '3px',
-                },
+
                 appendTo: controlbox,
                 onclick: SI.Editor.Objects.Security.Update,
             });
@@ -93,9 +121,7 @@ SI.Editor.Objects.Security = {
                     roleid: roleentid,
                     rolename: roleent.name,
                 },
-                style: {
-                    margin: '3px',
-                },
+
                 appendTo: controlbox,
                 onclick: SI.Editor.Objects.Security.Delete,
             });
@@ -106,21 +132,14 @@ SI.Editor.Objects.Security = {
             let myrule = rules[rule];
 
             let rulebox = Ele('div', {
-                class: "si-edit-security-entity-box-" + rolenameid,
-                style: {
-                    display: 'inline-block',
-                    backgroundColor: "grey",
-                    margin: '3px',
-                    border: "1px solid lightgrey",
-                    padding: '3px',
-                },
+                class: "si-tool-permission-card si-edit-security-entity-box-" + rolenameid,
                 appendTo: roleFs,
             });
             let rulename = Ele('span', {
                 id: "si_edit_security_rulename_" + myrule.name,
                 innerHTML: '<b>' + myrule.name + "</b><br />",
                 style: {
-                    color: 'black',
+
                 },
                 data: {
                     id: rule,
@@ -135,16 +154,13 @@ SI.Editor.Objects.Security = {
                     id: "si_edit_security_rule_" + rolenameid + "_" + op + "_" + myrule.name,
                     type: 'checkbox',
                     appendTo: rulebox,
-                    style: {
-                        float: 'right',
-                    },
                 });
 
                 let rulelabel = Ele('label', {
                     innerHTML: op,
                     for: "si_edit_security_rule_" + rolenameid + "_" + op + "_" + myrule.name,
                     appendTo: rulebox,
-                    style: { float: 'right', fontSize: "small", fontWeight: "bold" },
+                    class: 'si-tool-permission-label',
                 });
 
 
@@ -156,73 +172,30 @@ SI.Editor.Objects.Security = {
         }
         return roleFs;
     },
-    ShowHideRole: function () {
-        let name = SI.Tools.Element.SafeId(this.innerHTML);
-        let eles = document.querySelectorAll(".si-edit-security-entity-box-" + name);
-        if (eles) {
-            if (eles[0].style.display === "block") {
-                for (let e in eles) {
-                    if (typeof eles[e] !== 'undefined' && typeof eles[e].style !== 'undefined') {
-                        eles[e].style.display = 'none';
-                    }
-                }
-            } else {
-                for (let e in eles) {
-                    if (typeof eles[e] !== 'undefined' && typeof eles[e].style !== 'undefined') {
-                        if (eles[e].tagName === "DIV") {
-                            eles[e].style.display = "inline-block";
-                        } else {
-                            eles[e].style.display = "block";
-                        }
-                    }
-                }
-            }
-        }
-    },
     New: function () {
         var result = window.prompt('Enter a new role name:');
-        if (result) {
-            console.log("Createing Role: " + result);
+        if (result && result.trim()) {
+            result = result.trim();
             let entities = SI.Editor.Data.Objects.Entities.Definitions;
             let obj = {};
             obj.name = result;
             obj.rules = {};
             for (let e in entities) {
-                let entity = entities[e];
-                let entityid = entity.instanceguid.toLowerCase();
-                obj.rules[entityid] = {};
-                obj.rules[entityid].name = e;
-                obj.rules[entityid].create = false;
-                obj.rules[entityid].read = false;
-                obj.rules[entityid].write = false;
-                obj.rules[entityid].append = false;
-                obj.rules[entityid].appendTo = false;
+                const entity = entities[e];
+                // System-only definitions do not have a site entity ID or role permissions.
+                if (!entity.instanceguid) continue;
+                const entityid = entity.instanceguid.toLowerCase();
+                obj.rules[entityid] = {name: e};
+                for (const operation of SI.Editor.Data.Objects.Security.Operations) obj.rules[entityid][operation] = false;
             }
-            let base = document.getElementById('si_edit_security_rolesfs');
-            let ui = SI.Editor.Objects.Security.DrawRoleControls(obj);
-            base.appendChild(ui);
+            SI.Editor.Objects.Security.AddRoleTab(obj);
         }
     },
     Updated: function (value) {
-        //debugger;
-        if (value !== true) {
-            if (value.CreatedId) {
-                if (value.Return) {
-                    if (value.Return.Query) {
-                        if (value.Input) {
-                            if (value.Input.RoleName) {
-                                for (let i in value.Return.Query) {
-                                    let button = document.getElementById(value.Return.Query[i]);
-                                    if (button) {
-                                        button.dataset.roleid = value.CreatedId;
-                                        button.dataset.rolename = value.Input.RoleName.replace('_', " ");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if (!value || !value.CreatedId) return;
+        for (const id of value.Return?.Query || []) {
+            const button = document.getElementById(id);
+            if (button) button.dataset.roleid = value.CreatedId;
         }
     },
     Add: function (value) {
@@ -240,9 +213,7 @@ SI.Editor.Objects.Security = {
         entity.Attributes.name = self.dataset.rolename;
         let ops = SI.Editor.Data.Objects.Security.Operations;
         let rolename = self.id.replace("si_edit_security_rule_update_", "");
-        let rolenameid = SI.Tools.Element.SafeId(rolename);
-        let fsid = 'si_edit_security_rulefs_' + rolenameid;
-        let entities = document.querySelectorAll("#" + fsid + " span");
+        let entities = self.closest('fieldset').querySelectorAll('span[data-id]');
         let json = {};
         for (let e in entities) {
             if (entities.hasOwnProperty(e)) {
@@ -270,6 +241,7 @@ SI.Editor.Objects.Security = {
         let options = {};
         options.Data = {};
         if (entity.Id == "NEW") {
+            delete entity.Id; // New records receive a GUID from the API.
             options.Data.Operation = 'Create';
         } else {
             options.Data.Operation = 'Update';
@@ -300,13 +272,20 @@ SI.Editor.Objects.Security = {
         }
     },
     Deleted: function (value) {
-        let id = "si_edit_security_rulefs_" + value;
-        let fs = document.getElementById(id);
-        if (fs) {
-            let par = fs.parentElement;
-            if (par) {
-                par.removeChild(fs);
-            }
+        const controls = document.getElementById('si_edit_security_rulefs_' + value);
+        if (!controls) return;
+        const base = document.getElementById('si_edit_security_base');
+        const panel = controls.closest('[role="tabpanel"]');
+        const tab = document.getElementById(panel.getAttribute('aria-labelledby'));
+        const tabs = Array.from(tab.parentElement.children);
+        const index = tabs.indexOf(tab);
+        const selected = tab.getAttribute('aria-selected') === 'true';
+        tab.remove();
+        panel.remove();
+        if (selected) {
+            const remaining = base.querySelector('#si_edit_security_role_tabs').children;
+            const next = remaining[Math.min(index, remaining.length - 1)];
+            if (next) SI.Editor.Objects.Security.SelectRoleTab(next, true, base);
         }
     }
 }

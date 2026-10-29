@@ -57,6 +57,7 @@ else{
 
     //setup session handeling
 	$session = new Sessions();
+	(new Login())->RefreshSession();
 
 
 

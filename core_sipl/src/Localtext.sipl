@@ -1,0 +1,34 @@
+use Database
+use Entity
+use Security
+use Tools
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if action == "AddLanguage" {
+        let language = Tools.required(post, "langcode")
+        if not regex.compile("^[a-z]\{2,3\}(?:-[a-z]\{2\})?$").isMatch(language) { fail("INVALID_LANGUAGE") }
+        Security.demand(context, "localtext", "write")
+        Database.execute("ALTER TABLE localtext ADD `_" + language + "` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL", {:})
+        return {"ADDEDLANGUAGE": post}
+    }
+    if action == "LocaltextNew" {
+        let language = Tools.required(post, "language")
+        let name = newToken()
+        let id = Entity.create(context, "localtext", {"name": name, "_" + language: Tools.required(post, "text"), "options": post.get("options", {:})})
+        return {"NEWLOCALTEXT": {"id": id, "token": name, "text": post["text"], "language": "_" + language}}
+    }
+    let language = Tools.required(post, "language")
+    Entity.update(context, "localtext", Tools.required(post, "id"), {"_" + language: Tools.required(post, "text")})
+    return {"LOCALTEXTUPDATED": true}
+}
+
+fn newToken() -> String {
+    var name = ""
+    while name.length < 20 {
+        for value in bytes.fromBase64(auth.randomToken(32).replace("-", "+").replace("_", "/") + "=").toList() {
+        if value < 234 and name.length < 20 { name += "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(value % 26, value % 26 + 1) }
+        }
+    }
+    return name
+}

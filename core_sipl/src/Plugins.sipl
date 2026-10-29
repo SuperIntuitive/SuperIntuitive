@@ -1,0 +1,94 @@
+use Tools
+use Security
+use Config
+use Deployment
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    // Package installation needs confined extraction, staged filesystem commits,
+    // and a multipart upload contract. Leave the PHP store available meanwhile.
+    return Tools.gap("CONFINED_PLUGIN_ARCHIVE_INSTALLATION")
+}
+
+fn local(status: String) -> List {
+    let directory = Config.root("plugins/" + status)
+    if not fs.isDirectory(directory) { return [] }
+    let names = []
+    for name in fs.list(directory) {
+        if status == "installed" and regex.compile("^[A-Za-z0-9][A-Za-z0-9_-]*$").isMatch(name) and fs.isDirectory(path.join(directory, name)) { names.push(name) }
+        if status == "downloaded" and name.endsWith(".zip") and not name.contains("/") and not name.contains("\\") { names.push(name) }
+    }
+    return names.sort()
+}
+
+fn sourceFiles(plugin: String, kind: String, level: String) -> List {
+    var folder = "scripts"
+    if kind == "style" { folder = "styles" }
+    let directory = Config.root("plugins/installed/" + plugin + "/" + folder)
+    if not fs.isDirectory(directory) { return [] }
+    let candidates: Map = {:}
+    var extension = ".js"
+    if kind == "style" { extension = ".css" }
+    for name in fs.list(directory) {
+        if not name.endsWith(extension) or name.contains("/") or name.contains("\\") { continue }
+        var base = name
+        var variant = "normal"
+        if name.endsWith("-min.js") { base = name.replace("-min.js", ".js")
+            variant = "min" }
+        if not candidates.contains(base) { candidates[base] = {:} }
+        candidates[base][variant] = path.join(directory, name)
+    }
+    let selected = []
+    for name, variants in candidates {
+        var file = variants.get("normal", variants.get("min", none))
+        if level != "dev" { file = variants.get("min", variants.get("normal", none)) }
+        if file != none { selected.push(file) }
+    }
+    return selected.sort()
+}
+
+fn bundle(kind: String, level: String) -> String {
+    var combined = ""
+    for plugin in local("installed") {
+        for filename in sourceFiles(plugin, kind, level) {
+            var source = fs.readText(filename)
+            if kind == "style" { source = Deployment.mediaPaths(rebaseCss(source, plugin), level) }
+            if source.contains("<?php") or source.contains("<?=") { fail("DYNAMIC_ASSET_NOT_PORTED") }
+            combined += "\n" + source + "\n"
+        }
+    }
+    return combined
+}
+
+fn editorData() -> Map {
+    let result: Map = {:}
+    for plugin in local("installed") {
+        let entry: Map = {"scripts": {:}, "styles": {:}}
+        for kind, field in {"script": "scripts", "style": "styles"} {
+            for filename in sourceFiles(plugin, kind, "dev") { entry[field][path.basename(filename).replace(path.extension(filename), "")] = fs.readText(filename) }
+        }
+        result[plugin] = entry
+    }
+    return result
+}
+
+fn rebaseCss(source: String, plugin: String) -> String {
+    if not regex.compile("^[A-Za-z0-9][A-Za-z0-9_-]*$").isMatch(plugin) { fail("INVALID_PLUGIN_NAME") }
+    let parts = []
+    var offset = 0
+    for occurrence in regex.compile("url\\(\\s*[^)]*\\)", "i").findAll(source) {
+        let original = occurrence["text"]
+        var target = original.slice(4, original.length - 1).trim()
+        if target.startsWith("\"") and target.endsWith("\"") or target.startsWith("'") and target.endsWith("'") { target = target.slice(1, target.length - 1) }
+        var replacement = original
+        if not target.isEmpty and not target.startsWith("/") and not target.startsWith("#") and not target.contains(":") and not target.contains("\\") {
+            replacement = "url(\"/plugins/installed/" + plugin + "/styles/" + target.replace("\"", "%22") + "\")"
+        }
+        parts.push(source.slice(offset, occurrence["start"]))
+        parts.push(replacement)
+        offset = occurrence["end"]
+    }
+    parts.push(source.slice(offset))
+    return parts.join("")
+}

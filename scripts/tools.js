@@ -1105,6 +1105,7 @@ SI.Tools = {
 
         var stringdata = JSON.stringify(this.data);
         xhr.send(stringdata);
+        return xhr;
     },
     Success: function (response) {
         json = JSON.parse(response.trim());

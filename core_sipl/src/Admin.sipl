@@ -1,0 +1,13 @@
+use Tools
+use Security
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if action == "NewEntity" {
+        if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+        // DDL implicitly commits in MySQL. Do not create an orphan table until
+        // tenant registration, defaults, lookups and global-entity parity exist.
+        return Tools.portGap("ENTITY_SCHEMA_PUBLICATION_PARITY")
+    }
+    return Tools.portGap("BACKUP_AND_INSTALLER_EXPORT_PARITY")
+}

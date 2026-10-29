@@ -16,12 +16,13 @@ SI.Editor.Objects.Entity = {
     Draw: function () {
         //Draw the Container to pass to the Window
         let container = Ele("div", {
+            class: 'si-tool-body',
             id: 'si_edit_entities_container',
             style: {
                 width: '100%',
                 height: '100%',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                
+
+
             },
         });
 
@@ -76,7 +77,7 @@ SI.Editor.Objects.Entity = {
                 height: '100%',
                 width: '100%',
                 display: 'none',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 padding: '10px',
             },
             appendTo: container,
@@ -103,7 +104,7 @@ SI.Editor.Objects.Entity = {
                 class: 'si-edit-entities-grid',
                 style: {
                     display: 'none',
-                    
+
                 },
                 appendTo: container,
             });
@@ -119,7 +120,7 @@ SI.Editor.Objects.Entity = {
                 style: {
                     width: "100%",
                     height: "100%",
-                    backgroundColor: "black",
+
                     paddingLeft: '5px',
                 },
                 appendTo: entityContainer,
@@ -145,8 +146,8 @@ SI.Editor.Objects.Entity = {
             let entityTable = Ele("table", {
                 id: "si_edit_entity_table_" + e,
                 style: {
-                    backgroundColor: SI.Editor.Style.FavoriteColor,
-                    color: SI.Editor.Style.TextColor,
+
+
                     borderCollapse: 'collapse',
                     overflow: 'auto',
                 },
@@ -159,7 +160,7 @@ SI.Editor.Objects.Entity = {
                 style: {
                     width: "100%",
                     height: "500px",
-                    backgroundColor: "black",
+
                     paddingLeft: '5px',
                     //   overflow: 'auto',
                     display: 'none',
@@ -239,7 +240,7 @@ SI.Editor.Objects.Entity = {
                     let attrControl = Ele("div", {
                         appendTo: entityform,
                         style: {
-                            backgroundColor: SI.Editor.Style.BackgroundColor,
+
                         }
                     });
 
@@ -979,7 +980,7 @@ SI.Editor.Objects.Entity = {
                                                 ReturnQuery:"#"+input.id,
                                                 Columns:"name"
                                             };
-                                            
+
                                             SI.Tools.Api.Send(options);
                                         }
                                         else if (column === 'child_id'){

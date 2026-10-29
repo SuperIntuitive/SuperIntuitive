@@ -57,6 +57,14 @@ SI.Widget.Window = function  (options) {
     this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
     options = this.Options;
 
+    // Editor-owned windows share one presentation; dimensions remain widget options.
+    const editorTool = this.Id.startsWith('si_edit_') && typeof SI.Editor !== 'undefined';
+    if (editorTool) {
+        this.Options.TitleBarHeight = '40px';
+        this.Options.Width = Math.min(parseInt(this.Options.Width), Math.max(240, innerWidth - 32)) + 'px';
+        this.Options.Height = Math.min(parseInt(this.Options.Height), Math.max(180, innerHeight - 96)) + 'px';
+    }
+
     //All windows append to window the window frame. 
     let windowpane = document.getElementById('si_widget_windowpane');
     if (!windowpane){
@@ -139,6 +147,15 @@ SI.Widget.Window = function  (options) {
 
     //Member Functions
     this.Show = function (fadetime) {
+        if (editorTool && windowState !== 'minimized') {
+            // Keep reused Tool windows reachable after the viewport changes.
+            const visibleWidth = Math.min(parseFloat(self.Container.style.width), innerWidth - 32);
+            const visibleHeight = Math.min(parseFloat(self.Container.style.height), innerHeight - 32);
+            const left = parseFloat(self.Container.style.left) || 0;
+            const top = parseFloat(self.Container.style.top) || 0;
+            self.Container.style.left = Math.max(scrollX + 16, Math.min(left, scrollX + innerWidth - visibleWidth - 16)) + 'px';
+            self.Container.style.top = Math.max(scrollY + 16, Math.min(top, scrollY + innerHeight - visibleHeight - 16)) + 'px';
+        }
         if (loaded === false) {
             self.Options.OnLoad();
             loaded = true;
@@ -255,13 +272,14 @@ SI.Widget.Window = function  (options) {
             pointerEvents: 'auto',
             fontFamily: this.Options.FontFace
         },
-        class: "si-window-container"
+        class: "si-window-container" + (editorTool ? " si-editor-tool-window" : "")
     });
 
 
     //Titlebar
     this.Titlebar = Ele("div", {
         id: this.Id+'_titlebar',
+        class: 'si-window-titlebar',
         style: {
             position: 'relative',
             top: '0px',
@@ -340,6 +358,7 @@ SI.Widget.Window = function  (options) {
     //Title
     this.Title = Ele("span", {
         id: this.Id + '_titletext',
+        class: 'si-window-title',
         innerHTML: this.Options.Title,
         style: {
             color: this.Options.TitleColor,
@@ -354,6 +373,8 @@ SI.Widget.Window = function  (options) {
     //Statebox for min max close buttons
     this.Statebox = Ele('div', {
         id: this.Id + '_statebox',
+        class: 'si-window-actions',
+        onclick: function (event) { event.stopPropagation(); },
         style: {
             float: 'right'
         },
@@ -366,6 +387,7 @@ SI.Widget.Window = function  (options) {
     if (this.Options.WindowControls.indexOf("MIN") !== -1 && this.Options.Dockable === true) {
         Ele("div", {
             id: this.Id + '_minimize',
+            class: 'si-window-control si-window-control-minimize',
             innerHTML: this.Options.MinimizeChar,
             style: {
                 width: '28px',
@@ -391,6 +413,7 @@ SI.Widget.Window = function  (options) {
     if (this.Options.WindowControls.indexOf("MAX") !== -1) {
         Ele("div", {
             id: this.Id + '_maximize',
+            class: 'si-window-control si-window-control-maximize',
             innerHTML: this.Options.MaximizeChar,
             style: {
                 width: '28px',
@@ -420,6 +443,7 @@ SI.Widget.Window = function  (options) {
     if (this.Options.WindowControls.indexOf("CLOSE") !== -1) {
         Ele("div", {
             id: this.Id + '_close',
+            class: 'si-window-control si-window-control-close',
             innerHTML: this.Options.CloseAppChar,
             style: {
                 width: '28px',
@@ -445,6 +469,7 @@ SI.Widget.Window = function  (options) {
     /////////
     this.Content = Ele("div", {
         id: this.Id + '_content',
+        class: 'si-window-content',
         style: {
             position: 'relative',
             width: 'inherit',
@@ -466,7 +491,29 @@ SI.Widget.Window = function  (options) {
 */
     if (this.Options.Populate) {
         this.Content.appendChild(this.Options.Populate());
-        this.Content.firstChild.style.padding = this.Options.Padding;
+        if (!editorTool) this.Content.firstChild.style.padding = this.Options.Padding;
+    }
+    if (editorTool) {
+        if (this.Icon instanceof HTMLImageElement) this.Icon.addEventListener('error', function () { this.hidden = true; });
+        this.Container.style.setProperty('--si-titlebar-height', this.Options.TitleBarHeight);
+        this.Container.setAttribute('role', 'dialog');
+        this.Container.setAttribute('aria-labelledby', this.Title.id);
+        this.Content.firstElementChild?.classList.add('si-tool-body');
+        if (this.Content.firstElementChild?.querySelector(':scope > .si-tabs-container')) this.Content.firstElementChild.classList.add('si-tool-tabs-body');
+        for (const action of ['minimize', 'maximize', 'close']) {
+            const control = this.Statebox.querySelector('.si-window-control-' + action);
+            if (!control) continue;
+            control.title = action[0].toUpperCase() + action.slice(1) + ' ' + this.Options.Title;
+            control.setAttribute('role', 'button');
+            control.setAttribute('aria-label', control.title);
+            control.tabIndex = 0;
+            control.textContent = {minimize: '−', maximize: '□', close: '×'}[action];
+            control.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                this.dispatchEvent(new MouseEvent(action === 'maximize' ? 'mouseup' : 'mousedown', {bubbles: true}));
+            });
+        }
     }
 
 
@@ -780,6 +827,7 @@ SI.Widget.Window = function  (options) {
             let props = resizers[resizer];
             Ele('div', {
                 id: this.Id +"_resizer_"+ resizer,
+                class: "si-window-resizer",
                 style: {
                     position: 'absolute',
                     top: props.top,

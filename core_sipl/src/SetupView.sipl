@@ -1,0 +1,36 @@
+use Config
+use Sessions
+use SetupAuthorization
+use Tools
+use Editor
+
+fn option(value: String, label: String, selected: Bool) -> String {
+    var flag = ""
+    if selected { flag = " selected" }
+    return "<option value='" + Tools.escapeHtml(value) + "'" + flag + ">" + Tools.escapeHtml(label) + "</option>"
+}
+
+fn render(request: Map) -> String {
+    let authorized = SetupAuthorization.allowed(request)
+    let data = Editor.lookups()
+    var languages = ""
+    for code, label in data["Languages"] {
+        if regex.compile("^[a-z]\{2,3\}$").isMatch(code) { languages += option(code, label, code == "en") }
+    }
+    var zones = ""
+    for code, label in data["TimeZones"] { zones += option(code, code, code == "UTC") }
+    var currencies = ""
+    for code, label in data["Currencies"] { currencies += option(code, code.toUpper() + " - " + label, code == "usd") }
+    var hidden = ""
+    var required = "required"
+    var status = "hidden"
+    var message = ""
+    if authorized { hidden = "hidden"
+        required = "disabled"
+        status = "data-state='success'"
+        message = "Installation authorized for this session." }
+    let year = time.now().toLocal(TimeZone("UTC")).year
+    let replacements = {"__HOST__": Tools.escapeHtml(Config.get("domain", "localhost")), "__CSRF__": Tools.escapeHtml(Sessions.csrf(request)), "__AUTHORIZED__": "{authorized}", "__KEY_HIDDEN__": hidden, "__KEY_REQUIRED__": required, "__AUTH_STATUS__": status, "__AUTH_MESSAGE__": message, "__LANGUAGES__": languages, "__TIMEZONES__": zones, "__CURRENCIES__": currencies, "__YEAR__": "{year}"}
+    let template = fs.readText(Config.root("core_sipl/generated/installer.html.tmpl"))
+    return "<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Install SuperIntuitive | SIPL</title><link rel='stylesheet' href='/style/setup.css'><script src='/scripts/setup.js'></script></head>" + Tools.fillTemplate(template, replacements) + "</html>"
+}

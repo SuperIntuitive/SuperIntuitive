@@ -48,7 +48,7 @@ if(Tools::UserHasRole('Admin')){
 				}
 
 				if($size < $maxsize){
-					$ext = '.'.pathinfo($name, PATHINFO_EXTENSION);
+					$ext = '.'.strtolower(pathinfo($name, PATHINFO_EXTENSION));
 					$filedata = Tools::GetFileTypeData( $ext ); 
 					$mime;
 					$category;
@@ -91,7 +91,7 @@ if(Tools::UserHasRole('Admin')){
 							//Attempt to get metadata
 							$fp = fopen($path, 'rb');
 
-							$exif = @exif_read_data($fp, 0, true);
+							$exif = function_exists('exif_read_data') ? @exif_read_data($fp, 0, true) : false;
 							if($exif){
 								foreach ($exif as $key => $section) {
 									foreach ($section as $name => $val) {
@@ -102,6 +102,7 @@ if(Tools::UserHasRole('Admin')){
 									}
 								}
 							}
+							fclose($fp);
 
 							$meta = json_encode($tags);				
 							$hash = '0x'.sha1_file($path);

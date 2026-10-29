@@ -15,10 +15,15 @@ class Localtext{
 	public function AddLanguage($post){
 		if(isset($post['langcode']) && isset($post['name'])){
 			$langcode = $post['langcode'];
-			$name = $post['name'];
-			$addLang = "ALTER TABLE `localtext` ADD `_$langcode` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL COMMENT '{\"Name\":\"$name\"}';";
-			Tools::Log($addLang);
+			$languages = (new MiscData())->Languages;
+			if(!is_string($langcode) || !preg_match('/^[a-z]{2,3}(?:-[a-z]{2})?$/D', $langcode) || !isset($languages[$langcode])){
+				return false;
+			}
+			$name = $languages[$langcode];
 			$db = new Database();
+			$comment = $db->DBC()->quote(json_encode(array('Name' => $name)));
+			$addLang = "ALTER TABLE `localtext` ADD `_$langcode` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT $comment";
+			$post['name'] = $name;
 			try{
 			    $db->Execute($addLang);
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ADDEDLANGUAGE'] = $post;
@@ -136,7 +141,6 @@ class Localtext{
 			CURLOPT_HTTPHEADER => array(
 				"content-type: application/x-www-form-urlencoded",
 				"x-rapidapi-host: google-translate1.p.rapidapi.com",
-				"x-rapidapi-key: c30712ac88mshecb0fccf8a4aaf0p11c40djsn78bd69bdf306"
 			),
 		));
 

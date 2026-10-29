@@ -1,0 +1,26 @@
+{
+  "testedAt": "2026-10-29T18:58:11.659762+00:00",
+  "results": [
+    {
+      "name": "nonempty",
+      "status": "passed",
+      "checks": 10
+    },
+    {
+      "name": "existing",
+      "status": "passed",
+      "checks": 24
+    },
+    {
+      "name": "recovered",
+      "status": "passed",
+      "checks": 3
+    },
+    {
+      "name": "partial-restart",
+      "status": "passed",
+      "checks": 3
+    }
+  ],
+  "status": "passed"
+}

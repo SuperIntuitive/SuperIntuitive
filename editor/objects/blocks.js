@@ -79,15 +79,13 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
-
         //BEGIN Block UI
         let blockui = Ele('div', {
             id: 'si_bid_' + fixedkey,
             draggable: true,
             class: 'si-bids',
             style: {
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                color: SI.Editor.Style.TextColor,
+
                 margin: '7px',
                 padding: '7px',
                 display: "table",
@@ -166,7 +164,6 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
-
         //draw the block controls
         let blockData = "";
         if (!options.New && typeof options.Data.options !== 'undefined') {
@@ -198,7 +195,6 @@ SI.Editor.Objects.Blocks = {
         }
 
         blockControls = blockData;
-
 
         let ordered = {};
         Object.keys(blockControls).sort().forEach(function (key) {
@@ -293,17 +289,9 @@ SI.Editor.Objects.Blocks = {
 
         //Right floating buttons on the block
         //this does not work yet.
-        let saveAll = Ele("button", {
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/saveall.png')",
-            },
+        let saveAll = SI.Editor.UI.IconButton({
+            Icon: 'saveAll',
+            class: 'si-block-action',
             title: "Save ALL Html, Style, Script, and Options",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -342,16 +330,9 @@ SI.Editor.Objects.Blocks = {
             }
             event.stopPropagation();
         };
-        let deleteBlock = Ele("button", {
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/deleteButton.png')",
-            },
+        let deleteBlock = SI.Editor.UI.IconButton({
+            Icon: 'delete',
+            class: 'si-block-action',
             title: "Remove Block",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -381,16 +362,9 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui,
         });
-        let openScripter = Ele("button", {
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/scripter-code.png')",
-            },
+        let openScripter = SI.Editor.UI.IconButton({
+            Icon: 'code',
+            class: 'si-block-action',
             title: "Open Scripter",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -406,16 +380,9 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui,
         });
-        let openStyler = Ele("button", {
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/stylebutton.png')",
-            },
+        let openStyler = SI.Editor.UI.IconButton({
+            Icon: 'style',
+            class: 'si-block-action',
             title: "Open Styler",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -432,17 +399,10 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui,
         });
-        let openDeployment = Ele("button", {
+        let openDeployment = SI.Editor.UI.IconButton({
+            Icon: 'deployment',
             id: 'si_block_deployment_button_' + fixedkey,
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/deployment.png')",
-            },
+            class: 'si-block-action',
             title: "Open Deployments",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -454,17 +414,10 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui,
         });
-        let openSettings = Ele("button", {
+        let openSettings = SI.Editor.UI.IconButton({
+            Icon: 'settings',
             id: 'si_block_settings_button_' + fixedkey,
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/options.png')"
-            },
+            class: 'si-block-action',
             title: "Manage custom block settings",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -476,17 +429,10 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui
         });
-        let openWidgets = Ele("button", {
+        let openWidgets = SI.Editor.UI.IconButton({
+            Icon: 'widgets',
             id: 'si_block_widgets_button_' + fixedkey,
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/widgets.png')"
-            },
+            class: 'si-block-action',
             title: "Manage block widgets",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -498,16 +444,9 @@ SI.Editor.Objects.Blocks = {
             },
             appendTo: blockui
         });
-        let saveHtml = Ele("button", {
-            style: {
-                display: "inline-block",
-                margin: '4px',
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/save.png')"
-            },
+        let saveHtml = SI.Editor.UI.IconButton({
+            Icon: 'save',
+            class: 'si-block-action',
             title: "Save the Block",
             data: {
                 block: 'si_block_' + fixedkey,
@@ -547,8 +486,14 @@ SI.Editor.Objects.Blocks = {
         });
         let blockwidgets = SI.Tools.Object.GetIfExists("SI.Page.Blocks." + fixedkey + ".Widgets");
         if (blockwidgets) {
-          
-            //SI.Editor.Objects.Blocks.AddWidget(fixedkey, , ,widgetsTable);
+
+            for (const type of Object.keys(blockwidgets)) {
+                if (!Array.isArray(blockwidgets[type])) continue;
+                for (const stored of blockwidgets[type]) {
+                    const options = typeof stored === 'string' ? JSON.parse(stored) : stored;
+                    SI.Editor.Objects.Blocks.AddWidget(fixedkey, type, options, widgetsTable);
+                }
+            }
         }
 
         //SETTING CONTROLS
@@ -815,7 +760,6 @@ SI.Editor.Objects.Blocks = {
 
         }
 
-
         fixedkey = SI.Tools.RegEx.Fix("OkId", blockname);
         fixedkey = (typeof fixedkey === "undefined") ? SI.Tools.String.RandomString(10) : fixedkey;
         //debugger;
@@ -862,7 +806,7 @@ SI.Editor.Objects.Blocks = {
             data.order = document.querySelectorAll('.si-block').length;
             data.pageid = document.body.dataset.guid;
             let ajax = { Data: data, };
-            SI.Editor.Ajax.Run(ajax);
+            return SI.Editor.Ajax.Run(ajax);
         }
     },
     Remove: function (relid) {
@@ -874,6 +818,7 @@ SI.Editor.Objects.Blocks = {
 
     },
     Created: function (newblock) {
+        if (!newblock || !newblock.NAME || !SI.Tools.RegEx.Match('guid', newblock.ID) || !SI.Tools.RegEx.Match('guid', newblock.RELID)) return false;
         //we related a new block. now we need to put it in the Block data object by name
         if (typeof SI.Editor.Data.Objects.Blocks[newblock.NAME] === 'undefined') {
             //debugger;
@@ -911,7 +856,6 @@ SI.Editor.Objects.Blocks = {
         if(document.getElementById("si_edit_page_window") === null){
             SI.Editor.UI.ToolsPanel.OpenToolWindow("Page", false);
         }
-        
 
         if (typeof blockui === 'string') {
             blockui = document.getElementById('si_bid_' + blockui);
@@ -923,7 +867,7 @@ SI.Editor.Objects.Blocks = {
         let selected = null;
         if (SI.Editor.Objects.Elements.Selected !== null) {
             selected = SI.Editor.Objects.Elements.Selected;
-            SI.Editor.Objects.Elements.SelectNone();
+            SI.Editor.Objects.Elements.SelectNone(true);
         }
         //debugger;
         let bname = blockui.getAttribute('data-name');
@@ -952,33 +896,13 @@ SI.Editor.Objects.Blocks = {
         let empty = true;
 
         if (flag === 'html') {
-            //filter the element
-            let replacements = {};
-            let ignores = block.querySelectorAll('.si-editable-ignoreinner');
-
-            for (let ignore of ignores) {
-                //put all the inner texts into an object so we can put them back after the data is sent
-                replacements[ignore.id] = ignore.innerHTML;
-                ignore.innerHTML = "";
-            }
-
-            //debugger;
-            let multilinguals = block.querySelectorAll('.si-multilingual');
-            for (let mtext of multilinguals) {
-                //put all the inner texts into an object so we can put them back after the data is sent
-
-                replacements[mtext.id] = mtext.innerHTML;
-
-                mtext.innerHTML = "SI_MULTILANG_" + mtext.dataset.si_ml_token;
-            }
-
-            data.html = block.innerHTML;
+            // Serialize a snapshot so saving never replaces live children or their handlers.
+            const snapshot = block.cloneNode(true);
+            for (const control of snapshot.querySelectorAll('[data-si-editor-only]')) control.remove();
+            for (const ignore of snapshot.querySelectorAll('.si-editable-ignoreinner')) ignore.innerHTML = '';
+            for (const text of snapshot.querySelectorAll('.si-multilingual')) text.textContent = 'SI_MULTILANG_' + text.dataset.si_ml_token;
+            data.html = snapshot.innerHTML;
             empty = false;
-
-            //the block(string) has been sent to data, now put the replaces back
-            for (let replacement in replacements) {
-                document.getElementById(replacement).innerHTML = replacements[replacement];
-            }
         }
         if (flag === 'script') {
             data.script = SI.Editor.Data.Objects.Blocks[bname].script;
@@ -1031,8 +955,8 @@ SI.Editor.Objects.Blocks = {
             for (let i in blockWidgets) {
                 if (blockWidgets.hasOwnProperty(i)) {
                     let row = blockWidgets[i];
-                    let widgettype = row.children[0].firstChild.value;
-                    let widgetoptions = row.children[1].firstChild.value;
+                    let widgettype = row.querySelector('input').value;
+                    let widgetoptions = row.querySelector('textarea').value;
                     //allow multiple widgets of same type without overwriting. put in a array and let the key be the order
                     if (typeof options.widgets[widgettype] === 'undefined') {
                         options.widgets[widgettype] = [];
@@ -1049,6 +973,7 @@ SI.Editor.Objects.Blocks = {
         //    data.body.data[datum] = bodydata[datum];
         //}
 
+        SI.Editor.Objects.Blocks.PendingSaves[bname] = SI.Editor.Data.Objects.Blocks[bname].EditRevision || 0;
         data.KEY = 'BlockSave';
         let ajax = { Data: data, };
         console.log(ajax);
@@ -1069,9 +994,13 @@ SI.Editor.Objects.Blocks = {
         }
 
     },
-    Saved: function (data) {
-        SI.Tools.SuperAlert(data + " Saved!", 1000);
-        console.log('Block has been saved');
+    PendingSaves: {},
+    Saved: function (name) {
+        const block = SI.Editor.Data.Objects.Blocks[name];
+        if (block && (block.EditRevision || 0) === SI.Editor.Objects.Blocks.PendingSaves[name]) block.IsDirty = false;
+        delete SI.Editor.Objects.Blocks.PendingSaves[name];
+        SI.Editor.UI.EditPanel.SelectionSummary();
+        SI.Tools.SuperAlert(name + ' saved.', 1000);
     },
     Promote: function (data) {
         data.KEY = 'BlockPromote';
@@ -1095,7 +1024,7 @@ SI.Editor.Objects.Blocks = {
         });
         if (block) {
             block.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
-           
+
             let bid =  document.getElementById(block.id.replace("si_block_", "si_bid_"))
             if(bid){
                 bid.style.boxShadow = "0px 0px 20px 1px rgba(0, 255, 255, 0.3), inset 0px 0px 20px 1px rgba(0, 255, 255, 0.3)";
@@ -1133,6 +1062,7 @@ SI.Editor.Objects.Blocks = {
             table = document.getElementById('si_block_widgets_table_' + block);
         }
         let tr = Ele('tr', {
+            data: {widgetId: options.Id},
             style: {
                 backgroundColor:"rgba(0,0,0,.3)"
             },
@@ -1140,40 +1070,29 @@ SI.Editor.Objects.Blocks = {
         });
         let tdtype = Ele('td', { appendTo: tr });
 
-        let indelete = Ele('button', {
-            style: {
-                width: '24px',
-                height: '24px',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/eraser.png')"
-            },
+        let indelete = SI.Editor.UI.IconButton({
+            Icon: 'eraser',
             title:"Delete",
             onclick: function () {
                 if (confirm("Do you want to delete this widget?")) {
-                    let wig = document.getElementById(options.Id);
-                    if (wig) {
-                        wig.remove();
-                    }
-                    let tr = this.parentElement.parentElement;
-                    tr.parentElement.removeChild(tr);
-                    //delete all the widget related stuff.
+                    const element = document.getElementById(options.Id);
+                    if (element) SI.Editor.Objects.Elements.Remove(element);
+                    else { SI.Editor.Objects.Widgets.Forget(block, options.Id); SI.Editor.Objects.Elements.MarkDirty(document.getElementById('si_block_' + block)); }
                 }
             },
             appendTo: tdtype
         });
-        let inedit = Ele('button', {
-            style: {
-                width: '24px',
-                height: '24px',
-                backgroundSize: 'cover',
-                backgroundImage: "url('/editor/media/icons/widgets.png')",
-
-            },
-            title: "Open in Widget Editor",
+        let inedit = SI.Editor.UI.IconButton({
+            Icon: 'widgets',
+            title: "Edit this widget",
             onclick: function () {
-                // Open the widget editor to this widget.
-
-
+                const element = document.getElementById(options.Id);
+                if (!element) return;
+                SI.Editor.Objects.Elements.SelectNone(true);
+                SI.Editor.Objects.Elements.Select(null, element.id);
+                const menu = SI.Editor.UI.MainMenu.Element;
+                menu.style.display = 'block';
+                SI.Editor.UI.MainMenu.SelectMenu('si_edit_edit_menuitem');
             },
             appendTo: tdtype
         });
@@ -1191,8 +1110,8 @@ SI.Editor.Objects.Blocks = {
         let tdoptions = Ele('td', { appendTo: tr });
         let stroptions = JSON.stringify(options);
 
-        let lineoptions = stroptions.trimChar('{').trimChar('}').replaceAll(',', ',\n');
-        
+        let lineoptions = JSON.stringify(options, null, 2);
+
         let inoptions = Ele('textarea', {
             style: {
                 width: '204px',
@@ -1205,7 +1124,6 @@ SI.Editor.Objects.Blocks = {
 
             appendTo: tdoptions
         });
-
 
     }
 

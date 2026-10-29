@@ -1,0 +1,24 @@
+use Database
+use Entity
+use Security
+use Tools
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    let name = Tools.required(post, "settingname")
+    if name.isEmpty { fail("INVALID_SETTING") }
+    if action == "NewSetting" {
+        let value = post.get("settingvalue", "")
+        let id = Entity.create(context, "settings", {"settingname": name, "settingvalue": value})
+        return {"PARAMETER": [Tools.guid(id), name, value]}
+    }
+    let rows = Entity.retrieve(context, "settings", none, {"settingname": name}, ["id"])
+    if rows.isEmpty { fail("SETTING_NOT_FOUND") }
+    if action == "UpdateSetting" {
+        let value = post.get("settingvalue", "")
+        Entity.update(context, "settings", rows[0]["id"], {"settingvalue": value})
+        return {"SETTINGUPDATED": [name, value]}
+    }
+    Entity.remove(context, "settings", rows[0]["id"])
+    return {"SETTINGDELETED": name, "PARAMETER": name}
+}

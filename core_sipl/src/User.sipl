@@ -1,0 +1,53 @@
+use Database
+use Entity
+use Security
+use Relations
+use Tools
+use Runtime
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if action == "ChangePassword" or action == "NewUser" {
+        if not Runtime.inspect()["phpBcryptHash"] { return Tools.gap("PHP_BCRYPT_HASH_AND_VERIFY") }
+        let password = Tools.required(post, "newpassword")
+        if not Tools.passwordValid(password) { fail("INVALID_PASSWORD") }
+        let hash = auth.bcryptHash(password)
+        if action == "ChangePassword" {
+            let id = Tools.required(post, "userid")
+            Entity.update(context, "users", id, {"password": hash, "remembertoken": "", "remembertime": none})
+            return {"PASSWORDCHANGED": true}
+        }
+        let email = Tools.required(post, "email")
+        let name = Tools.required(post, "name").trim()
+        if name.isEmpty or not regex.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").isMatch(email) { fail("INVALID_USER") }
+        let id = Entity.create(context, "users", {"name": name, "email": email, "password": hash, "remembertoken": "", "preferences": {:}})
+        return {"CREATEUSER": {"Status": "true", "UserId": id, "Name": name, "Email": email}, "USERCREATED": {"Status": "true", "UserId": id, "Name": name, "Email": email}}
+    }
+    if action == "GetUserRoles" {
+        let rows = Security.roleRows(context, Tools.required(post, "userid"))
+        let roles: Map = {:}
+        for role in rows { roles[role["id"]] = role["relationsId"] }
+        return {"RETRIEVEDROLES": roles}
+    }
+    if action == "AddUserRole" {
+        Relations.create(context, "users", Tools.required(post, "userid"), "securityroles", Tools.required(post, "roleid"), 0, {:})
+        return {"UPDATEDROLES": true}
+    }
+    if action == "RemoveUserRole" { Relations.remove(context, Tools.required(post, "relid"))
+        return {"UPDATEDROLES": true} }
+    if action == "DeleteRole" {
+        let id = Tools.required(post, "roleid")
+        let rows = Entity.retrieve(context, "securityroles", id, {:}, ["name"])
+        if rows.isEmpty { fail("ROLE_NOT_FOUND") }
+        if ["Admin", "Guest"].contains(rows[0]["name"]) { fail("PROTECTED_ROLE") }
+        Entity.remove(context, "securityroles", id)
+        return {"ROLEDELETED": Tools.safeId(rows[0]["name"])}
+    }
+    if action == "DeleteUser" {
+        let id = Tools.required(post, "id")
+        if Tools.guid(id) == Tools.guid(context["user"]["id"]) { fail("CANNOT_DELETE_OWN_ACCOUNT") }
+        Entity.remove(context, "users", id)
+        return {"USERDELETED": id}
+    }
+    fail("UNKNOWN_USER_ACTION")
+}

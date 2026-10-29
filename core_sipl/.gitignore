@@ -1,0 +1,7 @@
+config.local.json
+config.*.local.json
+setup-config*.json
+setup-config*.tmp
+*.log
+runtime/
+__pycache__/

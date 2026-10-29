@@ -1,24 +1,20 @@
 ﻿
 SI.Editor.Objects.Plugins = {
     Style: {
-        menucolor: '#888',
-        selectedtab: 'linear-gradient(180deg, rgba(34,34,34,1) 0%, rgba(51,51,51,1) 35%, rgba(68,68,68,1) 100%)',
-        nonselectedtab: 'linear-gradient(0deg, rgba(34,34,34,1) 0%, rgba(51,51,51,1) 35%, rgba(68,68,68,1) 100%)',
-        piboxcolor: '#222',
-        tabcolor: '#333',
-        pagecolor: '#444',
-        titlecolor: '#ccc',
-        textcolor: '#bbb',
+        menucolor: 'var(--si-toolbar)',
+        selectedtab: 'var(--si-selection)',
+        nonselectedtab: 'var(--si-panel)',
+        piboxcolor: 'var(--si-field)',
+        tabcolor: 'var(--si-panel)',
+        pagecolor: 'var(--si-panel)',
+        titlecolor: 'var(--si-accent)',
+        textcolor: 'var(--si-text)',
     },
 
     Draw: function () {
         let container = Ele("div",{
-            style:{
-                width:"100%",
-                height:"100%",
-                backgroundColor:'green',
+            class: 'si-tool-body',
 
-            },
         });
 
         let tabs = new SI.Widget.Tab({
@@ -208,7 +204,7 @@ SI.Editor.Objects.Plugins = {
                     style: {
                         width: '150px',
                         height: '100px',
-                        backgroundColor: 'black',
+
                     },
                     appendTo: pluginbox,
                 });
@@ -218,7 +214,7 @@ SI.Editor.Objects.Plugins = {
                     style: {
                         borderRadius: '7px',
                         padding: '4px',
-                        color: '#000',
+
                     },
                     data: {
                         app: download
@@ -349,7 +345,7 @@ SI.Editor.Objects.Plugins = {
                     top: '12px',
                     borderRadius: '7px',
                     padding: '4px 10px',
-                    color: '#000',
+
                 },
                 onclick: function () {
                     uploadInput.click();

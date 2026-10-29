@@ -1,0 +1,106 @@
+use Config
+use Tools
+
+var _connection = none
+
+fn connect() {
+    let dsn = Config.get("dsn", "")
+    if dsn.isEmpty { fail("MYSQL_NOT_CONFIGURED") }
+    let connection = sql.connect(dsn, Config.get("dbUser", ""), Config.get("dbPassword", ""))
+    if connection.driver != "mysql" and connection.driver != "mariadb" { connection.close()
+        fail("MYSQL_REQUIRED") }
+    _connection = connection
+}
+
+fn attachForTests(connection) { _connection = connection }
+fn useConnection(connection) { _connection = connection }
+fn configured() -> Bool { return not Config.get("dsn", "").isEmpty }
+fn connection() {
+    if _connection == none { connect() }
+    return _connection
+}
+
+fn query(statement: String, parameters) -> List {
+    let table = connection()
+    table.query(statement, parameters)
+    let rows = []
+    for values in table.rows {
+        let row = {:}
+        for index, column in table.columns { row[column] = values[index] }
+        rows.push(row)
+    }
+    return rows
+}
+
+fn one(statement: String, parameters) {
+    let rows = query(statement, parameters)
+    if rows.isEmpty { return none }
+    return rows[0]
+}
+
+fn execute(statement: String, parameters) -> Int {
+    return connection().execute(statement, parameters)
+}
+
+fn transaction(operation: Function) {
+    let table = connection()
+    table.begin()
+    try {
+        let value = operation()
+        table.commit()
+        return value
+    } fail {
+        table.rollback()
+        fail(fail)
+    }
+}
+
+fn scopes() -> Map {
+    let rows = query("SELECT e.name, LOWER(HEX(e.id)) AS id FROM entities e INNER JOIN domains d ON d.id=e.domain_id INNER JOIN subdomains s ON s.id=e.subdomain_id AND s.domain_id=d.id WHERE d.name=:domain AND s.name=:subdomain AND d.status='active' AND s.status='active' AND e.status='active'", {"domain": Config.get("domain", "localhost"), "subdomain": Config.get("subdomain", "")})
+    let result = {:}
+    for row in rows { result[row["name"]] = "0x" + row["id"] }
+    return result
+}
+
+fn schema() -> Map {
+    let rows = query("SELECT c.TABLE_NAME AS table_name, c.COLUMN_NAME AS column_name, c.DATA_TYPE AS data_type, c.COLUMN_TYPE AS column_type, c.IS_NULLABLE AS nullable, c.CHARACTER_MAXIMUM_LENGTH AS max_length, c.COLUMN_COMMENT AS comment, c.COLUMN_DEFAULT AS default_value, c.COLUMN_KEY AS column_key, t.TABLE_COMMENT AS table_comment FROM INFORMATION_SCHEMA.COLUMNS c INNER JOIN INFORMATION_SCHEMA.TABLES t ON c.TABLE_SCHEMA=t.TABLE_SCHEMA AND c.TABLE_NAME=t.TABLE_NAME WHERE c.TABLE_SCHEMA=DATABASE() ORDER BY c.TABLE_NAME, c.ORDINAL_POSITION", {:})
+    let result = {:}
+    for row in rows {
+        let name = row["table_name"]
+        if not result.contains(name) { result[name] = {"attributes": {:}, "columns": [], "deployable": "false", "entityoptions": {"EN": name, "SN": name}}
+            if json.isValid(row.get("table_comment", "")) and json.parse(row["table_comment"]).type == "Map" { result[name]["entityoptions"] = json.parse(row["table_comment"]) } }
+        let definition = result[name]
+        let column = row["column_name"]
+        definition["columns"].push(column)
+        var field = column
+        var level = ""
+        for candidate in ["dev", "test", "live", "rollback"] {
+            if column.startsWith(candidate + "-") { field = column.slice(candidate.length + 1)
+                level = candidate }
+        }
+        if not definition["attributes"].contains(field) { definition["attributes"][field] = {"type": "text", "deployments": [], "optional": row["nullable"], "maxchars": row["max_length"]} }
+        let attribute = definition["attributes"][field]
+        if not level.isEmpty { attribute["deployable"] = "true"
+            attribute["deployments"].push(level) }
+        if row["data_type"].contains("int") { attribute["type"] = "number" }
+        if column == "id" { attribute["type"] = "primary" }
+        if not level.isEmpty { definition["deployable"] = "true" }
+        let kind = row.get("column_type", row["data_type"])
+        if column.endsWith("_id") { attribute["type"] = "lookup"
+            for entry in row.get("comment", "").split(";") { if entry.startsWith("entity:") { attribute["lookup"] = entry.slice(7) } } }
+        if column == "entity_id" { attribute["type"] = "sitekey" }
+        if column == "p_id" { attribute["type"] = "incrementor" }
+        if column == "hash" and kind == "binary(20)" { attribute["type"] = "sha1" }
+        if ["datetime", "timestamp", "date", "time", "year", "float", "double", "decimal"].contains(row["data_type"]) { attribute["type"] = row["data_type"] }
+        if kind.startsWith("enum(") { attribute["type"] = "optionset"
+            attribute["options"] = kind.slice(5, kind.length - 1) }
+        if kind.startsWith("set(") { attribute["type"] = "multioptionset"
+            attribute["options"] = kind.slice(4, kind.length - 1) }
+        if row.get("default_value") != none { attribute["default"] = row["default_value"] }
+        if not row.get("column_key", "").isEmpty { attribute["index"] = row["column_key"] }
+        if kind.contains("unsigned") { attribute["unsigned"] = "true" }
+    }
+    let scope = scopes()
+    for name, id in scope { if result.contains(name) { result[name]["instanceguid"] = id } }
+    return result
+}

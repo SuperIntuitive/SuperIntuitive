@@ -172,6 +172,10 @@ class Admin {
 	}
 
 	public function SetPassword($post){
+		if(!Tools::IsValidPassword($post['newpassword'] ?? null)){
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED'] = false;
+			return false;
+		}
 		if ( isset($post['newpassword']) && isset($post['userid'])) {	
 			$userId = Tools::FixGuid($post['userid']);
 			if(!$userId){
@@ -183,9 +187,10 @@ class Admin {
 			$normalizedUserId = str_replace('0x', '', strtolower($userId));
 			$hash = password_hash($post['newpassword'], PASSWORD_DEFAULT);
 			try{
-				$query = $db->DBC()->prepare("UPDATE `users` SET `password` = :password WHERE `id` = UNHEX(:userid)");
-				$query->execute(array(':password' => $hash, ':userid' => $normalizedUserId));
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=true;
+				$entityId = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['users']['instanceguid'];
+				$query = $db->DBC()->prepare("UPDATE `users` SET `password` = :password, `remembertoken` = '', `remembertime` = NULL WHERE `id` = UNHEX(:userid) AND `entity_id` = UNHEX(:entityid)");
+				$query->execute(array(':password' => $hash, ':userid' => $normalizedUserId, ':entityid' => substr(Tools::FixGuid($entityId), 2)));
+				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PASSWORDCHANGED']=$query->rowCount() === 1;
 			
 			}
 			catch(\PDOException $e){
@@ -196,6 +201,12 @@ class Admin {
 	}
 
 	public function NewUser($post){
+		if(!Tools::IsValidPassword($post['newpassword'] ?? null)
+			|| !is_string($post['name'] ?? null) || trim($post['name']) === ''
+			|| !is_string($post['email'] ?? null) || !filter_var($post['email'], FILTER_VALIDATE_EMAIL)){
+			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'Use a name, valid email and password of 10 to 72 bytes.';
+			return false;
+		}
 		if ( isset($post['newpassword']) && isset($post['name']) && isset($post['email']) ) {	
 			$user = new Entity("users");
 		
@@ -329,6 +340,9 @@ class Admin {
 		$this->BuildInstallerFile($post, true);
 	}
 	public function BuildInstallerFile($post, $backup = false){
+		if(isset($post['Name']) && (!is_string($post['Name']) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/D', $post['Name']))){
+			return false;
+		}
 
 		$filename;
 
@@ -352,7 +366,7 @@ class Admin {
 		
 		Tools::Log($dir);
 		if (!file_exists($dir)) {
-			mkdir($dir, 0777, true);
+			mkdir($dir, 0750, true);
 		}
 		$fpath = "$dir$filename";
 		Tools::Log($fpath);
@@ -653,6 +667,7 @@ class Admin {
 			$script.=$indexes;
 
 			file_put_contents($fpath, $script);
+			chmod($fpath, 0640);
 			
 			if(!$backup){
 				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']["BUILDINSTALLER"] = "Installer Built Successfully";

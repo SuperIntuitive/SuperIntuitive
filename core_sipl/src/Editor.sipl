@@ -1,0 +1,84 @@
+use Config
+use Database
+use Entity
+use Security
+use Tools
+use Plugins
+use Content
+
+var _lookups = none
+fn lookups() -> Map {
+    if _lookups == none { _lookups = json.parse(fs.readText(Config.root("core_sipl/generated/lookups.json"))) }
+    return _lookups
+}
+
+fn blockData(page: Map) -> Map {
+    let result: Map = {:}
+    for block in page["blocks"] {
+        let row = block.copy()
+        row["id"] = "0x" + row["id"]
+        row["relationsId"] = "0x" + row["relationsId"]
+        row["options"] = row["relationsOptions"]
+        row["order"] = row["relationsOrder"]
+        row["modifiedon"] = ""
+        row["ittr"] = ""
+        var key = row["name"]
+        var suffix = 2
+        while result.contains(key) { key = row["name"] + "{suffix}"
+            suffix += 1 }
+        result[key] = row
+    }
+    return result
+}
+
+fn userTable(context: Map) -> String {
+    let rows = Entity.retrieve(context, "users", none, {:}, ["id", "name", "email", "status"])
+    var output = "<table id='si_editor_users_table'><thead><tr><th>#</th><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>"
+    var number = 0
+    for row in rows {
+        number += 1
+        let id = "0x" + row["id"]
+        output += "<tr><td>" + "{number}" + "</td><td>" + Tools.guid(row["id"]) + "</td><td>" + Tools.escapeHtml(row["name"]) + "</td><td>" + Tools.escapeHtml(row["email"]) + "</td><td>" + Tools.escapeHtml(row["status"]) + "</td><td id='si_users_config_" + id + "'><button type='button' data-id='" + id + "' onclick='SI.Editor.Objects.User.ChangePassword(this)'>Password</button><button type='button' data-id='" + id + "' onclick='SI.Editor.Objects.User.GetRoles(this)'>Roles</button></td></tr>"
+    }
+    return output + "</tbody></table>"
+}
+
+fn model(context: Map, page: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let data = lookups()
+    let settings = Entity.retrieve(context, "settings", none, {:}, ["id", "settingname", "settingvalue"])
+    let roles = Entity.retrieve(context, "securityroles", none, {:}, ["id", "name", "rules"])
+    for role in roles {
+        if role["rules"].type == "String" and json.isValid(role["rules"]) { role["rules"] = json.parse(role["rules"]) }
+    }
+    let pages = Entity.retrieve(context, "pages", none, {:}, ["id", "name", "path", "options"])
+    let pageObjects: Map = {:}
+    for row in pages { pageObjects[row["name"]] = {"id": "0x" + row["id"], "page": row["path"], "domain": context["domain"], "subdomain": context["subdomain"], "name": row["name"], "path": row["path"]} }
+    var colorOptions = "<option value=''>Color Names</option>"
+    for color in data["ColorNames"] { colorOptions += "<option value='" + Tools.escapeHtml(color) + "'>" + Tools.escapeHtml(color) + "</option>" }
+    var languageOptions = "<option value=''></option>"
+    for code, name in data["Languages"] { languageOptions += "<option value='" + Tools.escapeHtml(code) + "'>" + Tools.escapeHtml(name) + "</option>" }
+    var supportedOptions = "<option value=''></option>"
+    let supported = context["schema"]["localtext"]["columns"].filter(fn(name) => name.startsWith("_")).map(fn(name) => name.slice(1))
+    for code in supported { supportedOptions += "<option value='" + Tools.escapeHtml(code) + "'>" + Tools.escapeHtml(data["Languages"].get(code, code)) + "</option>" }
+    let preferred = Content.languages(context)
+    let localtexts = Entity.retrieve(context, "localtext", none, {:}, "_ALL_")
+    let values: Map = {"$dataage": data["DataAge"], "runtime_info": "<p>SIPL native backend; PHP is not executed by this server.</p>", "$entityDefinitions": context["schema"], "$recordCount": context["schema"].length, "$blockObjects": blockData(page), "$pageObjects": pageObjects, "$mediaObjects": Entity.retrieve(context, "media", none, {:}, ["id", "name", "path", "hash", "mime"]), "$rolesdata": roles, "$relationsjson": Entity.retrieve(context, "relations", none, {:}, "_ALL_"), "$settings2": settings, "$localtexts": localtexts, "$myLangs": preferred, "$currentPlugins": Plugins.editorData(), "$downloadedplugs": Plugins.local("downloaded"), "$PasswordStrength": "^[\\s\\S]\{10,72\}$", "$helplinks": ["mdn", "w3"], "$quickmenuitems": data["QuickMenu"], "$allmimetypes": data["MimeTypes"], "$mimes": {"Images": ["image/png", "image/jpeg", "image/gif", "image/webp"], "Audio": ["audio/mpeg", "audio/ogg", "audio/wav"], "Video": ["video/mp4", "video/webm"], "Docs": ["application/pdf"], "Data": ["application/json", "text/csv"], "Fonts": ["font/woff2"]}, "json_encode($coloroptions)": colorOptions, "json_encode($langoptions)": languageOptions, "json_encode($supportedLanguages)": supportedOptions, "json_encode($usertable)": userTable(context), "json_encode(SI_LANGS)": preferred.join(","), "SI_DOMAIN_NAME": context["domain"], "SI_SUBDOMAIN_NAME": context["subdomain"]}
+    let adminUser = {"loggedin": true, "name": context["user"]["name"], "roles": context["user"]["roles"], "preferences": context["user"].get("preferences", {:})}
+    values["$sessionPageData"] = {"domains": {context["domain"]: {"subdomains": {context["subdomain"]: {"deployment": "dev", "user": adminUser, "entities": context["schema"]}}}}}
+    return values
+}
+
+fn renderModel(values: Map) -> String {
+    var source = fs.readText(Config.root("core_sipl/generated/editor.js.tmpl"))
+    let slots = json.parse(fs.readText(Config.root("core_sipl/generated/editor-slots.json")))
+    let replacements: Map = {:}
+    for marker, expression in slots {
+        if not values.contains(expression) { fail("EDITOR_SLOT_MISSING_" + expression) }
+        replacements[marker] = Tools.scriptJson(values[expression])
+    }
+    return Tools.fillTemplate(source, replacements)
+}
+
+fn render(context: Map, page: Map) -> String { return renderModel(model(context, page)) }

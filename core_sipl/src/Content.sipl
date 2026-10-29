@@ -1,0 +1,75 @@
+use Database
+use Security
+use Tools
+
+fn languages(context: Map) -> List {
+    let available = context["schema"].get("localtext", {"columns": []})["columns"]
+    let candidates = []
+    let header = context.get("request", {"headers": {:}})["headers"].get("accept-language", "en")
+    for value in header.toLower().split(",") {
+        let code = value.split(";")[0].trim()
+        for option in [code, code.split("-")[0]] {
+            if available.contains("_" + option) and not candidates.contains(option) { candidates.push(option) }
+        }
+    }
+    let default = context.get("settings", {:}).get("DefaultLanguage", "en")
+    if available.contains("_" + default) and not candidates.contains(default) { candidates.push(default) }
+    if available.contains("_en") and not candidates.contains("en") { candidates.push("en") }
+    return candidates
+}
+
+fn constants(settings: Map, instant: Instant) -> Map {
+    let now = instant.toLocal(TimeZone(settings.get("DefaultTimeZone", "UTC")))
+    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    var suffix = "th"
+    if now.day % 100 < 11 or now.day % 100 > 13 {
+        let last = now.day % 10
+        if last == 1 { suffix = "st" }
+        if last == 2 { suffix = "nd" }
+        if last == 3 { suffix = "rd" }
+    }
+    let iso = now.toIso()
+    let replacements: Map = {"__NOW.YEAR__": "{now.year}", "__NOW.MONTH__": "{now.month}", "__NOW.MONTHSHORT__": months[now.month - 1].slice(0, 3), "__NOW.MONTHLONG__": months[now.month - 1], "__NOW.DAY__": "{now.day}", "__NOW.DAYSHORT__": "{now.day}" + suffix, "__NOW.DATLONG__": days[now.weekday - 1], "__NOW.DBTIME__": iso.slice(0, 19).replace("T", " "), "__NOW.DATEPATH__": iso.slice(0, 10).replace("-", "/")}
+    for name, value in settings { if regex.compile("^__[A-Za-z0-9_]+__$").isMatch(name) { replacements[name] = "{value}" } }
+    return replacements
+}
+
+fn substitute(source: String, values: Map) -> String {
+    let parts = []
+    var offset = 0
+    for occurrence in regex.compile("__[A-Za-z0-9_.]+__|SI_MULTILANG_[A-Z]\{20\}").findAll(source) {
+        parts.push(source.slice(offset, occurrence["start"]))
+        parts.push(values.get(occurrence["text"], occurrence["text"]))
+        offset = occurrence["end"]
+    }
+    parts.push(source.slice(offset))
+    return parts.join("")
+}
+
+fn expand(context: Map, source: String) -> String {
+    let replacements = constants(context.get("settings", {:}), time.now())
+    let languages = languages(context)
+    if source.contains("SI_MULTILANG_") and not languages.isEmpty {
+        let columns = languages.map(fn(code) => "`_" + code + "`")
+        let names = []
+        for occurrence in regex.compile("SI_MULTILANG_[A-Z]\{20\}").findAll(source) {
+            let name = occurrence["text"].slice(13)
+            if not names.contains(name) { names.push(name) }
+        }
+        if not names.isEmpty {
+            let parameters: Map = {"scope": Security.scope(context, "localtext")}
+            let markers = []
+            for index, name in names { let key = "n" + "{index}"
+                parameters[key] = name
+                markers.push(":" + key) }
+            for row in Database.query("SELECT name," + columns.join(",") + " FROM localtext WHERE entity_id=UNHEX(:scope) AND status='active' AND name IN (" + markers.join(",") + ")", parameters) {
+                var value = ""
+                for code in languages { if row.get("_" + code).type == "String" and not row["_" + code].isEmpty { value = row["_" + code]
+                    break } }
+                replacements["SI_MULTILANG_" + row["name"]] = value
+            }
+        }
+    }
+    return substitute(source, replacements)
+}

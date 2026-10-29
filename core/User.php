@@ -26,6 +26,9 @@ class User{
 	}
 
 	function ForgotPassword($post){
+		if(!RateLimit::RequireAllowance('forgot-password', 5, 3600)){
+			return false;
+		}
 		if(!isset($post['email']) || !filter_var($post['email'], FILTER_VALIDATE_EMAIL)){
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['FORGOTPASSWORD'] = false;
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'A valid email address is required.';
@@ -72,4 +75,4 @@ class User{
 	}
 
 
-} 
+}

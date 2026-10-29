@@ -2,9 +2,11 @@
 namespace SuperIntuitive;
 header("Content-Type: application/javascript; charset: UTF-8");
 
-session_start();
 require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+Tools::ConfigureSessionCookieParams();
+session_start();
 Tools::DefineServer();
+Tools::SendSecurityHeaders();
 
 //Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins']);
 if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])) {

@@ -18,15 +18,15 @@ class Entity{
 		//$this->SearchGroups = new SearchGroupCollection();
 		if( gettype($entity) ==='object'){
 			$cn = get_class($entity);
-			if($cn === 'EntityReference' )
+			if($entity instanceof EntityReference)
 			{
 				$this->Name = $entity->Name;
 		        $this->Id = $entity->Id;
 			}
-			elseif($cn === 'Entity'){
+			elseif($entity instanceof Entity){
 			   	$this->Name = $entity->Name;
 		        $this->Id = $entity->Id;
-				$this->$Attributes = $entity->$Attributes;
+				$this->Attributes = $entity->Attributes;
 			}
 		}	
 		else if (Tools::IsJson($entity) ){
@@ -82,6 +82,28 @@ class Entity{
 	}
 
 	public function NewEntity($post){	
+		if(!is_array($post)){
+			return false;
+		}
+		foreach(array($post['sname'] ?? null, $post['pname'] ?? (($post['sname'] ?? '').'s')) as $identifier){
+			if(!is_string($identifier) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]{0,47}$/D', $identifier)){
+				return false;
+			}
+		}
+		if(isset($post['attributes']) && (!is_array($post['attributes']) || count($post['attributes']) > 128)){
+			return false;
+		}
+		foreach($post['attributes'] ?? array() as $attribute){
+			if(!is_array($attribute) || !is_string($attribute['name'] ?? null)
+				|| !preg_match('/^[A-Za-z_][A-Za-z0-9_]{0,47}$/D', $attribute['name'])
+				|| !is_string($attribute['type'] ?? null)
+				|| !preg_match('/^(?:TINYINT|SMALLINT|MEDIUMINT|INT|INTEGER|BIGINT|DECIMAL|NUMERIC|FLOAT|DOUBLE|REAL|BIT|BOOLEAN|SERIAL|DATE|DATETIME|TIMESTAMP|TIME|YEAR|CHAR|VARCHAR|BINARY|VARBINARY|TINYBLOB|BLOB|MEDIUMBLOB|LONGBLOB|TINYTEXT|TEXT|MEDIUMTEXT|LONGTEXT|JSON|ENUM|SET|LOOKUP|GEOMETRY|POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION)$/Di', $attribute['type'])
+				|| (isset($attribute['size']) && $attribute['size'] !== '' && (!is_scalar($attribute['size']) || !preg_match('/^[0-9]{1,5}(?:,[0-9]{1,2})?$/D', (string)$attribute['size'])))
+				|| (isset($attribute['def']) && (!is_scalar($attribute['def']) || strpos((string)$attribute['def'], "\0") !== false))){
+				return false;
+			}
+		}
+		$db = new Database();
 		Tools::Log($post);
 		if(!empty($post['sname'])){
 			$sname = $post['sname'];
@@ -103,10 +125,10 @@ class Entity{
 
 						$def= '';
 						if(isset($v['def'])){
-							$def = " DEFAULT '".$v['def']."'";
+							$def = ' DEFAULT '.$db->DBC()->quote((string)$v['def']);
 						}
 
-						if(isset($v['size'])){
+						if(isset($v['size']) && $v['size'] !== ''){
 							$size = $v['size'];
 							$type.="($size)";
 						}
@@ -116,7 +138,7 @@ class Entity{
 							//only make on column
 							$attrsql .= "`$name` $type$def,";
 						}else{
-							$attrsql .= "`$name` $type$def, dev_$name $type$def, test_$name $type$def, rollback_$name $type$def,";
+							$attrsql .= "`live-$name` $type$def, `dev-$name` $type$def, `test-$name` $type$def, `rollback-$name` $type$def,";
 						}		
 				    }
 				}
@@ -181,7 +203,7 @@ class Entity{
 		
 		//Get the entity name eg: blocks
 		$name = $entity->Name;
-		if(!$name){
+		if(!is_string($name) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/D', $name)){
 			Tools::Log("The entity has no name. Action cannot continue");
 			Tools::Log($entity);
 			return false;
@@ -189,6 +211,15 @@ class Entity{
 
 		$bu = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME];
 		$deployment = $bu['deployment'];
+		if(!in_array($deployment, array('live', 'test', 'dev', 'rollback'), true)){
+			return false;
+		}
+		if($entity->Id !== null){
+			$entity->Id = Tools::FixGuid($entity->Id);
+			if($entity->Id === false){
+				return false;
+			}
+		}
 		
 		//If we cant find the Entity data than scram	
 		if(empty( $bu['entities'][$name])){
@@ -199,6 +230,10 @@ class Entity{
 		$entitydef = $bu['entities'][$name];
 		
 		$entityId = !isset($entitydef['instanceguid']) ? null : $entitydef['instanceguid']; 
+		$entityId = Tools::FixGuid($entityId);
+		if($entityId === false){
+			return false;
+		}
 		//Tools::Log($bu['user'],true);
 		//security
 		$create;
@@ -227,6 +262,11 @@ class Entity{
 			$append = isset($entitypermissions['append']) ? $entitypermissions['append'] :false;
 			$appendTo = isset($entitypermissions['appendTo']) ? $entitypermissions['appendTo'] :false;
 			$delete = isset($entitypermissions['delete']) ? $entitypermissions['delete'] :false;
+			// Stored rules use strings: the string "false" is truthy in PHP.
+			$create = filter_var($create, FILTER_VALIDATE_BOOLEAN);
+			$read = filter_var($read, FILTER_VALIDATE_BOOLEAN);
+			$write = filter_var($write, FILTER_VALIDATE_BOOLEAN);
+			$delete = filter_var($delete, FILTER_VALIDATE_BOOLEAN);
 			//Tools::Log("create: ".$create.", read: ".$read.", write: ".$write.", append: ".$append.", appendTo: ".$appendTo.", delete: ".$delete);
 			if($action == "select" && $read == false){   //this could be turned into a big multi condition if, but i think in the long run this might be quicker.		
 				Tools::Log("User does not have $name read permission $read ");
@@ -267,6 +307,9 @@ class Entity{
 			}			
 			$allcolumnscsv = "";
 			foreach($allcolumns as $colname){
+				if(!is_string($colname) || !preg_match('/^[A-Za-z_][A-Za-z0-9_-]*$/D', $colname)){
+					return false;
+				}
 				if($colname != 'instanceguid' && $colname != 'deployable' && $colname != 'p_id' && $colname != 'sum'){
 					//Tools::Log("AllCols: ".$colname ,true);
 					if(isset($entitydef['attributes'][$colname]['deployable'])){
@@ -364,6 +407,13 @@ class Entity{
 			}else{Tools::Log($name."->Name is null for an attribute");}
 
 			$fieldName = $attr->Name;
+			if(!is_string($fieldName) || !preg_match('/^[A-Za-z_][A-Za-z0-9_-]*$/D', $fieldName)){
+				return false;
+			}
+			if(!isset($allattrs[Tools::CleanDeployableField($fieldName)])
+				|| (($action === 'create' || $action === 'update') && in_array($fieldName, array('id', 'entity_id'), true))){
+				return false;
+			}
 			$val = $attr->Value;
 			//$atype = $attr->
 			$fieldtype = gettype($val);
@@ -388,90 +438,42 @@ class Entity{
 				Tools::Log($fieldtype, true);
 			}
 
-		    $isnull;
-			if(strtolower($val) === 'null'){$val = 'NULL';}
+            // Every attribute value is bound, including numbers, enums and IDs.
+            // SQL identifiers above are validated independently of these values.
+            $placeholder = ':attr_'.count($params);
+            $expression = $placeholder;
+            if($val === null || (is_string($val) && strtolower($val) === 'null' && (Tools::EndsWith($fieldName, '_id') || in_array($fieldtype, array('primary', 'lookup'), true)))){
+                $expression = 'NULL';
+            } else {
+                if($val instanceof EntityReference){
+                    $val = $val->Id;
+                }
+                if(Tools::EndsWith($fieldName, '_id') || $fieldName === 'id' || in_array($fieldtype, array('primary', 'lookup'), true)){
+                    $val = Tools::FixGuid($val);
+                    if($val === false){
+                        return false;
+                    }
+                    $val = substr($val, 2);
+                    $expression = 'UNHEX('.$placeholder.')';
+                } else if($fieldtype === 'sha1'){
+                    if(!is_string($val) || !preg_match('/^(?:0x)?[a-f0-9]{40}$/Di', $val)){
+                        return false;
+                    }
+                    $val = preg_replace('/^0x/i', '', $val);
+                    $expression = 'UNHEX('.$placeholder.')';
+                } else if(!is_scalar($val)){
+                    return false;
+                }
+                if(is_bool($val)){
+                    $val = (int)$val;
+                }
+                $params[$placeholder] = $val;
+            }
+            $fields .= "`$fieldName`,";
+            $values .= $expression.',';
+            $set .= "`$fieldName`=".$expression.', ';
+            $where .= "`$fieldName`".($expression === 'NULL' ? ' IS NULL ' : '='.$expression.' ');
 
-			//if were trying to set this to null, we need to fix it.	
-			switch($fieldtype){
-
-				case "boolean":
-				case "integer":
-				case "number":
-				case "double":
-					$fields.="`$fieldName`,";
-					$values.="$val,"; 
-					$set.="`$fieldName`=$val, ";
-					$where.="`$fieldName`=$val ";
-					break;
-				case 'optionset':
-					$fields.="`$fieldName`,";
-					$values.="$val,"; 
-					$set.="`$fieldName`='$val', ";
-					$where.="`$fieldName`='$val' ";
-					break;
-				case "string": 
-				case "text":
-					$fields.="`$fieldName`,";
-					if(!Tools::EndsWith($fieldName,"_id")){
-						$sfield =preg_replace("/[^A-Za-z0-9]/", '', $fieldName);
-						$values.=":$sfield,"; 
-						$set.="`$fieldName`=:$sfield, ";
-						$where.="`$fieldName`=:$sfield ";
-						$params[":$sfield"]=$val;
-					}else{
-						if(!Tools::StartsWith($val,"0x")){
-							$val = '0x'.$val;
-						}
-						$values.="$fieldName,"; 
-						$set.="`$fieldName`=$val, ";
-						$where.="`$fieldName`= $val ";
-					}
-					break;			
-				case "array":break;
-				case "object": 
-				case "primary": 
-				case "lookup": 
-					//Tools::Log(gettype($val),true);
-					if($val === 'NULL'){			    
-						$fields.="`$fieldName`,";
-						$values.=" NULL,"; 
-						$set.="`$fieldName`= NULL, ";
-						$where.="`$fieldName`= NULL ";	
-					}else{
-						$guid = null;
-						if( get_class($val) === "EntityReference" && (Tools::EndsWith($fieldName,"_id")|| $fieldName == 'id' ) ){
-							$guid = $val->Id;
-						}
-						else if(gettype($val) === "string"  && (Tools::EndsWith($fieldName,"_id"))){
-							$guid = $val;
-						}
-						if(!Tools::StartsWith($guid,"0x")){
-								$guid = '0x'.$guid;
-						}
-
-						else if($guid != null && strlen($guid) === 34){
-							$fields.="`$fieldName`,";
-							$values.="$guid,"; 
-							$set.="`$fieldName`=$guid, ";
-							$where.="`$fieldName`=$guid ";			
-						}
-					}
-
-
-					break;	
-				case "sha1":
-					if($val !=='0x'){
-						//$fields.="HEX($fieldName) AS `$fieldName`,";
-						$fields.="`$fieldName`,";
-						$values.="$val,"; 
-						$set.="`$fieldName`='$val', ";
-						$where.="`$fieldName`='$val' ";
-					}
-
-					break;
-				case "NULL":break;
-				default:
-			}
 		}
 		
 		$set = trim($set);
@@ -496,8 +498,9 @@ class Entity{
 				}
 				$entity->Id = $fixedEntityId;
 				if(strlen($set)>2){
-					$sql = "UPDATE `$name` $set WHERE `id` = UNHEX(:_entity_id)";
+					$sql = "UPDATE `$name` $set WHERE `id` = UNHEX(:_entity_id) AND `entity_id` = UNHEX(:_scope_id)";
 					$params[':_entity_id'] = substr($entity->Id, 2);
+					$params[':_scope_id'] = substr($entityId, 2);
 					Tools::Log($sql);
 				}
 
@@ -534,7 +537,8 @@ class Entity{
 				$columns = rtrim($newCols,',');
 				//echo $columns;
 			}else{
-				$columns = '`'.Tools::NeedsHex($columns).'`';
+				$hexColumn = Tools::NeedsHex($columns);
+                $columns = Tools::StartsWith($hexColumn, 'HEX(') ? $hexColumn.' AS `'.$columns.'`' : '`'.$columns.'`';
 			}
 		    //echo $columns;
 		    //Tools::Log($columns,true);
@@ -573,7 +577,7 @@ class Entity{
 				$db = new Database();
 				$data = $db->DBC()->prepare($sql);
 			}
-			catch(PDOException $ex)
+			catch(\PDOException $ex)
 			{
 				Tools::Log("$action entity prepair failed for: ".print_r($entity,true). ' with Exception: '.$ex ,true);
 				return false;
@@ -588,7 +592,7 @@ class Entity{
 					$data->execute();
 				}
 			}
-			catch(PDOException $ex)
+			catch(\PDOException $ex)
 			{
 				Tools::Log("$action entity failed for: ".print_r($entity,true). ' with Exception: '.$ex ,true);
 				return false;
@@ -658,7 +662,7 @@ class Attribute{
 			if(is_object($value)){
 				$ctype = get_class($value);
 			}
-			if($ctype =='Entity' || $ctype =='EntityReference')
+			if($value instanceof Entity || $value instanceof EntityReference)
 			{
 				$er = new EntityReference();
 				$er->Name = $value->Name;
@@ -678,45 +682,26 @@ class Attribute{
 }
 
 class AttributeCollection{
-	public $Attributes;
-	public $Count=0;	
-    public function __construct($attribs=null){
-	    $this->Attributes = array();
-	    if(gettype($attribs)==='array' && count($attribs) > 0){
-			if(get_class( current($attribs) )==='Attribute')
-			{
-				$this->Attributes = $attrib;
-			}
-		}
-		else if($attribs!=null){
-		    if(get_class($attribs)==='Attribute')
-			{
-				$this->Attributes[] = $attribs;
-			}
-		}
-	}
-	public function Add($attribs)
-	{
-	    if(gettype($attribs)==='array'){
-			$this->Attributes = array_merge($this->Attributes, $attribs);
-		}
-		else if(gettype($attribs)==='string'){
-			//$this->Attributes = array_merge($this->Attributes, $attribs);
-			Tools::Log($attribs);
-		}
-		else if($attribs!=null){
-		    if(get_class($attribs)==='Attribute')
-			{
-				$this->Attributes[] = $attribs;
-			}
-		}
-		$this->Count = count($this->Attributes);
-	}
-	public function Get(){
-		return $this->Attributes;
-	}
-}
+    public $Attributes = array();
+    public $Count = 0;
 
+    public function __construct($attribs = null){
+        $this->Add($attribs);
+    }
+
+    public function Add($attribs){
+        foreach(is_array($attribs) ? $attribs : array($attribs) as $attribute){
+            if($attribute instanceof Attribute){
+                $this->Attributes[] = $attribute;
+            }
+        }
+        $this->Count = count($this->Attributes);
+    }
+
+    public function Get(){
+        return $this->Attributes;
+    }
+}
 
 //The Filter class maintains a list of items.
 //An Item can either be a search Condition or another Filter

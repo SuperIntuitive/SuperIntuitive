@@ -2,12 +2,7 @@
 SI.Editor.Objects.Page = {
     Draw: function () {
         let base = Ele('div', {
-            style: {
-                width: '100%',
-                height: '100%',
-                backgroundColor: SI.Editor.Style.FavoriteColor,
-                overflowY: 'scroll'
-            }
+            class: 'si-tool-body',
 
         });
         let sub = SI.Tools.GetSubdomain();
@@ -15,8 +10,7 @@ SI.Editor.Objects.Page = {
         //Path Section
         let pageContainer = Ele('section', {
             style: {
-                backgroundColor: 'black',
-                color: SI.Editor.Style.TextColor,
+
                 margin: '7px',
                 padding: '6px'
             },
@@ -25,15 +19,10 @@ SI.Editor.Objects.Page = {
         //
         //Save Page Button
         //
-        let dirSave = Ele('button', {
+        let dirSave = SI.Editor.UI.IconButton({
+            Icon: 'save',
             appendTo: pageContainer,
-            style: {
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundImage: "url('/editor/media/icons/save.png')",
-                backgroundSize: 'cover'
-            },
+            class: 'si-page-action',
             title: "Save the Page",
             onclick: function () {
                 SI.Editor.Objects.Page.Save();
@@ -43,7 +32,7 @@ SI.Editor.Objects.Page = {
         let pathFieldset = Ele("fieldset", {
             style: {
                 margin: '6px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 width: "95%",
                 display: 'block',
                 borderRadius: '10px'
@@ -52,7 +41,7 @@ SI.Editor.Objects.Page = {
             append: Ele("legend", {
                 innerHTML: "Path",
                 style: {
-                    backgroundColor: "rgb(72, 75, 87)",
+
                     border: "inherit",
                     padding: "2px 4px 2px 4px",
                     borderRadius: "4px",
@@ -64,21 +53,21 @@ SI.Editor.Objects.Page = {
             style: {
                 margin: '6px',
                 padding: '3px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 width: '99%'
             },
             appendTo: pathFieldset
         });
-        let pathHeaderRow = Ele('tr', { appendTo: pathTable, style: { color: SI.Editor.Style.TextColor } });
+        let pathHeaderRow = Ele('tr', { appendTo: pathTable, style: { } });
         let subHeader = Ele('th', { innerHTML: "Business Unit", appendTo: pathHeaderRow, userSelect: 'none' });
         let domainHeader = Ele('th', { innerHTML: "Domain", appendTo: pathHeaderRow, userSelect: 'none' });
         let pageHeader = Ele('th', { innerHTML: "Directory", appendTo: pathHeaderRow, userSelect: 'none' });
         let spaceHeader = Ele('th', { appendTo: pathHeaderRow });
         let pathDataRow = Ele('tr', { appendTo: pathTable });
         let subData = Ele('td', { appendTo: pathDataRow });
-        let subInput = Ele('input', { readOnly: true, value: sub, appendTo: subData, style: { width: '95%', backgroundColor: '#aababc' } });
+        let subInput = Ele('input', { readOnly: true, value: sub, appendTo: subData, style: { width: '95%', } });
         let domainData = Ele('td', { innerHTML: '. ', appendTo: pathDataRow });
-        let domainInput = Ele('input', { readOnly: true, value: document.domain, appendTo: domainData, style: { width: '90%', backgroundColor: '#aababc' } });
+        let domainInput = Ele('input', { readOnly: true, value: document.domain, appendTo: domainData, style: { width: '90%', } });
         let dirData = Ele('td', { innerHTML: '/ ', appendTo: pathDataRow });
         let dirInput = Ele('input', {
             id: 'si_page_directory_field',
@@ -133,7 +122,7 @@ SI.Editor.Objects.Page = {
         let metaFieldset = Ele("fieldset", {
             style: {
                 margin: '6px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 width: "95%",
                 display: 'block',
                 borderRadius: '10px'
@@ -142,7 +131,7 @@ SI.Editor.Objects.Page = {
             append: Ele("legend", {
                 innerHTML: "Meta Tags",
                 style: {
-                    backgroundColor: "rgb(72, 75, 87)",
+
                     border: "inherit",
                     padding: "2px 4px 2px 4px",
                     borderRadius: "4px",
@@ -153,7 +142,7 @@ SI.Editor.Objects.Page = {
         let metaTable = Ele("table", {
             style: {
                 margin: '6px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 width: "99%"
             },
             appendTo: metaFieldset
@@ -161,8 +150,7 @@ SI.Editor.Objects.Page = {
         let metaPageTitleRow = Ele('tr', {
             appendTo: metaTable,
             style: {
-                color: SI.Editor.Style.TextColor
-            }
+                }
         });
         let metaPageTitle = Ele('td', {
             innerHTML: "Title",
@@ -200,8 +188,7 @@ SI.Editor.Objects.Page = {
             favicon = favicon.replace("media/images/dev_", '');
         }
 
-
-        let metaPageIconRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor } });
+        let metaPageIconRow = Ele('tr', { appendTo: metaTable, style: { } });
         let metaPageIcon = Ele('td', { innerHTML: "Favicon", appendTo: metaPageIconRow });
         let metaPageIconLookupCell = Ele('td', { appendTo: metaPageIconRow });
         let metaPageIconLookup = Ele('input', {
@@ -230,7 +217,7 @@ SI.Editor.Objects.Page = {
             }
         }
 
-        let metaPageCharsetRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor } });
+        let metaPageCharsetRow = Ele('tr', { appendTo: metaTable, style: { } });
         let metaPageCharset = Ele('td', { innerHTML: "Charset", appendTo: metaPageCharsetRow });
         let metaPageCharsetLookupCell = Ele('td', { appendTo: metaPageCharsetRow });
 
@@ -249,21 +236,14 @@ SI.Editor.Objects.Page = {
         });
 
         //More or Less link
-        let metaPageMoreRow = Ele('tr', { appendTo: metaTable, style: { color: SI.Editor.Style.TextColor } });
+        let metaPageMoreRow = Ele('tr', { appendTo: metaTable, style: { } });
         let metaPageMore = Ele('th', {
             innerHTML: "more",
             id: 'si_moremetatoggle',
             appendTo: metaPageMoreRow,
             colspan: '1',
-            style: {
-                color: SI.Editor.Style.TextColor,
-                fontSize: 'x-small',
-                cursor: 'pointer',
-                backgroundColor: '#333',
-                borderStyle: 'inset',
-                borderRadius: '8px',
-                borderColor: 'navy'
-            },
+            class: 'si-tool-action',
+
             onclick: function () {
                 metafieldfix = document.getElementsByClassName("si-editor-page-metainput");
                 for (let i = 0; i < metafieldfix.length; i++) {
@@ -282,7 +262,7 @@ SI.Editor.Objects.Page = {
         });
         //loop meta items so that they are all controlable
         //debugger;
-        let metaPageMoreMetaRow = Ele('tr', { id: 'si_moremetabox', appendTo: metaTable, colspan: 2, style: { color: SI.Editor.Style.TextColor }});
+        let metaPageMoreMetaRow = Ele('tr', { id: 'si_moremetabox', appendTo: metaTable, colspan: 2, style: { }});
 
         // let metaitems = { 'description': 'Page Description', 'keywords': 'Website builder cms', 'author': 'You!', 'viewport': 'width=device-width, initial-scale=1' };
         let metaitems = {};
@@ -309,7 +289,7 @@ SI.Editor.Objects.Page = {
                     }
                 }
 
-                let metaRow = Ele('tr', { appendTo: metaTable, class: "si-editor-page-metainput", style: { color: SI.Editor.Style.TextColor, display: 'none' }});
+                let metaRow = Ele('tr', { appendTo: metaTable, class: "si-editor-page-metainput", style: {  display: 'none' }});
                 let metaName = Ele('td', {
                     innerHTML: item,
                     style: {
@@ -357,7 +337,7 @@ SI.Editor.Objects.Page = {
             let bodyTable = Ele("fieldset", {
                 style: {
                     margin: '6px',
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
+
                     width: "95%",
                     display: 'block',
                     borderRadius: '10px'
@@ -366,7 +346,7 @@ SI.Editor.Objects.Page = {
                 append: Ele("legend", {
                     innerHTML: "Body Style",
                     style: {
-                        backgroundColor: "rgb(72, 75, 87)",
+
                         border: "inherit",
                         padding: "2px 4px 2px 4px",
                         borderRadius: "4px",
@@ -429,8 +409,15 @@ SI.Editor.Objects.Page = {
                 }
             }
 
-            bodystyle = "{\"" + bodystyle.replace("body {", "").replace(/:/g, '":"').replace(/;/g, '","').replace(',"}', '}');
-            bodystyle = JSON.parse(bodystyle);
+            // Read parsed CSS declarations so quotes, colons and empty styles work.
+            // Both PHP and SIPL render this stylesheet through the same DOM hook.
+            bodystyle = {};
+            const bodyRule = Array.from(bodyStyleEle.sheet?.cssRules || []).find(rule => rule.selectorText === 'body');
+            if (bodyRule) {
+                for (const property of bodyRule.style) {
+                    bodystyle[property] = bodyRule.style.getPropertyValue(property).trim();
+                }
+            }
 
             let tablebox = Ele("div", {
                 style: {
@@ -485,7 +472,7 @@ SI.Editor.Objects.Page = {
             let deployment = Ele("fieldset", {
                 style: {
                     margin: '6px',
-                    backgroundColor: SI.Editor.Style.BackgroundColor,
+
                     width: "95%",
                     display: 'block',
                     borderRadius: '10px'
@@ -494,7 +481,7 @@ SI.Editor.Objects.Page = {
                 append: Ele("legend", {
                     innerHTML: "Deployment",
                     style: {
-                        backgroundColor: "rgb(72, 75, 87)",
+
                         border: "inherit",
                         padding: "2px 4px 2px 4px",
                         borderRadius: "4px",
@@ -502,7 +489,7 @@ SI.Editor.Objects.Page = {
                     }
                 })
             });
-            
+
             let dFields = { "options": "pages" };
 
             for (let df in dFields) {
@@ -521,7 +508,7 @@ SI.Editor.Objects.Page = {
             id:"si_edit_page_settings",
             style: {
                 margin: '6px',
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 width: "95%",
                 display: 'block',
                 borderRadius: '10px'
@@ -530,7 +517,7 @@ SI.Editor.Objects.Page = {
             append: Ele("legend", {
                 innerHTML: "Page Settings",
                 style: {
-                    backgroundColor: "rgb(72, 75, 87)",
+
                     border: "inherit",
                     padding: "2px 4px 2px 4px",
                     borderRadius: "4px",
@@ -543,42 +530,33 @@ SI.Editor.Objects.Page = {
             if (setting !== "AllowedFileTypes") {
                 SI.Editor.Objects.Page.AddSetting(setting, pageSettings);
             }
-            
+
         }
 
         //BLOCKS Initially created here:
         let blocklib = Ele('section', {
             id: "si_editor_page_block_container",
             style: {
-                backgroundColor: 'black',
+
                 width: '96.5%',
                 padding: '6px',
                 margin: '7px'
             },
-            onclick: function (e) { SI.Editor.Objects.Blocks.Select(); },
-            onmouseenter: function () {
-                SI.Editor.Objects.Blocks.Reorder();
-            }
+            onclick: function (e) { SI.Editor.Objects.Blocks.Select(); }
         });
         base.appendChild(blocklib);
-        
+
         let blocklabel = Ele('span', {
             innerHTML: "Blocks",
             style: {
-                color: SI.Editor.Style.TextColor
-            },
+                },
             appendTo: blocklib
         });
         //New Block Button
-        let newblockbutton = Ele('button', {
+        let newblockbutton = SI.Editor.UI.IconButton({
+            Icon: 'newBlock',
             appendTo: blocklib,
-            style: {
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundImage: "url('/editor/media/icons/new-block-btn.png')",
-                backgroundSize: 'cover'
-            },
+            class: 'si-page-action',
             title: "New Block",
             onclick: function (ev) {
                 let newBlockName = prompt("Please enter a unique name for the Block : ", "");
@@ -595,51 +573,42 @@ SI.Editor.Objects.Page = {
 
         });
         //Import Block Button
-        let blockImportLabel = Ele('button', {
+        let blockImportLabel = SI.Editor.UI.IconButton({
+            Icon: 'import',
             id:'si_edit_importblock_trigger',
             appendTo: blocklib,
-            style: {
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundImage: "url('/editor/media/icons/import.png')",
-                backgroundSize: 'cover'
-            },
+            class: 'si-page-action',
             title: "Import Existing Block",
-            onclick: function (e) {
-                if(!SI.Widgets.Window.si_edit_importblocks_window){
-                    var obj = {
-                        Id: "si_edit_importblocks_window",
-                        BackgroundColor: 'CadetBlue',
-                        Title: "Import Block", 
-                        Width: '268px', 
-                        Height: '75px',
-                        Top: "400px", 
-                        Left: "300px", 
-                        Resizable: false, 
-                        WindowControls:"CLOSE",
-                        Trigger:'#si_edit_importblock_trigger',
-                        Populate:SI.Editor.Objects.Page.DrawImportBlocks
-                    };
-                    new SI.Widget.Window(obj);
-                    SI.Widgets.Window.si_edit_importblocks_window.Show();
+            onclick: function () {
+                let win = SI.Widgets.Window.si_edit_importblocks_window;
+                if (!win) {
+                    win = new SI.Widget.Window({
+                        Id: 'si_edit_importblocks_window',
+                        Title: 'Import Block',
+                        Width: '520px',
+                        Height: '300px',
+                        Resizable: true,
+                        WindowControls: 'CLOSE',
+                        Populate: SI.Editor.Objects.Page.DrawImportBlocks
+                    });
+                } else if (win.IsVisible()) {
+                    win.Hide();
+                    return;
+                } else {
+                    SI.Editor.Objects.Page.LoadImportBlocks();
                 }
+                win.Show();
             }
         });
         //Block Template Button
-        let blockTemplateButton = Ele('button', {
+        let blockTemplateButton = SI.Editor.UI.IconButton({
+            Icon: 'template',
             id:'si_edit_blocktemplates_trigger',
             appendTo: blocklib,
-            style: {
-                width: '20px',
-                height: '20px',
-                float: 'right',
-                backgroundImage: "url('/editor/media/icons/page-template-btn.png')",
-                backgroundSize: 'cover'
-            },
+            class: 'si-page-action',
             title: "Block Template Library",
             onclick: function () {
-                if(!SI.Widgets.Window.si_edit_importblocks_window){
+                if(!SI.Widgets.Window.si_edit_blocktemplates_window){
                     var obj = {
                         Id: "si_edit_blocktemplates_window",
                         Trigger: '#si_edit_blocktemplates_trigger',
@@ -781,14 +750,12 @@ SI.Editor.Objects.Page = {
                 data.redirect = redirid;
             }
 
-
             data.KEY = 'PageSave';
             //debugger;
             let pathfield = document.getElementById('si_page_directory_field');
             if (pathfield.dataset.name !== pathfield.value) {
                 data.path = pathfield.value;
             }
-
 
             let ajax = { Data: data };
             console.log(ajax);
@@ -852,7 +819,7 @@ SI.Editor.Objects.Page = {
         //debugger;
         let table = Ele('table', {
             style: {
-                backgroundColor: SI.Editor.Style.BackgroundColor,
+
                 margin : '5px',
             },
         });
@@ -906,7 +873,6 @@ SI.Editor.Objects.Page = {
 
             for (let option in options) {
 
-
                 if (option != 'order' && option != 'category' && option != 'style') {
                     let box = Ele('div', {
                         style: {
@@ -947,60 +913,91 @@ SI.Editor.Objects.Page = {
     },
 
     DrawImportBlocks: function () {
-        let container = document.createElement('div');
-        let blSelect = Ele("select", {
+        const container = Ele('div', {id: 'si_edit_importblock_form', class: 'si-tool-body si-import-block-form'});
+        Ele('p', {class: 'si-import-block-help', innerText: 'Add an existing block to this page. Changes to a shared block appear on every page that uses it.', appendTo: container});
+        Ele('label', {for: 'si_edit_importblock_select', innerText: 'Block to import', appendTo: container});
+        Ele('select', {
             id: 'si_edit_importblock_select',
-            style: {
-                margin: '20px',
-            },
-            onchange: function (ev) {
-                let val = this.value;
-                let name = this.innerHTML;
-            },
-            appendTo: container,
+            disabled: true,
+            onchange: function () { document.getElementById('si_edit_importblock_button').disabled = !this.value; },
+            appendTo: container
         });
-        let blButton = Ele("input", {
-            type:'button',
-            id: 'si_edit_importblock_button',
-            style: {
-                margin: '20px',
-            },
-            value:'Import',
-            onclick: function (ev) {
-                let sel = document.getElementById('si_edit_importblock_select');
-                //debugger;
-                SI.Editor.Objects.Blocks.Relate(sel.value);
-            },
-            appendTo: container,
-        });
-        let options = {};
-        options.Data = {
-            Operation: "Retrieve",
-            Entity: {
-                Name: 'blocks',
-            },
-            Columns: "id,name",
-        };
-        options.Callback = SI.Editor.Objects.Page.PopulateImportedBlocks;
-        //debugger;
-        SI.Tools.Api.Send(options); 
+        const status = Ele('p', {id: 'si_edit_importblock_status', class: 'si-import-block-status', appendTo: container});
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        const actions = Ele('div', {class: 'si-import-block-actions', appendTo: container});
+        Ele('button', {id: 'si_edit_importblock_refresh', type: 'button', innerText: 'Refresh', onclick: function () { SI.Editor.Objects.Page.LoadImportBlocks(); }, appendTo: actions});
+        Ele('button', {type: 'button', innerText: 'Cancel', onclick: function () { SI.Widgets.Window.si_edit_importblocks_window.Hide(); }, appendTo: actions});
+        Ele('button', {id: 'si_edit_importblock_button', type: 'button', class: 'si-import-block-submit', innerText: 'Import block', disabled: true, onclick: SI.Editor.Objects.Page.ImportBlock, appendTo: actions});
+        SI.Editor.Objects.Page.LoadImportBlocks(container);
         return container;
     },
-    PopulateImportedBlocks: function(blocks) {
-        let sel = document.getElementById('si_edit_importblock_select');
-        for (let b in blocks) {
-            if (blocks.hasOwnProperty(b) && b !== 'Return') {
-                //debugger;
-                Ele("option", {
-                    innerHTML: blocks[b].name,
-                    value: '0x' + blocks[b].id,
-                    title: '0x' + blocks[b].id,
-                    appendTo: sel,
-                });
+    LoadImportBlocks: function (container = document.getElementById('si_edit_importblock_form')) {
+        if (!container || container.dataset.importing === 'true') return;
+        const select = container.querySelector('select');
+        const submit = container.querySelector('#si_edit_importblock_button');
+        const refresh = container.querySelector('#si_edit_importblock_refresh');
+        const status = container.querySelector('[role="status"]');
+        select.replaceChildren(new Option('Loading blocks…', ''));
+        select.disabled = submit.disabled = refresh.disabled = true;
+        status.textContent = 'Loading available blocks…';
+        container.dataset.loadstate = 'loading';
+        const request = SI.Tools.Api.Send({
+            Data: {Operation: 'Retrieve', Entity: {Name: 'blocks'}, Columns: 'id,name'},
+            Callback: function (blocks) { SI.Editor.Objects.Page.PopulateImportedBlocks(blocks, container); }
+        });
+        request.timeout = 20000;
+        request.addEventListener('loadend', function () {
+            refresh.disabled = false;
+            if (container.dataset.loadstate === 'loading') {
+                container.dataset.loadstate = 'error';
+                select.replaceChildren(new Option('Blocks could not be loaded', ''));
+                status.textContent = 'Could not load blocks. Select Refresh to try again.';
             }
-        }
+        });
     },
-
+    PopulateImportedBlocks: function (blocks, container = document.getElementById('si_edit_importblock_form')) {
+        if (!container) return;
+        const select = container.querySelector('select');
+        const existing = Object.values(SI.Editor.Data.Objects.Blocks);
+        const normalize = id => String(id || '').replace(/^0x/i, '').toLowerCase();
+        const available = Object.values(blocks || {}).filter(block => block && typeof block.name === 'string' && /^[0-9a-f]{32}$/i.test(normalize(block.id)) && !existing.some(current => normalize(current.id) === normalize(block.id) || current.name === block.name));
+        available.sort((a, b) => a.name.localeCompare(b.name));
+        select.replaceChildren(new Option(available.length ? 'Choose a block…' : 'No blocks available', ''));
+        for (const block of available) select.add(new Option(block.name, '0x' + normalize(block.id)));
+        select.disabled = available.length === 0;
+        container.querySelector('#si_edit_importblock_button').disabled = true;
+        container.querySelector('#si_edit_importblock_refresh').disabled = false;
+        container.querySelector('[role="status"]').textContent = available.length ? 'Blocks already on this page are excluded.' : 'No other blocks are available to import.';
+        container.dataset.loadstate = 'ready';
+    },
+    ImportBlock: function () {
+        const container = document.getElementById('si_edit_importblock_form');
+        const select = container.querySelector('select');
+        if (container.dataset.importing === 'true' || !select.value) return;
+        const id = select.value;
+        const name = select.selectedOptions[0].textContent;
+        const status = container.querySelector('[role="status"]');
+        container.dataset.importing = 'true';
+        select.disabled = true;
+        for (const button of container.querySelectorAll('#si_edit_importblock_button, #si_edit_importblock_refresh')) button.disabled = true;
+        status.textContent = 'Importing ' + name + '…';
+        const finish = function (success) {
+            container.dataset.importing = 'false';
+            select.disabled = false;
+            container.querySelector('#si_edit_importblock_refresh').disabled = false;
+            container.querySelector('#si_edit_importblock_button').disabled = success;
+            status.textContent = success ? name + ' was added to this page.' : 'Could not import this block. Try again or refresh the page.';
+            if (success) SI.Widgets.Window.si_edit_importblocks_window.Hide();
+        };
+        const request = SI.Editor.Objects.Blocks.Relate(id);
+        if (!request) { finish(false); return; }
+        request.timeout = 20000;
+        request.addEventListener('loadend', function () {
+            const added = Array.from(document.querySelectorAll('.si-bids')).some(block => block.dataset.guid?.toLowerCase() === id.toLowerCase());
+            finish(request.status === 200 && added);
+        });
+    },
 
     AddSetting: function (settingName, pageSettings = null) {
         if (!pageSettings) {

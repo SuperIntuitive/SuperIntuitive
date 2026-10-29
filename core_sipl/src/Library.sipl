@@ -1,0 +1,20 @@
+use Database
+use Entity
+use Relations
+use Page
+use Sessions
+
+fn bundle(context: Map, request: Map, kind: String) -> String {
+    if not context["scopes"].contains("libraries") or not context["schema"].contains("libraries") { return "" }
+    let pathname = web.sessionGet(request, Sessions.key("pagePath"), "/")
+    let page = Page.load(context, pathname)
+    var field = context["deployment"] + "-" + kind
+    let definition = Entity.definition(context, "libraries")
+    if not definition["columns"].contains(field) { field = "live-" + kind }
+    let rows = Relations.children(context, "pages", page["id"], "libraries", [field])
+    var source = ""
+    for row in rows {
+        if row.get(field).type == "String" { source += "\n" + row[field] + "\n" }
+    }
+    return source
+}

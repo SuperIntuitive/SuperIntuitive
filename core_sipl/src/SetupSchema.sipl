@@ -1,0 +1,75 @@
+use Config
+use Tools
+
+fn source() -> Map {
+    let value = json.parse(fs.readText(Config.root("core_sipl/generated/installer-schema.json")))
+    if value.get("format") != 1 or value["tables"].length != 16 { fail("INSTALLER_FILES_INVALID") }
+    return value
+}
+
+fn identifiers(input: Map) -> Map {
+    let result = {:}
+    for token in input["guidTokens"] { result[token] = "0x" + Tools.newGuid() }
+    return result
+}
+
+fn command(statement: String, values: Map, ids: Map, language: String) -> Map {
+    let parts = []
+    var offset = 0
+    for occurrence in regex.compile("_SI_GUID_[0-9]+").findAll(statement) {
+        parts.push(statement.slice(offset, occurrence["start"]))
+        parts.push(ids[occurrence["text"]])
+        offset = occurrence["end"]
+    }
+    parts.push(statement.slice(offset))
+    var sql = parts.join("").replace("'_SI_NOWTIME_'", "CURRENT_TIMESTAMP()")
+    let parameters = {:}
+    for token, value in values {
+        let literal = "'__SI_" + token + "__'"
+        if sql.contains(literal) {
+            let name = token.toLower()
+            sql = sql.replace(literal, ":" + name)
+            parameters[name] = value
+        }
+    }
+    var extra = ""
+    if not ["ar", "zh", "en", "fr", "de", "hi", "it", "ja", "ko", "es"].contains(language) {
+        if not regex.compile("^[a-z]\{2,3\}$").isMatch(language) { fail("INVALID_LANGUAGE") }
+        extra = ", `_" + language + "` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL"
+    }
+    sql = sql.replace("__SI_DEFAULT_LANGUAGE_COLUMN__", extra)
+    if sql.contains("__SI_") { fail("INSTALLER_TOKEN_MISSING") }
+    return {"sql": sql, "parameters": parameters}
+}
+
+fn execute(connection, statement: String, values: Map, ids: Map, language: String) {
+    let prepared = command(statement, values, ids, language)
+    connection.execute(prepared["sql"], prepared["parameters"])
+}
+
+fn import(connection, input: Map, post: Map, installation: String) {
+    let ids = identifiers(input)
+    let language = post["language"]
+    let values = {"USER_NAME": post["adminuser"], "USER_EMAIL": post["adminemail"], "USER_PASSWORD": auth.bcryptHash(post["adminpw"]), "DOMAIN_NAME": post["domain"], "DEFAULT_LANGUAGE": language, "DEFAULT_CURRENCY": post["currency"], "DEFAULT_TIMEZONE": post["timezone"], "DEFAULT_NOTEEMAIL": post.get("noteemail", "")}
+    // DDL implicitly commits in MySQL. The durable setup journal blocks retries
+    // against a partially created schema rather than dropping existing tables.
+    connection.execute("SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO'", {:})
+    connection.execute("SET time_zone='+00:00'", {:})
+    for statement in input["schema"] { execute(connection, statement, values, ids, language) }
+    connection.begin()
+    try {
+        for statement in input["data"] { execute(connection, statement, values, ids, language) }
+        // Keep the valid user__role_Admin assignment. Only two obsolete sample
+        // links point at absent users; remove those without duplicating Admin.
+        connection.execute("DELETE FROM relations WHERE entity_id=UNHEX(:scope) AND note=:note", {"scope": Tools.guid(ids["_SI_GUID_18"]), "note": "users_securityroles"})
+        connection.query("SELECT COUNT(*) FROM relations WHERE entity_id=UNHEX(:scope) AND parententity_id=UNHEX(:users) AND childentity_id=UNHEX(:roles) AND parent_id=UNHEX(:user) AND child_id=UNHEX(:role) AND status='active'", {"scope": Tools.guid(ids["_SI_GUID_18"]), "users": Tools.guid(ids["_SI_GUID_23"]), "roles": Tools.guid(ids["_SI_GUID_17"]), "user": Tools.guid(ids["_SI_GUID_53"]), "role": Tools.guid(ids["_SI_GUID_54"])})
+        if connection.rows[0][0] != 1 { fail("INSTALLER_ADMIN_ASSIGNMENT_INVALID") }
+        for name, value in {"SiteInstalled": "1", "InstallationId": installation} {
+            connection.execute("INSERT INTO settings (id,entity_id,settingname,settingvalue) VALUES (UNHEX(:id),UNHEX(:scope),:name,:value)", {"id": Tools.newGuid(), "scope": Tools.guid(ids["_SI_GUID_20"]), "name": name, "value": value})
+        }
+        connection.commit()
+    } fail {
+        connection.rollback()
+        fail("INSTALLATION_SEED_FAILED")
+    }
+}

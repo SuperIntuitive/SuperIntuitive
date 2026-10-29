@@ -1,0 +1,29 @@
+use Config
+use Tools
+
+fn namespace() -> String { return Config.get("domain", "localhost") + "." + Config.get("subdomain", "") }
+fn key(name: String) -> String { return namespace() + ":" + name }
+
+fn csrf(request: Map) -> String {
+    if not web.sessionHas(request, key("csrf")) { web.sessionSet(request, key("csrf"), auth.randomToken(32)) }
+    return web.sessionGet(request, key("csrf"))
+}
+
+fn validate(request: Map) -> Bool {
+    let received = request.get("headers", {:}).get("x-si-csrf", "")
+    return Tools.secureEquals(received, web.sessionGet(request, key("csrf"), none))
+}
+
+fn user(request: Map) { return web.sessionGet(request, key("user"), none) }
+fn setUser(request: Map, value: Map) { web.sessionSet(request, key("user"), value) }
+fn clearUser(request: Map) { web.sessionRemove(request, key("user")) }
+fn level(request: Map) -> String { return web.sessionGet(request, key("deployment"), "live") }
+fn setLevel(request: Map, value: String) { web.sessionSet(request, key("deployment"), value) }
+
+fn authenticated(request: Map, value: Map) {
+    web.sessionRotate(request)
+    web.sessionSet(request, key("csrf"), auth.randomToken(32))
+    setUser(request, value)
+}
+
+fn logout(request: Map) { web.sessionDestroy(request) }

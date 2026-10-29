@@ -379,7 +379,7 @@ if (!SI) { var SI = {}; }
 
 
 
-	public function Save($post){
+	public function Save($post, $jsonPost = null){
 		//only save the page if we are an admin and in dev
 	    if(Tools::UserHasRole("Admin") && $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'] =='dev'){
 			//make sure we have a guid
@@ -429,15 +429,30 @@ if (!SI) { var SI = {}; }
 					unset($post['path']);
 				}
 
-				$options = $post;
+                $options = (object)$post;
+                // Preserve nested {} versus [] from the original JSON request.
+                if($jsonPost instanceof \stdClass){
+                    foreach(array_keys($post) as $key){
+                        if(property_exists($jsonPost, $key)){
+                            $options->$key = $jsonPost->$key;
+                        }
+                    }
+                }
 
 				if(!empty($options)){
-					$json =  json_encode($options); // print_r($post[$field],true);
+                    $json = Tools::EncodeOptions($options);
+                    if($json === false){
+                        $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'Page options must be a valid JSON object.';
+                        return false;
+                    }
 					$ent->Attributes->Add(new Attribute("dev-options", $json ) ); 
 				}
 				//Tools::Log($ent);
 				try{
-					if($ent->Update()){
+					if(!$ent->Update()){
+                        $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['ERROR'] = 'The page could not be saved.';
+                        return false;
+                    } else {
 					
 						if($path != null){
 							$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['PAGESAVED']['CURRENTDBPAGEPATH'] = $path;

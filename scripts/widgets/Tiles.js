@@ -215,6 +215,7 @@ SI.Widget.Tile = function (options) {
     });
     //Title
     let title = Ele('span', {
+        class: 'si-tile-title',
         innerText: options.Text,
         style: {
             position: options.TextPosition,

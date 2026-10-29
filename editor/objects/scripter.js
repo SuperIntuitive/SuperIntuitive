@@ -10,26 +10,20 @@ SI.Editor.Objects.Scripter = {
     Codepad:null,
     Draw: function () {
 
-        
+
         //debugger;
         SI.Editor.Objects.Scripter.Container = Ele("div", {
             id: "si_scripter_container",
-            style: {
-                backgroundColor: SI.Editor.Style.BackgroundColor,
-                width: '100%',
-                height: '100%',
-            },
+            class: 'si-tool-body si-tool-editor-body',
+
 
         });
 
         //Drw the Main menu
         let mainmenu = Ele("div", {
             id: "si_scripter_mainmenu",
-            style: {
-                backgroundColor: "grey",
-                width: '100%',
-                height: '20px',
-            },
+            class: 'si-tool-toolbar',
+
 
             appendTo: SI.Editor.Objects.Scripter.Container,
 
@@ -46,8 +40,10 @@ SI.Editor.Objects.Scripter = {
             onclick: function (e) {
                 if (this.checked) {
                     document.getElementById('si_scripter_codeview').style.display = 'block';
+                    document.getElementById('si_scripter_workspace').style.display = 'none';
                 } else {
                     document.getElementById('si_scripter_codeview').style.display = 'none';
+                    document.getElementById('si_scripter_workspace').style.display = 'block';
                 }
             },
             appendTo: codeOrGuiCbLabel,
@@ -145,11 +141,13 @@ SI.Editor.Objects.Scripter = {
         //Workspace
         SI.Editor.Objects.Scripter.Workspace = Ele("div", {
             id: "si_scripter_workspace",
+            class: 'si-tool-workspace',
             style: {
+                display: 'none',
                 position: 'absolute',
                 width: '100%',
                 height: '95%',
-                backgroundColor: SI.Editor.Style.FavoriteColor,
+
                 overflow: 'auto',
             },
             ondragenter: function (e) { e.preventDefault(); },
@@ -161,13 +159,14 @@ SI.Editor.Objects.Scripter = {
         //Codeview
         SI.Editor.Objects.Scripter.Codeview = Ele("div", {
             id: "si_scripter_codeview",
+            class: 'si-tool-code-view',
             style: {
                 position: 'absolute',
                 width: '100%',
                 height: '96%',
                 backgroundColor: '#282e2b',
                 overflow: 'auto',
-                backgroundImage: "url('/editor/media/images/chalkboard.jpg')",
+
                 backgroundSize: 'cover',
             },
             ondragenter: function (e) { e.preventDefault(); },
@@ -178,6 +177,7 @@ SI.Editor.Objects.Scripter = {
         });
         let linenums = Ele("pre", {
             id: "si_scripter_linenums",
+            class: 'si-tool-code-gutter',
             style: {
                 position: 'absolute',
                 width: '45px',
@@ -364,7 +364,7 @@ SI.Editor.Objects.Scripter = {
                         super();
                     }
                 });
-                
+
                 window.customElements.define('si-jscom', class extends HTMLElement { //comment
                     constructor() {
                         super();

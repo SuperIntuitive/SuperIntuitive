@@ -1,0 +1,4 @@
+Options -Indexes
+RewriteEngine On
+# Only the migration launcher and its browser assets are public on the PHP host.
+RewriteRule !^(?:switch\.html|public/(?:backend-switch\.js|switch\.css))$ - [F,L,NC]

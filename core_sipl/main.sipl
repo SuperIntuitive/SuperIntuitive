@@ -1,0 +1,2 @@
+use src/Server
+fn start() { Server.run() }

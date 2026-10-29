@@ -1,0 +1,118 @@
+use Config
+use Tools
+use SetupAuthorization
+
+fn directory(relative: String) {
+    let root = Config.get("root", path.absolute("."))
+    if fs.isDirectory(Config.root(relative)) {
+        // Native workspace traversal refuses symlinks and Windows reparse points.
+        workspace.list(root, relative)
+    } else { workspace.makeDirectory(root, relative) }
+}
+
+fn write(relative: String, value: String) {
+    workspace.write(Config.get("root", path.absolute(".")), relative, value)
+}
+
+fn read(relative: String) -> String {
+    return workspace.read(Config.get("root", path.absolute(".")), relative)
+}
+
+fn initialize() {
+    directory("core")
+    if SetupAuthorization.expected().isEmpty {
+        if fs.exists(Config.root("core/setup.token")) { fail("INVALID_SETUP_TOKEN_FILE") }
+        let temporary = "core/setup-token-" + Tools.newGuid() + ".tmp"
+        write(temporary, auth.randomToken(48) + "\n")
+        fs.move(Config.root(temporary), Config.root("core/setup.token"))
+        print("First-time installation key created in core/setup.token. Read it locally; keep it private.")
+    }
+    directory("domains")
+}
+
+fn pending() -> Bool {
+    return fs.exists(Config.root("core/setup.lock")) and not SetupAuthorization.locked()
+}
+
+fn domainAvailable(domain: String) -> Bool {
+    if not Tools.domainValid(domain) { return false }
+    if ["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"].contains(domain.split(".")[0].toUpper()) { return false }
+    if fs.exists(Config.root("domains/" + domain)) { return false }
+    try {
+        let entries = workspace.list(Config.get("root", path.absolute(".")), "domains")
+        for entry in entries { if entry.toLower() == domain.toLower() or entry.toLower() == domain.toLower() + "/" { return false } }
+        return true
+    } fail { return false }
+}
+
+fn claim(domain: String, installation: String) {
+    var previous = ""
+    if fs.exists(Config.root("core_sipl/config.local.json")) { previous = read("core_sipl/config.local.json") }
+    fs.createFile(Config.root("core/setup.lock"))
+    write("core/setup.lock", json.stringify({"format": 1, "installation": installation, "domain": domain, "started": Tools.now(), "stage": "preparing", "previousConfiguration": previous}, true))
+}
+
+fn progress(stage: String) {
+    let journal = json.parse(read("core/setup.lock"))
+    journal["stage"] = stage
+    let temporary = "core/setup-state-" + Tools.newGuid() + ".tmp"
+    write(temporary, json.stringify(journal, true))
+    fs.move(Config.root(temporary), Config.root("core/setup.lock"), true)
+}
+
+fn domain(domain: String) {
+    let root = Config.get("root", path.absolute("."))
+    workspace.makeDirectory(root, "domains/" + domain)
+    let archive = zip.open(Config.root("core_sipl/generated/installer-media.zip"))
+    try {
+        for entry in zip.list(archive) {
+            if not regex.compile("^media/(images|audio)/[A-Za-z0-9_-]+\\.(png|jpg|wav)$").isMatch(entry) { fail("INSTALLER_MEDIA_INVALID") }
+            var parent = "domains/" + domain
+            let parts = entry.split("/")
+            for index in 0..parts.length - 1 { parent += "/" + parts[index]
+                directory(parent) }
+            let destination = "domains/" + domain + "/" + entry
+            if fs.exists(Config.root(destination)) { fail("DOMAIN_TARGET_EXISTS") }
+            // Extraction retains its staging handles and commits at the opened
+            // destination parent. Paths come only from the bundled starter ZIP.
+            zip.extract(archive, entry, Config.root(destination))
+        }
+    } fail { zip.close(archive)
+        fail(fail) }
+    zip.close(archive)
+}
+
+fn configuration(settings: Map) {
+    if fs.exists(Config.root("core_sipl/setup-config.pending.json")) { fail("SETUP_PENDING_CONFIGURATION_EXISTS") }
+    write("core_sipl/setup-config.pending.json", json.stringify(settings, true))
+}
+
+fn finish(settings: Map) {
+    let journal = json.parse(read("core/setup.lock"))
+    let expected = json.stringify(settings, true)
+    let exists = fs.exists(Config.root("core_sipl/config.local.json"))
+    if exists {
+        let current = read("core_sipl/config.local.json")
+        if current != journal["previousConfiguration"] and current != expected { fail("CONFIGURATION_CHANGED_DURING_SETUP") }
+    } else if not journal["previousConfiguration"].isEmpty { fail("CONFIGURATION_CHANGED_DURING_SETUP") }
+    let temporary = "core_sipl/setup-config-" + Tools.newGuid() + ".tmp"
+    write(temporary, expected)
+    fs.move(Config.root(temporary), Config.root("core_sipl/config.local.json"), exists)
+    progress("complete")
+    let lock = "core/install-lock-" + Tools.newGuid() + ".tmp"
+    write(lock, json.stringify({"backend": "sipl", "installed_on": Tools.now(), "domain": journal["domain"], "installation": journal["installation"]}))
+    fs.move(Config.root(lock), Config.root("core/install.lock"))
+    Config.install(settings)
+}
+
+fn verifyMedia(domain: String) {
+    let archive = zip.open(Config.root("core_sipl/generated/installer-media.zip"))
+    try {
+        for entry in zip.list(archive) {
+            let value = fs.readBytes(Config.root("domains/" + domain + "/" + entry))
+            if not value.secureEquals(zip.read(archive, entry)) { fail("INSTALLER_MEDIA_INCOMPLETE") }
+        }
+    } fail { zip.close(archive)
+        fail(fail) }
+    zip.close(archive)
+}

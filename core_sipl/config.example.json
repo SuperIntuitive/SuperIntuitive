@@ -1,0 +1,12 @@
+{
+  "host": "127.0.0.1",
+  "port": 8092,
+  "domain": "localhost",
+  "subdomain": "",
+  "dsn": "mysql:host=127.0.0.1;port=3306;dbname=super_intuitive;charset=utf8mb4",
+  "dbUser": "super_intuitive",
+  "dbPassword": "",
+  "secureCookies": false,
+  "allowNativePasswords": false,
+  "phpOrigin": "http://localhost:8090"
+}

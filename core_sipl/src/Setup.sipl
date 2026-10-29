@@ -1,0 +1,198 @@
+use Tools
+use Config
+use Runtime
+use SetupAuthorization
+use SetupFiles
+use SetupSchema
+use Database
+use Editor
+use Sessions
+
+fn fresh() -> Bool { return not Database.configured() and not SetupAuthorization.locked() and not SetupFiles.pending() }
+
+fn recover() {
+    // A journal-specific database marker permits finishing a committed install.
+    // Recovery never reruns DDL or writes existing database content.
+    let journal = json.parse(SetupFiles.read("core/setup.lock"))
+    let settings = json.parse(SetupFiles.read("core_sipl/setup-config.pending.json"))
+    let connection = sql.connect(settings["dsn"], settings["dbUser"], settings["dbPassword"])
+    try {
+        connection.query("SELECT s.settingvalue FROM settings s INNER JOIN entities e ON e.id=s.entity_id INNER JOIN domains d ON d.id=e.domain_id WHERE s.settingname='InstallationId' AND d.name=:domain", {"domain": journal["domain"]})
+        if connection.rows.length != 1 or connection.rows[0][0] != journal["installation"] { fail("INSTALLATION_INCOMPLETE") }
+        SetupFiles.verifyMedia(journal["domain"])
+        SetupFiles.finish(settings)
+        Database.useConnection(connection)
+    } fail { connection.close()
+        fail("INSTALLATION_INCOMPLETE") }
+}
+
+fn initialize() {
+    if SetupAuthorization.locked() { return }
+    if SetupFiles.pending() {
+        try { recover() } fail { print("Installation is incomplete. Setup is locked; inspect core/setup.lock and the pending configuration locally before administrator repair.") }
+        return
+    }
+    if not Database.configured() { SetupFiles.initialize() }
+}
+
+fn failure(message: String, field: String) -> Map {
+    return {"outcome": false, "code": "SETUP_VALIDATION_FAILED", "field": field, "message": message}
+}
+
+fn normalized(post: Map) -> Map {
+    let result = post.copy()
+    for field in ["domain", "noteemail", "adminuser", "adminemail", "dbserver", "existdb", "existuser", "newdbname", "newuser", "privuser", "language", "timezone", "currency"] {
+        if result.get(field).type == "String" { result[field] = result[field].trim() }
+    }
+    for field in ["domain", "language", "currency"] { if result.get(field).type == "String" { result[field] = result[field].toLower() } }
+    return result
+}
+
+fn validate(post: Map) -> Map {
+    if not Tools.domainValid(post.get("domain")) { return failure("Enter a hostname without a protocol, port or path.", "si_setup_host") }
+    if not SetupFiles.domainAvailable(post["domain"]) { return failure("That domain folder already contains files. Choose an unused domain; existing content will not be replaced.", "si_setup_host") }
+    if not Tools.passwordValid(post.get("adminpw")) { return failure("Use an administrator password of 10 to 72 bytes.", "si_setup_adminpassword") }
+    if Tools.text(post.get("adminuser"), "").isEmpty or Tools.text(post.get("adminuser"), "").length > 255 { return failure("Enter an administrator name of 1 to 255 bytes.", "si_setup_adminuser") }
+    for field, element in {"adminemail": "si_setup_adminemail", "noteemail": "si_setup_hostemail"} {
+        let email = post.get(field, "")
+        if field == "adminemail" or not Tools.text(email, "").isEmpty {
+            if email.type != "String" or email.length > 254 or not regex.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").isMatch(email) { return failure("Enter a valid email address.", element) }
+        }
+    }
+    let data = Editor.lookups()
+    let language = post.get("language", "")
+    if language.type != "String" or not regex.compile("^[a-z]\{2,3\}$").isMatch(language) or not data["Languages"].contains(language) { return failure("Choose a supported language.", "si_setup_lang") }
+    if not data["TimeZones"].contains(post.get("timezone", "")) { return failure("Choose a supported timezone.", "si_setup_timezone") }
+    if not data["Currencies"].contains(post.get("currency", "")) { return failure("Choose a supported currency.", "si_setup_currency") }
+    return {:}
+}
+
+fn credentials(post: Map) -> Map {
+    if post.get("dbtype", "mysql") != "mysql" { fail("MYSQL_REQUIRED") }
+    let host = Tools.required(post, "dbserver")
+    if host.isEmpty or host.contains(";") or host.contains("\0") { fail("INVALID_DATABASE_HOST") }
+    let port = Tools.number(post.get("dbport", 3306), 1, 65535)
+    let mode = post.get("dbuserradio", "existuser")
+    if not ["existuser", "privuser"].contains(mode) { fail("INVALID_DATABASE_MODE") }
+    var username = post.get("existuser", "")
+    var password = post.get("existpass", "")
+    var database = post.get("existdb", "")
+    let base = "mysql:host=" + host + ";port=" + "{port}" + ";charset=utf8mb4"
+    if mode == "privuser" { username = post.get("privuser", "")
+        password = post.get("privpass", "")
+        database = Tools.identifier(post.get("newdbname", ""))
+        Tools.identifier(post.get("newuser", "")) }
+    if username.type != "String" or username.isEmpty or password.type != "String" { fail("INVALID_DATABASE_CREDENTIALS") }
+    if database.type != "String" or not regex.compile("^[A-Za-z0-9_-]\{1,64\}$").isMatch(database) { fail("INVALID_DATABASE_NAME") }
+    var dsn = base
+    if mode == "existuser" { dsn += ";dbname=" + database }
+    return {"dsn": dsn, "base": base, "username": username, "password": password, "database": database, "privileged": mode == "privuser"}
+}
+
+fn connectionProblem(detail: String) -> String {
+    let text = detail.toLower()
+    if text.contains("denied") { return "The database rejected the login. Check the username, password and permission to connect from this server." }
+    if text.contains("unknown database") { return "That database does not exist. Create an empty database or choose the create-database option." }
+    return "Unable to connect to the database. Check its address, port, TLS support and login settings."
+}
+
+fn empty(connection) -> Bool {
+    connection.query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE()", {:})
+    return connection.rows[0][0] == 0
+}
+
+fn test(post: Map) -> Map {
+    var connection = none
+    try {
+        let login = credentials(post)
+        connection = sql.connect(login["dsn"], login["username"], login["password"])
+        if not login["privileged"] and not empty(connection) {
+            connection.close()
+            return {"outcome": false, "message": "Choose an empty database. Existing tables and website data will not be overwritten."}
+        }
+        connection.close()
+        return {"outcome": true, "message": "Connection successful."}
+    } fail {
+        if connection != none { connection.close() }
+        return {"outcome": false, "message": connectionProblem(fail.why)}
+    }
+}
+
+fn install(request: Map, post: Map) -> Map {
+    let errors = validate(post)
+    if not errors.isEmpty { return errors }
+    let input = SetupSchema.source()
+    var login = none
+    var connection = none
+    try {
+        login = credentials(post)
+        connection = sql.connect(login["dsn"], login["username"], login["password"])
+    } fail { return failure(connectionProblem(fail.why), "si_setup_dbserver") }
+    if not login["privileged"] and not empty(connection) {
+        connection.close()
+        return failure("Choose an empty database; existing tables will not be changed.", "si_setup_exdb")
+    }
+    if login["privileged"] {
+        connection.query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=:name", {"name": login["database"]})
+        if connection.rows[0][0] != 0 { connection.close()
+            return failure("That database already exists. Choose a new name or use the existing-database option.", "si_setup_newdb") }
+    }
+    let installation = Tools.newGuid()
+    try { SetupFiles.claim(post["domain"], installation) } fail { connection.close()
+        fail("INSTALLATION_INCOMPLETE") }
+    try {
+        SetupFiles.domain(post["domain"])
+        if login["privileged"] {
+            let username = Tools.identifier(post["newuser"])
+            let password = auth.randomToken(32)
+            if not regex.compile("^[A-Za-z0-9_-]+$").isMatch(password) { fail("INVALID_GENERATED_DATABASE_PASSWORD") }
+            let account = "'" + username + "'@'%'"
+            connection.execute("CREATE DATABASE `" + login["database"] + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", {:})
+            // MySQL/MariaDB account DDL requires a password literal here, not a
+            // parameter marker. Only this OS-generated, validated URL-safe token
+            // enters the literal; submitted values remain bound or identifiers.
+            connection.execute("CREATE USER " + account + " IDENTIFIED BY '" + password + "'", {:})
+            connection.execute("GRANT ALL PRIVILEGES ON `" + login["database"] + "`.* TO " + account, {:})
+            connection.close()
+            login["username"] = username
+            login["password"] = password
+            login["dsn"] = login["base"] + ";dbname=" + login["database"]
+            connection = sql.connect(login["dsn"], username, password)
+        }
+        let settings = Config.current().copy()
+        settings["dsn"] = login["dsn"]
+        settings["dbUser"] = login["username"]
+        settings["dbPassword"] = login["password"]
+        settings["domain"] = post["domain"]
+        settings["subdomain"] = ""
+        settings["setupToken"] = ""
+        settings["allowNativePasswords"] = false
+        // Keep the installed folder movable; Config retains the current root
+        // in memory and resolves it from the working directory on next start.
+        settings.remove("root")
+        SetupFiles.configuration(settings)
+        SetupFiles.progress("schema-and-seed")
+        SetupSchema.import(connection, input, post, installation)
+        SetupFiles.progress("database-ready")
+        SetupFiles.finish(settings)
+        Database.useConnection(connection)
+        web.sessionDestroy(request)
+        return {"outcome": true, "time": 1200, "message": "Installation complete. Opening your website…"}
+    } fail {
+        if connection != none { connection.close() }
+        return {"outcome": false, "code": "INSTALLATION_INCOMPLETE", "message": "Installation stopped before completion. Existing data has been preserved and setup is locked. Inspect core/setup.lock and the pending configuration locally; do not rerun setup or delete database tables. Restarting safely finishes an already committed installation."}
+    }
+}
+
+fn dispatch(request: Map, action: String, post: Map) -> Map {
+    if SetupAuthorization.locked() or Database.configured() { fail("INSTALLER_LOCKED") }
+    if SetupFiles.pending() { fail("INSTALLATION_INCOMPLETE") }
+    if action == "AuthorizeSetup" { return SetupAuthorization.authorize(request) }
+    if not SetupAuthorization.allowed(request) { fail("SETUP_AUTH_REQUIRED") }
+    if action == "TestDomain" { return {"outcome": SetupFiles.domainAvailable(Tools.text(post.get("domain"), ""))} }
+    if not Runtime.inspect()["mysqlDriver"] { return Tools.gap("MYSQL_CONNECTOR_BUILD") }
+    let values = normalized(post)
+    if action == "TestDatabase" { return test(values) }
+    if action == "SetupSuperIntuitive" { return install(request, values) }
+    fail("UNKNOWN_SETUP_ACTION")
+}

@@ -1,123 +1,104 @@
 <?php
-namespace SuperIntuitive; 
+namespace SuperIntuitive;
 Tools::Autoload();
 class Media {
+    private function ResolveMediaUrl($url){
+        if(!is_string($url)){
+            return false;
+        }
+        $parts = parse_url($url);
+        if($parts === false || isset($parts['user']) || isset($parts['pass'])
+            || (isset($parts['scheme']) && !in_array(strtolower($parts['scheme']), array('http', 'https'), true))){
+            return false;
+        }
+        $host = SI_SUBDOMAIN_NAME === '' ? SI_DOMAIN_NAME : SI_SUBDOMAIN_NAME.'.'.SI_DOMAIN_NAME;
+        if(isset($parts['host']) && strtolower($parts['host']) !== $host){
+            return false;
+        }
+        $path = rawurldecode($parts['path'] ?? '');
+        if(!preg_match('~^/media/(images|audio|videos|video|data|fonts|icons|documents)/([A-Za-z0-9_ .-]+)$~D', $path, $match)
+            || $match[2] === '.' || $match[2] === '..'){
+            return false;
+        }
+        $root = realpath($_SERVER['DOCUMENT_ROOT'].'/domains/'.SI_DOMAIN_NAME.'/media');
+        $directory = $root === false ? false : realpath($root.'/'.$match[1]);
+        if($directory === false || strpos($directory, $root.DIRECTORY_SEPARATOR) !== 0){
+            return false;
+        }
+        $file = $directory.'/'.$match[2];
+        if(is_link($file)){
+            return false;
+        }
+        return array('directory' => $directory.'/', 'name' => $match[2], 'category' => $match[1]);
+    }
 
-	public function __construct(){
+    public function Promote($post){
+        $return =& $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'];
+        $fail = function($message) use (&$return){ $return['ERROR'] = $message; return false; };
+        if(!is_array($post)) return $fail('The media deployment request is invalid.');
+        $media = $this->ResolveMediaUrl($post['Url'] ?? null);
+        $deployment = $post['Deployment'] ?? null;
+        if($media === false || !in_array($deployment, array('dev', 'test', 'live'), true)){
+            return $fail('The media URL or deployment is invalid.');
+        }
+        if($deployment === 'live'){
+            if(preg_match('/^(?:dev|test|rollback)_/', $media['name'])) return $fail('Select the Live media file to save a rollback copy.');
+            $name = 'rollback_'.$media['name'];
+        }else{
+            if(!Tools::StartsWith($media['name'], $deployment.'_')) return $fail('The media file does not match its source deployment.');
+            $name = ($deployment === 'dev' ? 'test_' : '').substr($media['name'], strlen($deployment) + 1);
+        }
+        $source = $media['directory'].$media['name'];
+        $target = $media['directory'].$name;
+        if(!is_file($source) || is_link($target)) return $fail('The source media file is unavailable.');
+        // Publish with an atomic rename so readers never receive a partially copied file.
+        $temporary = tempnam($media['directory'], '.si-promote-');
+        if($temporary === false) return $fail('Could not prepare the media file for deployment.');
+        try{
+            if(!copy($source, $temporary) || !chmod($temporary, fileperms($source) & 0777) || !rename($temporary, $target)){
+                return $fail('The media file could not be promoted.');
+            }
+        }finally{
+            if(is_file($temporary)) unlink($temporary);
+        }
+        if($deployment === 'live'){
+            $return['PROMOTED'] = 'Live media saved to rollback.';
+        }else{
+            $category = $media['category'];
+            $deployTo = $deployment === 'dev' ? 'Test' : 'Live';
+            $url = '/media/'.$category.'/'.$name;
+            $return['FILEPROMOTED'] = 'si_media_'.ucfirst($category).'_'.$deployTo.'Preview|'.$category.'|'.$url.'?v='.bin2hex(random_bytes(8));
+        }
+        return true;
+    }
 
-
-	}
-	
-	public function __destruct(){
-
-	}
-	
-
-	public function Promote($post){
-		if( isset($post['Url']) ){
-			$relpath = $post['Url'];
-			$relpath = str_replace('https:/','/domains', $relpath);
-			$relpath = str_replace('http:/','/domains',$relpath);
-
-			$path = getcwd().$relpath;
-			$deploy = $post['Deployment'];
-			$deployTo = '';
-			if($deploy === 'dev'){
-				$deployTo = 'Test';
-			}else if($deploy === 'test'){
-			    $deployTo = 'Live';
-			}
-
-			if( file_exists ( $path ) ){
-				$promoted = $path;
-
-				$pathparts = explode('/',$relpath);
-				$category ="";
-				if(count($pathparts)>4){
-				    $category = $pathparts[4];
-				}
-				Tools::Log($promoted);
-				//eventually clean this all up. It should just hove one replace thats gets its data parsed.
-				$promoted = str_replace('/media/audio/test_','/media/audio/',$promoted);
-				$promoted = str_replace('/media/audio/dev_','/media/audio/test_',$promoted);
-
-				$promoted = str_replace('/media/data/test_','/media/data/',$promoted);
-				$promoted = str_replace('/media/data/dev_','/media/data/test_',$promoted);
-
-				$promoted = str_replace('/media/documents/test_','/media/documents/',$promoted);
-				$promoted = str_replace('/media/documents/dev_','/media/documents/test_',$promoted);
-
-				$promoted = str_replace('/media/fonts/test_','/media/fonts/',$promoted);
-				$promoted = str_replace('/media/fonts/dev_','/media/fonts/test_',$promoted);
-
-				$promoted = str_replace('/media/video/test_','/media/video/',$promoted);
-				$promoted = str_replace('/media/video/dev_','/media/video/test_',$promoted);
-
-				$promoted = str_replace('/media/images/test_','/media/images/',$promoted);
-				$promoted = str_replace('/media/images/dev_','/media/images/test_',$promoted);
-
-				copy($path,$promoted);
-				$relpath = explode('/domains/',$promoted)[1];
-				$relpath = str_replace('/domains/','',$relpath);
-				$relpath = str_replace(SI_DOMAIN_NAME,'',$relpath);
-
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['FILEPROMOTED'] = "si_media_".ucfirst($category)."_".$deployTo."Preview|$category|$relpath?".time();
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CONSOLELOG'] = "Promoted File: ". $path.' '.$promoted;
-			}else{
-				$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']['CONSOLELOG'] = "Did not find file". $path.' '.$deploy;
-			}
-		}
-	}
-	
-	public function Recycle($post){
-		if(isset($post['mediaId'])&& isset($post['url'])&& isset($post['type'])){
-			$id = $post['mediaId'];
-			$devurl = strtolower($post['url']);
-			$testurl = str_replace('/dev_','/test_',$devurl);
-			$rburl = str_replace('/dev_','/rollback_',$devurl);
-			$url = str_replace('/dev_','/',$devurl);
-			$type = strtolower($post['type']);
-
-			//Tools::Log($id." ".$type." ".$url);
-
-			//The 4 images to move to the recycl bin
-			$path =  dirname($_SERVER['DOCUMENT_ROOT'].'/domains/'.SI_DOMAIN_NAME.$url).'/';
-
-			$rBin = dirname($path).'/recycle/';
-
-			//If the recycle folder does not exist, make it
-			if (!file_exists($rBin)) {
-				mkdir($rBin,0777);
-				chmod($rBin,0777);
-				Tools::Log("The directory $rBin was successfully created.");	
-			} 
-
-			$filename = basename($url);
-			Tools::Log('Attemptine to move: '.$path."dev_".$filename. ' to: '.$rBin."dev_".$filename );
-			if(file_exists($path."dev_".$filename)){
-				rename($path."dev_".$filename, $rBin."dev_".$filename);
-				Tools::Log('Moved: '.$path."dev_".$filename. ' to: '.$rBin."dev_".$filename );
-			}
-			if(file_exists($path."test_".$filename)){
-				rename($path."test_".$filename, $rBin."test_".$filename);
-				Tools::Log('Moved: '.$path."test_".$filename. ' to: '.$rBin."test_".$filename );
-			}
-			if(file_exists($path."rollback_".$filename)){
-				rename($path."rollback_".$filename, $rBin."rollback_".$filename);
-				Tools::Log('Moved: '.$path."rollback_".$filename. ' to: '.$rBin."rollback_".$filename );
-			}
-			if(file_exists($path.$filename)){
-				rename($path.$filename, $rBin.$filename);
-				Tools::Log('Moved: '.$path.$filename.' to: '.$rBin.$filename );
-			}
-		
-			//drop it from the database;
-			$db = new Database();
-			$sql = "DELETE FROM `media` WHERE id = $id";
-			Tools::Log('SQL: '.$sql);
-			$db->Execute($sql);
-
-
-		}
-	}
-} 
+    public function Recycle($post){
+        $media = $this->ResolveMediaUrl($post['url'] ?? null);
+        $id = Tools::FixGuid($post['mediaId'] ?? null);
+        if($media === false || $id === false){
+            return false;
+        }
+        $filename = preg_replace('/^(?:dev_|test_|rollback_)/', '', $media['name']);
+        $recycle = $media['directory'].'recycle/';
+        if(is_link(rtrim($recycle, '/')) || (!is_dir($recycle) && !mkdir($recycle, 0755))){
+            return false;
+        }
+        foreach(array('dev_', 'test_', 'rollback_', '') as $prefix){
+            $source = $media['directory'].$prefix.$filename;
+            $target = $recycle.$prefix.$filename;
+            if(is_link($source) || is_link($target)){
+                return false;
+            }
+            if(is_file($source) && !rename($source, $target)){
+                return false;
+            }
+        }
+        $db = new Database();
+        $entityId = Tools::FixGuid($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['media']['instanceguid'] ?? null);
+        if($entityId === false){
+            return false;
+        }
+        $query = $db->DBC()->prepare('DELETE FROM `media` WHERE `id` = UNHEX(:id) AND `entity_id` = UNHEX(:scope)');
+        return $query->execute(array(':id' => substr($id, 2), ':scope' => substr($entityId, 2)));
+    }
+}

@@ -1,0 +1,57 @@
+use Database
+use Tools
+use Security
+use Sessions
+use Entity
+
+fn change(context: Map, request: Map, post: Map) -> Map {
+    let level = post.get("Deployment", "")
+    if level.type != "String" or not ["dev", "test", "live"].contains(level) { fail("INVALID_DEPLOYMENT") }
+    if not Security.hasRole(context, "Admin") and not Security.hasRole(context, "Tester") { fail("FORBIDDEN") }
+    if level == "dev" and not Security.hasRole(context, "Admin") { fail("FORBIDDEN") }
+    Sessions.setLevel(request, level)
+    return {"REFRESH": "TRUE"}
+}
+
+fn promote(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    let target = Tools.required(post, "deployment")
+    let sources = {"test": "dev", "live": "test", "rollback": "live"}
+    if not sources.contains(target) { fail("INVALID_DEPLOYMENT") }
+    let table = Tools.identifier(post.get("entityname"))
+    let field = Tools.identifier(post.get("attribute"))
+    let id = Tools.guid(post.get("entityid"))
+    Security.demand(context, table, "read")
+    Security.demand(context, table, "write")
+    let source = Entity.column(context, table, sources[target] + "-" + field, false)
+    let destination = Entity.column(context, table, target + "-" + field, false)
+    return Database.transaction(fn() {
+        let parameters = {"id": id, "scope": Security.scope(context, table)}
+        let row = Database.one("SELECT `" + source + "` AS source FROM `" + table + "` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope) FOR UPDATE", parameters)
+        if row == none { fail("RECORD_NOT_FOUND") }
+        if field == "options" { Tools.options(row["source"]) }
+        Database.execute("UPDATE `" + table + "` SET `" + destination + "`=`" + source + "` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)", parameters)
+        return {"PROMOTED": field + " promoted to " + target + " in " + table}
+    })
+}
+
+fn mediaPaths(content: String, level: String) -> String {
+    if not ["dev", "test"].contains(level) { return content }
+    let parts = []
+    var offset = 0
+    let pattern = regex.compile("[\"'(](/?media/(?:images|audio|videos?|data|documents|fonts|icons)/[^/\\s\"'()<>]+)", "i")
+    for occurrence in pattern.findAll(content) {
+        let original = occurrence["text"]
+        let components = original.slice(1).split("/")
+        let filename = components.last
+        var replacement = original
+        if not filename.startsWith("dev_") and not filename.startsWith("test_") and not filename.startsWith("rollback_") {
+            replacement = original.slice(0, original.length - filename.length) + level + "_" + filename
+        }
+        parts.push(content.slice(offset, occurrence["start"]))
+        parts.push(replacement)
+        offset = occurrence["end"]
+    }
+    parts.push(content.slice(offset))
+    return parts.join("")
+}

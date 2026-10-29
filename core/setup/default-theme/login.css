@@ -1,0 +1,12 @@
+/* Login owns its popup layout; its fields always fit the available width. */
+#si_block_Login, #si_block_Login * { box-sizing: border-box; }
+#si_block_Login { display: none; position: fixed !important; top: 86px !important; right: 24px !important; left: auto !important; width: min(340px, calc(100vw - 40px)) !important; height: auto !important; padding: 19px !important; z-index: 30 !important; border: 1px solid #36516f; border-radius: 4px; background: var(--si-surface); box-shadow: 0 20px 60px #0005; color: var(--si-text); }
+body.si-account-open #si_block_Login { display: block; }
+#si_block_Login :is(#si_loginbox, #si_loggedinbox, #form_login) { width: 100%; max-width: 100%; min-width: 0; height: auto !important; overflow-wrap: anywhere; }
+#si_block_Login #si_loginbox { padding: 0 !important; }
+#si_block_Login :is(h3, span, button) { color: var(--si-text) !important; font-variant: normal !important; }
+#si_block_Login :is(input[type="email"], input[type="password"]) { display: block; box-sizing: border-box; width: 100% !important; max-width: 100%; min-width: 0; margin: 4px 0 10px !important; padding: 7px !important; color: var(--si-text); border: 1px solid #36516f !important; border-radius: 3px; background: var(--si-code) !important; }
+#si_block_Login :is(button, a) { font: inherit; }
+#si_block_Login button { cursor: pointer; padding: 5px 12px !important; border: 1px solid #36516f !important; border-radius: 3px; }
+#si_block_Login #a_forgot { color: var(--si-accent) !important; font-size: 12px; }
+#si_block_Login #si_edit_login_preview { display: block; margin-top: 14px; }

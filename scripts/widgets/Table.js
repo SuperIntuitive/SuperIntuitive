@@ -35,7 +35,7 @@ SI.Widget.Table = function  (options) {
         this.Container.appendChild(r);
     }
     if (this.Options.Parent) {
-        this.Options.Parent.appendChild(container);
+        this.Options.Parent.appendChild(this.Container);
     }
     return this.Container;
 };

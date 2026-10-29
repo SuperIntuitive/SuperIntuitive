@@ -1,0 +1,1871 @@
+ 
+"use strict";
+if(!SI){ var SI = {};}
+if(!SI.Editor) { SI.Editor = {}; }
+if(!SI.Editor.Objects) { SI.Editor.Objects = {}; }
+
+SI.Editor = {
+    Style: {
+        BackColor: 'black',
+        FavoriteColor:'teal',
+        BackgroundColor: 'rgb(72, 75, 87)',
+        TextColor: 'rgb(172, 175, 187)',
+        MenuColor: 'slategrey',
+        ButtonColor: '#9A9',
+        DraggerColor: '#99A',
+        FontFace: 'Roboto',
+        SetTheme: function () {
+            let theme = SI.Theme.UserPreference;
+            if (theme) {
+                if (theme === 'light') {
+                    SI.Editor.Style.BackColor = 'white',
+                        SI.Editor.Style.BackgroundColor = '#AAA';
+                    SI.Editor.Style.TextColor = '#111';
+                    SI.Editor.Style.MenuColor = '#777';
+                    SI.Editor.Style.ButtonColor = '#345';
+                    SI.Editor.Style.DraggerColor = '#234';
+                }
+                else {
+                    SI.Editor.Style.BackgroundColor = 'rgb(72, 75, 87)';
+                    SI.Editor.Style.TextColor = 'rgb(172, 175, 187)';
+                    SI.Editor.Style.MenuColor = 'slategrey';
+                    SI.Editor.Style.ButtonColor = '#9A9';
+                    SI.Editor.Style.DraggerColor = '#99A';
+                }
+            }
+
+        }
+    },
+    Run: function () {
+        console.time('EditorLoadTime');
+        SI.Editor.Data.Init(); 
+        //wait for all the code to load before continuing. 
+        var starttimmer = setInterval(function () {
+            if (SI.Editor.Data.loaded) {
+                clearInterval(starttimmer);
+                SI.Editor.Style.SetTheme();
+                SI.Editor.Objects.Elements.Init();
+                SI.Editor.UI.Init();
+            }
+        }, 50);
+        console.timeEnd('EditorLoadTime');
+        console.log(SI.Editor);
+        //check for lookups
+        let lookup = SI.Tools.Object.GetIfExists("SI.Widgets.Lookup.Lookup");
+        if(lookup){
+            lookup.CheckLookups();
+        }
+    },
+    Data: {
+        loaded : false,
+        html_elements: {},
+        html_attributes: {},
+        css_properties: {},
+        js_methods: {},
+        php_methods: {},
+        sql_methods: {},
+        DataAge: __SIPL_DATA_AGE__,
+        Code: {},
+        DataLists: {
+            HtmlElementDataList: null,
+            HtmlAttributeDataList: null,
+            CssPropertiesDataList: null,
+            JsMethodsDataList: null,
+            PhpMethodsDatalist: null,
+            SqlMethodsDataList: null, 
+            AcceptedMimeTypes: __SIPL_SLOT_2__,
+            AdminData:__SIPL_SLOT_3__,
+            ImportRules: [],
+            MediaRules: {},
+            FontFaces: {},
+            PageRules: { Allowed: ['margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom',"orphans","widows"]},
+            AnimationNames: [],
+        },
+        Init: function () {
+            var codes = ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"];
+            let loadedcount = 0;
+            codes.forEach(function (codetype) {
+                let lastmoddate = codetype + "_last_modified";
+                let timestamp = localStorage.getItem(lastmoddate);   
+                let jsonstring = localStorage.getItem(codetype);
+                if ( timestamp === "undefined" || (SI.Editor.Data.DataAge[codetype] != null && timestamp <= SI.Editor.Data.DataAge[codetype] && jsonstring === null)  ) {
+                    var request = new XMLHttpRequest();
+                    try {
+                        request.onreadystatechange = function () {
+                            if (this.readyState == 4 && this.status == 200) {
+                                if (request.responseText.length > 0) {
+                                    SI.Tools.Storage.OverwriteStorage(codetype, request.responseText);
+                                    SI.Tools.Storage.OverwriteStorage(codetype + "_last_modified", SI.Editor.Data.DataAge[codetype]);
+                                    SI.Editor.Data[codetype] = JSON.parse(request.responseText);
+                                    loadedcount++;
+                                    if (loadedcount == codes.length) {
+                                        SI.Editor.Data.loaded = true;
+                                    }
+                                }
+                            }
+                        };
+                        request.open("GET", '/editor/media/data/' + codetype + '.json', true);
+                        request.send();
+                    }
+                    catch (e) {
+                        SI.Tools.Warn(e);
+                    }
+                } else {
+                    if (jsonstring != null && jsonstring.length > 0) {
+                        try {
+                            SI.Editor.Data[codetype] = JSON.parse(jsonstring);
+                            loadedcount++;
+                            if (loadedcount == codes.length) {       
+                                SI.Editor.Data.loaded = true;
+                            }
+                        } catch (ex) {
+                            SI.Tools.Warn(ex);                           
+                        }
+                    }
+                }
+            });
+            
+            SI.Editor.Data.Tools.SupplementData();
+        },
+        OptionSets: {
+            HTML: {
+              Elements:{}
+            },
+            CSS: {
+                Keyframes: [],
+                FontFaces: [],
+                Media: [],
+                GlobalValues: ['initial', 'inherit', 'unset'],
+                Properties: {},
+                PseudoClasses: [],
+                PseudoElements: [],
+                Colors: __SIPL_SLOT_4__,
+            },
+            Language: {
+                All : __SIPL_SLOT_5__,
+            },
+        },
+        Objects: {
+            Blocks: __SIPL_SLOT_6__,
+            Pages: __SIPL_SLOT_7__,
+            Media: __SIPL_SLOT_8__,
+            Users: __SIPL_SLOT_9__,
+            Entities: {
+                Count: __SIPL_SLOT_10__,
+                Definitions: __SIPL_SLOT_11__,
+                Relationships:  __SIPL_SLOT_12__,
+                Lists: {
+                    FwdRevLookup: {},
+                    NotAllowedNames: ['domain', 'domains', 'subdomain', 'subdomains', 'entity', 'entities'],
+                    NotAllowedAttributes: ['p_id', 'id', 'status', 'statusreason', 'createdon', 'modifiedon', 'entity_id'],
+                },
+            },
+            Language: {
+                Current: __SIPL_SLOT_13__,
+                CurrentPreference: __SIPL_SLOT_14__,
+                Installed: __SIPL_SLOT_15__,
+                SupportedLanguages: __SIPL_SLOT_16__,
+                Options: __SIPL_SLOT_17__
+            },
+            Deployment: {
+                Levels: {
+                    test: {
+                        Label: "",
+                        ToolTip: 'Promote to Test',
+                        BackgroundColor: "green",
+                        Shadow: '3px 3px 3px rgba(0,128,0,0.2)',
+                    },
+                    live: {
+                        Label: "",
+                        ToolTip: 'Promote to Live',
+                        BackgroundColor: "yellow",
+                        Shadow: '3px 3px 3px rgba(255,255,0,0.2)',
+                    },
+                    rollback: {
+                        Label: "",
+                        ToolTip: 'Save to Rollback',
+                        BackgroundColor: "red",
+                        Shadow: '3px 3px 3px rgba(255,0,0,0.2)',
+                    }
+                },
+                UI: function (options) {
+                    this.Defaults = {
+                        "EntityName": null,
+                        "EntityId": null,
+                        "Attribute": null,
+                        "Parent": null,
+                        "LabelMargin": null,
+                    };
+                    this.options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+                    if (this.options.EntityName != null && this.options.EntityId != null && this.options.Attribute != null) {
+                        let box = Ele("div", {
+                            style: {
+                                cursor: 'default',
+                            }
+                        });
+                        //debugger;
+                        //add the label
+                        let label = Ele("span", {
+                            innerHTML: options.Attribute,
+                            appendTo: box,
+                        });
+                        if (options.LabelMargin) {
+                            label.style.marginRight = options.LabelMargin;
+                        }
+                        let deployments = SI.Editor.Data.Objects.Deployment.Levels;
+                        for (let deployment in deployments) {
+                            //debugger;
+                            let props = deployments[deployment];
+                            const supported = SI.Editor.Data.Objects.Entities.Definitions[options.EntityName]?.attributes[options.Attribute]?.deployments || [];
+                            const unavailable = !supported.includes(deployment);
+                            Ele("button", {
+                                id: 'si_edit_promote_' + options.Attribute + "_" + deployment,
+                                class: 'si-deployment-promote',
+                                type: 'button',
+                                disabled: unavailable,
+                                title: unavailable ? 'This field has no ' + deployment + ' storage in the current database schema.' : props.ToolTip,
+                                style: {
+                                    boxShadow: props.Shadow,
+                                    backgroundColor: props.BackgroundColor,
+                                },
+                                data: {
+                                    entityid: options.EntityId,
+                                    entityname: options.EntityName,
+                                    deployment: deployment,
+                                    attribute: options.Attribute,
+                                },
+                                innerHTML: props.Label,
+                                onclick: function (e) {
+                                    //debugger;
+                                    let entityid = this.dataset.entityid;
+                                    let deployment = this.dataset.deployment;
+                                    let entityname = this.dataset.entityname;
+                                    let attribute = this.dataset.attribute;
+                                    let data = { KEY: 'Promote', deployment: deployment, entityname: entityname, entityid: entityid, attribute: attribute };
+                                    let ajax = { Url: SI.Editor.Ajax.Url, Data: data, };
+                                    //   console.log(ajax);
+                                    this.disabled = true;
+                                    const button = this;
+                                    const request = SI.Editor.Ajax.Run(ajax);
+                                    request.timeout = 20000;
+                                    request.addEventListener('loadend', function () {
+                                        button.disabled = false;
+                                        if (request.status !== 200) SI.Tools.SuperAlert('Deployment failed. Refresh the page and try again.', 4000);
+                                    });
+
+                                    e.stopPropagation();
+                                },
+                                appendTo: box,
+                            });
+                        }
+                        if (options.Parent == null) {
+                            return box;
+                        } else {
+                            let pop = document.querySelector(options.Parent);
+                            if (pop) {
+                                pop.appendChild(box);
+                            }
+                        }
+
+                    }
+                },
+                Promoted: function (val) {
+                    SI.Tools.SuperAlert(val, 1500);
+                    console.log(val);
+                },
+
+            },
+            Plugins: {
+                Current: __SIPL_SLOT_18__,
+                Downloaded: __SIPL_SLOT_19__,
+            },
+            Security: {
+                Operations: ['create', 'read', 'write', 'append', 'appendTo', 'delete'],
+                Roles: __SIPL_SLOT_20__,
+            },
+            Settings: __SIPL_SLOT_21__,
+            PhpInfo : __SIPL_RUNTIME_INFO__,
+            MimeTypes: __SIPL_SLOT_22__
+        },
+        User: {
+            HelpLinks: __SIPL_SLOT_23__,
+            Languages: __SIPL_SLOT_24__,
+            QuickMenuItems: __SIPL_SLOT_25__,
+            PasswordStrength: __SIPL_SLOT_26__,
+        },
+        Site: {
+            Domain: __SIPL_SLOT_27__,
+            SubDomain: __SIPL_SLOT_28__,
+            SessionPageData:  __SIPL_SLOT_29__,
+        },
+        Tools: {
+            GetFileSize: function (path) {
+                var ajax = new XMLHttpRequest();
+                ajax.open('HEAD', path, true);
+                ajax.onreadystatechange = function () {
+                    if (ajax.readyState == 4) {
+                        if (ajax.status == 200) {
+                            return ajax.getResponseHeader('Content-Length');
+                        } else {
+                            return null;
+                        }
+                    }
+                };
+                ajax.send(null);
+            },
+            GetStyleByName: function (name) {
+                for (let i in SI.Editor.Data.css_properties) {
+                    let group = SI.Editor.Data.css_properties[i];
+                    for (let j in group) {
+                        if (group[j].n === name) {
+                            SI.Editor.Data.css_properties[i][j].group = i;
+                            SI.Editor.Data.css_properties[i][j].index = j;
+                            return SI.Editor.Data.css_properties[i][j];
+                        }
+                    }
+                }
+            },
+            //GetAttributesByName returns the first instance of the attribute. there are several listed under multiple divs. they are not guaranteed unless a group is specified
+            GetAttributeByName: function (name, group=null) {
+                for (let i in SI.Editor.Data.html_attributes) {
+                    let curgroup = SI.Editor.Data.html_attributes[i];
+                    if (curgroup == group || group == null) {
+                        for (let j in curgroup) {
+                            //debugger;
+                            if (curgroup[j].s === name) {
+                                //debugger;
+                                SI.Editor.Data.html_attributes[i][j].curgroup = i;
+                                SI.Editor.Data.html_attributes[i][j].index = j;
+                                return SI.Editor.Data.html_attributes[i][j];
+                            }
+                        }
+                    }
+                }
+            },
+            SupplementData: function () {
+                this.EntityData = function () {
+                    //Build the Entity Not allowed names and the Guid reverse lookup list 
+                    let info = SI.Editor.Data.Objects.Entities.Definitions;
+                    let notallowednames = SI.Editor.Data.Objects.Entities.Lists.NotAllowedNames;
+                    let entkey = {}
+                    for (let ent in info) {
+                        let entdata = info[ent]
+                        if (typeof entdata.instanceguid !== 'undefined') {
+                            entkey[entdata.instanceguid] = ent;
+                            entkey[ent] = entdata.instanceguid;
+                            //debugger;
+                            //This list will be checked when time to make a new entity. 
+                            if (typeof notallowednames[ent] === 'undefined')  {
+                                notallowednames.push(ent);
+                            }
+                            //Entity Options
+                            if (typeof entdata.entityoptions !== 'undefined' && entdata.entityoptions) {
+                                //dont allow a singular name to be used as a new ent name either
+                                if (typeof entdata.entityoptions['SN'] !== 'undefined' && notallowednames.indexOf(entdata.entityoptions.SN) === -1) {
+                                      notallowednames.push(entdata.entityoptions.SN);
+                                }
+                            }
+                        }
+                    }
+                    SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup = entkey;
+                    SI.Editor.Data.Objects.Entities.Lists.NotAllowedNames = notallowednames;
+                };
+                //the relations data is nothign but guids. lets try to make this more readable and useable
+                this.RelationsData = function () {  
+                    //Relations data has only entity guid names. use the reverse lookup from EntityData to get the names to make it easy to read.
+                    let relations = SI.Editor.Data.Objects.Entities.Relationships;
+                    let lookup = SI.Editor.Data.Objects.Entities.Lists.FwdRevLookup;
+                    for (let r in relations) {
+                        let relation = relations[r];
+                        let childid = relation.childentity_id;
+                        if (typeof lookup["0x" + childid]!== 'undefined') {
+                            relation.childentity_name = lookup["0x" + childid];
+                        }
+                        let parentid = relation.parententity_id;
+                        if (typeof lookup["0x" + parentid] !== 'undefined') {
+                            relation.parententity_name = lookup["0x" + parentid];
+                        }
+                    }
+                };
+                this.StyleData = function () {
+                    /*
+                    if (SI.Editor.Data.Code.Styles) {
+                        SI.Editor.Data.DataLists.StyleGroups = {};
+                        let styleGroupOrder = "";
+                        for (let i in SI.Editor.Data.Objects.Settings){
+                            if (SI.Editor.Data.Objects.Settings[i].hasOwnProperty("settingname") && SI.Editor.Data.Objects.Settings[i]["settingname"] === "StyleGroupOrder") {
+                                styleGroupOrder = SI.Editor.Data.Objects.Settings[i]["settingvalue"];
+                                break;
+                            }
+                        }
+                        if (styleGroupOrder.length>0) {
+                            let existGroups = styleGroupOrder.split(",");
+                            for (let group of existGroups) {
+                                SI.Editor.Data.DataLists.StyleGroups[group] = [];
+                            }
+                        } 
+                        let styles = SI.Editor.Data.Code.Styles;
+                        for (let i in styles) {
+                            if (styles.hasOwnProperty(i)) {
+                                let style = styles[i];
+                                //Get the unique Groups
+                                if (style.groups) {
+                                    for (let group of style.groups) {
+                                        if (!SI.Editor.Data.DataLists.StyleGroups[group]) {
+                                            SI.Editor.Data.DataLists.StyleGroups[group] = [];
+                                        }
+                                        SI.Editor.Data.DataLists.StyleGroups[group].push(i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    */
+                };
+                this.AtData = function () {
+                    //@keyframenames are the same as animation names. find them and set them. too bad there isnt a window object that holds all Animation Names.
+                    let sheets = document.styleSheets;
+                    for (let i = 0; i < sheets.length; i++) {
+                        let sheet = sheets[i];
+                        if (sheet.href !== null) {
+                            if (sheet.href.includes('style/plugins') || sheet.href.includes('style/page')) {
+                                let rules = sheet.cssRules;
+                                for (let j = 0; j < rules.length; j++) {
+                                    let rule = rules[j];
+                                    //Import Runles
+                                    if (rule.type === 3) {
+                                        let href = rule.href;
+                                        if (!SI.Editor.Data.DataLists.ImportRules.includes(href)) {
+                                            SI.Editor.Data.DataLists.ImportRules.push(href);
+                                        }
+                                    }
+                                    //get Media Rules
+                                    if (rule.type === 4) {
+                                        let ctxt = rule.conditionText;
+                                        if (!SI.Editor.Data.DataLists.MediaRules[ctxt]) {
+                                            SI.Editor.Data.DataLists.MediaRules[ctxt] = [];
+                                        }
+                                      
+                                        let mediaRules = rule.cssRules;
+                                        for (let k = 0; k < mediaRules.length; k++) {
+                                            SI.Editor.Data.DataLists.MediaRules[ctxt].push(mediaRules[k].cssText);
+                                        }
+                                    }
+                                    //get font faces
+                                    if (rule.type === 5) {
+                                        let ffstyles = rule.style;
+                                        if (ffstyles.fontFamily) {
+                                        //we must have a font face family
+                                            if (!SI.Editor.Data.DataLists.FontFaces[ffstyles.fontFamily]) {
+                                                SI.Editor.Data.DataLists.FontFaces[ffstyles.fontFamily] = {};
+                                            }
+                                            let ittr = 0;
+                                            while (ffstyles[ittr]) {
+                                                if (ffstyles[ittr] !== "font-family") {
+                                                    let ffstyle = ffstyles[ittr];
+                                                    let ffprop = ffstyles[ffstyle];
+                                                    SI.Editor.Data.DataLists.FontFaces[ffstyles.fontFamily][ffstyle] = ffprop;
+                                                }
+                                                ittr++;
+                                            }
+                                        }
+                                    }
+                                    //get page printer rules
+                                    if (rule.type === 6) {
+                                        let pgstyles = rule.style;
+                                        let ittr = 0;
+                                        while (pgstyles[ittr]) {
+                                            if (pgstyles[ittr] !== "font-family") {
+                                                let pgstyle = pgstyles[ittr];
+                                                if (SI.Editor.Data.DataLists.PageRules.Allowed.indexOf(pgstyle)>-1) {
+                                                    let pgprop = pgstyles[pgstyle];
+                                                    SI.Editor.Data.DataLists.PageRules[pgstyle] = pgprop;
+                                                }
+                                            }
+                                            ittr++;
+                                        }
+                                    }
+                                    //get Animation Names
+                                    if (rule.type === 7) {
+                                        let name = rule.name;
+                                        if (!SI.Editor.Data.DataLists.AnimationNames.includes(name)) {
+                                            SI.Editor.Data.DataLists.AnimationNames.push(name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+
+                //run our data functions
+                this.EntityData();
+                this.RelationsData();//dependent on the function above it to have run.
+                this.StyleData();
+                this.AtData();
+            },
+        }
+    },
+    UI:{
+        Container: null,
+        IconPaths: {
+            save: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2ZM7 3v6h10V3M7 21v-8h10v8',
+            saveAll: 'M3 7v14h14M7 3h12l2 2v12H7V3Zm3 0v5h8V3m-8 14v-6h8v6',
+            newBlock: 'M13 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 10h11M10 10v11m9-20v6m-3-3h6',
+            import: 'M14 3H5v18h14V8l-5-5Zm0 0v5h5M7 13h8m-3-3 3 3-3 3',
+            template: 'M3 3h18v18H3V3Zm0 6h18M9 9v12',
+            delete: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7',
+            code: 'm8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18',
+            style: 'm9 14 9-11 3 3-11 9M9 14c-3-2-5 1-5 4 0 2-1 3-2 3 4 1 8 0 8-4v-2l-1-1Z',
+            deployment: 'm3 7 9-4 9 4-9 4-9-4Zm0 5 9 4 9-4M3 17l9 4 9-4',
+            settings: 'M3 5h8m4 0h6M11 2v6M3 12h3m4 0h11M6 9v6M3 19h11m4 0h3M14 16v6',
+            widgets: 'M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm11 3.5h7m-3.5-3.5v7',
+            eraser: 'm3 14 9-11 9 7-9 11H7l-4-4v-3Zm5-6 9 7m-5 6h9'
+        },
+        IconButton: function (options) {
+            const {Icon, ...attributes} = options;
+            attributes.class = [attributes.class, 'si-tool-icon-button'].filter(Boolean).join(' ');
+            attributes.type = 'button';
+            const button = Ele('button', attributes);
+            // Opaque vector strokes keep all actions equally clear at any display scale.
+            const path = this.IconPaths[Icon];
+            const source = path ? 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + path + '"/></svg>') : Icon;
+            button.style.setProperty('--si-tool-icon', 'url(' + JSON.stringify(source) + ')');
+            if (attributes.title) button.setAttribute('aria-label', attributes.title);
+            return button;
+        },
+        Init: function (){
+            //Initialize main visible panel
+            SI.Editor.UI.DrawAppContainer();
+            SI.Editor.UI.MainMenu.Init();
+            //Initalize 3 sub menus
+            let editorPanels = ["AddPanel", "EditPanel", "ToolsPanel"];
+            for (let i in editorPanels) {
+                let title = editorPanels[i];
+                SI.Editor.UI[title].Init();
+            }
+            //Initialize Windows
+           // setTimeout(function(){ //this set timeout fixes a timing issue in xDebug and is not needed otherwise
+          //  for (let i in SI.Editor.UI.Windows) {
+          //      let title = SI.Editor.UI.Windows[i];
+          //      SI.Editor.UI[title].Init();
+          //  }
+            SI.Editor.UI.SetDocumentEvents();
+ 
+        },
+        SetDocumentEvents: function () {
+            SI.Editor.Objects.Placement.Init();
+            document.oncontextmenu = function (event) {
+                if (event.target.closest('#si_edit_container')) return;
+                const menu = SI.Editor.UI.MainMenu.Element;
+                const selected = SI.Editor.Objects.Elements.Selected;
+                const target = event.target.closest('.si-editable-element');
+                // Keep native text-field menus unless this click clears the selected item.
+                if ((!target || target !== selected) && event.target.closest('input,textarea,[contenteditable="true"]')) return;
+                SI.Editor.Objects.Placement.Cancel();
+                if (target && target === selected) SI.Editor.Objects.Elements.SelectNone();
+                else if (target) SI.Editor.Objects.Elements.Select(null, target.id);
+                menu.style.display = 'block';
+                menu.style.left = Math.max(0, Math.min(event.clientX, innerWidth - 80)) + 'px';
+                menu.style.top = Math.max(0, Math.min(event.clientY, innerHeight - 120)) + 'px';
+                event.preventDefault();
+            };
+            window.onbeforeunload = function (event) {
+                if (!SI.Editor.DeploymentSwitchAccepted && Object.values(SI.Editor.Data.Objects.Blocks).some(block => block.IsDirty)) {
+                    event.preventDefault();
+                    event.returnValue = '';
+                }
+            };
+            window.addEventListener('keydown', function (event) {
+                const selected = SI.Editor.Objects.Elements.Selected;
+                const typing = event.target.isContentEditable || event.target.closest('input,textarea,select,[role="textbox"]');
+                if (event.key === 'Escape') {
+                    SI.Editor.Objects.Placement.Cancel();
+                    SI.Editor.UI.MainMenu.Element.style.display = 'none';
+                    if (!typing) SI.Editor.Objects.Elements.SelectNone();
+                    return;
+                }
+                if (!selected) return;
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's' && (!typing || event.target.closest('#si_edit_edit_menuitem'))) {
+                    event.preventDefault();
+                    if (typing) event.target.dispatchEvent(new Event('change', {bubbles: true}));
+                    SI.Editor.UI.EditPanel.SaveSelected();
+                    return;
+                }
+                if (typing || event.target.closest('#si_edit_container,.si-window-container')) return;
+                const movements = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
+                if (movements[event.key] && /^(absolute|relative|fixed)$/.test(getComputedStyle(selected).position)) {
+                    event.preventDefault();
+                    const increment = event.shiftKey ? 10 : 1;
+                    SI.Editor.Objects.Elements.MoveBy(movements[event.key][0] * increment, movements[event.key][1] * increment);
+                }
+                if (event.key === 'Delete' && !event.repeat) {
+                    event.preventDefault();
+                    if (confirm('Delete ' + selected.tagName.toLowerCase() + ' #' + selected.id + '?')) SI.Editor.Objects.Elements.Remove(selected);
+                }
+            });
+        },
+        DrawAppContainer: function () {
+            //create the container that all visible editor.js items will be containd in.
+            let editorContainer = Ele('div', {
+                class: 'lgn-editor',
+                id: 'si_edit_container',
+                style: {
+                    fontFamily: SI.Editor.Style.FontFace,
+                    color:SI.Editor.Style.TextColor,
+                },
+                appendTo:document.body,
+            });
+            SI.Editor.UI.Container = editorContainer;  
+        },
+        MainMenu: {
+            Element: null,
+            Init: function () {
+                //Main Menu Box	
+                var mainMenu = Ele('div', {
+                    id: 'si_edit_main_menu',
+                    class: 'si-window-container si-editor-menu',//hack to make this play like a window
+                    draggable: true,
+                    style: {display: 'none'},
+                    onmouseenter: function () {
+                        var winds = document.getElementsByClassName("si-window-container");
+                        for (let i = 0; i < winds.length; i++) {
+                            winds[i].style.zIndex = '980';
+                        }
+                        this.style.zIndex = '981';
+                    },
+                    onmouseleave: function () {
+                        //debugger;
+                        SI.Editor.UI.MainMenu.IsDragging = false;
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
+                    },
+                    ondragstart: function (e) {
+                        //Need to add the mouse to menu offset so that it can be determined below.
+                        //debugger;
+                        if (e.target !== this && e.target.closest("#si_edit_add_menuitem,#si_edit_edit_menuitem")) { e.preventDefault(); return; }
+                        this.dataset.mOffX = e.offsetX;
+                        this.dataset.mOffY = e.offsetY;
+                        SI.Editor.UI.MainMenu.IsDragging = true;
+                        e.dataTransfer.setData("Text", e.target.id);
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
+                    },
+                    ondragover: function (e) { e.preventDefault(); },
+                    ondragend: function (e) {
+                        if (!SI.Editor.UI.MainMenu.IsDragging) return;
+                        SI.Editor.UI.MainMenu.IsDragging = false;
+                        //get mouse offsets when the menu was clicked. this way it does not snap to the upper right on drop.
+                        let moX = this.dataset.mOffX;
+                        let moY = this.dataset.mOffY;
+                        //change the menu position to be the mouse minus the original mouse offset
+                        this.style.left = e.pageX - moX + 'px';
+                        this.style.top = e.pageY - moY + 'px';
+                        let hud = document.getElementById('si_edit_hud_editisdragging');
+                        if(hud){
+                            hud.innerHTML = SI.Editor.UI.MainMenu.IsDragging;
+                        }
+                        //console.log(e);
+                    }
+                });
+                //Menu Items Table
+                var mainMenuTable = Ele('table', {
+                    id: 'si_edit_main_menu_table',
+                    class: 'si-editor-menu-list'
+                });
+                //Menu Items 
+                let mainMenuItems = ['add', 'edit', 'tools'];
+                //debugger;
+                for (let mi in mainMenuItems) {
+                    let val = mainMenuItems[mi];
+                    var mainMenuRow = Ele('tr', {});
+                    let txt = val.toLowerCase().replace(/\b[a-z]/g, function (letter) {
+                        return letter.toUpperCase();
+                    });
+                    let menuitem = Ele('td', {
+                        innerHTML: txt,
+                        id: 'si_' + val + '_menu_item',
+                        class: 'si-editor-nav-item',
+                        onclick: function (e) { SI.Editor.UI.MainMenu.SelectMenu('si_edit_' + val + '_menuitem') },
+                        tabIndex: 0,
+                        onkeydown: function (event) {
+                            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }
+                        },
+                        appendTo: mainMenuRow,
+                    });
+                    menuitem.setAttribute('role', 'button');
+                    menuitem.setAttribute('aria-controls', 'si_edit_' + val + '_menuitem');
+                    menuitem.setAttribute('aria-expanded', 'false');
+                    mainMenuTable.appendChild(mainMenuRow);
+                }
+                //Append Main Menu at the end
+                mainMenu.appendChild(mainMenuTable);
+                //Close Editor x button	
+                mainMenu.appendChild(Ele('button', {
+                    id: 'close-editor',
+                    title: 'Close editor menu',
+                    innerHTML: 'X',
+                    onclick: function () { SI.Editor.UI.MainMenu.Close(); },
+                }));
+                SI.Editor.UI.Container.appendChild(mainMenu);
+                SI.Editor.UI.MainMenu.Element = document.getElementById('si_edit_main_menu');
+            }, 
+            Close: function () {
+                SI.Editor.Objects.Placement.Cancel();
+                SI.Editor.Objects.Elements.SelectNone();
+                SI.Editor.Style.SetTheme();
+                SI.Editor.UI.MainMenu.Element.style.display = 'none';
+            },
+            //Hide/Unhide sub menus when item selected
+            SelectMenu: function (menu) {
+                const panel = document.getElementById(menu);
+                if (!panel) return;
+                if (menu === 'si_edit_edit_menuitem' && !SI.Editor.Objects.Elements.Selected) {
+                    SI.Tools.SuperAlert('Right-click an element to select it, then choose Edit.', 2500);
+                    return;
+                }
+                const opening = getComputedStyle(panel).display === 'none';
+                for (const id of ['si_edit_add_menuitem', 'si_edit_edit_menuitem', 'si_edit_tools_menuitem']) {
+                    const other = document.getElementById(id);
+                    other.getAnimations().forEach(animation => animation.cancel());
+                    const active = opening && id === menu;
+                    other.style.display = active ? 'block' : 'none';
+                    document.getElementById('si_' + id.replace('si_edit_', '').replace('_menuitem', '') + '_menu_item').setAttribute('aria-expanded', String(active));
+                }
+                if (!opening) return;
+                const main = SI.Editor.UI.MainMenu.Element;
+                panel.style.maxWidth = Math.max(180, innerWidth - panel.offsetLeft - 24) + 'px';
+                const extent = panel.offsetLeft + panel.getBoundingClientRect().width;
+                main.style.left = Math.max(8, Math.min(parseFloat(main.style.left) || 0, innerWidth - extent - 12)) + 'px';
+                main.style.top = Math.max(8, Math.min(parseFloat(main.style.top) || 0, innerHeight - panel.offsetTop - panel.getBoundingClientRect().height - 12)) + 'px';
+                // Visibility changes synchronously; an old fade timer cannot hide a new panel.
+                panel.animate({opacity: [0, 1]}, {duration: 120});
+            },
+            IsDragging:false,
+        },
+        AddPanel: {
+            Init: function () {
+                const panel = Ele('div', {id: 'si_edit_add_menuitem', class: 'si-add-palette', style: {display: 'none'}});
+                const heading = Ele('div', {class: 'si-add-heading', appendTo: panel});
+                heading.textContent = 'Add to your page';
+                const hint = Ele('p', {class: 'si-add-hint', appendTo: panel});
+                hint.textContent = 'Drag an item onto the page to preview it. Or click an item, then click where it belongs. Esc cancels.';
+                const search = Ele('input', {id: 'si_edit_add_search', type: 'search', placeholder: 'Find a tag or widget…', appendTo: panel});
+                search.setAttribute('aria-label', 'Find a tag or widget');
+                const tabs = Ele('div', {class: 'si-add-tabs', appendTo: panel});
+                tabs.setAttribute('role', 'tablist');
+                for (const kind of ['tag', 'widget']) {
+                    const button = Ele('button', {id: 'si_edit_add_' + kind + '_tab', type: 'button', innerText: kind === 'tag' ? 'Tags' : 'Widgets', appendTo: tabs});
+                    button.setAttribute('role', 'tab');
+                    button.setAttribute('aria-controls', 'si_edit_add_' + kind);
+                    button.onclick = function () { SI.Editor.UI.AddPanel.Show(kind); };
+                    button.onkeydown = function (event) {
+                        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            const other = kind === 'tag' ? 'widget' : 'tag';
+                            SI.Editor.UI.AddPanel.Show(other);
+                            document.getElementById('si_edit_add_' + other + '_tab').focus();
+                        }
+                    };
+                    const list = Ele('div', {id: 'si_edit_add_' + kind, class: 'si-add-list', appendTo: panel});
+                    list.setAttribute('role', 'tabpanel');
+                    list.setAttribute('aria-labelledby', button.id);
+                    if (kind === 'tag') {
+                        const seen = new Set();
+                        for (const group of Object.values(SI.Editor.Data.html_elements)) {
+                            for (const tag of Object.values(group)) {
+                                const name = tag.n.trim().toLowerCase();
+                                if (seen.has(name) || /^(html|head|body|base|meta|title|link)$/.test(name)) continue;
+                                seen.add(name);
+                                SI.Editor.UI.AddPanel.Item(list, {kind, name, defaults: tag.def}, tag.ln + ' <' + name + '>', tag.d);
+                            }
+                        }
+                    } else {
+                        for (const name of Object.keys(SI.Widget).sort()) {
+                            // Lookup manages existing lookup fields; it has no standalone page element.
+                            if (typeof SI.Widget[name] === 'function' && name !== 'Lookup') SI.Editor.UI.AddPanel.Item(list, {kind, name}, name === 'Accordian' ? 'Accordion' : name, 'Add a ' + name + ' widget');
+                        }
+                    }
+                }
+                const empty = Ele('p', {id: 'si_edit_add_empty', class: 'si-add-hint', innerText: 'No matching items. Try another name.', style: {display: 'none'}, appendTo: panel});
+                empty.setAttribute('role', 'status');
+                search.oninput = function () { SI.Editor.UI.AddPanel.Filter(); };
+                SI.Editor.UI.MainMenu.Element.appendChild(panel);
+                SI.Editor.UI.AddPanel.Show('tag');
+            },
+            Item: function (list, item, label, description) {
+                const button = Ele('button', {id: item.kind === 'tag' ? 'dragger_' + item.name : 'si_edit_widgetdragger' + item.name, type: 'button', class: 'si-add-item', draggable: true, appendTo: list});
+                button.textContent = label;
+                button.title = description + ' — drag to preview, or click to choose a position';
+                button.dataset.search = (label + ' ' + description).toLowerCase();
+                button.ondragstart = function (event) { SI.Editor.Objects.Placement.Begin(event, item); };
+                button.ondragend = function (event) { event.stopPropagation(); SI.Editor.Objects.Placement.Cancel(); };
+                button.onclick = function (event) { SI.Editor.Objects.Placement.Begin(event, item); };
+            },
+            Show: function (kind) {
+                this.Kind = kind;
+                for (const tab of ['tag', 'widget']) {
+                    document.getElementById('si_edit_add_' + tab).hidden = tab !== kind;
+                    const button = document.getElementById('si_edit_add_' + tab + '_tab');
+                    button.setAttribute('aria-selected', String(tab === kind));
+                    button.tabIndex = tab === kind ? 0 : -1;
+                }
+                this.Filter();
+            },
+            Filter: function () {
+                const query = document.getElementById('si_edit_add_search').value.trim().toLowerCase();
+                const list = document.getElementById('si_edit_add_' + this.Kind);
+                let count = 0;
+                for (const item of list.children) { item.hidden = !item.dataset.search.includes(query); if (!item.hidden) count++; }
+                document.getElementById('si_edit_add_empty').style.display = count ? 'none' : 'block';
+            }
+        },
+        EditPanel: {
+            //Init: build the panel, setup and populate the tabs.
+            Init: function () {
+                var editMenu = Ele('div', {
+                    id: 'si_edit_edit_menuitem',
+                    class: 'si-editor-properties',
+                    style: {display: 'none'},
+                    draggable: false,
+                    ondragover: function (e) { e.preventDefault();},
+                    ondragstart: function (e) {
+                        
+                        e.stopPropagation();
+                        return false;
+                    },
+
+                });
+                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab', OnChange: function (selected) {
+                    for (const tab of editMenu.querySelectorAll('[role="tab"]')) {
+                        tab.setAttribute('aria-selected', String(tab === selected));
+                        tab.tabIndex = tab === selected ? 0 : -1;
+                    }
+                }});
+                tabs.Items.Add('Main', SI.Editor.UI.EditPanel.DrawMain());
+                tabs.Items.Add('Attributes', SI.Editor.UI.EditPanel.DrawAttributes());
+                tabs.Items.Add('Styles', SI.Editor.UI.EditPanel.DrawStyles());
+               // tabs.Items.Add('Styles2', SI.Editor.UI.EditPanel.DrawStyles2());
+                const toolbar = Ele('div', {class: 'si-edit-selection-toolbar', appendTo: editMenu});
+                const selection = Ele('div', {class: 'si-edit-selection-copy', appendTo: toolbar});
+                Ele('span', {class: 'si-edit-selection-label', innerText: 'Selected element', appendTo: selection});
+                Ele('span', {id: 'si_edit_selection_summary', innerText: 'Right-click an element to edit it.', appendTo: selection});
+                Ele('button', {id: 'si_edit_save_selected', type: 'button', innerText: 'Save block', disabled: true, onclick: SI.Editor.UI.EditPanel.SaveSelected, appendTo: toolbar});
+                editMenu.appendChild(tabs.Draw());
+                editMenu.setAttribute('role', 'region');
+                editMenu.setAttribute('aria-label', 'Edit selected element');
+                const tabItems = Array.from(editMenu.querySelectorAll('.si-edit-edit-tab-tabitem'));
+                editMenu.querySelector('#si_edit_edit_tab > ul').setAttribute('role', 'tablist');
+                for (const [index, tab] of tabItems.entries()) {
+                    tab.setAttribute('role', 'tab');
+                    tab.setAttribute('aria-selected', String(index === 0));
+                    tab.tabIndex = index === 0 ? 0 : -1;
+                    const content = document.getElementById(tab.id.replace('_tabitem_', '_tabcontent_')) || editMenu.querySelector('#' + tab.id.replace('_tabitem_', '_tabcontent_'));
+                    tab.setAttribute('aria-controls', content.id);
+                    content.setAttribute('role', 'tabpanel');
+                    content.setAttribute('aria-labelledby', tab.id);
+                    tab.addEventListener('keydown', function (event) {
+                        let next;
+                        if (event.key === 'ArrowRight') next = (index + 1) % tabItems.length;
+                        if (event.key === 'ArrowLeft') next = (index + tabItems.length - 1) % tabItems.length;
+                        if (event.key === 'Home') next = 0;
+                        if (event.key === 'End') next = tabItems.length - 1;
+                        if (event.key === 'Enter' || event.key === ' ') next = index;
+                        if (next === undefined) return;
+                        event.preventDefault();
+                        tabItems[next].click();
+                        tabItems[next].focus();
+                    });
+                }
+                for (const type of ['input', 'change', 'keyup']) {
+                    editMenu.addEventListener(type, function (event) {
+                        if (event.target.matches('.si-edit-attribute')) {
+                            const selected = SI.Editor.Objects.Elements.Selected;
+                            if (selected && (type !== 'keyup' || event.key.length === 1 || ['Backspace', 'Delete', 'Enter'].includes(event.key))) SI.Editor.Objects.Elements.MarkDirty(selected);
+                        }
+                    });
+                }
+                SI.Editor.UI.MainMenu.Element.appendChild(editMenu);
+            },
+            SaveSelected: function () {
+                const element = SI.Editor.Objects.Elements.Selected;
+                const block = element && element.closest('.si-block');
+                if (block) SI.Editor.Objects.Blocks.Save(block.id.replace('si_block_', ''), 'html');
+            },
+            SelectionSummary: function () {
+                const selected = SI.Editor.Objects.Elements.Selected;
+                const block = selected && selected.closest('.si-block');
+                const name = block && block.id.replace('si_block_', '');
+                const data = name && SI.Editor.Data.Objects.Blocks[name];
+                const summary = document.getElementById('si_edit_selection_summary');
+                if (summary) summary.textContent = selected ? selected.tagName.toLowerCase() + ' #' + selected.id + (data && data.IsDirty ? ' · Unsaved changes' : '') : 'Right-click an element to edit it.';
+                const save = document.getElementById('si_edit_save_selected');
+                if (save) save.disabled = !block;
+            },
+            //Draw the Main tab 
+            DrawMain: function (e) {
+                //Container
+                let container = Ele('div', {
+                    id: 'si_main_view',
+                    class: 'si-edit-panel-body',
+                    ondrag: function () {
+                        return false;
+                    },
+                });
+                SI.Tools.StopOverscroll(container);
+                //Menubox
+                let menu = Ele('div', {
+                    id: "si_edit_main_menubox",
+                    class: 'si-edit-actions',
+                    appendTo: container,
+                });
+                //Select Button
+                let select = Ele('button', {
+                    innerHTML: "Select",
+                    onclick: function (e) {
+                        let panel = document.getElementById("si_edit_main_selectpanel");
+                        handlePanels(panel);
+                        refreshSelects();
+                    },
+
+                    appendTo: menu,
+                });
+
+                let selectpanel = Ele('div', {
+                    id: "si_edit_main_selectpanel",
+                    class:"si-edit-main-panel",
+                    style: {display: 'none'},
+                    appendTo: menu,
+                });
+
+                let blkBtn = Ele('button', {
+                    innerHTML: "Block",
+                    onclick: function (e) {
+                        //debugger;
+                        let sel = SI.Editor.Objects.Elements.Selected
+                        let blk =SI.Tools.Element.GetBlock(sel);
+
+                        SI.Editor.Objects.Blocks.Select(blk.id);
+                    },
+                    class: 'si-edit-panel-action',
+                    appendTo: selectpanel,
+                });
+
+                
+                let parBtn = Ele('button', {
+                    innerHTML: "Parent",
+                    onclick: function (e) {
+                        let sel = SI.Editor.Objects.Elements.Selected;
+                        if (sel) {
+                            let par = sel.parentElement;
+                            if (par.classList.contains('si-block')) {
+                                // do some stuff
+                                alert("Can't select parent block");
+                                return;
+                            }
+                            if (par.id != null) {
+                                SI.Editor.Objects.Elements.Select(e,par.id);
+                            }
+                        }
+                    },
+                    class: 'si-edit-panel-action',
+                    appendTo: selectpanel,
+                });
+
+                Ele('span', { innerHTML: "By id", appendTo: selectpanel});
+                let selectbyid = Ele('select', {
+                    class: 'si-edit-control',
+                    onmouseenter: function (e) { refreshSelects(); },
+                    onchange: function (e) {                      
+                        let ele = document.getElementById(this.value)
+                        if (ele) {
+                            var event = new MouseEvent('dblclick', {
+                                'view': window,
+                                'bubbles': false,
+                                'cancelable': true
+                            });
+                            ele.dispatchEvent(event);
+                            refreshSelects();
+                        }                     
+                    },
+                    appendTo: selectpanel,
+                    
+                });
+                let handlePanels = function (panel) {
+                    //determine if we are showing or hiding the panel
+                    let display = 'none';
+                    if (panel.style.display == 'block') {
+                        display = 'none';
+                    } else {
+                        display = 'block';
+                    }
+                    //make sure ALL of the panels are hidden
+                    let panels = document.getElementsByClassName('si-edit-main-panel');
+                    for (let p in panels) {
+                        if (panels.hasOwnProperty(p)) {
+                            panels[p].style.display = 'none';
+                        }
+                    }
+                    //set the given panel to be 
+                    panel.style.display = display;
+                }
+                let refreshSelects = function () {
+                    //debugger;
+                    //capture the display of the element 
+                    let startValue = selectbyid.value;
+                    //clear the select element
+                    selectbyid.innerHTML = "";
+                    //get all the blocks
+                    let blocks = document.querySelectorAll(".si-block");
+                    let selid = null;
+                    if (SI.Editor.Objects.Elements.Selected) {
+                        selid = SI.Editor.Objects.Elements.Selected.id;
+                    }
+                    //debugger;
+                    for (let block of blocks) {
+
+                        let group = Ele('optgroup', {
+                            label: block.id.replace("si_block_", ""),
+                            style: {
+                                color: 'darkgrey',
+                            },
+                        })
+                        selectbyid.add(group);
+
+                        let option = Ele('option', {
+                            innerHTML: block.id,
+                            value: block.id,
+                            disabled: true,
+                            style: {
+                                color: 'navy',
+                            },
+                        })
+                        selectbyid.add(option);
+                           
+                        let children = document.querySelectorAll("#" + block.id + " *");
+                        for (let child of children) {
+                            let color = 'blue';
+                            let disabled = false;
+                            if (child.id == selid) {
+                                color = 'red';
+                                option.disabled = "disabled";
+                                disabled = true;
+                            }
+                                    
+                            let generations = SI.Tools.Element.GenerationsFromBlock(child);
+                            let tab = '';
+                            for (let g = 0; g < generations; g++) {
+                                tab += "&nbsp;&nbsp;&nbsp;&nbsp;";
+                            }
+                            let ele = Ele('option', {
+                                innerHTML: tab + child.id,
+                                value: child.id,
+                                style: {
+                                    color: color,
+                                },
+                            })
+                            if (disabled) {
+                                ele.disabled = "disabled";
+                            }
+                            selectbyid.add(ele);
+                        }
+                    }
+                    selectbyid.value = startValue;
+                }
+
+                //Parent Button
+                let parent = Ele('button', {
+                    innerHTML: "Parent",
+                    onclick: function (e) {
+                        let panel = document.getElementById("si_edit_main_parentpanel");
+                        handlePanels(panel);
+                        refreshParents();
+                    },
+
+                    appendTo: menu,
+                });
+                let parentpanel = Ele('div', {
+                    id: "si_edit_main_parentpanel",
+                    class: "si-edit-main-panel",
+                    style: {display: 'none'},
+                    appendTo: menu,
+                });
+                let selectedParentLabel = Ele('span', {
+                    innerHTML: "Parent:",
+                    class: 'si-edit-panel-label',
+                    appendTo: parentpanel,
+                });
+                let selectedParentValue = Ele('span', {
+                    innerHTML: "NothingSelected",
+                    class: 'si-edit-panel-value',
+                    appendTo: parentpanel,
+                });
+                Ele('hr', { appendTo: parentpanel,});
+                let changeParentLabel = Ele('span', {
+                    innerHTML: "Change Parent",
+                    class: 'si-edit-panel-label',
+                    appendTo: parentpanel,
+                });
+
+                let selectBlockElements = Ele('select', {
+                    onchange: function (e) {
+                        if (SI.Editor.Objects.Elements.Selected != null) {
+                            let newParent = document.getElementById(this.value);
+                            if (newParent != SI.Editor.Objects.Elements.Selected.parentElement) {
+                                newParent.appendChild(SI.Editor.Objects.Elements.Selected);
+                            } else {
+                                console.log("The element alread belongs to that parent");
+                            }
+                            
+                        }
+                    },
+                    onmouseenter: function () { refreshParents(); },
+                    appendTo: parentpanel,
+                });
+                let refreshParents = function () {
+                    //first get all the blocks
+                    let startValue = selectBlockElements.value;
+                    selectBlockElements.innerHTML = "";
+                    let blocks = document.querySelectorAll(".si-block");
+                    let selid = null;
+                    if (SI.Editor.Objects.Elements.Selected) {
+                        selid = SI.Editor.Objects.Elements.Selected.id;
+                        selectedParentValue.innerHTML = SI.Editor.Objects.Elements.Selected.parentElement.id;
+                    }
+                    //debugger;
+                    for (let b in blocks) {
+                        if (blocks.hasOwnProperty(b)){
+                            //add the options group showing the block name
+                            let group = Ele('optgroup', {
+                                label: blocks[b].id.replace("si_block_", ""),
+                                style: {
+                                    color: 'darkgrey',
+                                },
+                            })
+                            selectBlockElements.add(group);
+
+                            let block = Ele('option', {
+                                innerHTML: blocks[b].id,
+                                value: blocks[b].id,
+                                style: {
+                                    color: 'navy',
+                                },
+                            })
+                            selectBlockElements.add(block);
+                            //debugger;
+                            children = document.querySelectorAll("#" + blocks[b].id + " *");
+                            for (let c in children) {
+                                if (children.hasOwnProperty(c)) {
+                                    if (!SI.Tools.Is.EmptyElement(children[c].tagName)) {
+                                        let color = 'blue';
+                                        let disabled = false;
+                                        if (children[c].id == selid) {
+                                            color = 'red';
+                                            block.disabled = "disabled";
+                                            disabled = true;
+                                        }
+                                        //debugger;
+                                        let generations =SI.Tools.Element.GenerationsFromBlock(children[c]);
+                                        let tab = '';
+                                        for (let g = 0; g < generations; g++) {
+                                            tab += "&nbsp;&nbsp;&nbsp;&nbsp;";
+                                        }
+                                        let ele = Ele('option', {
+                                            innerHTML: tab+children[c].id,
+                                            value: children[c].id,
+                                            style: {
+                                                color: color,
+                                            },
+                                        })
+                                        if (disabled) {
+                                            ele.disabled = "disabled";
+                                        }
+                                        selectBlockElements.add(ele);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    selectBlockElements.value = startValue;
+                }
+
+                //Delete Button
+                let remove = Ele('button', {
+                    class: "si-edit-delete",
+                    innerHTML: "Delete",
+                    onclick: function (e) {
+                        if (confirm("Delete Element " + SI.Editor.Objects.Elements.Selected.id+"???")) {
+                            SI.Editor.Objects.Elements.Remove(SI.Editor.Objects.Elements.Selected);
+                        } 
+                    },
+
+                    appendTo: menu,
+                });
+
+                //Advanced Button
+                let advanced = Ele('button', {
+                    innerHTML: "Advanced",
+                    onclick: function (e) {
+                        let panel = document.getElementById("si_edit_main_advancedpanel");
+                        handlePanels(panel);
+
+                    },
+
+                    appendTo: menu,
+                });
+                let advancedpanel = Ele('div', {
+                    id: "si_edit_main_advancedpanel",
+                    class: "si-edit-main-panel",
+                    style: {display: 'none'},
+                    appendTo: menu,
+                });
+                let multilinguallbl = Ele('span', {
+                    innerHTML: 'Multilingual ',
+                    title: "translate the text into other languages",
+                    class: 'si-edit-panel-label',
+                    appendTo: advancedpanel,
+                });
+                //MULTILINGUAL SELECT
+                let mylang = SI.Editor.Data.User.Languages;
+                let multilingualselect = Ele('select', {
+                    id:'si_edit_main_advanced_mlselect',
+                    append: Ele('option', {}),
+                    onchange: function (ev) {
+                        //debugger;
+                        if (this.selectedIndex) {
+
+                            if (confirm("This will replace the innerHTML of this element with the contents of the multilingual text!\nThiscan't be undone. The current innerHTML will be foever lost")) {
+                                //debugger;
+                                let index = this.selectedIndex - 1;
+                                    let localtext = SI.Editor.Objects.Language.Current[index];
+                                    //let opt = this.options[this.selectedIndex];
+                                    for (let lang of mylang) {
+                                        let col = '_' + lang.toLowerCase();
+                                        if (localtext[col] && localtext[col].length > 0) {
+                                            let text = localtext[col];
+                                            SI.Editor.Objects.Elements.Selected.innerHTML = text;
+                                            SI.Editor.Objects.Elements.Selected.classList.add("si-multilingual-" + localtext.name);
+                                            SI.Editor.Objects.Elements.Selected.classList.add("si-multilingual");
+                                            SI.Editor.Objects.Elements.Selected.dataset.si_ml_index = index;
+                                            SI.Editor.Objects.Elements.Selected.dataset.si_ml_token = localtext.name;
+                                            break;
+                                        }
+                                    }
+                            } else {
+                                this.selectedIndex = 0;
+                            }
+                        } else {
+                            if (SI.Editor.Objects.Elements.Selected.classList.contains("si-multilingual-")) {
+                                if (confirm("This will remove the multilingual nature of this element.\nThe innerHTML will remain intact but will not be tracked multilingually.\nThis will not affect the item in the Language tool or other elements it is assigned to.")) {
+                                    var classes = SI.Editor.Objects.Elements.Selected.classList;
+                                    
+
+                                    SI.Editor.Objects.Elements.Selected.classList.Remove("si-multilingual");
+                                    SI.Editor.Objects.Elements.Selected.removeAttribute('data-si_ml_index');
+                                    SI.Editor.Objects.Elements.Selected.removeAttribute('data-si_ml_token');
+                                }
+                            }
+                        }
+                    },
+                    appendTo: advancedpanel,
+                });
+                let current = SI.Editor.Data.Objects.Language.Current;
+               
+                //debugger;
+                
+                for (let texts of current) {
+                    //debugger;
+                    for (let lang of mylang) {
+                        let col = '_' + lang.toLowerCase();
+                        if (texts[col] && texts[col].length > 0) {
+                            let text = texts[col]
+                            if (texts[col].length > 32) {
+                                text = texts[col].substr(0, 32) + "\u2026";
+                            }
+                            
+                            Ele('option', {
+                                innerHTML: text,
+                                data: {
+                                    id: '0x' + texts.id,
+                                    token: texts.name,
+                                    column: col,
+                                },
+                                appendTo: multilingualselect,
+                            })
+                            break;
+                        }
+                    }
+
+
+                }
+
+
+                Ele("br", { appendTo: advancedpanel});
+                let ignoreInnerlbl = Ele('span', {
+                    innerHTML: 'Ignore innerHTML on Save ',
+                    title:"This is useful when personal data may be present in an element and should not be saved to the block database. eg: Logged In: MyUserName",
+                    class: 'si-edit-panel-label',
+                    appendTo: advancedpanel,
+                });
+                let ignoreInner = Ele('input', {
+                    type: 'checkbox',
+                    id: "si_edit_main_advanced_ignoreinner",
+                    onchange: function (ev) {
+                        //debugger;
+                        if (this.checked) {
+                            SI.Editor.Objects.Elements.Selected.classList.add("si-editable-ignoreinner");
+                        } else {
+                            SI.Editor.Objects.Elements.Selected.classList.remove("si-editable-ignoreinner");
+                        }
+                    },
+                    appendTo: advancedpanel,
+                });
+
+
+                let maintable = Ele("table", {
+                    id: "si_edit_main_shotrcuttable",
+                    class: 'si-edit-property-table',
+                    appendTo: container,
+                });
+
+                //soon to be user selectable shortcuts to often used tools.       
+                SI.Editor.UI.EditPanel.DrawQuickMenuItems(maintable);
+                return container
+            },
+            DrawQuickMenuItems: function(maintable) {
+                maintable.innerHTML = "";
+                let sc = SI.Editor.Data.User.QuickMenuItems;
+                for (let i in sc) {
+                    if (sc.hasOwnProperty(i)) {
+                        let control = sc[i];
+                        let type = control.Type;
+                        let row = SI.Editor.Objects.Elements[type].Widget(control);
+                        if (row != null) {
+                            maintable.appendChild(row);
+                        }
+                    }
+                }
+            },
+            //Draw the attributes tab
+            DrawAttributes: function (e) {
+                var attrsview = Ele('div', {
+                    id: 'si_attribute_view',
+                    class: 'si-edit-panel-body',
+                    
+                });
+                //Tools.StopOverscroll(attrsview); //this is meant to make the screen not scroll past the window. it needs work
+                for (let group in SI.Editor.Data.html_attributes) {
+                    //           console.log(eletype + "  " + prop);
+                    if (SI.Editor.Data.html_attributes.hasOwnProperty(group)) {
+
+                        var attrsbox = Ele('div', {
+                            class: 'si-edit-property-group',
+                            innerHTML: group,
+                        });         
+                        if (group != 'GLOBAL' && group != 'EVENT') {
+                            attrsbox.classList.add('si-attribute-group');
+                            attrsbox.id = 'si_attribute_group_' + group.trim();
+                            attrsbox.style.display = 'none';
+                        }
+                        var attrstable = Ele('table', {class: 'si-edit-property-table'});
+                        for (let attribute in SI.Editor.Data.html_attributes[group]) {
+                            if (SI.Editor.Data.html_attributes[group].hasOwnProperty(attribute)) {
+                                let editableAttributeRow = SI.Editor.Objects.Elements.Attributes.Widget({ "Group": group, "Index": attribute });
+                                if (editableAttributeRow != null) {
+                                    attrstable.appendChild(editableAttributeRow);                                 
+                                }
+                            }
+                        }
+                        
+                        attrsbox.appendChild(attrstable);
+                        attrsview.appendChild(attrsbox);
+                        
+                    }
+                }
+                return attrsview;
+
+            },
+            //Draw the styles tab
+            DrawStyles : function (e) {
+
+                var styleview = Ele('div', {
+                    id: 'si_style_view',
+                    class: 'si-edit-panel-body',
+                });
+                
+               // var eletype = ele.tagName.toLowerCase();
+                //Loop through all of the groups of styles
+                for (let group in SI.Editor.Data.css_properties) {
+                    if (SI.Editor.Data.css_properties.hasOwnProperty(group)) {
+                        if (!group.startsWith("Pseudo") && group!=="At Selectors" ) {
+                            //Make the group box
+                            let stylebox = Ele('div', {
+                                class: 'si-edit-property-group',
+                                innerHTML: group,
+                                appendTo: styleview,
+                            });
+                            let styletable = Ele('table', {
+                                class: 'si-edit-property-table',
+                                appendTo: stylebox,
+                            });
+                            //Loop through all of the possible styles and create a user interface for them :)
+                            for (let css in SI.Editor.Data.css_properties[group]) {
+                                if (SI.Editor.Data.css_properties[group].hasOwnProperty(css)) {
+                                    var editableChoiceRow = SI.Editor.Objects.Elements.Styles.Widget({ "Group": group, "Index": css });
+                                    if (editableChoiceRow != null) {
+                                        styletable.appendChild(editableChoiceRow);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return styleview;
+            },
+
+            //When a element is selected, update ALL the Attributes and styles UIs to reflect the elements values.
+            SetSelectedElementValues: function (element) {
+                //debugger;
+                //CONFIG the menu
+                //In the attributes menu we have tag specific attributes. We only want to show the Global, Event, and Tag specific attributes.
+                //first hide all attribute groups.
+                //debugger;
+                SI.Tools.Class.Loop("si-attribute-group", function (ag) {
+                    ag.style.display = 'none';
+                });
+                //if the tags attribute list exists, show it
+                //debugger;
+                let tag = element.tagName.toLowerCase();
+                let group = document.getElementById("si_attribute_group_" + tag);
+                if (group != null) {
+                    group.style.display = 'block';
+                }
+                //good thing all styles are global...
+
+                //clear all the data from the attributes and style lists. 
+                SI.Editor.UI.EditPanel.Clear.Attributes();
+                SI.Editor.UI.EditPanel.Clear.Styles();
+                //debugger;
+                //Loop through all the element's attributes and styles and set what ever we can in the UI so we see what they have
+                for (let i = 0; i < element.attributes.length; i++) {
+                    var attrib = element.attributes[i];
+                    if (attrib.specified) {
+                       //if it is not a global attr then try to find it as it tag name
+                        let fields = document.getElementsByClassName("si-edit-attribute-GLOBAL-" + attrib.name);
+                        //if it is not a global attr then try to find it as it tag name
+                        if (!fields) { 
+                            fields = document.getElementsByClassName("si-edit-attribute-" + element.tagName.toLowerCase() + "-" + attrib.name);
+                        }
+                        if (fields) {
+                            for (let field in fields) {
+                                if (fields.hasOwnProperty(field)) {
+                                    if (attrib.name.startsWith('data-')) {
+                                        //add the elements styles here
+                                    }
+                                    //Handle showing the inline styles
+                                    else if (attrib.name == 'style') {
+                                    
+                                        var parts = attrib.value.split(";");
+                                        for (let j = 0; j < parts.length; j++) {
+                                            let kvp = parts[j].split(':');
+                                            if (kvp.length > 1) {
+                                                //debugger;
+                                                let sty = kvp[0];
+                                                //    var inputs = document.querySelectorAll("." + "si-edit-style-" + sty);
+                                                let inputs = document.getElementsByClassName("si-edit-style-" + kvp[0].trim());
+                                                for (let k = 0; k < inputs.length; k++) {
+                                                    inputs[k].value = kvp[1];
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (attrib.name == 'class') {
+                                        fields[field].value = attrib.value.replace(/class="si-editable-element"/g, "").replace(/si-editable-element/g, "").replace("si-editor-selected", "");
+                                    }
+                                    else {
+                                        fields[field].value = attrib.value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //since these are not technically attributes but I want to show them none the less. 
+                let tagname = document.getElementsByClassName("si-edit-attribute-GLOBAL-tag");
+                for (let i = 0; i < tagname.length; i++) {
+                    tagname[i].value = tag;
+                }
+                let innerHtmls = document.getElementsByClassName("si-edit-attribute-GLOBAL-innerHTML");
+                let innerTexts = document.getElementsByClassName("si-edit-attribute-GLOBAL-innerText");
+                //debugger;
+                if (!SI.Tools.Is.EmptyElement(tag)) {
+                    //disable the ignore inner checkbox
+                    document.getElementById('si_edit_main_advanced_ignoreinner').disabled = false;                  
+                    if (element.classList.contains("si-editable-ignoreinner")) {
+                        document.getElementById('si_edit_main_advanced_ignoreinner').checked = true;
+                    } else {
+                        document.getElementById('si_edit_main_advanced_ignoreinner').checked = false;
+                    }
+                    for (let i = 0; i < innerHtmls.length; i++) {
+                        var html = element.innerHTML;
+                        html = html.replace(/class='si-editable-element'/g, "").replace(/si-editable-element/g, "");
+                        innerHtmls[i].disabled = false;
+                        innerHtmls[i].value = html;
+                    }                   
+                    for (let i = 0; i < innerTexts.length; i++) {
+                        var children = element.children;
+                        for (let j = 0; j < children.length; j++) {
+                            innerTexts[i].disabled = false;
+                            var child = children[j];
+                            if (child.nodeType != Node.TEXT_NODE) {
+                                innerTexts[i].disabled = true;
+                            }
+                        }
+                        innerTexts[i].value = element.innerText;
+                    }
+                } else {
+                    document.getElementById('si_edit_main_advanced_ignoreinner').disabled = true;
+
+                    for (let html of innerHtmls) {
+                        html.value = "This type of element cannot accept inner text or child elements";
+                        html.disabled = true;
+                    }
+                    for (let txt of innerTexts) {
+                        txt.value = "This type of element cannot accept inner text";
+                        txt.disabled = true;
+                    }
+                }
+
+                //debugger;
+                let mlsel = document.getElementById('si_edit_main_advanced_mlselect');
+                if (element.classList.contains('si-multilingual')) {
+                    let mlIn = parseInt(element.dataset.si_ml_index)+1;
+                    mlsel.selectedIndex = mlIn;//  selectedIndex = mlIn + 1;//minus 1 for the first blank row
+                    for (let i = 0; i < innerHtmls.length; i++) {
+                        innerHtmls[i].disabled = true;
+                        innerHtmls[i].title = "You will need to edit multilingual text from the language tool.";
+                    }  
+                } else {
+                    for (let i = 0; i < innerHtmls.length; i++) {
+                        innerHtmls[i].removeAttribute('disabled');
+                        innerHtmls[i].removeAttribute('title');
+                    }  
+                    mlsel.selectedIndex =0;//
+                }
+
+
+                let stylefield = document.getElementsByClassName("si-edit-attribute-GLOBAL-style");
+                for (let i = 0; i < stylefield.length; i++) {
+                    stylefield[i].value = element.style.cssText;
+                }
+            },
+            //Clears the Attributes or the Styles
+            Clear: {
+                Attributes: function () {
+                    document.querySelectorAll("#si_edit_edit_menuitem .si-edit-attribute").forEach(function (ele) {
+                        if (ele.dataset.siPreserve !== 'true') {
+                            if (ele.type === 'checkbox' || ele.type === 'radio') ele.checked = false;
+                            else ele.value = "";
+                        }
+                    });
+                },
+                Styles: function () {
+                   document.querySelectorAll("#si_edit_edit_menuitem .si-edit-style").forEach(function (ele) {
+                       if (ele.dataset.siPreserve !== 'true') {
+                           ele.value = "";
+                       }
+                    });
+                },
+            }
+        },
+        ToolsPanel: {
+            ToolWindows: ["Page", "Media", "Site", "Styler", "Scripter", "Widgets", "Language", "Entities", "Plugins", "Security", "Users","Settings"],
+            Init: function () {
+                //Tools Menu	
+                //Make a div for the tools panel
+                var toolsMenu = Ele('div', {
+                    id: 'si_edit_tools_menuitem',
+                    style: {display: 'none'}
+                });
+
+                //put a table in it so stuff stacks nice
+                var toolsMenuTable = Ele('table', {class: 'si-editor-menu-list'});
+
+                for (let i in SI.Editor.UI.ToolsPanel.ToolWindows) {
+                 //   debugger;
+                    let title = SI.Editor.UI.ToolsPanel.ToolWindows[i];
+
+                    var menuRow = toolsMenuTable.insertRow(i);
+                    var menuItem = menuRow.insertCell(0);
+                    menuItem.className = 'si-editor-menu-action';
+                    menuItem.innerHTML = title;
+                    menuItem.id = 'si_edit_'+title.toLowerCase()+"_trigger";
+                    menuItem.onclick = SI.Editor.UI.ToolsPanel.OpenToolWindow;
+                }
+                toolsMenu.appendChild(toolsMenuTable);
+                SI.Editor.UI.MainMenu.Element.appendChild(toolsMenu);          
+            },
+            OpenToolWindow:function(title = null, show = true){     
+                //if called from the event, title will be the event.   
+                if(title.target){
+                    title = this.innerHTML;
+                }
+                let winid = "si_edit_"+title.toLowerCase()+"_window";   //"si_edit_media_window"
+                if(!SI.Widgets.Window[winid]){
+                    let options;
+                    switch(title){
+                        case "Page":
+                            options = {
+                            Id: "si_edit_page_window",
+                            Title: "Page",
+                            Populate: SI.Editor.Objects.Page.Draw,
+                            Trigger: '#si_edit_page_trigger',
+                            IconImg: '/editor/media/icons/page.png'
+                            };
+                            break;
+                        case  "Media":
+                            options = {
+                                Id: "si_edit_media_window",
+                                Trigger: '#si_edit_tools_media',
+                                Title: "Media",
+                                Trigger: '#si_edit_media_trigger',
+                                IconImg: '/editor/media/icons/window-media.png',
+                                Populate: SI.Editor.Objects.Media.Draw,
+                                Resize:SI.Editor.Objects.Media.Resize,
+                            };
+                            break;
+                        case  "Site":
+                            options = {
+                                Id: "si_edit_site_window",
+                                Trigger: '#si_edit_site_trigger',
+                                Title: "Site",
+                                IconImg: '/editor/media/icons/site.png',
+                                Populate: SI.Editor.Objects.Site.Draw
+                            };
+                            break;
+                        case "Styler":
+                            options = {
+                                Id: "si_edit_styler_window",
+                                Trigger: '#si_edit_styler_trigger',
+                                Title: "Styler",
+                                IconImg: '/editor/media/icons/stylebutton.png',
+                                Overflow: "hidden",
+                                Populate:SI.Editor.Objects.Styler.Draw
+                            };
+                            break;
+                        case "Scripter":
+                            options = {
+                                Id: "si_edit_scripter_window",
+                                Trigger: '#si_edit_scripter_trigger',
+                                IconImg: '/editor/media/icons/scripter-code.png',
+                                Title: "Scripter",
+                                Error: "This tool has issues with some browsers. It works fine in Chrome and Edge based on Chromium, Firefox has trouble parsing some of the regular expresions used.",
+                                Populate:SI.Editor.Objects.Scripter.Draw                                    };
+                            break;
+                        case "Widgets":
+                            options = {
+                                Id: "si_edit_widgets_window",
+                                Trigger: '#si_edit_widgets_trigger',
+                                IconImg: '/editor/media/icons/widgets.png',
+                                Title: "Widgets",
+                                Populate:SI.Editor.Objects.Widgets.Draw
+                            };
+                            break;
+                        case "Language":
+                            options = {
+                                Id: "si_edit_language_window",
+                                Trigger: '#si_edit_language_trigger',
+                                IconImg: '/editor/media/icons/language.png',
+                                Title: "Language",
+                                Populate:SI.Editor.Objects.Language.Draw
+                            };
+                            break;
+                        case "Entities":
+                            options = {
+                                Id: "si_edit_entities_window",
+                                Trigger: '#si_edit_entities_trigger',
+                                Title: "Entities",
+                                Overflow: "scroll",
+                                Resize: SI.Editor.Objects.Entity.Resize,
+                                Populate:SI.Editor.Objects.Entity.Draw
+                            };
+                            break;
+                        case "Plugins":
+                            options = {
+                                Id: "si_edit_plugins_window",
+                                Trigger: '#si_edit_plugins_trigger',
+                                Title: "Plugins",
+                                IconImg: '/editor/media/icons/plugins.png',
+                                ResizeThickness: 5,
+                                Resize:  SI.Editor.Objects.Plugins.Resize,
+                                Populate: SI.Editor.Objects.Plugins.Draw,
+                            };
+                            break;
+                        case "Security":
+                            options = {
+                                Id: "si_edit_security_window",
+                                Trigger: '#si_edit_security_trigger',
+                                Title: "Security",
+                                IconImg: '/editor/media/icons/securityroles.png',
+                                Populate: SI.Editor.Objects.Security.Draw
+                            };
+                            break;
+                        case "Users":
+                            options = {
+                                Id: "si_edit_users_window",
+                                Trigger: '#si_edit_users_trigger',
+                                Title: "Users",
+                                Width: '900px',
+                                Populate: SI.Editor.Objects.User.Draw
+                            };
+                            break;
+                        case "Settings":
+                            options = {
+                                Id: "si_edit_settings_window",
+                                Trigger: '#si_edit_settings_trigger',
+                                Title: "Settings",
+                                Populate: SI.Editor.Objects.Settings.Draw
+                            };
+                            break;
+                    }
+                    if(options){
+                        try{
+                            new SI.Widget.Window(options);
+                        }catch(er){
+                            SI.Tools.SuperAlert("Error loading "+title+": "+er.message, 4000);
+                            if(options.Error){
+                                setTimeout(function(){
+                                    SI.Tools.SuperAlert(options.Error, 4000);
+                                },4500)
+                            }
+                        }
+                    }
+                }
+                if (SI.Widgets.Window[winid].IsVisible()) {
+                    SI.Widgets.Window[winid].Hide();
+                    return;
+                }
+                if(show){
+                    SI.Widgets.Window[winid].Show();
+                }
+            },
+        },
+    },
+    Objects: {
+    // Mystery how this is not being defined above. 
+    },
+    Ajax: {
+        Run: function(options) {
+            this.Defaults = {
+                "Url": "/delegate-admin.php",
+                "ContentType": "application/json",
+                "Method": "POST",
+                "Async": true,
+                "Data": {},
+            }
+            options = SI.Tools.Object.SetDefaults(options, this.Defaults);
+            let ajax = new XMLHttpRequest();
+            //debugger;
+            ajax.open(options.Method, options.Url, options.Async);
+            ajax.setRequestHeader("Content-Type", options.ContentType);
+            if (window.SI && SI.CSRF && SI.CSRF.Token) {
+                ajax.setRequestHeader("X-SI-CSRF", SI.CSRF.Token);
+            }
+            ajax.onreadystatechange = function () {
+                if (ajax.readyState === 4 && ajax.status === 200) {
+                      //debugger;
+                    try {
+                        if (ajax.responseText != null && ajax.responseText.length > 0) {
+                           // console.log(ajax.responseText);
+                            let json = JSON.parse(ajax.responseText.trim());
+                            SI.Editor.Ajax.Complete(json,options);
+                        }
+                    } catch (ex) {
+                        console.error(ajax.responseText);
+                        console.error(ex);
+                        //  document.body.appendText(xhr.responseText);
+                    }
+
+                }
+            };
+            let stringdata = JSON.stringify(options.Data);
+            //debugger;
+            ajax.send(stringdata);
+            return ajax;
+        },
+        Complete: function (json,options) {
+            //debugger;
+            if(options.Callback){
+                    if(json.hasOwnProperty("PARAMETER")){
+                        let param = json['PARAMETER'];
+                        options.Callback(param);
+                    }
+                    else{
+                        options.Callback();
+                    }
+            }else{
+
+                for (let prop in json) {
+                    if (json.hasOwnProperty(prop)) {
+                        let value = json[prop];
+                        switch (prop) {
+                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
+                            case "EXCEPTION": alert(JSON.stringify(value)); break;
+                            case "REFRESH": location.reload(); break;
+                            case "CONSOLELOG": console.log(value); break;
+                            //
+                            case "PAGECREATED": SI.Editor.Objects.Page.Created(value); break;
+                            case "PAGESAVED": SI.Editor.Objects.Page.Saved(value); break;
+                            //Blocks
+                            case "BLOCKRELATED": SI.Editor.Objects.Blocks.Created(value); break;
+                            case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value); break; 
+                            case "BLOCKREMOVED": console.log(value); break; 
+
+                            //Common
+                            case "PROMOTED": SI.Editor.Data.Objects.Deployment.Promoted(value, options); break;
+
+                            //Media
+                            case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;
+                            //Language
+                            case 'ADDEDLANGUAGE': SI.Editor.Objects.Language.Added(value); break;
+                            case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
+                            //User
+                            case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
+                            case 'PASSWORDCHANGED': if (value === true) { SI.Tools.SuperAlert('Password changed.', 2000); } break;
+                            case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
+                            case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
+                            case 'ERROR': SI.Tools.SuperAlert(value, 4000); break;
+                            //Security
+                            case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
+                            case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
+                            //Plugins
+                            case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
+                            case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
+                            case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
+                            case 'INSTALLPLUGINFAILED': alert('Plugin install has failed'); break;
+                            case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
+                            case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
+                            //Settings
+                            case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
+                            case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;
+                            case 'BUILDINSTALLER': SI.Tools.SuperAlert(value, 2000); break;
+                            case 'BACKUPDATABASE': SI.Tools.SuperAlert(value, 2000); break;
+                        }
+                    }
+                }
+            }
+            //console.log(json);
+            //check for lookups
+            if(SI.Widgets.Lookup.Lookup){
+                SI.Widgets.Lookup.Lookup.CheckLookups();
+            }
+        } 
+    }
+}
+SI.Editor.Run();
+

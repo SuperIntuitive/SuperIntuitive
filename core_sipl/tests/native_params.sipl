@@ -1,0 +1,8 @@
+use SqlCases
+fn start() {
+    // SQLite exists only inside this disposable parameter API test, never in the backend.
+    let connection = sql.memory()
+    let checks = SqlCases.run(connection)
+    connection.close()
+    print("SIPL native parameter/transaction checks passed (in-memory test only): {checks}")
+}

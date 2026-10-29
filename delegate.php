@@ -24,22 +24,40 @@ if($_SERVER['REQUEST_METHOD'] !== 'POST'){
 }
 
 $post = json_decode( file_get_contents("php://input"), true);
+if(!is_array($post) || !isset($post['KEY']) || !is_string($post['KEY'])){
+	http_response_code(400);
+	header('Content-Type: application/json; charset=UTF-8');
+	echo json_encode(array('outcome' => false, 'message' => 'A JSON object with a request key is required.'));
+	exit();
+}
+header('Content-Type: application/json; charset=UTF-8');
+header('Cache-Control: no-store');
 $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] = array();
 $_SESSION['AJAXRETURN'] = array();
 //$dbc = new Database();
 
 Tools::Log("IN DELEGATE.");
-Tools::Log($post);
 
-$csrfExemptKeys = array('SetupSuperIntuitive', 'TestDatabase', 'TestDomain');
-if(isset($post['KEY']) && !in_array($post['KEY'], $csrfExemptKeys, true) && !Tools::ValidateCsrfToken()){
+if(!Tools::ValidateCsrfToken()){
 	http_response_code(403);
-	echo json_encode(array(array('ERROR' => 'Invalid request token. Refresh the page and try again.')));
+	echo json_encode(array('outcome' => false, 'code' => 'CSRF_INVALID',
+        'csrf' => Tools::GetCsrfToken(),
+        'message' => in_array($post['KEY'], array('AuthorizeSetup', 'SetupSuperIntuitive', 'TestDatabase', 'TestDomain'), true)
+            ? 'Your setup session has changed or expired. Authorize setup again in Step 1.'
+            : 'Invalid request token. Refresh the page and try again.'));
 	exit();
 }
 
-$setupKeys = array('SetupSuperIntuitive', 'TestDatabase', 'TestDomain');
+$setupKeys = array('AuthorizeSetup', 'SetupSuperIntuitive', 'TestDatabase', 'TestDomain');
 if(isset($post['KEY']) && in_array($post['KEY'], $setupKeys, true)){
+	if($post['KEY'] === 'SetupSuperIntuitive'){
+		$setupLock = fopen(__DIR__.'/core/setup.lock', 'c');
+		if($setupLock === false || !flock($setupLock, LOCK_EX | LOCK_NB)){
+			http_response_code(409);
+			echo json_encode(array('outcome' => false, 'message' => 'Another installation is in progress.'));
+			exit();
+		}
+	}
 	$db = new Database();
 	$installState = $db->GetInstallState();
 	if($installState !== Database::INSTALL_STATE_FRESH){
@@ -51,6 +69,30 @@ if(isset($post['KEY']) && in_array($post['KEY'], $setupKeys, true)){
 		echo json_encode(array(array('ERROR' => $message, 'INSTALLSTATE' => $installState)));
 		exit();
 	}
+	if($post['KEY'] === 'AuthorizeSetup'){
+        if(!SetupAuthorization::IsAuthorized()){
+            if(!RateLimit::RequireAllowance('setup-authorization', 30, 300)){
+                echo json_encode(array('outcome' => false, 'code' => 'SETUP_RATE_LIMIT', 'message' => 'Too many authorization attempts. Wait five minutes and try again.'));
+                exit();
+            }
+            if(!SetupAuthorization::Authorize(Tools::GetRequestHeader('X-SI-Setup'))){
+                http_response_code(403);
+                echo json_encode(array('outcome' => false, 'code' => 'SETUP_KEY_INVALID', 'message' => 'The installation key does not match this server. Check the configured key and try again.'));
+                exit();
+            }
+        }
+        echo json_encode(array('outcome' => true, 'authorized' => true, 'csrf' => Tools::GetCsrfToken()));
+        exit();
+    }
+    if(!SetupAuthorization::IsAuthorized()){
+        http_response_code(403);
+        echo json_encode(array('outcome' => false, 'code' => 'SETUP_AUTH_REQUIRED', 'message' => 'Authorize setup in Step 1 to continue. Your other settings can stay in this form.'));
+        exit();
+    }
+    if(!RateLimit::RequireAllowance('setup-actions', 60, 300)){
+        echo json_encode(array('outcome' => false, 'code' => 'SETUP_RATE_LIMIT', 'message' => 'Too many setup requests. Wait five minutes and try again.'));
+        exit();
+    }
 }
 
 if(isset($post['KEY'])){

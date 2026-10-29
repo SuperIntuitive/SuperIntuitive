@@ -221,6 +221,10 @@ _pkginfo.txt
 
 # SuperIntuitive local runtime state
 /core/DbCreds.php
+/core/install.lock
+/core/setup.lock
+/core/setup.token
+/*cookies.txt
 /domains/
 /logs/
 /plugins/downloaded/
@@ -228,6 +232,7 @@ _pkginfo.txt
 /sql/backups/
 /sql/installer/
 /.env
+/.env.*
 ClientBin/
 ~$*
 *~
@@ -369,3 +374,6 @@ web.config
 /sql/installer/*
 
 /plugins.superintuitive.net/
+
+# Built application distributions
+/dist/

@@ -1,0 +1,41 @@
+use Config
+use Sessions
+use Tools
+use RateLimit
+
+fn expected() -> String {
+    let configured = Config.get("setupToken", "")
+    if bytes.encodeUtf8(configured).length >= 32 and bytes.encodeUtf8(configured).length <= 256 { return configured }
+    let location = Config.root("core/setup.token")
+    if fs.isFile(location) and fs.size(location) <= 257 {
+        let token = fs.readText(location).trim()
+        if bytes.encodeUtf8(token).length >= 32 and bytes.encodeUtf8(token).length <= 256 { return token }
+    }
+    return ""
+}
+
+fn locked() -> Bool { return fs.exists(Config.root("core/install.lock")) }
+
+fn authorize(request: Map) -> Map {
+    if locked() { fail("INSTALLER_LOCKED") }
+    if not RateLimit.allow("setup", 30, 300) { return {"ERROR": "Too many setup authorization attempts.", "code": "RATE_LIMITED"} }
+    let token = expected()
+    if token.isEmpty or not Tools.secureEquals(token, request["headers"].get("x-si-setup", "")) { fail("SETUP_KEY_INVALID") }
+    web.sessionRotate(request)
+    web.sessionSet(request, Sessions.key("csrf"), auth.randomToken(32))
+    web.sessionSet(request, Sessions.key("setup"), {"authorized_at": Tools.now(), "last_activity": Tools.now(), "key": token})
+    return {"outcome": true, "authorized": true, "csrf": Sessions.csrf(request)}
+}
+
+fn allowed(request: Map) -> Bool {
+    if locked() { return false }
+    let current = web.sessionGet(request, Sessions.key("setup"), none)
+    if current == none { return false }
+    let now = Tools.now()
+    if current["authorized_at"] > now or current["last_activity"] > now or now - current["authorized_at"] >= 43200 or now - current["last_activity"] >= 1800 or not Tools.secureEquals(current["key"], expected()) {
+        web.sessionRemove(request, Sessions.key("setup"))
+        return false
+    }
+    current["last_activity"] = now
+    return true
+}

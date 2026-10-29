@@ -1,0 +1,24 @@
+use ../src/Config
+use ../src/Runtime
+use SqlCases
+fn start() {
+    Config.load()
+    if not Runtime.inspect()["mysqlDriver"] { fail("MYSQL_TEST_BLOCKED_CONNECTOR_BUILD") }
+    let dsn = Config.get("dsn", "")
+    if dsn.isEmpty { fail("MYSQL_TEST_BLOCKED_NO_CONFIGURATION") }
+    let connection = sql.connect(dsn, Config.get("dbUser", ""), Config.get("dbPassword", ""))
+    assert(connection.driver == "mysql", "MySQL integration test requires the native MySQL connector")
+    let checks = SqlCases.run(connection)
+    connection.query("SELECT HEX(UNHEX(:id)), JSON_VALID(:options)", {"id": "abcdef0123456789abcdef0123456789", "options": json.stringify({"style": {:}, "widgets": {:}})})
+    assert(connection.rows[0][0].toLower() == "abcdef0123456789abcdef0123456789", "Binary GUID parameter compatibility")
+    assert(connection.rows[0][1] == 1, "MySQL accepts generated object JSON")
+    var tlsChecks = 0
+    if Config.get("requireTls", false) {
+        connection.query("SHOW SESSION STATUS LIKE 'Ssl_cipher'", {:})
+        assert(connection.rows.length == 1 and not connection.rows[0][1].isEmpty, "TLS must protect the test connection")
+        tlsChecks = 1
+        print("TLS cipher: " + connection.rows[0][1])
+    }
+    connection.close()
+    print("SIPL live MySQL temporary-table checks passed: " + "{checks + 2 + tlsChecks}")
+}

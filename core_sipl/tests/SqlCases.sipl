@@ -1,0 +1,64 @@
+use ../src/Tools
+
+var _checks = 0
+fn check(value: Bool, message: String) {
+    assert(value, message)
+    _checks += 1
+}
+fn rejects(operation: Function, message: String) {
+    var rejected = false
+    try { operation() }
+    fail { rejected = true }
+    check(rejected, message)
+}
+
+// The MySQL path uses a connection-local temporary table only. No CMS table is touched.
+fn run(connection) -> Int {
+    _checks = 0
+    let name = "si_sipl_probe_" + Tools.newGuid()
+    let table = "`" + name + "`"
+    connection.execute("CREATE TEMPORARY TABLE " + table + " (id INT PRIMARY KEY, content TEXT, options TEXT, enabled INT, missing TEXT, score DOUBLE)")
+    try {
+        let content = "O'Reilly \\ path 🚀 日本語 '); DROP TABLE users; --"
+        let value: Map = {"tag": "div", "style": {:}, "settings": {"bool": false, "missing": none, "array": [], "object": {:}, "text": content}}
+        let encoded = json.stringify(value, true)
+        check(connection.execute("INSERT INTO " + table + " VALUES(:id,:content,:options,:enabled,:missing,:score)", {"id": 1, "content": content, "options": encoded, "enabled": false, "missing": none, "score": 9.25}) == 1, "Native named insert count")
+        connection.query("SELECT content,options,enabled,missing,score FROM " + table + " WHERE id=?", [1])
+        let row = connection.rows[0]
+        check(row[0] == content, "Native binding preserves quotes, slashes, Unicode and injection text")
+        check(row[1] == encoded, "JSON bytes survive native binding without extra encoding")
+        check(row[2] == 0 and row[3] == none and row[4] == 9.25, "Native Bool, None and Float binding")
+        let decoded = json.parse(row[1])
+        check(decoded["settings"]["object"].type == "Map" and decoded["settings"]["array"].type == "List", "Native JSON object and array remain distinct")
+        check(decoded["settings"]["missing"] == none and decoded["settings"]["bool"] == false, "Native JSON null and false remain distinct")
+        connection.query("SELECT ':ignored' AS literal, :value AS first_value, :value AS second_value /* :comment */ -- :line\n", {"value": content})
+        check(connection.rows[0] == [":ignored", content, content], "Repeated names and markers in literals/comments")
+        connection.query("SELECT :value", {":value": "colon key"})
+        check(connection.rows[0][0] == "colon key", "Leading colon map key")
+        rejects(fn() { connection.query("SELECT :missing", {:}) }, "Missing parameters fail")
+        rejects(fn() { connection.query("SELECT :value", {"value": 1, "unused": 2}) }, "Unused parameters fail")
+        rejects(fn() { connection.query("SELECT :value", {"value": 1, ":value": 2}) }, "Ambiguous parameter names fail")
+        rejects(fn() { connection.query("SELECT :a, ?", {"a": 1}) }, "Mixed placeholder styles fail")
+        rejects(fn() { connection.query("SELECT ?", []) }, "Positional parameter count is checked")
+        connection.begin()
+        connection.execute("UPDATE " + table + " SET content=:content WHERE id=:id", {"content": "rolled back", "id": 1})
+        connection.rollback()
+        connection.query("SELECT content FROM " + table + " WHERE id=1")
+        check(connection.rows[0][0] == content, "Native rollback restores prior value")
+        connection.begin()
+        connection.execute("UPDATE " + table + " SET content=? WHERE id=?", ["committed", 1])
+        connection.commit()
+        connection.query("SELECT content FROM " + table + " WHERE id=1")
+        check(connection.rows[0][0] == "committed", "Native commit persists value")
+        connection.execute("INSERT INTO " + table + " (id,content) VALUES(?,?)", [2, "null"])
+        connection.query("SELECT content FROM " + table + " WHERE id=2")
+        check(connection.rows[0][0] == "null", "String null remains text")
+    } fail {
+        if connection.driver == "mysql" { connection.execute("DROP TEMPORARY TABLE " + table) }
+        else { connection.execute("DROP TABLE " + table) }
+        fail(fail)
+    }
+    if connection.driver == "mysql" { connection.execute("DROP TEMPORARY TABLE " + table) }
+    else { connection.execute("DROP TABLE " + table) }
+    return _checks
+}

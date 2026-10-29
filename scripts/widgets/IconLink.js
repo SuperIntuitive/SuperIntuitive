@@ -5,7 +5,7 @@ SI.Widget.IconLink = function  (options) {
     options = typeof options !== 'undefined' ? options : {};
     if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Window");}
     this.Input = {...options};
-    SI.Widgets.Window[this.Id] = this;
+    SI.Widgets.IconLink[this.Id] = this;
     let self = this;
 
     this.Defaults = {

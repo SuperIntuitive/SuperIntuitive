@@ -86,9 +86,8 @@ SI.Widget.Field = function  (options) {
         id: this.Id+"_input",
         value: this.Options.Value,
         onchange: function (ev) {
-            debugger;
-            if (self.options.OnChange) {
-                self.options.OnChange(ev, this);
+            if (self.Options.OnChange) {
+                self.Options.OnChange(ev, this);
             }
             if (self.Options.Entity && this.name.length>0) {
                 if (SI.Tools.Object.GetIfExists("SI.User.Preferences.autosave")) {
@@ -116,8 +115,8 @@ SI.Widget.Field = function  (options) {
         case "optionset":
             input.tag = "select";
             input.onchange = function (ev) {
-                if (self.options.OnChange) {
-                    self.options.OnChange(ev, this);
+                if (self.Options.OnChange) {
+                    self.Options.OnChange(ev, this);
                 }
 
             };
@@ -140,8 +139,8 @@ SI.Widget.Field = function  (options) {
                 tag = "input";
                 input.type = "number";
                 input.oninput = function (ev) {
-                    if (self.options.OnChange) {
-                        self.options.OnChange(ev, this);
+                    if (self.Options.OnChange) {
+                        self.Options.OnChange(ev, this);
                     }
                 };
                 break;
@@ -162,5 +161,7 @@ SI.Widget.Field = function  (options) {
 
 
 
+    this.Container = container;
+    if (parent) parent.appendChild(container);
     return container;
 };

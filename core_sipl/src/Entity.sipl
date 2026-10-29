@@ -1,0 +1,157 @@
+use Database
+use Tools
+use Security
+
+fn definition(context: Map, name: String) -> Map {
+    Tools.identifier(name)
+    Security.scope(context, name)
+    if not context["schema"].contains(name) { fail("UNKNOWN_ENTITY") }
+    return context["schema"][name]
+}
+
+fn binary(column: String) -> Bool { return column == "id" or column.endsWith("_id") or column == "createdby" or column == "modifiedby" or column == "hash" }
+
+fn bindBinary(value, column: String) -> String {
+    if column != "hash" { return Tools.guid(value) }
+    if value.type != "String" { fail("INVALID_HASH") }
+    var normalized = value.toLower()
+    if normalized.startsWith("0x") { normalized = normalized.slice(2) }
+    if normalized.length != 40 or not regex.compile("^[0-9a-f]+$").isMatch(normalized) { fail("INVALID_HASH") }
+    return normalized
+}
+
+fn column(context: Map, name: String, input: String, deploy: Bool) -> String {
+    let meta = definition(context, name)
+    var resolved = input
+    if deploy and meta["attributes"].contains(input) {
+        if meta["attributes"][input].get("deployable", "false") == "true" { resolved = context["deployment"] + "-" + input }
+    }
+    if not meta["columns"].contains(resolved) { fail("UNKNOWN_COLUMN") }
+    if not regex.compile("^[A-Za-z_][A-Za-z0-9_-]*$").isMatch(resolved) { fail("INVALID_IDENTIFIER") }
+    return resolved
+}
+
+fn selectColumns(context: Map, name: String, requested) -> List {
+    let meta = definition(context, name)
+    var fields = []
+    if requested == none or requested == "_ALL_" { fields = meta["attributes"].keys() }
+    else if requested.type == "List" { fields = requested }
+    else if requested.type == "String" { fields = requested.split(",") }
+    else { fail("INVALID_COLUMNS") }
+    let expressions = []
+    for entry in fields {
+        let field = Tools.text(entry, "").trim()
+        let resolved = column(context, name, field, true)
+        var expression = "`" + resolved + "`"
+        if binary(resolved) { expression = "LOWER(HEX(" + expression + "))" }
+        expressions.push(expression + " AS `" + field + "`")
+    }
+    if expressions.isEmpty { fail("INVALID_COLUMNS") }
+    return expressions
+}
+
+fn retrieve(context: Map, name: String, id, attributes: Map, requested) -> List {
+    Security.demand(context, name, "read")
+    let expressions = selectColumns(context, name, requested)
+    let filters = ["entity_id=UNHEX(:_scope)"]
+    let parameters: Map = {"_scope": Security.scope(context, name)}
+    if id != none {
+        filters.push("id=UNHEX(:_id)")
+        parameters["_id"] = Tools.guid(id)
+    }
+    for field, value in attributes {
+        let resolved = column(context, name, field, false)
+        let parameter = "p" + "{parameters.length}"
+        if value == none { filters.push("`" + resolved + "` IS NULL") }
+        else {
+            var expression = ":" + parameter
+            var bound = value
+            if binary(resolved) { expression = "UNHEX(" + expression + ")"
+                bound = bindBinary(value, resolved) }
+            filters.push("`" + resolved + "`=" + expression)
+            parameters[parameter] = bound
+        }
+    }
+    return Database.query("SELECT " + expressions.join(",") + " FROM `" + name + "` WHERE " + filters.join(" AND "), parameters)
+}
+
+fn encode(value, field: String) {
+    if field.endsWith("options") { return Tools.options(value) }
+    if value.type == "Map" or value.type == "List" { return json.stringify(value) }
+    return value
+}
+
+fn update(context: Map, name: String, id: String, attributes: Map) -> Bool {
+    Security.demand(context, name, "write")
+    definition(context, name)
+    let assignments = []
+    let parameters: Map = {"_scope": Security.scope(context, name), "_id": Tools.guid(id)}
+    for field, value in attributes {
+        if field == "id" or field == "entity_id" { fail("IMMUTABLE_OWNERSHIP") }
+        let resolved = column(context, name, field, false)
+        let parameter = "p" + "{parameters.length}"
+        var expression = ":" + parameter
+        var bound = encode(value, resolved)
+        if binary(resolved) and value != none { expression = "UNHEX(" + expression + ")"
+                bound = bindBinary(value, resolved) }
+        assignments.push("`" + resolved + "`=" + expression)
+        parameters[parameter] = bound
+    }
+    if assignments.isEmpty { return false }
+    let exists = Database.one("SELECT 1 AS found FROM `" + name + "` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)", {"id": Tools.guid(id), "scope": Security.scope(context, name)})
+    if exists == none { return false }
+    Database.execute("UPDATE `" + name + "` SET " + assignments.join(",") + " WHERE id=UNHEX(:_id) AND entity_id=UNHEX(:_scope)", parameters)
+    return true
+}
+
+fn create(context: Map, name: String, attributes: Map) -> String {
+    Security.demand(context, name, "create")
+    definition(context, name)
+    let id = Tools.newGuid()
+    let columns = ["`id`", "`entity_id`"]
+    let placeholders = ["UNHEX(:_id)", "UNHEX(:_scope)"]
+    let parameters: Map = {"_scope": Security.scope(context, name), "_id": id}
+    for field, value in attributes {
+        if field == "id" or field == "entity_id" { fail("IMMUTABLE_OWNERSHIP") }
+        let resolved = column(context, name, field, false)
+        let parameter = "p" + "{parameters.length}"
+        var expression = ":" + parameter
+        var bound = encode(value, resolved)
+        if binary(resolved) and value != none { expression = "UNHEX(" + expression + ")"
+                bound = bindBinary(value, resolved) }
+        columns.push("`" + resolved + "`")
+        placeholders.push(expression)
+        parameters[parameter] = bound
+    }
+    Database.execute("INSERT INTO `" + name + "` (" + columns.join(",") + ") VALUES (" + placeholders.join(",") + ")", parameters)
+    return "0x" + id
+}
+
+fn remove(context: Map, name: String, id: String) -> Bool {
+    if name == "securityroles" {
+        let roles = retrieve(context, name, id, {:}, ["name"])
+        if not roles.isEmpty and ["Admin", "Guest"].contains(roles[0]["name"]) { fail("PROTECTED_ROLE") }
+    }
+    Security.demand(context, name, "delete")
+    definition(context, name)
+    return Database.execute("DELETE FROM `" + name + "` WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)", {"id": Tools.guid(id), "scope": Security.scope(context, name)}) > 0
+}
+
+fn api(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    let entity = post.get("Entity", {:})
+    let name = Tools.identifier(entity.get("Name", ""))
+    let attributes = entity.get("Attributes", {:})
+    if attributes.type != "Map" { fail("INVALID_ATTRIBUTES") }
+    let operation = post.get("Operation", "")
+    let response: Map = {"Return": {"Entity": {"Name": name}}, "Input": post}
+    if post.contains("ReturnQuery") { response["Return"]["Query"] = post["ReturnQuery"] }
+    if operation == "Retrieve" {
+        let rows = retrieve(context, name, entity.get("Id", none), attributes, post.get("Columns", "_ALL_"))
+        for index, row in rows { response["{index}"] = row }
+    } else if operation == "Create" { response["CreatedId"] = create(context, name, attributes) }
+    else if operation == "Update" { response["Success"] = update(context, name, Tools.required(entity, "Id"), attributes) }
+    else if operation == "Delete" { response["Success"] = remove(context, name, Tools.required(entity, "Id")) }
+    else { fail("UNKNOWN_OPERATION") }
+    return response
+}

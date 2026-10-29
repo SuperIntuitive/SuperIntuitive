@@ -1,0 +1,60 @@
+use Database
+use Tools
+
+fn guest() -> Map {
+    return {"loggedin": false, "name": "guest", "id": none, "roles": ["Guest"], "permissions": {:}, "preferences": {:}}
+}
+
+fn mergeRules(rows: List) -> Map {
+    let permissions: Map = {:}
+    for row in rows {
+        let encoded = row.get("rules", "")
+        if encoded.type != "String" or not json.isValid(encoded) { continue }
+        let rules = json.parse(encoded)
+        if rules.type != "Map" { continue }
+        for entityId, grants in rules {
+            if grants.type != "Map" { continue }
+            try {
+                let key = "0x" + Tools.guid(entityId)
+                if not permissions.contains(key) { permissions[key] = {:} }
+                for operation in ["create", "read", "write", "delete", "append", "appendTo"] {
+                    permissions[key][operation] = permissions[key].get(operation, false) or Tools.truth(grants.get(operation, false))
+                }
+            } fail { continue }
+        }
+    }
+    return permissions
+}
+
+fn hasRole(context: Map, name: String) -> Bool {
+    if name == "Guest" { return true }
+    return context["user"].get("roles", []).contains(name)
+}
+
+fn requireAdmin(context: Map) {
+    if not hasRole(context, "Admin") { fail("FORBIDDEN") }
+}
+
+fn scope(context: Map, table: String) -> String {
+    Tools.identifier(table)
+    if not context["scopes"].contains(table) { fail("UNKNOWN_ENTITY") }
+    return Tools.guid(context["scopes"][table])
+}
+
+fn allowed(context: Map, table: String, operation: String) -> Bool {
+    let id = "0x" + scope(context, table)
+    return Tools.truth(context["user"].get("permissions", {:}).get(id, {:}).get(operation, false))
+}
+
+fn demand(context: Map, table: String, operation: String) {
+    if not allowed(context, table, operation) { fail("FORBIDDEN") }
+}
+
+fn roleRows(context: Map, userId: String) -> List {
+    return Database.query("SELECT LOWER(HEX(sr.id)) AS id, LOWER(HEX(r.id)) AS relationsId, sr.name, sr.rules FROM relations r INNER JOIN users u ON u.id=r.parent_id AND u.entity_id=r.parententity_id INNER JOIN securityroles sr ON sr.id=r.child_id AND sr.entity_id=r.childentity_id WHERE r.parent_id=UNHEX(:user) AND r.entity_id=UNHEX(:relations) AND u.entity_id=UNHEX(:users) AND sr.entity_id=UNHEX(:roles) AND r.status='active' AND sr.status='active' AND u.status='active'", {"user": Tools.guid(userId), "relations": scope(context, "relations"), "users": scope(context, "users"), "roles": scope(context, "securityroles")})
+}
+
+fn guestPermissions(context: Map) -> Map {
+    let rows = Database.query("SELECT rules FROM securityroles WHERE name='Guest' AND status='active' AND entity_id=UNHEX(:scope)", {"scope": scope(context, "securityroles")})
+    return mergeRules(rows)
+}

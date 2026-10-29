@@ -1,0 +1,52 @@
+use Accounts
+use Security
+use Sessions
+use Setup
+use Entity
+use Deployment
+use Page
+use Block
+use Relations
+use User
+use Setting
+use Localtext
+use Admin
+use Plugins
+use Media
+use Tools
+
+fn general(context: Map, request: Map, post: Map) -> Map {
+    let action = Tools.required(post, "KEY")
+    if action == "LoginAttempt" { return Accounts.login(context, request, post) }
+    if action == "Logout" { return Accounts.logout(request) }
+    if action == "ChangeDeployment" { return Deployment.change(context, request, post) }
+    if ["UpdatePassword", "ChangePassword"].contains(action) { return Accounts.changePassword(context, post) }
+    if action == "ForgotPassword" { return Tools.gap("SMTP_DELIVERY") }
+    fail("UNKNOWN_ACTION")
+}
+
+fn admin(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    let action = Tools.required(post, "KEY")
+    if action == "Promote" { return Deployment.promote(context, post) }
+    if action == "PageNew" { return Page.create(context, post) }
+    if action == "PageSave" { return Page.save(context, post) }
+    if action == "RemoveRedirect" { return Page.clearRedirect(context, post) }
+    if action == "BlockNew" { return Block.create(context, post) }
+    if action == "BlockSave" { return Block.save(context, post) }
+    if action == "BlockRelate" { return Block.relate(context, post) }
+    if action == "BlockRemove" { return Block.remove(context, post) }
+    if ["MediaPromote", "MediaRecycle"].contains(action) { return Media.dispatch(context, action, post) }
+    if action == "RelationNew" {
+        let id = Relations.create(context, Tools.required(post, "EntityName"), Tools.required(post, "EntityId"), Tools.required(post, "RelatedEntityName"), Tools.required(post, "RelatedEntityId"), post.get("Order", 0), post.get("Options", {:}))
+        return {"PARAMETER": id}
+    }
+    if ["ChangePassword", "NewUser", "DeleteUser", "GetUserRoles", "AddUserRole", "RemoveUserRole", "DeleteRole"].contains(action) { return User.dispatch(context, action, post) }
+    if ["AddLanguage", "LocaltextNew", "UpdateLocaltext"].contains(action) { return Localtext.dispatch(context, action, post) }
+    if ["GetMorePlugins", "DownloadPlugin", "UploadPluginPackage", "InstallPlugin", "UninstallPlugin"].contains(action) { return Plugins.dispatch(context, action, post) }
+    if ["NewSetting", "UpdateSetting", "DeleteSetting"].contains(action) { return Setting.dispatch(context, action, post) }
+    if ["NewEntity", "BuildBackupFile", "BuildInstallerFile"].contains(action) { return Admin.dispatch(context, action, post) }
+    fail("UNKNOWN_ACTION")
+}
+
+fn setup(request: Map, post: Map) -> Map { return Setup.dispatch(request, Tools.required(post, "KEY"), post) }
