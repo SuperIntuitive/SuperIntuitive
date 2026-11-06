@@ -51,8 +51,11 @@ else (async () => {
       await wait('!!SI.Editor.Objects.Scripter.Parsed','packaged Scripter menu initialization');
       check(await evaluate('SI.Widgets.Window.si_edit_scripter_window.Content.contains(SI.Editor.Objects.Scripter.Container)&&SI.Editor.Objects.Scripter.Parser.version==="8.19.0"'),'packaged Tools menu opens Scripter and loads its bundled parser');
       const scriptSource=await evaluate('SI.Editor.Objects.Scripter.Source');
+      check(await evaluate('SI.Editor.Objects.Scripter.Mode==="blocks"&&!document.getElementById("si_scripter_codeorguidcb").checked&&!SI.Editor.Objects.Scripter.Workspace.hidden&&SI.Editor.Objects.Scripter.Codeview.hidden'),'packaged Scripter opens in Blocks by default');
       await evaluate('document.getElementById("si_scripter_codeorguidcb").click()');
-      await wait('SI.Editor.Objects.Scripter.Mode==="blocks"','packaged Scripter Code checkbox');
+      await wait('SI.Editor.Objects.Scripter.Mode==="code"','packaged Scripter explicitly opens Code');
+      await evaluate('document.getElementById("si_scripter_codeorguidcb").click()');
+      await wait('SI.Editor.Objects.Scripter.Mode==="blocks"','packaged Scripter returns to Blocks');
       check(await evaluate('SI.Editor.Objects.Scripter.Source==='+JSON.stringify(scriptSource)),'packaged Scripter Code/Blocks preserves CMS script source');
       await evaluate('SI.Widgets.Window.si_edit_scripter_window.Hide(0)');
       check(await evaluate('!SI.Editor.Data.Objects.Plugins.Current.contact'),'Chrome starts with no installed Contact');

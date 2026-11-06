@@ -568,7 +568,6 @@ SI.Editor = {
             document.oncontextmenu = function (event) {
                 if (!SI.Editor.Objects.Widgets.CanvasFor(event.target) && event.target.closest('#si_edit_container,.si-editor-tool-window')) return;
                 const menu = SI.Editor.UI.MainMenu.Element;
-                if (getComputedStyle(menu).display !== 'none') return;
                 const selected = SI.Editor.Objects.Elements.Selected;
                 const target = event.target.closest('.si-editable-element');
                 // Keep native text-field menus unless this click clears the selected item.

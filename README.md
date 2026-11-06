@@ -22,7 +22,9 @@ Site content, uploads, credentials, installed plugins, logs and release output a
 
 ## Scripter blocks and JavaScript
 
-Open **Scripter**, choose a CMS block, and uncheck **Code** to view its JavaScript as nested statement cards. Check **Code** to return to JavaScript. Functions, callbacks, loops, branches, classes and exception handlers expose their bodies as insertion lanes. Select a card to edit its bindings, expressions or parameters in the inspector; **Full JavaScript** edits any construct directly. The Build library inserts templates into the body selected with **+**. Drag handles move blocks between bodies; arrow buttons provide keyboard-accessible reordering. Undo and redo track block edits.
+Open **Scripter** and choose a CMS block. The visual **Blocks** workspace opens by default, with **Code** unchecked. Check **Code** when you explicitly want the source editor; uncheck it to return to Blocks. Functions, callbacks, loops, branches, classes and exception handlers expose their bodies as insertion lanes. Select a card to edit its bindings, expressions or parameters in the inspector; **Full JavaScript** edits any construct directly. The Build library inserts templates into the body selected with **+**. Drag handles move blocks between bodies; arrow buttons provide keyboard-accessible reordering. Undo and redo track block edits.
+
+**Styler** also opens in its visual workspace with **Code** unchecked. Choose a stylesheet, edit its selector tokens and property controls, and use **Save** to include the latest visual edits. Checking **Code** explicitly opens the source editor; clearing it reloads the current stylesheet into visual controls. Opening these tools does not itself save or execute changes.
 
 The source text remains authoritative. Switching between Code and Blocks retains untouched text, comments, strings, regular expressions and formatting. Changes are parsed in the surrounding program before they are committed; syntax errors retain the last valid blocks and keep the draft editable. Save includes pending inspector edits and uses the existing CMS block-save permissions and CSRF protection. Parsing and rearranging do not execute the script; explicit Save keeps the CMS's existing page-script preview behavior. Widget JavaScript also opens and saves here. Plugin scripts can be opened for reference.
 
@@ -57,6 +59,8 @@ The runner builds the isolated PHP test image and both release ZIPs before testi
 The historical PHP preservation guard runs last so a stale migration baseline cannot prevent other suites from running. It currently has pre-existing mismatches and will make the overall run fail until those are separately reviewed; the runner never renews baseline hashes.
 
 Historical Python-only test scripts are outside this runner. Their remaining installer, recovery, connector and deployment checks have not all been ported; the native run must not be interpreted as evidence that those historical cases ran. They are retained rather than deleting unique regression coverage.
+
+The editor context-menu regression runs without credentials or a CMS installation: `node .\tests\editor_browser.cjs --context-menu`. It checks repeated right-clicks, recovering off-screen menus, native text-field menus, and widget-preview selection.
 
 ## Build distribution ZIPs
 

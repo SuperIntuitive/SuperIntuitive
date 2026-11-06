@@ -7,9 +7,11 @@ const {spawn} = require('node:child_process');
 (async () => {
   const stylerOnly=process.argv.includes('--styler');
   const scripterOnly=process.argv.includes('--scripter');
-  const config=stylerOnly||scripterOnly ? {disposable:true} : JSON.parse(fs.readFileSync(0, 'utf8'));
+  const contextMenuOnly=process.argv.includes('--context-menu');
+  const isolated=stylerOnly||scripterOnly||contextMenuOnly;
+  const config=isolated ? {disposable:true} : JSON.parse(fs.readFileSync(0, 'utf8'));
   assert.equal(config.disposable, true, 'This test edits and saves content; use a disposable fixture');
-  if(!stylerOnly&&!scripterOnly)assert(config.base && config.email && config.password, 'Fixture URL and credentials are required');
+  if(!isolated)assert(config.base && config.email && config.password, 'Fixture URL and credentials are required');
   const profile=fs.mkdtempSync(path.join(os.tmpdir(),'si-theme-review-'));
   const executable=process.env.CHROME || ['C:/Program Files/Google/Chrome/Application/chrome.exe','/usr/bin/google-chrome','/usr/bin/chromium'].find(file=>fs.existsSync(file));
   assert(executable, 'Set CHROME to a Chrome executable');
@@ -34,6 +36,36 @@ const {spawn} = require('node:child_process');
     await send('Page.enable',{},sessionId);
     await send('Network.enable',{},sessionId);
     await resize(1440);
+    if(contextMenuOnly){
+      let checks=0;
+      const check=(value,message)=>{assert(value,message);checks++;console.log('PASS Context menu '+message);};
+      const source=fs.readFileSync(path.join(__dirname,'../editor/editor.js'),'utf8');
+      const start=source.indexOf('SetDocumentEvents: function () {'),end=source.indexOf('DrawAppContainer: function () {',start);
+      assert(start>=0&&end>start,'Editor document event handlers are available');
+      await evaluate(`document.body.innerHTML='<main class="si-block"><h1 id="first" class="si-editable-element">First</h1><p id="second" class="si-editable-element">Second</p><input id="text"></main><div id="si_edit_container"><div id="menu" style="position:fixed;display:none;width:75px;height:110px"><input id="editor_text"></div></div><div class="si-editor-tool-window"><div data-fixture-canvas><p id="widget" class="si-editable-element">Widget</p></div></div>';
+        window.SI={Editor:{Data:{Objects:{Blocks:{}}},Objects:{Blocks:{},Widgets:{CanvasDirty:false,CanvasFor:element=>element.closest('[data-fixture-canvas]')},Placement:{Init:()=>{},Cancel:()=>{}},Elements:{Selected:null,Select:(_,id)=>{SI.Editor.Objects.Elements.Selected=document.getElementById(id)},SelectNone:()=>{SI.Editor.Objects.Elements.Selected=null}}}}};`);
+      await evaluate('SI.Editor.UI={'+source.slice(start,end)+'};SI.Editor.UI.MainMenu={Element:document.getElementById("menu")};SI.Editor.UI.SetDocumentEvents();');
+      const rightClick=(id,x=30,y=60)=>evaluate(`(()=>{const event=new MouseEvent('contextmenu',{bubbles:true,cancelable:true,button:2,clientX:${x},clientY:${y}});document.getElementById(${JSON.stringify(id)}).dispatchEvent(event);const menu=SI.Editor.UI.MainMenu.Element;return {prevented:event.defaultPrevented,selected:SI.Editor.Objects.Elements.Selected?.id,left:menu.style.left,top:menu.style.top,visible:getComputedStyle(menu).display!=='none'};})()`);
+      let result=await rightClick('first');
+      check(result.prevented&&result.visible&&result.selected==='first','first right-click opens the editor and selects the target');
+      result=await rightClick('second',240,180);
+      check(result.prevented&&result.selected==='second'&&result.left==='240px'&&result.top==='180px','right-clicking another element repositions an already-open menu without opening the browser menu');
+      await evaluate('Object.assign(SI.Editor.UI.MainMenu.Element.style,{left:"2400px",top:"1800px"})');
+      result=await rightClick('first',100,120);
+      check(result.prevented&&result.selected==='first'&&result.left==='100px'&&result.top==='120px','an off-screen menu can be recovered with a right-click');
+      result=await rightClick('first');
+      check(result.prevented&&!result.selected,'right-clicking the selected element clears its selection');
+      result=await rightClick('text');
+      check(!result.prevented,'ordinary text fields retain their native context menu');
+      result=await rightClick('editor_text');
+      check(!result.prevented,'editor controls retain their native context menu');
+      result=await rightClick('widget');
+      check(result.prevented&&result.selected==='widget','widget preview content retains editor selection');
+      result=await rightClick('second',1439,999);
+      check(result.prevented&&parseFloat(result.left)<=1360&&parseFloat(result.top)<=880,'repositioned menus stay inside the viewport');
+      check(exceptions.length===0,'document context handling produces no browser exceptions');
+      console.log('Context-menu browser checks passed: '+checks);return;
+    }
     if(process.argv.includes('--demo-plugin')){
       let checks=0;
       const check=(value,message)=>{assert(value,message);checks++;console.log('PASS '+config.backend+' demo plugin '+message);};
@@ -68,7 +100,8 @@ const {spawn} = require('node:child_process');
         await wait(()=>child('!!SI.Widgets.Window['+key+']?.Content?.childNodes.length&&SI.Widgets.Window['+key+'].IsVisible()'),'Demo tool '+tool);
         check(true,'tool available: '+tool);await child('SI.Widgets.Window['+key+'].Hide(0)');
       }
-      await child('SI.Editor.UI.ToolsPanel.OpenToolWindow("Styler");document.getElementById("si_styler_codeorguidcb").click()');
+      await child('SI.Editor.UI.ToolsPanel.OpenToolWindow("Styler")');
+      check(await child('!document.getElementById("si_styler_codeorguidcb").checked&&getComputedStyle(document.getElementById("si_styler_workspace")).display!=="none"'),'Styler opens in its visual workspace by default');
       check(await child('!!Array.from(document.querySelectorAll(".si-edit-style-propertyvalue")).find(e=>e.dataset.siStyleProp==="--demo-accent")'),'modern/custom Styler controls remain available');
       await child('(()=>{const e=Array.from(document.querySelectorAll(".si-edit-style-propertyvalue")).find(e=>e.dataset.siStyleProp==="--demo-accent");e.value="#102030";e.dispatchEvent(new Event("input",{bubbles:true}));SI.Editor.Objects.Styler.BuildStyle()})()');
       check(await child('document.getElementById("si_styler_codepad").textContent.includes("#102030")'),'temporary CSS edits round trip through the GUI');
@@ -122,7 +155,7 @@ const {spawn} = require('node:child_process');
       await evaluate('SI.Widgets.Window.si_edit_scripter_window.Hide(0);SI.Editor.Objects.Widgets.OpenSource("Template","style")');
       await wait('SI.Editor.Objects.Styler.LoadedType==="Widget"','Widget CSS');
       check(await evaluate('SI.Editor.Objects.Styler.Codepad.textContent.includes("data-si-widget")'),'Styler opens the selected widget CSS');
-      await evaluate('SI.Editor.Objects.Styler.Codepad.textContent="[data-si-widget=\\"Template\\"] { --widget-browser: 42; border: 3px solid #7088a0 !important; }";SI.Editor.Objects.Styler.SaveStyle()');
+      await evaluate('if(!document.getElementById("si_styler_codeorguidcb").checked)document.getElementById("si_styler_codeorguidcb").click();SI.Editor.Objects.Styler.Codepad.textContent="[data-si-widget=\\"Template\\"] { --widget-browser: 42; border: 3px solid #7088a0 !important; }";SI.Editor.Objects.Styler.SaveStyle()');
       await wait('SI.Editor.Objects.Widgets.Sources.Template.style.includes("--widget-browser")','Widget CSS save');
       check(true,'Styler saves widget CSS through the same protected API');
       await send('Page.reload',{},sessionId);
@@ -185,7 +218,7 @@ const {spawn} = require('node:child_process');
       await evaluate('SI.Widgets.Window.si_edit_page_window.Hide(0)');
       await click('si_edit_styler_trigger');
       await wait(()=>evaluate('!!document.getElementById("si_styler_codeorguidcb")'),'Administrator Styler');
-      await click('si_styler_codeorguidcb');
+      check(await evaluate('!document.getElementById("si_styler_codeorguidcb").checked&&getComputedStyle(document.getElementById("si_styler_workspace")).display!=="none"'),'Administrator Styler opens in its visual workspace by default');
       check(await evaluate('!!Array.from(document.querySelectorAll(".si-edit-style-propertyvalue")).find(e=>e.dataset.siStyleProp==="--fixture-tone")'),'packaged Styler exposes custom CSS in the normal editor');
       await evaluate('SI.Widgets.Window.si_edit_styler_window.Hide(0);SI.Editor.Objects.Blocks.Save("FrameworkA","html")');
       await wait(async()=>replies.length>0&&finished.has(replies.at(-1).requestId),'Normal editor save');
@@ -292,10 +325,11 @@ body { margin: 0 !important; background-image: url("data:image/svg+xml;base64,PH
       const editorSource=fs.readFileSync(path.join(__dirname,'../editor/editor.js'),'utf8');
       await evaluate('SI.Editor.Data.Tools={'+editorSource.slice(editorSource.indexOf('GetStyleByName: function (name)'),editorSource.indexOf('//GetAttributesByName'))+'}');
       for(const file of ['scripts/tools.js','editor/objects/elements.js','editor/objects/settings.js','editor/objects/styler.js'])await evaluate(fs.readFileSync(path.join(__dirname,'..',file),'utf8'));
-      await evaluate('document.head.appendChild(Object.assign(document.createElement("style"),{textContent:'+JSON.stringify(fs.readFileSync(path.join(__dirname,'../editor/editor.css'),'utf8'))+'}));document.getElementById("review_window").appendChild(SI.Editor.Objects.Styler.Draw());document.getElementById("si_styler_codeorguidcb").click()');
+      await evaluate('document.head.appendChild(Object.assign(document.createElement("style"),{textContent:'+JSON.stringify(fs.readFileSync(path.join(__dirname,'../editor/editor.css'),'utf8'))+'}));document.getElementById("review_window").appendChild(SI.Editor.Objects.Styler.Draw())');
       const value=property=>evaluate('Array.from(document.querySelectorAll("#si_styler_workspace .si-edit-style-propertyvalue")).find(input=>input.dataset.siStyleProp==='+JSON.stringify(property)+')?.value');
       const edit=(property,text)=>evaluate('(()=>{const input=Array.from(document.querySelectorAll("#si_styler_workspace .si-edit-style-propertyvalue")).find(input=>input.dataset.siStyleProp==='+JSON.stringify(property)+');input.value='+JSON.stringify(text)+';input.dispatchEvent(new Event("input",{bubbles:true}));return input.validationMessage;})()');
       const build=()=>evaluate('SI.Editor.Objects.Styler.BuildStyle();document.getElementById("si_styler_codepad").textContent');
+      check(await evaluate('!document.getElementById("si_styler_codeorguidcb").checked&&getComputedStyle(document.getElementById("si_styler_workspace")).display!=="none"&&getComputedStyle(document.getElementById("si_styler_codeview")).display==="none"'),'visual controls are the default and Code is hidden');
       check(exceptions.length===0,'stylesheet loads without browser errors: '+exceptions.map(error=>error.exceptionDetails?.exception?.description||error.exceptionDetails?.text).join('; '));
       check(!await evaluate('document.getElementById("si_styler_workspace").textContent.includes("not supported yet")'),'modern and custom CSS properties have value controls');
       for(const [property,text] of Object.entries({'color-scheme':'dark','--si-bg':'#0b1525','--label':'"A; B: <tag> {literal}"','scroll-padding-top':'4rem','text-underline-offset':'.2em','experimental-property':'paint(custom-effect) !important'})){const actual=await value(property);check(actual===text,'loads '+property+' without losing its value (received '+JSON.stringify(actual)+')');}
@@ -396,9 +430,13 @@ body { margin: 0 !important; background-image: url("data:image/svg+xml;base64,PH
       const load=source=>evaluate('SI.Editor.Objects.Scripter.LoadScriptCode('+JSON.stringify(source)+')');
       await click('si_edit_scripter_trigger');await click('si_edit_scripter_trigger');
       check(await evaluate('document.querySelectorAll("#si_scripter_container").length===1&&SI.Widgets.Window.si_edit_scripter_window.IsVisible()&&SI.Editor.Objects.Scripter.Source==='+JSON.stringify(example)),'closing and reopening from Tools retains one populated Scripter and its source');
+      check(await call('s.Mode==="blocks"&&!s.CodeSwitch.checked&&!s.Workspace.hidden&&s.Codeview.hidden'),'structured Blocks are the default and Code is hidden');
+      await click('si_scripter_codeorguidcb');
+      for(let index=0;index<100;index++){if(await call('s.Mode==="code"'))break;await new Promise(resolve=>setTimeout(resolve,20));}
+      check(await call('s.Mode==="code"&&s.CodeSwitch.checked&&s.Workspace.hidden&&!s.Codeview.hidden'),'Code checkbox explicitly opens the source editor');
       await click('si_scripter_codeorguidcb');
       for(let index=0;index<100;index++){if(await call('s.Mode==="blocks"'))break;await new Promise(resolve=>setTimeout(resolve,20));}
-      check(await call('s.Mode==="blocks"&&!s.Workspace.hidden'),'Code checkbox opens code as structured blocks');
+      check(await call('s.Mode==="blocks"&&!s.Workspace.hidden'),'clearing Code returns to structured blocks');
       check(await call('s.Source')===example&&await call('s.Codepad.textContent')===example,'unmodified source round-trips exactly');
       check(await evaluate('document.querySelectorAll(".si-script-block").length>10&&document.querySelectorAll(".si-script-lane").length>4'),'functions, callbacks, branches, classes and loop bodies have nested blocks');
       check(await evaluate('!globalThis.scripterMustNotRun'),'parsing and rendering never execute edited JavaScript');

@@ -33,7 +33,7 @@ SI.Editor.Objects.Styler = {
         let codeOrGuiCb = Ele("input", {
             id: "si_styler_codeorguidcb",
             type: "checkbox",
-            checked: 'checked',
+            checked: false,
             onclick: function (e) {
                 if (this.checked) {
                     SI.Editor.Objects.Styler.BuildStyle();
@@ -190,7 +190,7 @@ SI.Editor.Objects.Styler = {
             id: "si_styler_workspace",
             class: 'si-tool-workspace',
             style: {
-                display: 'none',
+                display: 'block',
                 position: 'absolute',
                 width: '100%',
                 height: '95%',
@@ -213,6 +213,7 @@ SI.Editor.Objects.Styler = {
             id: "si_styler_codeview",
             class: 'si-tool-code-view',
             style: {
+                display: 'none',
                 position: 'absolute',
                 width: '100%',
                 height: '96%',

@@ -3,7 +3,7 @@
     const S = SI.Editor.Objects.Scripter = {
         LoadedScript: null, LoadedType: null, LoadedParent: null,
         Container: null, Workspace: null, Codeview: null, Codepad: null,
-        Source: '', Parsed: null, Mode: 'code', Revision: 0, LoadRequest: 0,
+        Source: '', Parsed: null, Mode: 'blocks', Revision: 0, LoadRequest: 0,
         History: [], Future: [], Nodes: new Map(), Lanes: new Map(), Collapsed: new Set(),
         Selected: null, ActiveLane: 'program', Drag: null, Dirty: false,
         Templates: [
@@ -94,13 +94,13 @@
             return false;
         },
         Draw: function () {
-            this.Mode = 'code'; this.LoadRequest++;
+            this.Mode = 'blocks'; this.LoadRequest++;
             this.Source = ''; this.Parsed = null; this.Dirty = false;
             this.History = []; this.Future = []; this.Selected = null; this.ActiveLane = 'program';
             this.Container = this.Element('div', {id: 'si_scripter_container', class: 'si-tool-body si-tool-editor-body'});
             const toolbar = this.Element('div', {id: 'si_scripter_mainmenu', class: 'si-tool-toolbar'}, this.Container);
             const codeLabel = this.Element('label', {text: 'Code'}, toolbar);
-            this.CodeSwitch = this.Element('input', {id: 'si_scripter_codeorguidcb', type: 'checkbox', checked: true,
+            this.CodeSwitch = this.Element('input', {id: 'si_scripter_codeorguidcb', type: 'checkbox', checked: false,
                 'aria-label': 'Show JavaScript code', onclick: () => this.SwitchMode(this.CodeSwitch.checked ? 'code' : 'blocks')}, codeLabel);
             this.ScriptSelect = this.Element('select', {id: 'si_scripter_scriptselect', 'aria-label': 'Script',
                 onchange: () => {
@@ -122,7 +122,7 @@
             this.UndoButton = this.Button('↶', 'Undo block edit', () => this.Undo(), toolbar);
             this.RedoButton = this.Button('↷', 'Redo block edit', () => this.Redo(), toolbar);
             this.StatusBox = this.Element('div', {class: 'si-script-status', role: 'status', 'aria-live': 'polite'}, this.Container);
-            this.Workspace = this.Element('div', {id: 'si_scripter_workspace', class: 'si-tool-workspace si-script-workspace', hidden: true}, this.Container);
+            this.Workspace = this.Element('div', {id: 'si_scripter_workspace', class: 'si-tool-workspace si-script-workspace'}, this.Container);
             const layout = this.Element('div', {class: 'si-script-layout'}, this.Workspace);
             this.Palette = this.Element('aside', {class: 'si-script-palette', 'aria-label': 'Block library'}, layout);
             this.Element('h3', {text: 'Build'}, this.Palette);
@@ -154,7 +154,7 @@
             this.Stats = this.Element('span', {class: 'si-script-stats'}, heading);
             this.Tree = this.Element('div', {class: 'si-script-tree'}, center);
             this.Inspector = this.Element('aside', {class: 'si-script-inspector', 'aria-label': 'Selected block'}, layout);
-            this.Codeview = this.Element('div', {id: 'si_scripter_codeview', class: 'si-tool-code-view si-script-codeview'}, this.Container);
+            this.Codeview = this.Element('div', {id: 'si_scripter_codeview', class: 'si-tool-code-view si-script-codeview', hidden: true}, this.Container);
             this.LineNumbers = this.Element('pre', {id: 'si_scripter_linenums', class: 'si-tool-code-gutter', 'aria-hidden': 'true'}, this.Codeview);
             this.Codepad = this.Element('pre', {id: 'si_scripter_codepad', class: 'si-scripter-codepad', contentEditable: 'true',
                 spellcheck: false, role: 'textbox', 'aria-label': 'JavaScript source', 'aria-multiline': 'true',
