@@ -1,215 +1,28 @@
-if(!SI.Widgets.Menu){SI.Widgets.Menu = {}};
-SI.Widget.Menu = function  (options) { 
-    if (!(this instanceof SI.Widget.Menu)) { return new SI.Widget.Menu(options); }
-
-    options = typeof options !== 'undefined' ? options : {};
-    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Menu");}
-    this.Input = {...options};
-    SI.Widgets.Menu[this.Id] = this;
-
-    this.Defaults = {
-        "Parent": null,
-        "ParentIndex": null,
-        "ContainerClass": "",
-        "Direction": "h",
-        "Type": 'text',
-        "Text": "Text Me",
-        "ContainerPosition": "relative",
-        "ContainerTop": "200px",
-        "ContainerBottom": "",
-        "ContainerLeft": "20px",
-        "ContainerRight": "",
-        "TextColor": "white",
-        "Items": {},
+if (!SI.Widgets.Menu) SI.Widgets.Menu = {};
+SI.Widget.Menu = function (options) {
+    if (!(this instanceof SI.Widget.Menu)) return new SI.Widget.Menu(options);
+    options=options||{};this.Id=options.Id||SI.Tools.Element.SafeId('Menu');this.Input={...options};
+    this.Defaults={Parent:null,ContainerClass:'',Direction:'h',ContainerPosition:'relative',ContainerTop:'0px',ContainerLeft:'0px',TextColor:'var(--si-widget-text)',Items:{},OnSelect:null};
+    this.Options=SI.Tools.Object.SetDefaults(options,this.Defaults);
+    this.Container=Ele('nav',{id:this.Id,class:'si-widget si-widget-menu '+this.Options.ContainerClass,style:{position:this.Options.ContainerPosition,top:this.Options.ContainerTop,left:this.Options.ContainerLeft,color:this.Options.TextColor}});
+    this.Container.setAttribute('aria-label',options.Label||'Menu');
+    this.CreateMenu=(items,parent,level=0)=>{
+        const list=Ele('ul',{class:level?'si-menu-submenu':this.Options.Direction==='v'?'si-menu-vertical':'si-menu-horizontal',appendTo:parent});
+        for(const [key,config] of Object.entries(items)){
+            const item=typeof config==='string'?{Text:config}:config;
+            const row=Ele('li',{appendTo:list});const children=item.Items&&Object.keys(item.Items).length;
+            const href=item.Link||item.Url||item.Href;
+            const button=Ele(href&&!children?'a':'button',{id:this.Id+'_menuitem_'+level+'_'+key,innerText:item.Text||item.Label||key,appendTo:row});
+            if(button.tagName==='BUTTON')button.type='button';else button.href=href;
+            if(item.TextColor)button.style.color=item.TextColor;
+            if(children){
+                button.setAttribute('aria-expanded','false');const nested=this.CreateMenu(item.Items,row,level+1);nested.hidden=true;
+                button.onclick=()=>{nested.hidden=!nested.hidden;button.setAttribute('aria-expanded',String(!nested.hidden));};
+                row.addEventListener('keydown',event=>{if(event.key==='Escape'){nested.hidden=true;button.setAttribute('aria-expanded','false');button.focus();}});
+            }else button.addEventListener('click',event=>{if(item.OnClick)item.OnClick(event,item);if(this.Options.OnSelect)this.Options.OnSelect(key,item,event);});
+        }
+        return list;
     };
-    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-    this.Random = SI.Tools.String.RandomString(11);
-    this.Container = Ele('div', {
-        id: this.Id,
-        class: this.Options.ContainerClass,
-        style: {
-            minHeight: this.Options.MinHeight,
-            fontSize: this.Options.FontSize,
-            color: this.Options.TextColor,
-            position: this.Options.ContainerPosition,
-            top: this.Options.ContainerTop,
-            bottom: this.Options.ContainerBottom,
-            left: this.Options.ContainerLeft,
-            right: this.Options.ContainerRight,
-            cursor: 'pointer',
-            backgroundColor: 'green',
-        },
-    });
-    let level = 0;
-
-    this.CreateMenu = function (items, parent) {
-        let menuRandId = SI.Tools.String.RandomString(11);
-
-        //let menuContainer = Ele('div', {
-        //    id: "si_menu_" + menuRandId,
-        //    appendTo: parent,
-        //    data: {
-        //       level:level, 
-        //    },
-        //});
-
-        for (let itter in items) {
-            if (items.hasOwnProperty(itter)) {
-                let menuItemRandId = SI.Tools.String.RandomString(11);
-
-                menuitemDefaults = {
-                    "ContainerClass": "",
-                    "Type": 'text',
-                    "Text": "Text Me",
-                    "TextColor": "white",
-                    "Height": '20px',
-                    "TextMargin": "2px 5px 2px 5px",
-                    "Items": {},
-                };
-
-                menuOptions = SI.Tools.Object.SetDefaults(items[itter], menuitemDefaults);
-
-                let dir = options.Direction;
-                display = "none";
-                if (options.Direction == 'h'&& level ==0) {
-                    display = "inline-block";
-                }
-                let menuItem = Ele('div', {
-                    id: this.Id + "_menuitem_" + itter,
-                    style: {
-                        display: display,
-                        height: menuOptions.Height,
-                        fontSize: menuOptions.FontSize,
-                        color: menuOptions.TextColor,
-                        cursor: 'pointer',
-                        backgroundColor: 'blue',
-                    },
-                    data: {
-                        level:level, 
-                    },
-                    appendTo: parent,
-                });
-                let menuText = Ele('span', {
-                    id: this.Id + "_menuitem_" + itter+"_label",
-                    innerHTML: menuOptions.Text,
-                    style: {
-                        margin: menuOptions.TextMargin,
-                        fontSize: menuOptions.FontSize,
-                        color: menuOptions.TextColor,
-                        cursor: 'pointer',
-                        backgroundColor: 'blue',
-                    },
-                    appendTo:menuItem,
-                });
-
-                if (Object.keys(menuOptions.Items).length > 0) {
-                    level++;
-                    CreateMenu(menuOptions.Items, menuItem);
-                } else {
-                    
-                    level--;
-                    if (level < 0) {
-                       level=0;
-                    }
-                }
-            }
-        }
-
-
-    }
-
-    if (Object.keys(this.Options.Items).length > 0) {
-        this.CreateMenu(this.Options.Items, this.Container);
-    }
-
-    if (this.Options.Parent) {
-        this.Options.Parent.appendChild(this.Container);
-    }
-    return this.Container;
-}
-
-
-
-
-        /*
-
-        let options = {};
-        options.Items = {
-            [0]: {
-                Label: "File",
-                Type: "parent",
-                ItemPadding: "2px 5px 2px 5px",
-
-                Items: {
-                    [0]: {
-                        Label: "New",
-                        Type: "window",
-                        Window: "NewWidgetWindow",
-                        Direction:"v",
-                    },
-                    [1]: {
-                        Label: "Open",
-                        Type: "link",
-                        Direction: "v",
-                    },
-                    [2]: {
-                        Label: "Export",
-                        Items: {
-                            [0]: {
-                                Text: "Select All",
-                                type: "function",
-
-
-                            },
-
-                        },
-                        Direction: "v",
-                    }
-                }
-            },
-            [1]: {
-                Label: "Edit",
-                Type: 'parent',
-                Padding: "2px 5px 2px 5px",
-                Items: {
-                    [0]: {
-                        Label: "Cut",
-                        Type: "function",       
-                    },
-                    [1]: {
-                        Label: "Copy",
-                        Type: "WindowOpener"
-                    },
-                    [2]: {
-                        Label: "Paste",
-                        Items: {
-                            [0]: {
-                                Label: "Custom Paste",
-                                type: "function",
-
-
-                            },
-
-                        }
-                    }
-                }
-            },
-            [2]: {
-                Label: "Test",
-                Type: "link",
-
-
-
-            }
-        }
-
-
-
-
-
-
-        let m = new Menu(options);
-
-        container.appendChild(m);
-
-*/
+    if(Object.keys(this.Options.Items).length)this.CreateMenu(this.Options.Items,this.Container);else Ele('p',{class:'si-widget-empty',innerText:'Add a menu item',appendTo:this.Container});
+    if(this.Options.Parent)this.Options.Parent.appendChild(this.Container);SI.Widgets.Menu[this.Id]=this;return this.Container;
+};

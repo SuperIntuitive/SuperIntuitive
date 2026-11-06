@@ -14,7 +14,13 @@ SI.Editor.Objects.Elements = {
     },
     //Completely removes an element
     Remove: function (element) {
-        if (!element || !element.closest('.si-block')) return;
+        if (!element) return;
+        if (SI.Editor.Objects.Widgets.CanvasFor(element)) {
+            if (element === SI.Editor.Objects.Widgets.Preview) return;
+            SI.Editor.Objects.Elements.MarkDirty(element);
+            SI.Editor.Objects.Elements.SelectNone(); element.remove(); return;
+        }
+        if (!element.closest('.si-block')) return;
         SI.Editor.Objects.Elements.MarkDirty(element);
         const block = element.closest('.si-block').id.replace('si_block_', '');
         for (const widget of [element, ...element.querySelectorAll('[data-si-widget]')]) {
@@ -27,6 +33,7 @@ SI.Editor.Objects.Elements = {
         SI.Editor.UI.EditPanel.Clear.Styles();
     },
     MarkDirty: function (element) {
+        if (SI.Editor.Objects.Widgets.CanvasFor(element)) { SI.Editor.Objects.Widgets.MarkCanvasDirty(); SI.Editor.UI.EditPanel.SelectionSummary(); return; }
         const block = element && element.closest('.si-block');
         const name = block && block.id.replace('si_block_', '');
         const data = name && SI.Editor.Data.Objects.Blocks[name];
@@ -93,7 +100,7 @@ SI.Editor.Objects.Elements = {
         //now were pretty sre self = the element to select. 
         //Qualify / Disqualify self selection
         //If it is a block DQ
-        if (!(self instanceof HTMLElement) || !self.closest('.si-block') || self.classList.contains('si-block') || self.classList.contains('si-deployment-control')) {
+        if (!(self instanceof HTMLElement) || !(self.closest('.si-block') || SI.Editor.Objects.Widgets.CanvasFor(self)) || self.classList.contains('si-block') || self.classList.contains('si-deployment-control') || self === SI.Editor.Objects.Widgets.Canvas) {
             return; //we dont select blocks
         }
 
@@ -154,7 +161,7 @@ SI.Editor.Objects.Elements = {
     //Makes a simple element into a editable element
     Editable: function (ele) {
         //debugger;
-        if (ele instanceof HTMLElement && ele.closest('.si-block') && !ele.classList.contains('si-block') && !ele.closest('[data-si-editor-only]')) {
+        if (ele instanceof HTMLElement && (ele.closest('.si-block') || SI.Editor.Objects.Widgets.CanvasFor(ele)) && !ele.classList.contains('si-block') && !ele.closest('[data-si-editor-only]')) {
             if (SI.Editor.Objects.Elements.EditableNodes.has(ele)) return ele;
             SI.Editor.Objects.Elements.EditableNodes.add(ele);
             //Enter the unique classes into out data for future use.
@@ -873,10 +880,8 @@ SI.Editor.Objects.Elements = {
             let styleobj = null;
 
             if (options.Group === null || options.Index === null) {
-                let unsupportedRow = Ele("tr", {});
-                let unsupportedstyle = Ele("td", { innerHTML: options.Property, appendTo: unsupportedRow });
-                let unsupportedtext = Ele("tr", { innerHTML: "is not supported yet", appendTo: unsupportedRow });
-                return unsupportedRow;
+                // Properties outside the picker catalog still have editable CSS values.
+                styleobj = {n: options.Property, t: 'RAW', v: '', d: 'Enter a CSS value, including var() or calc().', a: false};
             }
             else {
                 styleobj = SI.Editor.Data.css_properties[options.Group][options.Index];
@@ -902,7 +907,7 @@ SI.Editor.Objects.Elements = {
             //add the label
             let csslabel = Ele('td', {
                 class: "si-edit-style-propertyname si-edit-property-label",
-                innerHTML: styleobj.n,
+                textContent: styleobj.n,
 
                 appendTo: cssrow,
             });
@@ -920,9 +925,10 @@ SI.Editor.Objects.Elements = {
                 id: "si_edit_style_" + styleobj.n + "_" + RandId,
                 class: "si-edit-style-propertyvalue si-edit-control",
                 readOnly: false,
-                title: 'Type a CSS value, or click to choose one.',
+                title: styleobj.t === 'RAW' ? styleobj.d : 'Type a CSS value, or click to choose one.',
                 oninput: function () {
-                    if (this.value && !CSS.supports(styleobj.n, this.value)) {
+                    const value = this.value.replace(/\s*!important\s*$/i, '').trim();
+                    if (styleobj.t !== 'RAW' && value && !CSS.supports(styleobj.n, value)) {
                         this.setCustomValidity('Enter a valid value for ' + styleobj.n + '.');
                         return;
                     }
@@ -979,6 +985,8 @@ SI.Editor.Objects.Elements = {
             var AssignStyle = function (val,shnum=null) {
                 //debugger;
                 val = val.trim();
+                const priority = /\s*!important\s*$/i.test(val) ? 'important' : '';
+                const value = val.replace(/\s*!important\s*$/i, '').trim();
                 //sets the values of the read only input
                 document.getElementById("si_edit_style_" + styleobj.n + "_" + RandId).value = val;
                 let ele = null;
@@ -986,9 +994,6 @@ SI.Editor.Objects.Elements = {
                 if(options.Affected) {
                     if (options.Affected.toLowerCase() !== 'none') { //if it is none, than ignore it. it will stay null and do nothing on change. needed for styler 
                         ele = document.querySelector(options.Affected); //if not, use it as a css qurey selector to the the affected
-                        if (ele) {
-                            ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = val;
-                        }
                     }
                 }
                 else if (SI.Editor.Objects.Elements.Selected !== null) {
@@ -1001,7 +1006,7 @@ SI.Editor.Objects.Elements = {
                 }
 
                 if (ele) {
-                    ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = val;
+                    ele.style.setProperty(styleobj.n, value, priority);
                     if (ele.closest('.si-block')) {
                         SI.Editor.Objects.Elements.MarkDirty(ele);
                         SI.Editor.Objects.Widgets.UpdatePlacement(ele);
@@ -1023,6 +1028,7 @@ SI.Editor.Objects.Elements = {
                 //remove the value in the input field 
                 let topfield = document.getElementById("si_edit_style_" + styleobj.n + "_" + RandId);
                 topfield.value = "";
+                topfield.setCustomValidity('');
 
 
                 let inputs = topfield.parentElement.querySelectorAll('input');
@@ -1039,28 +1045,28 @@ SI.Editor.Objects.Elements = {
 
                 }
 
-                if (options.Affected) {
+                if (options.Affected && options.Affected.toLowerCase() !== 'none') {
                     let ele = document.querySelector(options.Affected);
                     if (ele) {
-                        ele.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
+                        ele.style.removeProperty(styleobj.n);
                     }
                 }
                 ///     else if (options.OnChange != null) {
                 //        options.OnChange(val);
                 //     }
-                else if (SI.Editor.Objects.Elements.Selected !== null) {
+                else if (!options.Affected && SI.Editor.Objects.Elements.Selected !== null) {
                     //for now the only thing that has multiple control locations is the Selected Element. hopefully this does not change.
                     var classes = document.getElementsByClassName("si_edit_style_" + styleobj.n);
                     for (let i = 0; i < classes.length; i++) {
                         classes[i].value = null;
                     }
-                    SI.Editor.Objects.Elements.Selected.style[SI.Tools.CssProp2JsKey(styleobj.n)] = null;
+                    SI.Editor.Objects.Elements.Selected.style.removeProperty(styleobj.n);
                     SI.Editor.Objects.Elements.MarkDirty(SI.Editor.Objects.Elements.Selected);
                 }
                 if (options.Removable) {
-                    //debugger;
-                    topfield.parentElement.parentElement.parentElement.parentElement.removeChild(topfield.parentElement.parentElement.parentElement);
+                    cssrow.remove();
                 }
+                if (options.OnChange !== null) options.OnChange('', styleobj.n);
             }
 
             //builder functions for creating UIs

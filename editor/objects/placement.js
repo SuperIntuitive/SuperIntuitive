@@ -34,7 +34,7 @@ SI.Editor.Objects.Placement = {
         }, true);
         window.addEventListener('blur', function () { placement.Cancel(); });
         document.addEventListener('click', function (event) {
-            if (!placement.State || !placement.State.pointer || event.target.closest('#si_edit_container,.si-window-container,.si-deployment-control,[data-si-editor-ui]')) return;
+            if (!placement.State || !placement.State.pointer || !event.target.closest('[data-si-widget-canvas]') && event.target.closest('#si_edit_container,.si-window-container,.si-deployment-control,[data-si-editor-ui]')) return;
             event.preventDefault();
             event.stopImmediatePropagation();
             placement.Update(event.clientX, event.clientY);
@@ -73,7 +73,7 @@ SI.Editor.Objects.Placement = {
             preview.style.width = rect.width + 'px';
             preview.style.height = rect.height + 'px';
         } else if (item.kind === 'widget') {
-            const size = SI.Editor.Objects.Widgets.PlacementSize(item.name);
+            const size = item.size || SI.Editor.Objects.Widgets.PlacementSize(item.name);
             preview = document.createElement('div');
             preview.className = 'si-placement-widget';
             preview.textContent = item.name;
@@ -141,10 +141,16 @@ SI.Editor.Objects.Placement = {
     Target: function (x, y) {
         const state = this.State;
         let target = document.elementFromPoint(x, y);
-        if (!target || target.closest('#si_edit_container,.si-window-container,.si-deployment-control,[data-si-editor-ui]')) return null;
+        if (!target) return null;
+        const canvas = SI.Editor.Objects.Widgets.CanvasFor(target);
+        if (!canvas && target.closest('#si_edit_container,.si-window-container,.si-deployment-control,[data-si-editor-ui]')) return null;
         if (state.kind === 'move' && state.element.contains(target)) target = state.element.parentElement;
-        const block = target.closest('.si-block');
+        const block = canvas || target.closest('.si-block');
         if (!block) return null;
+        if (canvas && target === canvas) target = SI.Editor.Objects.Widgets.Preview;
+        if (!target) return null;
+        if (state.kind === 'move' && !!canvas !== !!SI.Editor.Objects.Widgets.CanvasFor(state.element)) return null;
+        if (canvas && state.kind === 'move' && state.element === SI.Editor.Objects.Widgets.Preview) return null;
         const name = state.kind === 'tag' ? state.name.trim() : state.kind === 'move' ? state.element.tagName.toLowerCase() : 'div';
         while (target && block.contains(target)) {
             if (this.CanContain(target, name) && !(state.kind === 'move' && state.element.contains(target))) return target;
@@ -190,13 +196,15 @@ SI.Editor.Objects.Placement = {
         const state = this.State;
         if (!state || !state.parent || !state.parent.isConnected) { this.Cancel(); return; }
         const parent = state.parent;
+        const canvas = SI.Editor.Objects.Widgets.CanvasFor(parent);
         const block = parent.closest('.si-block');
         const oldBlock = state.kind === 'move' ? state.element.closest('.si-block') : null;
         let element;
         try {
             if (state.kind === 'widget') {
-                const size = SI.Editor.Objects.Widgets.PlacementSize(state.name);
-                element = SI.Editor.Objects.Widgets.AddInstance(block.id.replace('si_block_', ''), state.name, {Parent: parent, Width: size.width + 'px', Height: size.height + 'px'});
+                const size = state.size || SI.Editor.Objects.Widgets.PlacementSize(state.name);
+                element = SI.Editor.Objects.Widgets.AddInstance(canvas ? null : block.id.replace('si_block_', ''), state.name, Object.assign({}, state.options || {}, {Parent: parent, Width: size.width + 'px', Height: size.height + 'px'}, state.design ? {Design: state.design} : {}), !!canvas);
+                if (canvas) SI.Tools.Widget.ApplyDesign(element, state.design || SI.Tools.Widget.Designs[state.name]);
             } else {
                 element = state.kind === 'move' ? state.element : this.Tag(state, false);
                 parent.appendChild(element);
@@ -207,7 +215,7 @@ SI.Editor.Objects.Placement = {
                 SI.Editor.Objects.Elements.Editable(element);
                 element.querySelectorAll('*').forEach(child => SI.Editor.Objects.Elements.Editable(child));
             }
-            SI.Editor.Objects.Elements.MarkDirty(block);
+            SI.Editor.Objects.Elements.MarkDirty(canvas || block);
             if (oldBlock && oldBlock !== block) SI.Editor.Objects.Elements.MarkDirty(oldBlock);
             SI.Editor.Objects.Elements.SelectNone(true);
             SI.Editor.Objects.Elements.Select(null, element.id);

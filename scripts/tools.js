@@ -185,7 +185,9 @@ Ele = function (tag, attrs, log) {
                 after = attr;
             }
             else {
-                ele[attr] = attrs[attr];
+                if (attr === 'for') ele.htmlFor = attrs[attr];
+                else if (attr.startsWith('aria-') || attr.startsWith('data-') || attr === 'role') ele.setAttribute(attr, String(attrs[attr]));
+                else ele[attr] = attrs[attr];
             }
         }
     }
@@ -1696,6 +1698,126 @@ SI.Tools = {
             
             return rg1.test(fname)&&!rg2.test(fname)&&!rg3.test(fname);
             
+        }
+    }
+};
+// Widget designs patch existing nodes rather than replace their event handlers.
+SI.Tools.Widget = {
+    Designs: {},
+    Bases: new WeakMap(),
+    Remember: function (root, clean = node => node) {
+        const capture = node => {
+            this.Bases.set(node, {attributes: Object.fromEntries(Array.from(clean(node).attributes, attr => [attr.name, attr.value])), children: Array.from(node.childNodes), text: node.textContent});
+            for (const child of node.children) capture(child);
+        };
+        capture(root);
+    },
+    Derive: function (type) {
+        return function (options) {
+            const instance = Reflect.construct(SI.Widget.Template.SIOriginal || SI.Widget.Template, [options || {}]);
+            if (!SI.Widgets[type]) SI.Widgets[type] = {};
+            SI.Widgets[type][instance.Id] = instance;
+            return instance;
+        };
+    },
+    ApplyDesign: function (root, operations) {
+        if (!(root instanceof HTMLElement) || !Array.isArray(operations)) return;
+        const references = new Map();
+        const remember = (node, path) => { references.set(path.join('.'), node); Array.from(node.children).forEach((child, index) => remember(child, path.concat(index))); };
+        remember(root, []);
+        const targets = operations.map(operation => {
+            let node = root;
+            for (const index of operation.path || []) node = node && node.children[index];
+            return node;
+        });
+        operations.forEach((operation, index) => {
+            const node = targets[index];
+            if (!node) return;
+            if (operation.remove) { if (node !== root) node.remove(); return; }
+            for (const [name, value] of Object.entries(operation.attributes || {})) {
+                if (value === null) node.removeAttribute(name);
+                else node.setAttribute(name, String(value).replaceAll('__SI_WIDGET__', root.id));
+            }
+            if (typeof operation.text === 'string') node.textContent = operation.text;
+            if (Array.isArray(operation.append)) for (const specification of operation.append) node.appendChild(SI.Tools.Widget.CreateNode(specification, root, node, references));
+        });
+    },
+    CreateNode: function (specification, root, parent, references) {
+        const spec = specification;
+        if (Array.isArray(spec.ref)) {
+            const existing = references && references.get(spec.ref.join('.'));
+            if (!existing || existing === root) throw new Error('Invalid widget design reference');
+            return existing;
+        }
+        if (typeof spec.text === 'string' && !spec.tag && !spec.widget) return document.createTextNode(spec.text);
+        if (spec.widget) {
+            const options = Object.assign({}, spec.options, {Parent: parent, SIWidgetInstance: true});
+            for (const [key, value] of Object.entries(options)) if (typeof value === 'string') options[key] = value.replaceAll('__SI_WIDGET__', root.id);
+            const instance = new SI.Widget[spec.widget](options);
+            let element = instance instanceof HTMLElement ? instance : instance.Container;
+            if (!element && typeof instance.Draw === 'function') element = instance.Draw();
+            if (!(element instanceof HTMLElement)) throw new Error('Widget has no element: ' + spec.widget);
+            return element;
+        }
+        const element = document.createElement(spec.tag);
+        for (const [name, value] of Object.entries(spec.attributes || {})) element.setAttribute(name, String(value).replaceAll('__SI_WIDGET__', root.id));
+        for (const child of spec.children || []) element.appendChild(this.CreateNode(child, root, element, references));
+        return element;
+    },
+    Register: function (type, design) {
+        this.Designs[type] = design;
+        const original = SI.Widget[type];
+        if (typeof original !== 'function' || original.SIOriginal) return;
+        const constructor = function (options) {
+            options = options || {};
+            const result = Reflect.construct(original, [options]);
+            const decorate = function (element) {
+                const parent = options.Parent;
+                if (element instanceof HTMLElement && (options.SIWidgetInstance || options.SIWidgetPreview || parent instanceof HTMLElement && parent.closest('.si-block,[data-si-widget-canvas]'))) {
+                    element.dataset.siWidget = type;
+                    if (!options.SIWidgetRaw) {
+                        SI.Tools.Widget.ApplyDesign(element, options.Design || SI.Tools.Widget.Designs[type]);
+                        SI.Tools.Widget.Remember(element);
+                        SI.Tools.Widget.ApplyDesign(element, options.InstanceDesign);
+                    }
+                }
+                return element;
+            };
+            if (result instanceof HTMLElement) decorate(result);
+            else if (result.Container instanceof HTMLElement) decorate(result.Container);
+            else if (typeof result.Draw === 'function') {
+                const draw = result.Draw;
+                result.Draw = function (...args) { return decorate(draw.apply(this, args)); };
+            }
+            return result;
+        };
+        constructor.prototype = original.prototype;
+        Object.setPrototypeOf(constructor, original);
+        constructor.SIOriginal = original;
+        SI.Widget[type] = constructor;
+    },
+    Hydrate: function () {
+        for (const [block, data] of Object.entries(SI.Page.Blocks || {})) {
+            for (const [type, records] of Object.entries(data.Widgets || {})) for (const stored of records) {
+                const options = typeof stored === 'string' ? JSON.parse(stored) : Object.assign({}, stored);
+                // Legacy instances keep their existing HTML. Versioned instances
+                // retain explicit per-instance edits while rebuilding live handlers.
+                if (options.SIWidgetVersion !== 1 || SI.Widgets[type] && SI.Widgets[type][options.Id]) continue;
+                const parent = document.getElementById(options.Parent);
+                const blockElement = document.getElementById('si_block_' + block);
+                if (!parent || !blockElement || !blockElement.contains(parent) || typeof SI.Widget[type] !== 'function') continue;
+                const previous = document.getElementById(options.Id);
+                const next = previous && previous.nextSibling;
+                if (previous) previous.remove();
+                try {
+                    const specification = {widget: type, options};
+                    const element = this.CreateNode(specification, parent, parent);
+                    parent.insertBefore(element, next && next.parentNode === parent ? next : null);
+                } catch (error) {
+                    if (previous) parent.insertBefore(previous, next && next.parentNode === parent ? next : null);
+                    console.error('Unable to restore widget ' + options.Id, error);
+                }
+            }
         }
     }
 };

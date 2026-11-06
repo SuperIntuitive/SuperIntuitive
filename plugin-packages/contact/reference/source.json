@@ -1,0 +1,20 @@
+{
+  "repository": "superintutitive.com (local superintuitive.com source)",
+  "sources": {
+    "core_sipl/src/Contact.sipl": "2e21fb55b52831a5db2c87118b41bf4c3474771eea28da8a9d34f9cffda9218b",
+    "core_sipl/tests/contact.test.sipl": "bb2e0d6e7ae39ddf80d7274f3aec3dba987dad0606d631992f3008cfeaeb3df6",
+    "sql/contact-page.sql": "ef0daad4bdb52892f2f0d9952f1c162065d0c88ea2fda63c4e37273cca99aad3"
+  },
+  "adaptedFeatures": [
+    "product topics",
+    "normalized validation",
+    "idempotent submissions",
+    "per-email and tenant spam limits",
+    "20-message inbox pagination",
+    "read/unread state",
+    "reply links",
+    "form failure recovery",
+    "source styling"
+  ],
+  "storage": "tenant-scoped plugin SDK; no connection to the source site database"
+}

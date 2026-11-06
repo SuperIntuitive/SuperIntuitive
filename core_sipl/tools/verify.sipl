@@ -1,0 +1,23 @@
+use ../../packaging/Package
+fn run(name: String, arguments: List) {
+    let result = system.exec(arguments)
+    print(result["output"])
+    if result["exitCode"] != 0 or result["outputTruncated"] { fail(name + " failed") }
+}
+fn start() {
+    Package.preservation()
+    for source in ["core_sipl/main.sipl", "core_sipl/tests/unit.sipl", "core_sipl/tests/native_params.sipl", "core_sipl/tests/mysql.sipl", "core_sipl/tests/passwords.sipl", "packaging/Package.sipl", "tests/package.sipl"] {
+        run("compile " + source, [system.executable, "check", source])
+    }
+    run("native units", [system.executable, "run", "core_sipl/tests/unit.sipl"])
+    run("native parameter binding", [system.executable, "run", "core_sipl/tests/native_params.sipl"])
+    run("native packaging/upgrades", [system.executable, "run", "tests/package.sipl"])
+    if system.args.contains("--http") or system.args.contains("--browser") {
+        let command = ["node", "core_sipl/tests/http.cjs", "--runtime", system.executable]
+        if system.args.contains("--browser") { command.push("--browser") }
+        run("native HTTP/browser", command)
+    }
+    if system.args.contains("--package") { run("packaged release", [system.executable, "run", "packaging/Package.sipl", "verify"]) }
+    Package.preservation()
+    print("Native verification passed; Python is not required")
+}

@@ -948,6 +948,7 @@ SI.Editor.Objects.Blocks = {
             }
         }
 
+        SI.Editor.Objects.Widgets.SaveInstances(bname);
         let blockWidgets = document.querySelectorAll('#si_block_widgets_table_' + safeid + " tr");
         if (blockWidgets) {
             options['widgets'] = {};
@@ -1062,7 +1063,7 @@ SI.Editor.Objects.Blocks = {
             table = document.getElementById('si_block_widgets_table_' + block);
         }
         let tr = Ele('tr', {
-            data: {widgetId: options.Id},
+            data: {'widget-id': options.Id},
             style: {
                 backgroundColor:"rgba(0,0,0,.3)"
             },

@@ -146,7 +146,11 @@ if(isset($post['KEY'])){
 				}
 			    break;
 
-		default:break;
+		case "PluginAction":
+                (new Login())->RefreshSession();
+                (new Plugins())->Action($post);
+                break;
+        default:break;
 	}
 
 }

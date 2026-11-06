@@ -37,6 +37,9 @@ class Tools{
 				if($class === "Entity" || $class === "EntityReference" || $class === "EntityCollection" || $class === "Attribute" || $class === "AttributeCollection" || $class === "Filter" ){
 					$class = "Entity";
 				}
+				if(in_array($class, array("PluginManager", "PluginManifest", "PluginStorage"), true)){
+					$class = "Plugins";
+				}
 				if($class == "QueryParameter"){
 					$class = "Database";
 				}
@@ -642,13 +645,8 @@ class Tools{
 	}
 	static function GetPluginBundleVersion($assetType){
 		$assetType = strtolower((string)$assetType);
-		$plugins = array();
-		if(defined('SI_DOMAIN_NAME') && defined('SI_SUBDOMAIN_NAME')
-			&& !empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])
-			&& is_array($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])){
-			$plugins = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'];
-		}
-
+		$manager=PluginManager::current();
+        $plugins=array_values(array_filter($manager->ids(),fn($id)=>$manager->enabled($id)));
 		sort($plugins, SORT_NATURAL | SORT_FLAG_CASE);
 		$paths = array();
 		$context = array('deployment='.Tools::GetCurrentDeployment(), 'type='.$assetType);
@@ -667,10 +665,7 @@ class Tools{
 
 		foreach($plugins as $plugin){
 			$context[] = 'plugin='.$plugin;
-			$pluginFiles = glob($_SERVER['DOCUMENT_ROOT'].'/plugins/installed/'.$plugin.'/'.$subdirectory.'/*.'.$extension);
-			if(is_array($pluginFiles)){
-				$paths = array_merge($paths, $pluginFiles);
-			}
+            $paths=array_merge($paths, Plugins::SourceFiles($manager->package($plugin), $assetType==='styles'?'style':'script', Tools::GetCurrentDeployment()));
 		}
 
 		return Tools::BuildAssetVersion($paths, $context);

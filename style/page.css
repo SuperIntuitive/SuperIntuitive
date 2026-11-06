@@ -1,50 +1,14 @@
 <?php
 namespace SuperIntuitive;
-header("Content-type: text/css; charset: UTF-8");
-
-$path = dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
-//echo $path;
-require_once $path;
+require_once dirname(__DIR__).'/core/Tools.php';
 Tools::ConfigureSessionCookieParams();
 session_start();
 Tools::DefineServer();
 Tools::SendSecurityHeaders();
-
-
-echo "@charset \"ISO-8859-1\";";
-//echo " @import url('/style/navigation.css');  ";
-//echo " @keyframes mymove { from {left: 0px;} to {left: 200px;} } \n";
-//echo " @media only screen and (max-width: 600px) { body { background-color: lightblue;}}  \n";
-//echo " @font-face { font-family: myFirstFont; src: url(sansation_light.woff); font-weight: bold;} ";
-//echo " @page {margin: 1cm; widows:4}";
-
-
-
-if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'])) {
-    Tools:: Autoload('subroot');
-    $db = new Database();
-    $blocks = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['blocks'];
-    $guids = "";
-    foreach($blocks as $block){
-            $guids.= $block['id'].',';
-        }
-        $guids = rtrim($guids, ',');
-        $libs = $db->GetBlockScriptsByIds($guids, "css");
-        foreach($libs as $name=>$type){           
-            if (!empty($type['css'])){
-                $style = $type['css'];
-                if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
-                    $deploy = new Deployment();
-                    $style = $deploy->DeployMediaPaths($style);
-                }
-                echo '/*-!'.$name."!-*/  \n";
-                echo $style." \n";
-            }             
-        }
-    }
-
-
-
-
-?>
-
+header('Content-Type: text/css; charset=utf-8');
+header('Cache-Control: no-store, private');
+foreach (Page::AssetData()['blocks'] as $block) {
+    $style=$block['style'] ?? '';
+    if (Tools::UserHasRole('Admin') || Tools::UserHasRole('Tester')) $style=(new Deployment())->DeployMediaPaths($style);
+    echo '/*-!'.str_replace('*/','',$block['name'])."!-*/\n".$style."\n";
+}

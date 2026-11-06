@@ -15,8 +15,8 @@ SI.Widget.Template = function  (options) {
         "Height": { "value": "240px", "type": "style.height", "affected": '#'+this.Id  },
         "Top": { "value": "0px", "type": "style.top", "affected": '#'+this.Id  },
         "Left": { "value": "0px", "type": "style.left", "affected": '#'+this.Id  },
-        "BackgroundColor": { 'value': "green", 'type': "style.background-color", "affected": '#'+this.Id  },
-        "Border": { "value": "0", "type": "style.border", "affected": '#'+this.Id  },
+        "BackgroundColor": { 'value': "var(--si-widget-surface)", 'type': "style.background-color", "affected": '#'+this.Id  },
+        "Border": { "value": "1px dashed var(--si-widget-line)", "type": "style.border", "affected": '#'+this.Id  },
         "TabIndex": { "value": "0", "type": "attr.tabindex", "affected": '#'+this.Id  }
     };
     //debugger;

@@ -1,0 +1,86 @@
+use ../packaging/Package
+var _checks = 0
+fn check(value: Bool, description: String) {
+    assert(value, description)
+    _checks += 1
+    print("PASS " + description)
+}
+fn rejects(operation: Function, description: String) {
+    var rejected = false
+    try { operation() } fail { rejected = true }
+    check(rejected, description)
+}
+fn fixtureArchive(filename: String, folder: String, values: Map, checksum: Bool) {
+    if fs.exists(filename) { fs.remove(filename) }
+    let archive = zip.open(filename)
+    let records = []
+    try {
+        for name, content in values {
+            let source = path.join(folder, name)
+            Package.write(source, content)
+            zip.add(archive, source, "SuperIntuitive/" + name)
+            var digest = Package.hashFile(source)
+            if not checksum and name == "core_sipl/main.sipl" { digest = "0000000000000000000000000000000000000000000000000000000000000000" }
+            records.push({"path": name, "bytes": fs.size(source), "sha256": digest})
+        }
+        let metadata = path.join(folder, "PACKAGE.json")
+        fs.writeText(metadata, json.stringify({"format": 1, "backend": "sipl", "files": records}))
+        zip.add(archive, metadata, "SuperIntuitive/PACKAGE.json")
+        zip.close(archive)
+    } fail { try { zip.close(archive) } fail {}
+        fail(fail) }
+}
+fn start() {
+    let folder = path.absolute("core_sipl/runtime/package-test-" + Package.nonce())
+    Package.directory(folder)
+    try {
+        let digestFile = path.join(folder, "hash.txt")
+        Package.write(digestFile, "abc")
+        check(Package.hashFile(digestFile) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "native streaming SHA-256 known vector")
+        check(fs.stat(digestFile)["type"] == "file" and not fs.stat(digestFile)["isLink"] and fs.stat(digestFile)["size"] == 3, "native no-follow file metadata")
+        for name in ["../escape", "core/../escape", "core/back\\slash", "C:/file", "CON.txt"] {
+            rejects(fn() { Package.relative(name) }, "native path rejection: " + name)
+        }
+        let values: Map = {"core_sipl/main.sipl": "new native entry", "core_sipl/src/Plugins.sipl": fs.readText("core_sipl/src/Plugins.sipl"), "core_sipl/src/Dispatcher.sipl": fs.readText("core_sipl/src/Dispatcher.sipl"), "core/plugin-schema.sql": fs.readText("core/plugin-schema.sql"), "packaging/Package.sipl": fs.readText("packaging/Package.sipl"), "core_sipl/config.local.json": "new config", "domains/customer/media/logo.png": "new media", "plugins/installed/custom/sipl/main.sipl": "new plugin", ".htaccess": "new server config"}
+        let archive = path.join(folder, "release.zip")
+        fixtureArchive(archive, path.join(folder, "source"), values, true)
+        let target = path.join(folder, "site")
+        for name, content in values { Package.write(path.join(target, name), "preserve state") }
+        Package.write(path.join(target, "core/DbCreds.php"), "preserve PHP credentials")
+        let modeFile = path.join(target, "core_sipl/main.sipl")
+        fs.chmod(modeFile, 292)
+        let originalMode = fs.stat(modeFile)["mode"]
+        let plan = Package.upgrade(archive, target, false)
+        check(not plan["applied"] and plan["files"].length == 5, "native preview selects code only")
+        check(fs.readText(path.join(target, "core_sipl/main.sipl")) == "preserve state", "native preview does not write target")
+        let applied = Package.upgrade(archive, target, true)
+        check(applied["applied"] and fs.readText(path.join(target, "core_sipl/main.sipl")) == "new native entry", "native upgrade replaces code")
+        check(fs.stat(modeFile)["mode"] == originalMode, "native upgrade preserves read-only file permissions")
+        for name, content in values { if Package.protected(name) { check(fs.readText(path.join(target, name)) == "preserve state", "native upgrade preserves " + name) } }
+        check(fs.readText(path.join(target, "core/DbCreds.php")) == "preserve PHP credentials", "native upgrade preserves existing credentials")
+        let recovery = zip.open(path.join(applied["backup"], "previous.zip"))
+        check(zip.read(recovery, "core_sipl/main.sipl").decodeUtf8() == "preserve state", "native recovery copy preserved")
+        zip.close(recovery)
+        fixtureArchive(archive, path.join(folder, "source"), values, false)
+        rejects(fn() { Package.upgrade(archive, target, true) }, "native corrupted release rejected before writes")
+        check(fs.readText(path.join(target, "core_sipl/main.sipl")) == "new native entry", "native failed upgrade preserves code")
+        let output = path.join(folder, "contact.zip")
+        Package.contact(output)
+        let contact = zip.open(output)
+        check(zip.read(contact, "info.conf").decodeUtf8() == fs.readText("plugin-packages/contact/info.conf"), "native Contact ZIP preserves info.conf")
+        check(zip.list(contact).contains("php/contact.php") and zip.list(contact).contains("sipl/contact.sipl"), "native Contact ZIP includes both compatible handlers")
+        zip.close(contact)
+        let theme = path.join(folder, "theme")
+        for name in Package.files("core/setup/default-theme", false) { Package.directory(path.dirname(path.join(theme, name)))
+            fs.copy(path.absolute(name), path.join(theme, name)) }
+        Package.directory(path.join(theme, "core/setup"))
+        fs.copy(path.absolute("core/setup/super_intuitive_install.sql"), path.join(theme, "core/setup/super_intuitive_install.sql"))
+        let before = Package.hashFile(path.join(theme, "core/setup/super_intuitive_install.sql"))
+        let compiled = system.exec([system.executable, "run", path.absolute("packaging/Package.sipl"), "theme", "--root", theme])
+        check(compiled["exitCode"] == 0, "native theme compiler executes without PHP or Python")
+        check(Package.hashFile(path.join(theme, "core/setup/super_intuitive_install.sql")) == before, "native theme compiler preserves generated SQL")
+        Package.removeTree(folder)
+    } fail { Package.removeTree(folder)
+        fail(fail) }
+    print("Native packaging and upgrade checks passed: " + "{_checks}")
+}

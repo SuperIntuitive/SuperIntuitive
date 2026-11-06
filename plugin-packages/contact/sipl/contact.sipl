@@ -1,0 +1,96 @@
+// Adapted from superintutitive.com/core_sipl/src/Contact.sipl.
+fn error(message: String, code: String, status: Int, field: String) -> Map {
+    let result: Map = {"ERROR": message, "code": code, "__httpStatus": status}
+    if not field.isEmpty { result["field"] = field }
+    return result
+}
+fn invalid(field: String, message: String) -> Map { return error(message, "CONTACT_VALIDATION_FAILED", 400, field) }
+fn receipt(id: String) -> Map { return {"CONTACTSENT": {"id": "0x" + id}, "submitted": true, "id": id} }
+fn counts(storage: Map) -> Map {
+    let total = storage["count"]("messages", 0, "", none)
+    return {"total": total, "unread": total - storage["count"]("messages", 0, "read", true)}
+}
+fn recordId(value) {
+    if value.type != "String" or not regex.compile("^(?:0x)?[A-Fa-f0-9]\{32\}$").isMatch(value) { return none }
+    var id = value.toLower()
+    if id.startsWith("0x") { id = id.slice(2) }
+    return id
+}
+fn handle(storage: Map, action: String, post: Map) -> Map {
+    if action == "inbox" {
+        let offset = post.get("offset", 0)
+        if offset.type != "Int" or offset < 0 or offset > 100000 { return invalid("", "Choose a valid inbox offset.") }
+        return storage["atomic"]("messages", fn() {
+            let rows = storage["page"]("messages", offset, 21)
+            let messages = []
+            let legacy = []
+            for index, row in rows {
+                if index >= 20 { break }
+                legacy.push(row)
+                let value = row["value"]
+                var state = "unread"
+                if value.get("read", false) == true { state = "read" }
+                let message: Map = {"id": "0x" + row["id"], "name": value["name"], "email": value["email"], "topic": value.get("topic", "General"), "message": value["message"], "state": state, "createdon": row["created_at"].replace(" ", "T") + "Z"}
+                if value.contains("subject") { message["subject"] = value["subject"] }
+                messages.push(message)
+            }
+            let stats = counts(storage)
+            let data: Map = {"messages": messages, "hasMore": rows.length > 20, "offset": offset, "total": stats["total"], "unread": stats["unread"]}
+            return {"CONTACTMESSAGES": data, "messages": legacy, "hasMore": data["hasMore"], "offset": offset, "total": stats["total"], "unread": stats["unread"]}
+        })
+    }
+    if ["update", "delete"].contains(action) {
+        let id = recordId(post.get("id"))
+        if id == none { return invalid("", "Choose a valid message.") }
+        if action == "update" and not ["read", "unread"].contains(post.get("state")) { return invalid("", "Choose read or unread.") }
+        return storage["atomic"]("messages", fn() {
+            let row = storage["get"]("messages", id)
+            if row == none { return error("Message not found.", "RECORD_NOT_FOUND", 404, "") }
+            if action == "delete" { return {"deleted": storage["delete"]("messages", id)} }
+            let value = row["value"]
+            value["read"] = post["state"] == "read"
+            storage["put"]("messages", id, value)
+            let stats = counts(storage)
+            return {"CONTACTMESSAGEUPDATED": {"id": "0x" + id, "state": post["state"], "total": stats["total"], "unread": stats["unread"]}}
+        })
+    }
+    if action != "submit" { return error("Unknown contact action.", "UNKNOWN_PLUGIN_ACTION", 404, "") }
+    let values: Map = {:}
+    for field, maximum in {"name": 100, "email": 254, "message": 5000} {
+        let value = post.get(field)
+        if value.type != "String" { return invalid(field, "Please complete this field.") }
+        let clean = value.trim()
+        if clean.isEmpty or clean.length > maximum or clean.contains("\0") { return invalid(field, "Use between 1 and " + "{maximum}" + " characters.") }
+        values[field] = clean
+    }
+    values["email"] = values["email"].toLower()
+    if not regex.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").isMatch(values["email"]) { return invalid("email", "Enter a valid email address.") }
+    let subject = post.get("subject")
+    let legacy = not post.contains("topic") and subject.type == "String" and not subject.trim().isEmpty
+    var topic = post.get("topic")
+    if legacy and subject.length > 200 { return invalid("subject", "Use up to 200 characters.") }
+    if legacy { topic = "General"
+        values["subject"] = subject }
+    if not ["General", "SuperIntuitive CMS", "Gameatude", "SIPL"].contains(topic) { return invalid("topic", "Choose one of the listed topics.") }
+    values["topic"] = topic
+    let website = post.get("website", "")
+    if website.type != "String" or not website.isEmpty { return invalid("", "This submission could not be accepted.") }
+    var token = post.get("submission")
+    if token == none and legacy { token = bytes.fromBase64(auth.randomToken(16).replace("-", "+").replace("_", "/") + "==").toHex() }
+    if token.type != "String" or not regex.compile("^[A-Fa-f0-9]\{32\}$").isMatch(token) { return invalid("", "Refresh the form before submitting it.") }
+    token = token.toLower()
+    return storage["atomic"]("messages", fn() {
+        let existing = storage["get"]("messages", token)
+        if existing != none {
+            for field in ["name", "email", "topic", "message"] {
+                if existing["value"].get(field) != values[field] { return error("The earlier submission was already received. Submit again to send your changed message.", "CONTACT_SUBMISSION_CONFLICT", 409, "") }
+            }
+            return receipt(token)
+        }
+        if storage["count"]("messages", 300, "", none) >= 20 or storage["count"]("messages", 300, "email", values["email"]) >= 3 { return error("Too many messages. Please wait five minutes before trying again.", "RATE_LIMITED", 429, "") }
+        values["read"] = false
+        values["submission"] = token
+        storage["put"]("messages", token, values)
+        return receipt(token)
+    })
+}

@@ -1,0 +1,12 @@
+<section class="si-demo" data-si-demo="settings">
+  <h1>Editor demo</h1>
+  <form data-demo-settings>
+    <label>Demo origin <input name="origin" type="url" required placeholder="https://demo.example.net"></label>
+    <label>Allowed parent origins, one per line <textarea name="parents" required placeholder="https://www.example.com"></textarea></label>
+    <label>Published source page <input name="page" required value="editor-demo-source"></label>
+    <button type="submit">Save settings</button>
+  </form>
+  <p data-demo-status role="status"></p>
+  <p>Installed plugin folder: <code data-demo-package></code></p>
+  <p>The demo listener is part of this plugin. Use its README to configure a separate origin and a database account with SELECT permission only. Restart only that listener after changing these settings.</p>
+</section>

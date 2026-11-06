@@ -13,6 +13,8 @@ use Page
 use Render
 use Assets
 use Plugins
+use Widgets
+use Lookup
 use Library
 use Setup
 use SetupView
@@ -26,6 +28,10 @@ fn operationReply(value: Map, array: Bool) -> Map {
     var status = 200
     if ["RUNTIME_CAPABILITY_REQUIRED", "PORT_FEATURE_PENDING"].contains(value.get("code", "")) { status = 501 }
     if value.get("code", "") == "RATE_LIMITED" { status = 429 }
+    if value.contains("__httpStatus") {
+        if [400, 403, 404, 409, 429, 500, 503].contains(value["__httpStatus"]) { status = value["__httpStatus"] }
+        value.remove("__httpStatus")
+    }
     if array { return jsonReply([value], status) }
     return jsonReply(value, status)
 }
@@ -33,12 +39,13 @@ fn operationReply(value: Map, array: Bool) -> Map {
 fn failure(detail: String, array: Bool) -> Map {
     var reason = detail
     if not regex.compile("^[A-Z0-9_]+$").isMatch(reason) { reason = "INTERNAL_ERROR" }
-    let messages = {"FORBIDDEN": "You do not have permission for this operation.", "CSRF_INVALID": "Your session changed. Refresh the page and try again.", "MYSQL_NOT_CONFIGURED": "Configure the SIPL MySQL connection before using this backend.", "MYSQL_CONNECTOR_BUILD": "The supplied SIPL executable was built without the MySQL connector.", "INSTALLER_LOCKED": "This site is already installed. Setup is disabled.", "PAGE_NOT_FOUND": "Page not found.", "ASSET_NOT_FOUND": "Asset not found.", "SITE_NOT_FOUND": "This domain is not registered in the database."}
+    let messages = {"PLUGIN_REQUIRES_SIPL_HANDLER": "Activation rejected: this plugin requires a compatible SIPL handler.", "INVALID_PLUGIN_SIPL_HANDLER": "Activation rejected: the declared SIPL handler does not compile.", "MIGRATION_REPAIR_REQUIRED": "A plugin migration was interrupted. Repair it before retrying.", "FORBIDDEN": "You do not have permission for this operation.", "CSRF_INVALID": "Your session changed. Refresh the page and try again.", "MYSQL_NOT_CONFIGURED": "Configure the SIPL MySQL connection before using this backend.", "MYSQL_CONNECTOR_BUILD": "The supplied SIPL executable was built without the MySQL connector.", "INSTALLER_LOCKED": "This site is already installed. Setup is disabled.", "PAGE_NOT_FOUND": "Page not found.", "ASSET_NOT_FOUND": "Asset not found.", "SITE_NOT_FOUND": "This domain is not registered in the database."}
     var status = 400
+    if reason == "RATE_LIMITED" { status = 429 }
     if reason == "INTERNAL_ERROR" { status = 500 }
     if reason == "FORBIDDEN" or reason == "CSRF_INVALID" or reason == "SETUP_AUTH_REQUIRED" or reason == "SETUP_KEY_INVALID" { status = 403 }
     if reason == "INSTALLER_LOCKED" or reason == "INSTALLATION_INCOMPLETE" { status = 409 }
-    if reason == "PAGE_NOT_FOUND" or reason == "SITE_NOT_FOUND" or reason == "ASSET_NOT_FOUND" { status = 404 }
+    if reason == "PAGE_NOT_FOUND" or reason == "SITE_NOT_FOUND" or reason == "ASSET_NOT_FOUND" or reason == "RECORD_NOT_FOUND" { status = 404 }
     if reason == "MYSQL_NOT_CONFIGURED" { status = 503 }
     if reason == "MYSQL_CONNECTOR_BUILD" or reason == "DYNAMIC_ASSET_NOT_PORTED" { status = 501 }
     let value = Tools.error(messages.get(reason, "The operation could not be completed."), reason)
@@ -49,6 +56,7 @@ fn failure(detail: String, array: Bool) -> Map {
 fn context(request: Map) -> Map {
     if not Database.configured() { fail("MYSQL_NOT_CONFIGURED") }
     if not Runtime.inspect()["mysqlDriver"] { fail("MYSQL_CONNECTOR_BUILD") }
+    Database.prepareRequest()
     let current = Context.load(request)
     Accounts.refresh(current, request)
     return current
@@ -76,7 +84,10 @@ fn post(request: Map) -> Map {
     let user = Sessions.user(request)
     if user == none or not user.get("roles", []).contains("Admin") { fail("FORBIDDEN") }
     let current = context(request)
-    if pathname == "/api.v1.php" { return operationReply(Entity.api(current, data), false) }
+    if pathname == "/api.v1.php" {
+        if data.get("Operation", "") == "Lookup" { return operationReply(Lookup.search(current, data), false) }
+        return operationReply(Entity.api(current, data), false)
+    }
     if pathname == "/delegate-admin.php" { return operationReply(Dispatcher.admin(current, data), false) }
     fail("UNKNOWN_ENDPOINT")
 }
@@ -98,10 +109,12 @@ fn dispatch(request: Map) {
         if method != "POST" { return jsonReply(Tools.error("POST required.", "METHOD_NOT_ALLOWED"), 405) }
         return post(request)
     }
-    for prefix in ["/core/", "/core_sipl/", "/tests/", "/test/", "/sql/", "/logs/", "/docker/", "/plugins/downloaded/", "/domains/"] {
+    for prefix in ["/core/", "/core_sipl/", "/tests/", "/test/", "/sql/", "/logs/", "/docker/", "/plugins/", "/plugin-packages/", "/domains/"] {
         if pathname.startsWith(prefix) and not Assets.staticAsset(pathname) { return jsonReply(Tools.error("Private path.", "FORBIDDEN"), 403) }
     }
     if method != "GET" and method != "HEAD" { return jsonReply(Tools.error("Method not allowed.", "METHOD_NOT_ALLOWED"), 405) }
+    if pathname == "/plugin-asset.php" { return Plugins.asset(context(request), request.get("query", "")) }
+    if pathname == "/widget-asset.php" { return Widgets.asset(context(request), request.get("query", "")) }
     if pathname.startsWith("/media/") {
         if Assets.safeMedia(pathname) {
             let initial = Assets.initialMedia(pathname)
@@ -124,7 +137,7 @@ fn dispatch(request: Map) {
         let current = context(request)
         var kind = "script"
         if pathname.endsWith(".css") { kind = "style" }
-        return {"body": Plugins.bundle(kind, current["deployment"]), "headers": {"Content-Type": Assets.contentType(pathname)}}
+        return {"body": Plugins.bundle(current, kind, current["deployment"]), "headers": {"Content-Type": Assets.contentType(pathname)}}
     }
     if pathname == "/style/libraries.css" { return {"body": Library.bundle(context(request), request, "css"), "headers": {"Content-Type": Assets.contentType(pathname)}} }
     if Assets.staticAsset(pathname) { return Assets.readStatic(pathname) }
@@ -145,6 +158,7 @@ fn dispatch(request: Map) {
 
 fn handle(request: Map) {
     var response = none
+    if not regex.compile("^[A-Za-z0-9.-]+(:[0-9]\{1,5\})?$").isMatch(request.get("headers", {:}).get("host", "")) { return jsonReply(Tools.error("Invalid host.", "INVALID_HOST"), 400) }
     let hostname = request["headers"].get("host", "").split(":")[0].toLower()
     let domain = Config.get("domain", "localhost").toLower()
     let subdomain = Config.get("subdomain", "")
@@ -178,8 +192,8 @@ fn handle(request: Map) {
     let headers = response.get("headers", {:})
     headers["X-Content-Type-Options"] = "nosniff"
     headers["X-Frame-Options"] = "SAMEORIGIN"
-    headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    headers["Cache-Control"] = "no-store, private"
+    headers["Referrer-Policy"] = headers.get("Referrer-Policy", "strict-origin-when-cross-origin")
+    headers["Cache-Control"] = headers.get("Cache-Control", "no-store, private")
     headers["X-SuperIntuitive-Backend"] = "sipl"
     response["headers"] = headers
     return response

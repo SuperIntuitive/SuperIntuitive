@@ -4,6 +4,10 @@ const os = require('node:os');
 const path = require('node:path');
 const {spawn} = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
+const runtimeIndex = process.argv.indexOf('--runtime');
+const localRuntime = path.join(root, 'sipl.exe');
+const runtime = runtimeIndex < 0 ? (process.env.SI_SIPL_RUNTIME || (fs.existsSync(localRuntime) ? localRuntime : 'sipl')) : process.argv[runtimeIndex + 1];
+assert(runtime && !runtime.startsWith('--'), 'Pass a SIPL executable after --runtime');
 
 (async function () {
     const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'si-sipl-http-'));
@@ -23,14 +27,15 @@ const root = path.resolve(__dirname, '../..');
     fs.writeFileSync(configuration, JSON.stringify({root:fixture.replaceAll('\\','/'),port:0,host:'127.0.0.1',domain:'localhost',setupToken}));
     const environment = {...process.env};
     for (const key of Object.keys(environment)) if (key.startsWith('SI_SIPL_') || key === 'SI_SETUP_TOKEN') delete environment[key];
-    const server = spawn(path.join(root, 'sipl.exe'), ['run', 'core_sipl/main.sipl', configuration], {cwd:root,env:environment,stdio:['ignore','pipe','pipe']});
-    let output='', port, checks=0;
+    const server = spawn(runtime, ['run', 'core_sipl/main.sipl', configuration], {cwd:root,env:environment,stdio:['ignore','pipe','pipe']});
+    let output='', port, checks=0, startupError;
+    server.once('error', error => {startupError=error;});
     const collect = data => {output=(output+data.toString()).slice(-16000);const match=output.match(/https?:\/\/(?:127\.0\.0\.1|localhost):(\d+)/);if(match)port=Number(match[1]);};
     server.stdout.on('data',collect);server.stderr.on('data',collect);
     let browser;
     try {
         const deadline=Date.now()+20000;
-        while(!port){if(server.exitCode!==null)throw Error('SIPL failed to start: '+output);if(Date.now()>deadline)throw Error('SIPL startup timed out: '+output);await new Promise(r=>setTimeout(r,50));}
+        while(!port){if(startupError)throw startupError;if(server.exitCode!==null)throw Error('SIPL failed to start: '+output);if(Date.now()>deadline)throw Error('SIPL startup timed out: '+output);await new Promise(r=>setTimeout(r,50));}
         const base='http://127.0.0.1:'+port;
         let cookie='';
         async function request(url, method='GET', data, headers={}, suppliedCookie=cookie) {

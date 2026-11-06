@@ -61,7 +61,8 @@ class Admin {
 		$files = "\t\t<link rel='stylesheet' type='text/css'  href='/editor/editor.css?$moded'>\n";
 
 		$moded = filemtime('editor/editor.js');
-		$files .= "\t\t<script defer src='/editor/editor.js?$moded' ></script>\n";	
+		$pageQuery='page='.rawurlencode($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['path'] ?? SI_URI);
+		$files .= "\t\t<script defer src='/editor/editor.js?v=$moded&amp;$pageQuery' ></script>\n";
 
 		$objfiles = scandir('editor/objects');
 		foreach($objfiles as $obj){
@@ -216,6 +217,7 @@ class Admin {
 			$user->Attributes->Add(new Attribute("name", $post['name']) ); 
 			$user->Attributes->Add(new Attribute("email", $post['email']) ); 
 			$user->Attributes->Add(new Attribute("password", $hash) ); 
+			$user->Attributes->Add(new Attribute("preferences", "{}") );
 			try{
 				$id = $user->Create();
 				$output = array();

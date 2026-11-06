@@ -668,6 +668,7 @@ class Database extends DbCreds
 
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['id']='0x'.$mypage[0]['id'];
 			$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['name']= $mypage[0]['name'];
+            $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['path']= $mypage[0]['path'];
 
 			$myblocks = $this->GetBlocks( '0x'.$pageobjects['page']['id'] );
 

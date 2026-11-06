@@ -1,296 +1,56 @@
-if(!SI.Widgets.Tab){SI.Widgets.Tab = {}};
-SI.Widget.Tab = function  (options) { 
-    if (!(this instanceof SI.Widget.Tab)) { return new SI.Widget.Tab(options); }
-
-    options = typeof options !== 'undefined' ? options : {};
-    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Tab");}
-    this.Input = {...options};
-    SI.Widgets.Tab[this.Id] = this;
-
-    this.Defaults = {
-        "ContainerClass": "",
-        "Position": "absolute",
-        "Parent": null,
-        "ParentIndex": null,
-        "Width": "100%",
-        "Height": "100%",
-        "Top": "",
-        "Bottom": "",
-        "Left": "",
-        "Right": "",
-        "FontSize": "1em",
-        "FontColor": "black",
-        "TextAlign": "center",
-        "Border": 'solid 1px rgba(64,64,64,.5)',
-        "BackgroundColor": SI.Theme.BackgroundColor,
-        "TabTextColor": "white",
-        "TabBackgroundColor": SI.Theme.MenuColor,
-        "SelectedTabBackgroundColor": "slategrey",
-        "TabFilter": "brightness(100%)",
-        "HoverTabFilter": "brightness(110%)",
-        "SelectedTabFilter": "brightness(125%)",
-        "TabHeight": "20px",
-        "TabPadding": "6px",
-        "LeftOfTabsSpace": '18px',
-        "Overflow":'hidden',
-        "OnChange": null,
-        "Selected": null
-    };
-
-    options = this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-
-    //private members
-    let SelectedId = '';
-    let self = this;
-
-    //public vars
-    this.Container = null;
-    this.BaseClass= this.Id.replaceAll("_","-");
-
-    //Items Object
-    this.Items = {
-        Count:0,
-        Add: function (tabname, content) {                
-            var i = this.Count;
-            var d = {};
-            d[tabname] = content;
-            this[i] = d;
-            this.Count++;
+if (!SI.Widgets.Tab) SI.Widgets.Tab = {};
+SI.Widget.Tab = function (options) {
+    if (!(this instanceof SI.Widget.Tab)) return new SI.Widget.Tab(options);
+    options=options||{};this.Id=options.Id||SI.Tools.Element.SafeId('Tab');this.Input={...options};
+    this.Defaults={ContainerClass:'',Position:'absolute',Parent:null,ParentIndex:null,Width:'100%',Height:'100%',Top:'',Bottom:'',Left:'',Right:'',FontSize:'1em',FontColor:'var(--si-widget-text)',TextAlign:'center',Border:'1px solid var(--si-widget-line)',BackgroundColor:'var(--si-widget-surface)',TabTextColor:'var(--si-widget-text)',TabBackgroundColor:'var(--si-widget-raised)',SelectedTabBackgroundColor:'#29496b',TabFilter:'brightness(100%)',HoverTabFilter:'brightness(110%)',SelectedTabFilter:'brightness(100%)',TabHeight:'32px',TabPadding:'6px',LeftOfTabsSpace:'8px',Overflow:'hidden',OnChange:null,Selected:null,Items:null};
+    this.Options=SI.Tools.Object.SetDefaults(options,this.Defaults);this.Container=null;this.BaseClass=this.Id.replaceAll('_','-');
+    const self=this;let selected=null;
+    this.Items={Count:0,
+        Add(name,content){this[this.Count++]={[name]:content};if(!self.Input.Items)self.Input.Items={};self.Input.Items[name]=content instanceof Element?content.outerHTML:content;if(self.Container)self.Draw();},
+        Index(name){for(let index=0;index<this.Count;index++)if(Object.prototype.hasOwnProperty.call(this[index],name))return index;return -1;},
+        Remove(tab){
+            const index=typeof tab==='number'?tab:this.Index(tab);if(index<0||index>=this.Count)return false;
+            const removed=Object.keys(this[index])[0];for(let next=index;next<this.Count-1;next++)this[next]=this[next+1];delete this[--this.Count];
+            if(self.Input.Items)delete self.Input.Items[removed];
+            if(selected===removed){selected=null;self.Options.Selected=null;}if(self.Container)self.Draw();return true;
         },
-        Remove: function (tab) {
-            if (typeof tab === 'number'){
-                delete this[tab];
-                this.Count--;
-            }else{
-                var i = this.Index(tab);
-                delete this[i];
-                this.Count--;
-            }
-            var reset = 0;
-            for (let key in this) {
-                if (this.hasOwnProperty(key)) {                
-                    if (!isNaN(key)) {
-                        if (key !== reset) {
-                        this[reset] = this[key];
-                        delete this[key];
-                        }
-                        reset++;
-                        log(reset);
-                    } 
-                }
-            }
-        },
-        Contents: function (tab, content) {
-            if (typeof tab === 'number') {
-                
-            } else {
-
-            }
-        },
-        Index: function (tabname) {
-            for (let i = 0; i < this.Count; i++) {
-                if(this[i] !== null && this[i][tabname] !== null){
-                    return i;
-                }
-            }
-        },
-        GetSelected: function () {
-            return document.getElementById(SelectedId);         
-        }
+        Contents(tab,content){const index=typeof tab==='number'?tab:this.Index(tab);if(index<0||index>=this.Count)return;const name=Object.keys(this[index])[0];if(content===undefined)return this[index][name];this[index][name]=content;self.Input.Items[name]=content instanceof Element?content.outerHTML:content;if(self.Container)self.Draw();},
+        GetSelected(){return self['tabitem_'+selected]||null;}
     };
-    this.Show = function () {
-        this.container.style.display = 'block';
+    this.SelectTab=function(name,notify=true){
+        if(this.Items.Index(name)<0)return false;selected=name;this.Options.Selected=name;this.Input.Selected=name;
+        for(let index=0;index<this.Items.Count;index++){
+            const key=Object.keys(this.Items[index])[0],active=key===name,tab=this['tabitem_'+key],panel=this['tabcontent_'+key];if(!tab||!panel)continue;
+            tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;tab.style.filter=active?this.Options.SelectedTabFilter:this.Options.TabFilter;
+            tab.style.backgroundColor=active?this.Options.SelectedTabBackgroundColor:this.Options.TabBackgroundColor;panel.style.display=active?'block':'none';
+        }
+        if(notify&&this.Options.OnChange&&this['tabitem_'+name])this.Options.OnChange(this['tabitem_'+name]);return true;
     };
-    this.Hide = function () {
-        this.container.style.display = 'none';
-    };   
-    this.SelectTab = function (tabname) {
-        
-
+    this.Show=()=>{if(this.Container)this.Container.style.display='block';};this.Hide=()=>{if(this.Container)this.Container.style.display='none';};
+    this.Draw=function(parentId){
+        const container=this.Container||Ele('div',{id:this.Id,class:'si-widget si-widget-tabs si-tabs-container '+this.Options.ContainerClass,style:{position:this.Options.Position,top:this.Options.Top,left:this.Options.Left,right:this.Options.Right,bottom:this.Options.Bottom,height:this.Options.Height,width:this.Options.Width,overflow:this.Options.Overflow}});
+        this.Container=container;container.replaceChildren();
+        const menu=Ele('ul',{class:this.BaseClass+'-tabmenu si-tab-list',role:'tablist',style:{height:this.Options.TabHeight,margin:'0',paddingLeft:this.Options.LeftOfTabsSpace,backgroundColor:this.Options.BackgroundColor},appendTo:container});
+        for(let index=0;index<this.Items.Count;index++){
+            const name=Object.keys(this.Items[index])[0],content=this.Items[index][name],suffix=name.replaceAll(' ','_');
+            const tab=Ele('li',{id:this.Id+'_tabitem_'+suffix,class:this.BaseClass+'-tabitem si-tab-item',role:'tab',tabIndex:-1,innerText:name,data:{tabname:name,tabnum:index},style:{color:this.Options.TabTextColor,padding:this.Options.TabPadding,border:this.Options.Border,cursor:'pointer',backgroundColor:this.Options.TabBackgroundColor},appendTo:menu});
+            const panel=Ele('div',{id:this.Id+'_tabcontent_'+suffix,class:this.BaseClass+'-tabcontent si-tab-panel',role:'tabpanel',style:{position:'absolute',top:this.Options.TabHeight,bottom:'0',width:'100%',overflow:'auto',backgroundColor:this.Options.BackgroundColor,color:this.Options.FontColor},appendTo:container});
+            tab.setAttribute('aria-controls',panel.id);panel.setAttribute('aria-labelledby',tab.id);
+            if(content instanceof Node)panel.appendChild(content);else panel.innerHTML=content==null?'':String(content);
+            this['tabitem_'+name]=tab;this['tabcontent_'+name]=panel;
+            tab.onclick=()=>this.SelectTab(name);
+            tab.onmouseenter=()=>{if(selected!==name)tab.style.filter=this.Options.HoverTabFilter;};tab.onmouseleave=()=>{if(selected!==name)tab.style.filter=this.Options.TabFilter;};
+            tab.onkeydown=event=>{
+                const keys=['ArrowRight','ArrowLeft','Home','End','Enter',' '];if(!keys.includes(event.key))return;event.preventDefault();
+                let next=index;if(event.key==='ArrowRight')next=(index+1)%this.Items.Count;if(event.key==='ArrowLeft')next=(index-1+this.Items.Count)%this.Items.Count;if(event.key==='Home')next=0;if(event.key==='End')next=this.Items.Count-1;
+                const key=Object.keys(this.Items[next])[0];this.SelectTab(key);this['tabitem_'+key].focus();
+            };
+        }
+        if(this.Items.Count)this.SelectTab(this.Options.Selected&&this.Items.Index(this.Options.Selected)>=0?this.Options.Selected:Object.keys(this.Items[0])[0],false);
+        else Ele('p',{class:'si-widget-empty',innerText:'Add a tab to get started',appendTo:container});
+        const parent=typeof parentId==='string'?document.getElementById(parentId):parentId||this.Options.Parent;
+        if(parent&&container.parentNode!==parent)parent.appendChild(container);return container;
     };
-    this.Draw = function (parentId) {
-        let container = Ele('div', {
-            id:this.Id, 
-            class: "si-tabs-container",
-            style: {
-                position: this.Options.Position,
-                top: this.Options.Top,
-                left: this.Options.Left,
-                right: this.Options.Right,
-                bottom: this.Options.Bottom,
-                height: this.Options.Height,
-                width: this.Options.Width,
-                overflow: this.Options.Overflow,
-            }
-        });
-        //debugger;
-        let tabs = Ele("ul", {
-            class: this.BaseClass+"-tabmenu si-tab-list",
-            style: {
-                listStyle: 'none',
-                whiteSpace: 'nowrap',
-                height: (parseInt(this.Options.TabHeight) + (parseInt(this.Options.TabPadding) - 3)) + 'px',
-                backgroundColor: this.Options.BackgroundColor,
-                margin: '0px',
-                //  verticalAlign: 'center',
-                width: this.Options.Width,
-                paddingLeft: this.Options.LeftOfTabsSpace,
-            },
-            appendTo: container,
-        });
-
-        tabs.setAttribute('role', 'tablist');
-        //log(this.Items.Count);
-        //loop the digits and make the lis
-        for (let i = 0; i < this.Items.Count; i++) {
-            let first = false;
-            if (i === 0) {
-                first = true;
-            } 
-
-            //debugger;
-            var key = Object.keys(this.Items[i])[0];
-            //   console.log("key");
-            //    console.log(key);
-            var val = this.Items[i][key];
-
-            //if this is the first tab it is selected
-            let filter = "";
-            if (first) {
-                filter = this.Options.SelectedTabFilter;
-            } else {
-                filter = this.Options.TabFilter;
-            }
-
-            let tabitem = Ele("li", {
-                id: this.Id+'_tabitem_' + key.replace(' ', '_'),
-                class: this.BaseClass+"-tabitem si-tab-item",
-                style: {
-                    display: 'inline',
-                    border: this.Options.Border,
-                    height: this.Options.TabHeight,
-                    padding: this.Options.TabPadding,
-                    marginLeft: '0px',
-                    cursor: 'pointer',
-                    backgroundColor: this.Options.TabBackgroundColor,
-                    filter: filter,
-                },
-                data: {
-                    tabname: key,
-                    tabnum:i
-                },
-                onclick: function() {
-                        //Hide all the tabs and contents
-                    SI.Tools.Class.Loop(self.BaseClass+"-tabitem", function (item) {
-                        item.style.backgroundColor = options.TabBackgroundColor;
-                        item.style.filter = options.TabFilter;
-                        item.setAttribute('aria-selected', 'false');
-                        item.tabIndex = -1;
-                    });
-                    SI.Tools.Class.Loop(self.BaseClass+"-tabcontent", function (item) {
-                        item.style.display = 'none';
-                    });
-
-                    //this.style.backgroundColor = options.SelectedTabBackgroundColor;
-                    this.style.filter = options.SelectedTabFilter;
-                    this.setAttribute('aria-selected', 'true');
-                    this.tabIndex = 0;
-
-                    let contentid = this.id.replace('_tabitem_', '_tabcontent_');
-                    //    console.log(contentid);
-                    //debugger;
-                    document.getElementById(contentid).style.display = 'block';
-                    SelectedId = this.id;
-                    options.Selected = this.dataset.tabname;
-                    //debugger;
-                    //run passed handeler
-                    if (options.OnChange !== null) {
-                        options.OnChange(this);
-                    }
-                }, 
-                onmouseenter: function () {
-                    if (this.id !== SelectedId)
-                        this.style.filter = options.HoverTabFilter;
-                },
-                onmouseleave: function () {
-                    if (this.id !== SelectedId)
-                        this.style.filter = options.TabFilter;
-                },
-            });
-
-            tabitem.setAttribute('role', 'tab');
-            tabitem.setAttribute('aria-selected', String(first));
-            tabitem.setAttribute('aria-controls', tabitem.id.replace('_tabitem_', '_tabcontent_'));
-            tabitem.tabIndex = first ? 0 : -1;
-            if (first) {
-                SelectedId = tabitem.id;
-            } 
-
-            let tablabel = Ele('span', {
-                innerHTML:key,
-                style: {
-                    position: 'relative',
-                    userSelect: 'none',
-                    top: ((parseInt(this.Options.TabPadding) / 2) - 2) + 'px'
-                },
-                appendTo:tabitem,
-            });
-            //Add tab to public
-            this['tabitem_' + key] = tabitem;
-
-            //The Tab Contents
-            //if the tab is showing. we only show one at a time ;)
-            let disp = 'none';
-            if (first) {
-                disp = 'block';
-            } 
-            //Create the element
-            let content = Ele('div', {
-                id: this.Id+'_tabcontent_' + key.replace(' ', '_'),
-                class: this.BaseClass+"-tabcontent si-tab-panel",
-                style: {
-                    minHeight: '100%',
-                    backgroundColor: '#DDD',
-                    position: 'absolute',
-                    top: this.Options.TabHeight,
-                    width: '100%',
-                    display: disp,
-                }
-            });
-            content.setAttribute('role', 'tabpanel');
-            content.setAttribute('aria-labelledby', tabitem.id);
-            //the incomming content can be a string to add to inner, or an element to append
-            if (typeof val === 'string') {
-                content.innerHTML = val;
-            }
-            else if (SI.Tools.Is.Element(val)) {
-                content.appendChild(val);
-            }
-
-            this['tabcontent_' + key] = content;
-
-
-            tabs.appendChild(this['tabitem_' + key]);
-            container.appendChild(this['tabcontent_' + key])
-            
-        }
-        this.Container = container;
-
-        if (this.Options.Selected) {
-            SelectTab(this.Options.Selected);
-        }
-
-        var par = document.getElementById(parentId);
-        if (par !== null) {
-            par.appendChild(container);
-        } else {
-            return container;
-        }
-
-    }
-
-    return this;
-}
-
-
-
+    for(const [name,content] of Object.entries(this.Options.Items||{}))this.Items.Add(name,content);
+    SI.Widgets.Tab[this.Id]=this;return this;
+};

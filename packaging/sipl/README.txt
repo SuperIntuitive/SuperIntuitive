@@ -5,7 +5,7 @@ The ZIP includes the native backend, generated templates and shared editor
 assets. Install the SIPL runtime separately, with native MySQL/MariaDB and
 bcrypt support, and make sipl.exe available on PATH. MySQL/MariaDB remains
 the database; it is not bundled. The current SIPL backend is a validation
-preview. Its native installer works; uploads and other features remain pending.
+preview. Its native installer and native plugin installation work; unrelated gaps remain.
 See core_sipl/MIGRATION_REPORT.md for the complete status.
 
 First-time installation
@@ -74,3 +74,27 @@ intact for administrator repair. Do not delete tables or the journal to force a
 retry. Keep setup-config.pending.json private: it contains database credentials.
 
 PACKAGE.json records application file hashes. LICENSE is SuperIntuitive's license.
+
+Native plugins
+--------------
+Sign in as Admin, enter Dev, and open Tools -> Plugins. Discover/download
+plugins from the remote repository, then install from Local Plugins. You can
+also upload a separate plugin ZIP. Plugins are not bundled in this installer.
+The native host executes only SIPL handlers. PHP-only required plugins are
+rejected; frontend-only plugins remain supported. No PHP interpreter is used.
+
+Contact is installed separately using contact.zip from your plugin server.
+Its form is /contact-form and its Admin inbox is /admin/contact.
+See core_sipl/PLUGINS.md for installation, APIs and data preservation.
+
+Upgrades
+--------
+README.md, "Page assets and upgrades", describes page-specific asset loading
+and safe updates. Website content remains in its database Blocks.
+
+Use this release's native updater against an installed directory:
+  sipl run packaging/Package.sipl upgrade PATH/TO/SuperIntuitive-sipl.zip --target PATH/TO/SITE
+Review its plan, then repeat with --apply during a maintenance window.
+It preserves private configuration, credentials, media, plugins and database
+data and backs up replaced framework files. Back up the full site/database
+first; restart your own native deployment after applying the update.

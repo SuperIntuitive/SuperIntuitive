@@ -14,8 +14,8 @@ fn dispatch(context: Map, action: String, post: Map) -> Map {
         let hash = auth.bcryptHash(password)
         if action == "ChangePassword" {
             let id = Tools.required(post, "userid")
-            Entity.update(context, "users", id, {"password": hash, "remembertoken": "", "remembertime": none})
-            return {"PASSWORDCHANGED": true}
+            let changed = Entity.update(context, "users", id, {"password": hash, "remembertoken": "", "remembertime": none})
+            return {"PASSWORDCHANGED": changed}
         }
         let email = Tools.required(post, "email")
         let name = Tools.required(post, "name").trim()

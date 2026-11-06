@@ -6,6 +6,12 @@ SI.Widget.Window = function  (options) {
     if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Window");}
     this.Input = {...options};
     SI.Widgets.Window[this.Id] = this;
+    const lifetime = new AbortController();
+    this.Destroy = function () {
+        lifetime.abort();
+        this.Container.remove();
+        delete SI.Widgets.Window[this.Id];
+    };
 
     this.Defaults = {
         "Title": { "value": "Title", "type": "TEXT" },
@@ -14,7 +20,7 @@ SI.Widget.Window = function  (options) {
         "Top": { "value": null, "type": "LEN" },
         "Left": { "value": null, "type": "LEN" },
         "OpenPosition": { "value": "MOUSE4", "type": "ENUM", "choices": ["MOUSE4", "MOUSE8", "CENTER", "START"] },
-        "BackgroundColor": { "value": "silver", "type": "COLOR" },
+        "BackgroundColor": { "value": "var(--si-widget-surface)", "type": "COLOR" },
         "BorderColor": { "value": "rgba(96,96,96,.1)", "type": "COLOR" },
         "Padding": { "value": '0px', "type": "LEN" },
         "TitleBarColor": { "value": SI.Theme.BackgroundColor, "type": "COLOR" }, //maybe sub in a variable to a default color pattern
@@ -33,7 +39,7 @@ SI.Widget.Window = function  (options) {
         "MinimizeChar": { "value": '⊖', "type": "CHAR" },
         "MaximizeChar": { "value": '⊕', "type": "CHAR" },
         "CloseAppChar": { "value": '⊗', "type": "CHAR" },
-        "CornerRadius": { "value": "4px", "type": "LEN" },
+        "CornerRadius": { "value": "8px", "type": "LEN" },
         "ResizeThickness": { "value": 3, "type": "NUM" },
         "HasIcon": { "value": "IMG", "type": "ENUM", "choices": ["NONE", "IMG", "URL", "CHAR"] },
         "IconImg": { "value": "/scripts/widgets/icons/SpinningGear.gif", "type": "IMG" },
@@ -522,7 +528,7 @@ SI.Widget.Window = function  (options) {
         dragOffset = null;
         resizeSensor = null;
         startResize = null;
-    });
+    }, {signal: lifetime.signal});
     document.addEventListener('mousemove', function (e) {
         if (hWinDrag) {
             //  let offset = SI.Tools.Positioning.GetDocOffset(hWinDrag);
@@ -582,7 +588,7 @@ SI.Widget.Window = function  (options) {
             FixResizers();
             self.Resize();
         }
-    });
+    }, {signal: lifetime.signal});
 
 
     let Maximize = function () {
@@ -869,7 +875,7 @@ SI.Widget.Window = function  (options) {
                     } else {
                         self.Show();
                     }
-                });
+                }, {signal: lifetime.signal});
             }
         }
     }

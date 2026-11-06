@@ -1,0 +1,17 @@
+{
+  "id": "editor-demo",
+  "name": "Editor Demo",
+  "version": "1.0.0",
+  "backend": {"required": true, "php": "php/demo.php", "sipl": "sipl/demo.sipl"},
+  "permissions": {"preview": ["Guest"], "manage": ["Admin"]},
+  "actions": {
+    "bootstrap": {"permission": "preview"},
+    "settings": {"permission": "manage"},
+    "configure": {"permission": "manage"}
+  },
+  "pages": [
+    {"key": "preview", "path": "editor-demo", "title": "Try the editor", "permission": "preview", "html": "html/preview.html", "style": "css/demo.css", "script": "js/demo.js"},
+    {"key": "source", "path": "editor-demo-source", "title": "Editor demo source", "permission": "preview", "html": "html/source.html", "style": "css/demo.css"},
+    {"key": "settings", "path": "admin/editor-demo", "title": "Editor demo settings", "admin": true, "permission": "manage", "html": "html/settings.html", "style": "css/demo.css", "script": "js/demo.js"}
+  ]
+}

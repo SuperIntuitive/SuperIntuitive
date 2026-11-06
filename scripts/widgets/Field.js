@@ -3,7 +3,7 @@ SI.Widget.Field = function  (options) {
     if (!(this instanceof SI.Widget.Field)) { return new SI.Widget.Field(options); }
 
     options = typeof options !== 'undefined' ? options : {};
-    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Window");}
+    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Field");}
     this.Input = {...options};
     SI.Widgets.Field[this.Id] = this;
     let self = this;
@@ -17,7 +17,13 @@ SI.Widget.Field = function  (options) {
         "Type": { "value": "text", "type": "ENUM", "choices": ["button", "checkbox", "color", "date", "datetime-local", "email", "file", "hidden", "image", "lookup", "month", "number", "optionset", "password", "radio", "range", "reset", "search", "submit", "tel", "text", "textarea", "time", "url", "week"] },
         "LabelColor": "",
         "InputColor": "",
-        "BackgroundColor": "rgba(255, 255, 255, 0.1)",
+        "BackgroundColor": "var(--si-widget-surface)",
+        "LookupEntity": "pages",
+        "LookupEntities": null,
+        "Multiple": false,
+        "DisplayColumn": null,
+        "SearchColumns": null,
+        "Filters": {},
         "Entity": null,
         "Name":null,
         "ReadOnly": false,
@@ -42,9 +48,9 @@ SI.Widget.Field = function  (options) {
     if (this.Options.LabelColor.length === 0) {
         switch (this.Options.Type) {
             case "optionset":
-            case "text": this.Options.LabelColor = '#00ee00'; break;
-            case "number": this.Options.LabelColor = '#111111'; break;
-            case "lookup": this.Options.LabelColor = '#0000FF'; break;
+            case "text": this.Options.LabelColor = 'var(--si-widget-muted)'; break;
+            case "number": this.Options.LabelColor = 'var(--si-widget-muted)'; break;
+            case "lookup": this.Options.LabelColor = 'var(--si-widget-muted)'; break;
            
             default: break;
         }
@@ -66,9 +72,10 @@ SI.Widget.Field = function  (options) {
     if (this.Options.Label) {
         let label = Ele("label", {
             innerHTML: this.Options.Label,
-            for: this.Id+"_input",
+            htmlFor: this.Id+"_input",
             style: {
-                textAlight: 'right',
+                textAlign: 'left',
+                color: this.Options.LabelColor,
                 marginRight: '10px',
                 width:"50%"
             },
@@ -83,9 +90,12 @@ SI.Widget.Field = function  (options) {
     //make a input object. 
     let input = {
         tag:"input",
+        type: this.Options.Type,
         id: this.Id+"_input",
         value: this.Options.Value,
         onchange: function (ev) {
+            if (self.Options.Type === 'lookup' && self.Lookup) self.Input.Value = self.Lookup.GetValue(this);
+            else if (!['password', 'file'].includes(self.Options.Type)) self.Input.Value = ['checkbox', 'radio'].includes(self.Options.Type) ? this.checked : this.value;
             if (self.Options.OnChange) {
                 self.Options.OnChange(ev, this);
             }
@@ -108,6 +118,11 @@ SI.Widget.Field = function  (options) {
     if (this.Options.Validator) {
         input.pattern = this.Options.Validator;
     }
+    input.required = this.Options.Required;
+    input.disabled = this.Options.Disabled;
+    input.readOnly = this.Options.ReadOnly;
+    if (this.Options.TabIndex !== null) input.tabIndex = this.Options.TabIndex;
+    if (this.Options.ToolTip) input.title = this.Options.ToolTip;
 
     let isInput = true;
     //if this a select or a textarea filed, change tag/handler
@@ -115,6 +130,7 @@ SI.Widget.Field = function  (options) {
         case "optionset":
             input.tag = "select";
             input.onchange = function (ev) {
+                self.Input.Value = this.value;
                 if (self.Options.OnChange) {
                     self.Options.OnChange(ev, this);
                 }
@@ -136,9 +152,10 @@ SI.Widget.Field = function  (options) {
 
                 break;
             case "number":
-                tag = "input";
+                input.tag = "input";
                 input.type = "number";
                 input.oninput = function (ev) {
+                    self.Input.Value = this.value;
                     if (self.Options.OnChange) {
                         self.Options.OnChange(ev, this);
                     }
@@ -157,11 +174,27 @@ SI.Widget.Field = function  (options) {
 
 
 
-    Ele(null, input );
+    this.Field = Ele(null, input);
+    if (['checkbox', 'radio'].includes(this.Options.Type)) this.Field.checked = !!this.Options.Value;
+    if (this.Options.Type === 'optionset' && this.Options.OptionSet) {
+        for (const [value, label] of Object.entries(this.Options.OptionSet)) this.Field.appendChild(new Option(label, value));
+        if (this.Options.Value !== null) this.Field.value = this.Options.Value;
+    }
+    if (this.Options.Type === 'lookup') {
+        this.Field.dataset.type = this.Options.LookupEntity;
+        this.Lookup = SI.Widgets.Lookup.Lookup;
+        this.Lookup.Init(this.Field, {EntityName: this.Options.LookupEntity, Entities: this.Options.LookupEntities, Multiple: this.Options.Multiple, DisplayColumn: this.Options.DisplayColumn, SearchColumns: this.Options.SearchColumns, Filters: this.Options.Filters});
+        if (this.Options.Value && typeof this.Options.Value === 'object') this.Lookup.SetValue(this.Field, this.Options.Value, false);
+    }
 
 
 
     this.Container = container;
+    this.Destroy = () => {
+        if (this.Lookup) this.Lookup.Detach(this.Field);
+        if (container.parentNode) container.remove();
+        delete SI.Widgets.Field[this.Id];
+    };
     if (parent) parent.appendChild(container);
     return container;
 };

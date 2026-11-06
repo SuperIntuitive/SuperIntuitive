@@ -1,0 +1,95 @@
+use Database
+use Entity
+use Security
+use Tools
+
+fn resolve(context: Map, name: String, field) -> String {
+    if field.type != "String" or not regex.compile("^[A-Za-z_][A-Za-z0-9_]\{0,63\}$").isMatch(field) or regex.compile("password|secret|token|credential|salt|hash|script|html|style|rules|preferences|options", "i").isMatch(field) { fail("INVALID_LOOKUP_COLUMN") }
+    return Entity.column(context, name, field, true)
+}
+
+fn search(context: Map, post: Map) -> Map {
+    Security.requireAdmin(context)
+    let name = Tools.identifier(post.get("Entity", {:}).get("Name", ""))
+    Security.demand(context, name, "read")
+    let meta = Entity.definition(context, name)
+    let available = meta["attributes"]
+    var label = "id"
+    if available.contains("path") { label = "path" }
+    if available.contains("name") { label = "name" }
+    label = post.get("DisplayColumn", label)
+    resolve(context, name, label)
+    let defaults = [label]
+    let searches = [label]
+    for field in ["email", "path", "status"] { if field != label and available.contains(field) { defaults.push(field) } }
+    for field in ["email", "path"] { if field != label and available.contains(field) { searches.push(field) } }
+    var columns = post.get("Columns", defaults)
+    if columns.type == "String" { columns = columns.split(",").map(fn(value) => value.trim()) }
+    if columns.type != "List" or columns.length > 6 { fail("INVALID_LOOKUP_COLUMNS") }
+    if not columns.contains(label) { columns.push(label) }
+    var searchColumns = post.get("SearchColumns", searches)
+    if searchColumns.type == "String" { searchColumns = searchColumns.split(",").map(fn(value) => value.trim()) }
+    if searchColumns.type != "List" or searchColumns.length > 4 { fail("INVALID_LOOKUP_COLUMNS") }
+    let expressions = ["LOWER(HEX(id)) AS id"]
+    for field in columns { let actual = resolve(context, name, field)
+        if field != "id" { expressions.push("`" + actual + "` AS `" + field + "`") } }
+    let term = post.get("Search", "")
+    let page = post.get("Page", 0)
+    let limit = post.get("PageSize", 10)
+    if term.type != "String" or bytes.encodeUtf8(term).length > 512 or page.type != "Int" or page < 0 or page > 400 or limit.type != "Int" or limit < 1 or limit > 50 { fail("INVALID_LOOKUP_QUERY") }
+    let filters = ["entity_id=UNHEX(:scope)"]
+    let parameters = {"scope": Security.scope(context, name)}
+    let view = post.get("View", "active")
+    if not ["active", "all"].contains(view) { fail("INVALID_LOOKUP_VIEW") }
+    if available.contains("status") and view == "active" { filters.push("status='active'") }
+    if post.contains("Ids") {
+        let requested = post["Ids"]
+        if requested.type != "List" or requested.length > 10 { fail("INVALID_LOOKUP_IDS") }
+        let ids = []
+        for index, id in requested { let key = "id" + "{index}"
+            ids.push("UNHEX(:" + key + ")")
+            parameters[key] = Tools.guid(id) }
+        if ids.isEmpty { filters.push("1=0") } else { filters.push("id IN (" + ids.join(",") + ")") }
+    }
+    let related = post.get("Filters", {:})
+    if related.type != "Map" or related.length > 8 { fail("INVALID_LOOKUP_FILTER") }
+    for field, value in related {
+        if ["entity_id", "id", "createdby", "modifiedby"].contains(field) { fail("INVALID_LOOKUP_FILTER") }
+        let actual = resolve(context, name, field)
+        let key = "f" + "{parameters.length}"
+        if value == none { filters.push("`" + actual + "` IS NULL") }
+        else {
+            if not ["String", "Int", "Float", "Bool"].contains(value.type) { fail("INVALID_LOOKUP_FILTER") }
+            var expression = ":" + key
+            var bound = value
+            if Entity.binary(actual) { expression = "UNHEX(" + expression + ")"
+                bound = Tools.guid(value) }
+            filters.push("`" + actual + "`=" + expression)
+            parameters[key] = bound
+        }
+    }
+    if not term.isEmpty {
+        var pattern = term.replace("!", "!!").replace("%", "!%").replace("_", "!_").replace("*", "%")
+        if not term.contains("*") { pattern += "%" }
+        let matches = []
+        for index, field in searchColumns {
+            let actual = resolve(context, name, field)
+            let key = "search" + "{index}"
+            matches.push("`" + actual + "` LIKE :" + key + " ESCAPE '!'")
+            parameters[key] = pattern
+        }
+        if matches.isEmpty { fail("INVALID_LOOKUP_COLUMNS") }
+        filters.push("(" + matches.join(" OR ") + ")")
+    }
+    let sort = resolve(context, name, post.get("SortColumn", label))
+    let direction = post.get("SortDirection", "asc")
+    if not ["asc", "desc"].contains(direction) { fail("INVALID_LOOKUP_SORT") }
+    let count = limit + 1
+    let offset = page * limit
+    let rows = Database.query("SELECT " + expressions.join(",") + " FROM `" + name + "` WHERE " + filters.join(" AND ") + " ORDER BY `" + sort + "` " + direction + ",id ASC LIMIT " + "{count}" + " OFFSET " + "{offset}", parameters)
+    let more = rows.length > limit
+    let records = []
+    for index, row in rows { if index >= limit { break }
+        records.push({"id": "0x" + row["id"], "entityType": name, "name": Tools.text(row.get(label), row["id"]), "fields": row}) }
+    return {"Records": records, "Columns": columns, "Entity": name, "More": more, "Page": page, "CanCreate": Security.allowed(context, name, "create")}
+}

@@ -1,1 +1,8 @@
 AddHandler application/x-httpd-php .js
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.js$">
+        Header set Content-Type "application/javascript; charset=UTF-8"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>

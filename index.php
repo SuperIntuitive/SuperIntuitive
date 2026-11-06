@@ -66,10 +66,9 @@ else{
 	if($pageobjects == null){exit();}
 
 	$plugins = new Plugins();
-	$pi = $plugins->GetLocalPlugins('installed');
-	if(count($pi)>0){
-		$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins']=$pi;
-	}
+	$pluginManager = PluginManager::current();
+    $pi = array_values(array_filter($plugins->GetLocalPlugins('installed'), function($id) use ($pluginManager) { return $pluginManager->enabled($id); }));
+    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins']=$pi;
 
 	$dbc->GetDatabaseSchema($pageobjects);
 
@@ -119,7 +118,8 @@ else{
 	//$dbc->UpdateEntitiesQuantities();
 	//Tools::Log($pageobjects, true);
 	
-	$pageobjects = $dbc->GetPageData($pageobjects);
+	if (!PluginManager::current()->pageAccess(SI_PAGE_PATH)) { http_response_code(403); exit('Plugin page unavailable or permission denied.'); }
+    $pageobjects = $dbc->GetPageData($pageobjects);
 
 //		echo'<pre>';
 //	print_r($pageobjects);

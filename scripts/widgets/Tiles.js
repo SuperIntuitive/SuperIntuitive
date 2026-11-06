@@ -25,11 +25,11 @@ SI.Widget.Tile = function (options) {
         "Display": "inline-block",
         "Margin": "6px",
         "Border": "1px solid #ccc",
-        "BackgroundColor": SI.Editor.Style.BackgroundColor,
+        "BackgroundColor": "var(--si-widget-surface)",
         "SelectedBrightness": '110%',
         "Radius": "3px",
         "FontSize": "1em",
-        "FontColor": "black",
+        "FontColor": "var(--si-widget-text)",
         "Text": false,
         "TextAlign": "center",
         "Data": {},
@@ -180,7 +180,7 @@ SI.Widget.Tile = function (options) {
     }
     this.Container = Ele("div", {
         id: this.Id,
-        class: options.Group + " " + classtype,
+        class: 'si-widget si-widget-tile ' + options.Group + " " + classtype,
         style: {
             width: options.Width,
             height: options.Height,
@@ -190,6 +190,8 @@ SI.Widget.Tile = function (options) {
             verticalAlign: 'top',
             textAlign: options.TextAlign,
             backgroundColor: options.BackgroundColor,
+            color: options.FontColor,
+            border: options.Border,
             borderRadius: options.Radius,
             paddingTop: (parseInt(height) / 20) + 'px'
         },
@@ -219,7 +221,8 @@ SI.Widget.Tile = function (options) {
         innerText: options.Text,
         style: {
             position: options.TextPosition,
-            backgroundColor: '#F5FFFA',
+            backgroundColor: 'var(--si-widget-raised)',
+            color: options.FontColor,
             padding: '2px',
             marginLeft: 'auto',
             marginRight: 'auto',
@@ -245,7 +248,8 @@ SI.Widget.Tile = function (options) {
         },
         oninput: function () {
            // debugger;
-            document.getElementById("si_media_" + this.dataset.simediatype + "_Name").value = this.innerText;
+            const field = document.getElementById("si_media_" + this.dataset.simediatype + "_Name");
+            if (field) field.value = this.innerText;
             
         },
         onblur: function (ev) {
@@ -255,6 +259,8 @@ SI.Widget.Tile = function (options) {
     });
     
     let fs = Ele('button', {
+        type: 'button',
+        title: 'Open media',
         innerHTML:'&#x26F6;',
         style:{
             padding:'0px',

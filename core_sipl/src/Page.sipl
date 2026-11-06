@@ -4,11 +4,24 @@ use Relations
 use Security
 use Tools
 use Config
+use Plugins
+use Sessions
+
+fn assetPath(request: Map) -> String {
+    var pairs: List = []
+    try { pairs = url.parseQuery(request.get("query", "")) }
+    fail { fail("INVALID_PAGE_PATH") }
+    let pages = pairs.filter(fn(pair) => pair[0] == "page")
+    if pages.length > 1 { fail("INVALID_PAGE_PATH") }
+    if pages.length == 1 { return "/" + Tools.pagePath(pages[0][1]) }
+    return web.sessionGet(request, Sessions.key("pagePath"), "/")
+}
 
 fn load(context: Map, pathname: String) -> Map {
     var requested = pathname
     if requested.startsWith("/") { requested = requested.slice(1) }
     if requested == "index.php" { requested = "" }
+    if not Plugins.pageAccess(context, requested) { fail("FORBIDDEN") }
     let level = context["deployment"]
     let scope = Security.scope(context, "pages")
     var page = Database.one("SELECT LOWER(HEX(id)) AS id, name, path, LOWER(HEX(redirecttopage_id)) AS redirecttopage_id, `" + level + "-options` AS options FROM pages WHERE path=:path AND entity_id=UNHEX(:scope) AND status='active' LIMIT 1", {"path": requested, "scope": scope})

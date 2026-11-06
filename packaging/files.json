@@ -1,7 +1,13 @@
 {
   "shared": [
     {"source": "LICENSE"},
+    {"source": "README.md"},
+    {"source": "core/plugin-schema.sql"},
+    {"source": "docs/PLUGINS.md"},
+    {"source": "docs/SECURITY_REVIEW.md"},
+    {"source": "docs/ACKNOWLEDGEMENTS.txt"},
     {"source": "editor/editor.css"},
+    {"source": "editor/vendor/acorn.js"},
     {"source": "editor/objects", "extensions": [".js"]},
     {"source": "editor/media", "extensions": [".json", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".ttf", ".woff", ".woff2", ".pdf", ".mp4"]},
     {"source": "scripts/tools.js"},
@@ -9,6 +15,7 @@
     {"source": "scripts/widgets", "extensions": [".js", ".json", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".ttf", ".woff", ".woff2"]}
   ],
   "php": [
+    {"source": "packaging/Package.php"},
     {"source": ".htaccess"},
     {"source": ".dockerignore"},
     {"source": "Dockerfile"},
@@ -19,6 +26,8 @@
     {"source": "delegate.php"},
     {"source": "delegate-admin.php"},
     {"source": "filehandeler.php"},
+    {"source": "plugin-asset.php"},
+    {"source": "widget-asset.php"},
     {"source": "si403.php"},
     {"source": "core/.htaccess"},
     {"source": "core", "extensions": [".php"], "shallow": true},
@@ -28,6 +37,7 @@
     {"source": "core/setup/domaintemplate", "extensions": [".wav", ".jpg", ".png"]},
     {"source": "editor/.htaccess"},
     {"source": "editor/editor.js"},
+    {"source": "editor/media/data/js_methods.js"},
     {"source": "scripts/.htaccess"},
     {"source": "scripts/setup.js"},
     {"source": "scripts/page.js"},
@@ -40,6 +50,8 @@
     {"source": "packaging/php/README.txt", "destination": "README.txt"}
   ],
   "sipl": [
+    {"source": "packaging/Package.sipl"},
+    {"source": "core_sipl/PLUGINS.md"},
     {"source": "core_sipl/main.sipl"},
     {"source": "core_sipl/src", "extensions": [".sipl"]},
     {"source": "core_sipl/generated", "extensions": [".js", ".css", ".json", ".tmpl", ".zip"]},

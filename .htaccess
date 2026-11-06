@@ -4,7 +4,11 @@ RewriteEngine On
 RewriteBase /
 # Private runtime data, repository metadata and development artifacts.
 RewriteRule (^|/)\.(?!well-known(?:/|$)) - [F,L,NC]
-RewriteRule ^(?:core|logs|sql|docker|tests|test)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:core|logs|sql|docker|packaging|tests|test)(?:/|$) - [F,L,NC]
+# Plugin backend/source trees and metadata never reach a static or PHP handler.
+RewriteRule ^plugins/(?:installed/[^/]+/)?(?:php|sipl|sql)(?:/|$) - [F,L,NC]
+RewriteRule ^plugins/installed/.*\.(?:php[0-9]*|phtml|phar|sipl|sql|json|conf|html)(?:[./]|$) - [F,L,NC]
+RewriteRule ^plugin-packages(?:/|$) - [F,L,NC]
 RewriteRule ^plugins/downloaded(?:/|$) - [F,L,NC]
 RewriteRule ^(?:domains/[^/]+/)?media/(?:[^/]+/)?recycle(?:/|$) - [F,L,NC]
 RewriteRule (?:^|/)[^/]*cookies\.txt$ - [F,L,NC]

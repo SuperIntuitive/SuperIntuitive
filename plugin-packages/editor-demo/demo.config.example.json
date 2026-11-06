@@ -1,0 +1,14 @@
+{
+  "root": "C:/Sites/SuperIntuitive",
+  "host": "127.0.0.1",
+  "port": 8096,
+  "domain": "localhost",
+  "subdomain": "",
+  "dsn": "mysql:host=127.0.0.1;port=3306;dbname=super_intuitive;charset=utf8mb4",
+  "dbUser": "editor_demo_reader",
+  "dbPassword": "",
+  "requestBurst": 240,
+  "requestsPerMinute": 1800,
+  "contentBurst": 8,
+  "contentPerMinute": 60
+}

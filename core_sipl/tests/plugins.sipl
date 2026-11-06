@@ -1,0 +1,66 @@
+use ../src/Config
+use ../src/Database
+use ../src/Plugins
+use ../src/Tools
+
+var _checks = 0
+fn check(value: Bool, message: String) { assert(value, message)
+    _checks += 1
+    print("PASS " + message) }
+fn rejects(operation: Function, message: String) {
+    var rejected = false
+    try { operation() } fail { rejected = true }
+    check(rejected, message)
+}
+fn start() {
+    Config.setForTests(json.parse(fs.readText(system.args[0])))
+    Database.connect()
+    check(not Database.one("SHOW SESSION STATUS LIKE 'Ssl_cipher'", {:})["Value"].isEmpty, "Native connector uses TLS")
+    let context: Map = {"scopes": Database.scopes(), "deployment": "dev", "user": {"roles": ["Admin"]}}
+    let guest: Map = {"scopes": context["scopes"], "deployment": "live", "user": {"roles": ["Guest"]}}
+    check(Plugins.enabled(context, "legacy"), "Native legacy installed plugin remains enabled")
+    check(Plugins.readManifest(Plugins.package(context, "legacy"), "legacy")["version"] == "0.0.0", "Native info.conf-only package remains valid")
+    let result = Plugins.manage(context, "UpdatePlugin", {"plugin": "contact"})
+    check(result["PLUGINCONFLICTS"].contains("form:dev-html"), "Native update reports CMS edit conflict")
+    check(Plugins.enabled(context, "contact"), "Native install is enabled")
+    check(Database.one("SELECT COUNT(*) AS count FROM si_plugin_migrations WHERE plugin='contact'", {:})["count"] == 1, "Native backend shares PHP migration tracking")
+    let packageRoot = Plugins.package(context, "contact")
+    let adapter = workspace.read(packageRoot, "si-handler.sipl")
+    workspace.write(packageRoot, "si-handler.sipl", adapter.replace("core_sipl/src/Plugins", "core_sipl/src/PluginHost").replace("Plugins.runHandler(", "PluginHost.run("))
+    let before = Plugins.action(context, "contact", "inbox", {:})
+    check(workspace.read(packageRoot, "si-handler.sipl") == adapter, "Existing native handler adapter upgrades without reinstall or data loss")
+    check(before["messages"].length == 1, "Native handler reads PHP submission")
+    let post: Map = {"name": "Native 日本語", "email": "native@example.test", "subject": "Native submission", "message": "Native 🚀 '); DROP TABLE users; --"}
+    let submitted = Plugins.action(guest, "contact", "submit", post)
+    check(submitted.get("submitted", false), "Native SIPL handler executes without PHP")
+    let messages = Plugins.action(context, "contact", "inbox", {:})["messages"]
+    check(messages.length == 2, "Native inbox includes both backend submissions")
+    rejects(fn() { Plugins.action(guest, "contact", "inbox", {:}) }, "Native guest inbox forbidden")
+    rejects(fn() { Plugins.action(guest, "contact", "delete", {"id": submitted["id"]}) }, "Native guest delete forbidden")
+    check(Plugins.storageList("ffffffffffffffffffffffffffffffff", "contact", "messages").isEmpty, "Native storage is tenant scoped")
+    check(not Plugins.storageDelete("ffffffffffffffffffffffffffffffff", "contact", "messages", submitted["id"]), "Native cross-tenant delete fails")
+    check(not Plugins.pageAccess(guest, "admin/contact"), "Native Admin page forbidden to guest")
+    check(Plugins.pageAccess(context, "admin/contact"), "Native Admin page permitted")
+    check(Plugins.navigation(context).length == 1, "Native navigation registered from manifest")
+    Plugins.manage(context, "DisablePlugin", {"plugin": "contact"})
+    rejects(fn() { Plugins.action(guest, "contact", "submit", post) }, "Native disabled action forbidden")
+    check(not Plugins.pageAccess(guest, "contact-form"), "Native disabled page forbidden")
+    Plugins.manage(context, "EnablePlugin", {"plugin": "contact"})
+    check(Plugins.enabled(context, "contact"), "Native reenable works")
+    rejects(fn() { Plugins.manage(context, "InstallPlugin", {"plugin": "phponly"}) }, "SIPL rejects PHP-only package")
+    rejects(fn() { Plugins.manage(context, "InstallPlugin", {"plugin": "traversal"}) }, "Native archive traversal rejected")
+    rejects(fn() { Plugins.manage(context, "InstallPlugin", {"plugin": "invalidsipl"}) }, "Native rejects invalid handler compilation")
+    Plugins.manage(context, "InstallPlugin", {"plugin": "frontend"})
+    check(Plugins.enabled(context, "frontend"), "Native frontend-only installation valid")
+    let zipPath = Config.root("plugins/downloaded/contact.zip")
+    let original = fs.readBytes(zipPath)
+    let beforePackage = Plugins.state(context, "contact")["package"]
+    fs.writeBytes(zipPath, fs.readBytes(Config.root("plugins/downloaded/contact-drift.zip")))
+    rejects(fn() { Plugins.manage(context, "UpdatePlugin", {"plugin": "contact"}) }, "Native migration checksum changes rejected")
+    fs.writeBytes(zipPath, original)
+    check(Plugins.state(context, "contact")["package"] == beforePackage and Plugins.enabled(context, "contact"), "Native failed update retains active package")
+    let source = Plugins.bundle(context, "script", "live")
+    check(source.contains("SIContact"), "Native asset bundle includes js directory")
+    check(source.contains("SILegacy=\"min\"") and not source.contains("SILegacy=\"dev\""), "Native legacy minified variant selection preserved")
+    print("SIPL checks passed: " + "{_checks}")
+}

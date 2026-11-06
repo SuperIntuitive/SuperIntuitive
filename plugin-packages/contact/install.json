@@ -1,0 +1,60 @@
+{
+  "id": "contact",
+  "name": "Contact",
+  "version": "1.1.0",
+  "components": {},
+  "backend": {
+    "required": true,
+    "php": "php/contact.php",
+    "sipl": "sipl/contact.sipl"
+  },
+  "permissions": {
+    "submit": [
+      "Guest"
+    ],
+    "inbox": [
+      "Admin"
+    ]
+  },
+  "actions": {
+    "submit": {
+      "permission": "submit"
+    },
+    "inbox": {
+      "permission": "inbox"
+    },
+    "delete": {
+      "permission": "inbox"
+    },
+    "update": {
+      "permission": "inbox"
+    }
+  },
+  "pages": [
+    {
+      "key": "form",
+      "path": "contact-form",
+      "title": "Contact",
+      "html": "html/form.html",
+      "style": "css/contact.css",
+      "script": "js/contact.js"
+    },
+    {
+      "key": "inbox",
+      "path": "admin/contact",
+      "title": "Contact inbox",
+      "admin": true,
+      "permission": "inbox",
+      "html": "html/inbox.html",
+      "style": "css/contact.css",
+      "script": "js/contact.js"
+    }
+  ],
+  "migrations": [
+    {
+      "id": "001-contact",
+      "sql": "sql/001-contact.sql"
+    }
+  ],
+  "description": "Contact form and private Admin inbox adapted from superintuitive.com."
+}

@@ -81,6 +81,10 @@ fn context() -> Map {
     return {"scopes": scopes, "schema": schema, "user": {"id": "0x" + "a".repeat(32), "name": "Test", "roles": ["Admin"], "permissions": permissions}, "deployment": "dev"}
 }
 fn start() {
+    check(RateLimit.allowAt("long-window-test", 1, 60, 100), "Long rate window admits its first request")
+    check(RateLimit.allowAt("short-window-test", 1, 5, 111), "Short rate window admits its first request")
+    check(not RateLimit.allowAt("long-window-test", 1, 60, 111), "Short rate checks do not reset longer rate windows")
+    check(RateLimit.allowAt("long-window-test", 1, 60, 160), "Rate windows expire at their own boundary")
     Config.setForTests({"root": path.absolute("."), "domain": "localhost", "subdomain": ""})
     check(Tools.guid("0x" + "A".repeat(32)) == "a".repeat(32), "GUID normalization")
     check(Tools.guid("b".repeat(32)) == "b".repeat(32), "Unprefixed GUID")
@@ -131,6 +135,8 @@ fn start() {
     let sharedTools = Assets.readStatic("/scripts/tools.js")["body"]
     check(not sharedTools.contains("<?php") and sharedTools.contains("AddPhp:"), "Literal PHP comment text cannot block the shared JavaScript")
     check(not Assets.readStatic("/style/widgets.css")["body"].contains("<?php"), "Widget CSS is served without executing or leaking PHP")
+    check(Assets.staticAsset("/editor/vendor/acorn.js"), "The bundled Scripter parser is a native frontend asset")
+    check(Assets.readStatic("/editor/vendor/acorn.js")["body"].contains("MIT License"), "Native Scripter parser is served with its license")
     let current = context()
     let newPageRecording = recording([])
     let newPage = Page.create(current, {"page": "new-page"})

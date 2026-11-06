@@ -1,46 +1,6 @@
 <?php
 namespace SuperIntuitive;
-header("Content-type: text/css; charset: UTF-8");
-
-$path = dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
-//echo $path;
-require_once $path;
-Tools::ConfigureSessionCookieParams();
-session_start();
-Tools::DefineServer();
-Tools::SendSecurityHeaders();
-
-//Tools::Log($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins']);
-if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'])) {
-    $plugins = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['plugins'];
-    $pluginstyle = "";
-    foreach($plugins as $plugin){
-        $styles = glob($_SERVER["DOCUMENT_ROOT"]. "/plugins/installed/".$plugin."/styles/*.css");
-        if (count($styles) > 0) {
-            $pluginstyle.= "\n/*__PLUGIN=$plugin */";
-        }
-        foreach($styles as $style){
-            $name = basename($style);
-            $pluginstyle.= "\n/*__STYLEFILE=$name */ \n";
-
-            $mystyle = file_get_contents($style);
-            $mystyle = preg_replace( '/(url\(\"+)/', 'url("/plugins/installed/'. $plugin.'/',$mystyle);
-
-            if(Tools::UserHasRole("Admin") || Tools::UserHasRole("Tester")){
-                $deploy = new Deployment();
-                $mystyle = $deploy->DeployMediaPaths($mystyle);
-            }
-
-            $pluginstyle.= $mystyle;
-
-            $pluginstyle.= "\n/*__STYLEFILE=$name */";
-        }
-        if (count($styles) > 0) {
-            $pluginstyle.= "\n/*__ENDPLUGIN=$plugin */ \n\n";
-        }
-    }
-   
-    echo $pluginstyle;
-}
-
-?>
+require_once dirname(__DIR__).'/core/Tools.php';
+Tools::ConfigureSessionCookieParams(); session_start(); Tools::DefineServer(); Tools::SendSecurityHeaders();
+header('Content-Type: text/css; charset=utf-8');header('Cache-Control: no-store');
+echo Plugins::Bundle('style');

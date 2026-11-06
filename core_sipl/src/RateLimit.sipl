@@ -2,14 +2,17 @@ use Tools
 var _buckets: Map = {:}
 
 fn allow(name: String, limit: Int, window: Int) -> Bool {
-    let current = Tools.now()
+    return allowAt(name, limit, window, Tools.now())
+}
+
+fn allowAt(name: String, limit: Int, window: Int, current: Int) -> Bool {
     let keys = _buckets.keys()
     for key in keys {
-        if current - _buckets[key]["start"] >= window { _buckets.remove(key) }
+        if current - _buckets[key]["start"] >= _buckets[key]["window"] { _buckets.remove(key) }
     }
     if not _buckets.contains(name) {
         if _buckets.length >= 1024 { return false }
-        _buckets[name] = {"start": current, "count": 0}
+        _buckets[name] = {"start": current, "count": 0, "window": window}
     }
     let bucket = _buckets[name]
     bucket["count"] += 1

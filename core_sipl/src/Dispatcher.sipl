@@ -12,6 +12,7 @@ use Setting
 use Localtext
 use Admin
 use Plugins
+use Widgets
 use Media
 use Tools
 
@@ -22,6 +23,7 @@ fn general(context: Map, request: Map, post: Map) -> Map {
     if action == "ChangeDeployment" { return Deployment.change(context, request, post) }
     if ["UpdatePassword", "ChangePassword"].contains(action) { return Accounts.changePassword(context, post) }
     if action == "ForgotPassword" { return Tools.gap("SMTP_DELIVERY") }
+    if action == "PluginAction" { return Plugins.action(context, Tools.required(post, "plugin"), Tools.required(post, "action"), post) }
     fail("UNKNOWN_ACTION")
 }
 
@@ -29,6 +31,7 @@ fn admin(context: Map, post: Map) -> Map {
     Security.requireAdmin(context)
     let action = Tools.required(post, "KEY")
     if action == "Promote" { return Deployment.promote(context, post) }
+    if ["GetWidgetSources", "CreateWidget", "SaveWidgetSource", "PromoteWidgetSource"].contains(action) { return Widgets.dispatch(context, action, post) }
     if action == "PageNew" { return Page.create(context, post) }
     if action == "PageSave" { return Page.save(context, post) }
     if action == "RemoveRedirect" { return Page.clearRedirect(context, post) }
@@ -43,9 +46,10 @@ fn admin(context: Map, post: Map) -> Map {
     }
     if ["ChangePassword", "NewUser", "DeleteUser", "GetUserRoles", "AddUserRole", "RemoveUserRole", "DeleteRole"].contains(action) { return User.dispatch(context, action, post) }
     if ["AddLanguage", "LocaltextNew", "UpdateLocaltext"].contains(action) { return Localtext.dispatch(context, action, post) }
-    if ["GetMorePlugins", "DownloadPlugin", "UploadPluginPackage", "InstallPlugin", "UninstallPlugin"].contains(action) { return Plugins.dispatch(context, action, post) }
+    if ["GetLocalPlugins", "GetMorePlugins", "DownloadPlugin", "UploadPluginPackage", "InstallPlugin", "UpdatePlugin", "EnablePlugin", "DisablePlugin", "UninstallPlugin"].contains(action) { return Plugins.dispatch(context, action, post) }
     if ["NewSetting", "UpdateSetting", "DeleteSetting"].contains(action) { return Setting.dispatch(context, action, post) }
     if ["NewEntity", "BuildBackupFile", "BuildInstallerFile"].contains(action) { return Admin.dispatch(context, action, post) }
+    if action == "PluginAction" { return Plugins.action(context, Tools.required(post, "plugin"), Tools.required(post, "action"), post) }
     fail("UNKNOWN_ACTION")
 }
 

@@ -64,6 +64,12 @@ if(Tools::UserHasRole('Admin')){
 		if(isset($post['KEY'])){
 
 			switch($post['KEY']){
+                case 'GetWidgetSources':
+                case 'CreateWidget':
+                case 'SaveWidgetSource':
+                case 'PromoteWidgetSource':
+                    $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] = Widgets::current()->dispatch($post);
+                    break;
 				//Promote an Entity Column
 				case "Promote":
 					$db = new Database();
@@ -176,24 +182,18 @@ if(Tools::UserHasRole('Admin')){
 				case "DownloadPlugin":
 				case "UploadPluginPackage":
 				case "InstallPlugin":
-				case "UninstallPlugin":
+				case "UpdatePlugin":
+                case "EnablePlugin":
+                case "DisablePlugin":
+                case "UninstallPlugin":
 					if(!Tools::CanAccessPluginStore()){
 						http_response_code(403);
 						echo json_encode(array('ERROR' => 'Plugin management is only available to logged-in admins while the site is in dev deployment.'));
 						exit();
 					}
 					$pi = new Plugins();
-					if($post['KEY'] === "GetMorePlugins"){
-						$pi->GetMorePlugins();
-					}else if($post['KEY'] === "DownloadPlugin"){
-						$pi->DownloadPlugin($post);
-					}else if($post['KEY'] === "UploadPluginPackage"){
-						$pi->UploadPluginPackage($post);
-					}else if($post['KEY'] === "InstallPlugin"){
-						$pi->InstallPlugin($post);
-					}else{
-						$pi->UninstallPlugin($post);
-					}
+                    $method=$post['KEY'];
+                    $pi->$method($post);
 					 break;
 
 
@@ -221,7 +221,10 @@ if(Tools::UserHasRole('Admin')){
 					break;
 
 
-				default: 
+				case "PluginAction":
+                    (new Plugins())->Action($post);
+                    break;
+                default:
 					break;
 			}
 		}	

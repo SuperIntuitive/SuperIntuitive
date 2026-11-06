@@ -15,7 +15,8 @@ fn bootstrap(context: Map, request: Map, page: Map) -> String {
         }
         blockData[block["name"]] = {"Settings": options.get("settings", {:}), "Widgets": options.get("widgets", {:})}
     }
-    let values: Map = {"__SETTINGS__": page.get("settings", {:}), "__BLOCKS__": blockData, "__CSRF__": Sessions.csrf(request), "__USER__": context["user"]["name"], "__PREFERENCES__": context["user"].get("preferences", {:}), "__BACKEND__": {"current": "sipl", "phpOrigin": Config.get("phpOrigin", "http://localhost:8090"), "siplOrigin": ""}}
+    let csrf = Sessions.csrf(request)
+    let values: Map = {"__SETTINGS__": page.get("settings", {:}), "__BLOCKS__": blockData, "__CSRF__": csrf, "__USER__": context["user"]["name"], "__ROLES__": context["user"].get("roles", []), "__PREFERENCES__": context["user"].get("preferences", {:}), "__BACKEND__": {"current": "sipl", "phpOrigin": Config.get("phpOrigin", "http://localhost:8090"), "siplOrigin": ""}}
     var source = fs.readText(Config.root("core_sipl/generated/page-bootstrap.js.tmpl"))
     let replacements: Map = {:}
     for marker, value in values { replacements[marker] = Tools.scriptJson(value) }
@@ -54,19 +55,25 @@ fn renderPage(context: Map, request: Map, page: Map) -> String {
     }
     if head.get("favicon").type == "String" { output += "<link rel='icon' id='si_favicon' href='" + Tools.escapeHtml(head["favicon"]) + "'>" }
     output += bootstrap(context, request, page)
-    for file in ["plugins.css", "page.css", "libraries.css", "widgets.css"] { output += "<link rel='stylesheet' id='si_" + file.replace(".css", "") + "_style' href='/style/" + file + "'>" }
-    output += "<script defer src='/core_sipl/public/backend-switch.js'></script><script defer src='/scripts/tools.js'></script>"
-    for file in fs.list(Config.root("scripts/widgets")) {
-        if file.endsWith(".js") { output += "<script defer src='/scripts/widgets/" + Tools.escapeHtml(file) + "'></script>" }
+    let pageQuery = "?" + url.buildQuery([["page", page["path"]]])
+    for file in ["plugins.css", "page.css", "libraries.css"] {
+        var suffix = ""
+        if ["page.css", "libraries.css"].contains(file) { suffix = pageQuery }
+        output += "<link rel='stylesheet' id='si_" + file.replace(".css", "") + "_style' href='/style/" + file + Tools.escapeHtml(suffix) + "'>"
     }
+    output += "<link rel='stylesheet' id='si_widgets_style' href='/widget-asset.php?kind=style'>"
+    output += "<script defer src='/core_sipl/public/backend-switch.js'></script>"
+    output += "<script defer src='/scripts/tools.js'></script>"
+    output += "<script defer src='/widget-asset.php?kind=script'></script>"
     if Security.hasRole(context, "Admin") and context["deployment"] == "dev" {
-        output += "<link rel='stylesheet' href='/editor/editor.css'><script defer src='/editor/editor.js'></script>"
+        let editorSource = "/editor/editor.js" + Tools.escapeHtml(pageQuery)
+        output += "<link rel='stylesheet' href='/editor/editor.css'><script defer src='" + editorSource + "'></script>"
         for file in fs.list(Config.root("editor/objects")) {
             if file.endsWith(".js") { output += "<script defer src='/editor/objects/" + Tools.escapeHtml(file) + "'></script>" }
         }
     }
     if Security.hasRole(context, "Admin") or Security.hasRole(context, "Tester") { output += "<script src='/__sipl/deployment.js'></script>" }
-    output += "<script defer src='/scripts/page.js'></script><script defer src='/scripts/plugins.js'></script>"
+    output += "<script defer id='si_page_script' src='/scripts/page.js" + Tools.escapeHtml(pageQuery) + "'></script><script defer src='/scripts/plugins.js'></script>"
     var bodyStyle = ""
     let body = options.get("body", {:})
     for property, value in body.get("style", {:}) {

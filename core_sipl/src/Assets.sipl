@@ -45,10 +45,13 @@ fn safePath(value: String) -> Bool {
 
 fn staticAsset(pathname: String) -> Bool {
     if not safePath(pathname) { return false }
+    if pathname == "/editor/vendor/acorn.js" { return true }
     if pathname.startsWith("/core_sipl/public/") {
         return ["/core_sipl/public/backend-switch.js", "/core_sipl/public/switch.css"].contains(pathname)
     }
-    if pathname.startsWith("/plugins/installed/") { return [".js", ".css", ".png", ".gif", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff", ".woff2", ".ttf"].contains(path.extension(pathname).toLower()) }
+    if pathname.startsWith("/plugins/installed/") {
+        for part in pathname.toLower().split("/") { if ["php", "sipl", "sql"].contains(part) { return false } }
+        return [".js", ".css", ".png", ".gif", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff", ".woff2", ".ttf"].contains(path.extension(pathname).toLower()) }
     if pathname.startsWith("/editor/media/") { return [".json", ".png", ".gif", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".ttf"].contains(path.extension(pathname).toLower()) }
     if pathname.startsWith("/editor/objects/") or pathname.startsWith("/scripts/widgets/") { return pathname.endsWith(".js") }
     if pathname.startsWith("/style/") { return pathname.endsWith(".css") }
@@ -75,7 +78,7 @@ fn readStatic(pathname: String) -> Map {
 }
 
 fn bundle(context: Map, request: Map, kind: String) -> String {
-    let pathname = web.sessionGet(request, Sessions.key("pagePath"), "/")
+    let pathname = Page.assetPath(request)
     let page = Page.load(context, pathname)
     var result = ""
     for block in page["blocks"] {
@@ -92,7 +95,7 @@ fn bundle(context: Map, request: Map, kind: String) -> String {
 fn editor(context: Map, request: Map) -> String {
     Security.requireAdmin(context)
     if context["deployment"] != "dev" { fail("FORBIDDEN") }
-    let pathname = web.sessionGet(request, Sessions.key("pagePath"), "/")
+    let pathname = Page.assetPath(request)
     return Editor.render(context, Page.load(context, pathname))
 }
 

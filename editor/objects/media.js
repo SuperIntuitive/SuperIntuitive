@@ -26,7 +26,7 @@ SI.Editor.Objects.Media = {
 
         //try to load the first image so we dont have blanks...  ...lol this silly hack works ..at least it used to
         let tiles = document.getElementsByClassName('si_media_Images');
-        if (tiles !== null) {
+        if (tiles !== null && tiles.length > 0) {
             SI.Tools.Events.Fire(tiles[0], 'click');
         }
         return container;

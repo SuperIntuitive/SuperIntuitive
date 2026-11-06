@@ -20,6 +20,18 @@ fn connection() {
     return _connection
 }
 
+fn prepareRequest() {
+    if _connection == none { connect()
+        return }
+    try { _connection.query("SELECT 1", {:}) }
+    fail {
+        let previous = _connection
+        _connection = none
+        try { previous.close() } fail { }
+        connect()
+    }
+}
+
 fn query(statement: String, parameters) -> List {
     let table = connection()
     table.query(statement, parameters)

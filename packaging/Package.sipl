@@ -1,0 +1,736 @@
+// SIPL-edition release tools. Run from the repository root, or pass --root.
+var _root = path.absolute(".")
+let _runtimeReady = requireRuntime()
+
+fn requireRuntime() -> Bool {
+    if system.executable.toLower().endsWith(".exe") {
+        assert(path.dirname("C:/") == "C:/" and path.dirname("C:/Users") == "C:/", "SIPL runtime path.dirname must preserve Windows drive roots; fix this in the SIPL project before running these tools")
+    }
+    return true
+}
+
+fn root(name: String) -> String { return path.join(_root, name) }
+fn text(name: String) -> String { return fs.readText(root(name)).replace("\r\n", "\n") }
+fn directory(folder: String) {
+    let filename = path.absolute(folder)
+    let parent = path.dirname(filename)
+    if parent != filename { directory(parent) }
+    if parent == filename or fs.list(parent).contains(path.basename(filename)) {
+        let info = fs.stat(filename)
+        if info["isLink"] or info["type"] != "directory" { fail("Linked or non-directory path: " + filename) }
+    } else { fs.makeDirectory(filename) }
+}
+fn removeTree(folder: String) {
+    let filename = path.absolute(folder)
+    let parent = path.dirname(filename)
+    if not fs.isDirectory(parent) or not fs.list(parent).contains(path.basename(filename)) { return }
+    let info = fs.stat(filename)
+    if not info["isLink"] and info["type"] == "directory" { for name in fs.list(filename) { removeTree(path.join(filename, name)) } }
+    if not info["isLink"] and info["type"] == "file" and system.executable.toLower().endsWith(".exe") and info["mode"] == 292 { fs.chmod(filename, 438) }
+    fs.remove(filename)
+}
+fn relative(name: String) -> String {
+    if name.isEmpty or path.isAbsolute(name) or name.contains("\\") or name.contains(":") { fail("Unsafe path: " + name) }
+    for part in name.split("/") {
+        if part.isEmpty or part == "." or part == ".." or regex.compile("^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.|$)", "i").isMatch(part) { fail("Unsafe path: " + name) }
+    }
+    return name
+}
+fn nonce() -> String { return auth.randomToken(16).replace("-", "a").replace("_", "b") }
+fn checkedRoot(folder: String) {
+    let filename = path.absolute(folder)
+    let parent = path.dirname(filename)
+    if parent != filename { checkedRoot(parent) }
+    let info = fs.stat(filename)
+    if info["isLink"] or info["type"] != "directory" { fail("Linked or non-directory root: " + filename) }
+}
+fn checked(folder: String, name: String) {
+    relative(name)
+    checkedRoot(folder)
+    var current = path.absolute(folder)
+    let parts = name.split("/")
+    for index in 0..parts.length {
+        if not fs.list(current).contains(parts[index]) { return none }
+        current = path.join(current, parts[index])
+        let info = fs.stat(current)
+        if info["isLink"] or not ["directory", "file"].contains(info["type"]) { fail("Linked or irregular path: " + name) }
+        if index == parts.length - 1 { return info }
+        if info["type"] != "directory" { fail("Non-directory parent: " + name) }
+    }
+    return none
+}
+fn write(filename: String, source: String) {
+    directory(path.dirname(path.absolute(filename)))
+    let old = checked(path.dirname(path.absolute(filename)), path.basename(filename))
+    if old != none and old["type"] != "file" { fail("File conflicts with directory") }
+    fs.writeText(filename, source)
+}
+fn hashFile(filename: String) -> String {
+    let info = checked(path.dirname(path.absolute(filename)), path.basename(filename))
+    if info == none or info["type"] != "file" { fail("Hash input must be a regular file") }
+    return fs.sha256(filename)
+}
+fn hashText(source: String) -> String {
+    let folder = root("core_sipl/runtime")
+    directory(folder)
+    let filename = path.join(folder, "digest-" + nonce() + ".tmp")
+    fs.writeText(filename, source)
+    try { let digest = hashFile(filename)
+        fs.remove(filename)
+        return digest
+    } fail { fs.remove(filename)
+        fail(fail) }
+}
+fn excluded(name: String) -> Bool {
+    return regex.compile("(^|/)(\\.git|\\.vs|\\.vscode|\\.agents|\\.codex|\\.aws|__pycache__|node_modules|runtime|backups|downloaded|installed)(/|$)|(^|/)(\\.env[^/]*|DbCreds[^/]*|[^/]*cookies\\.txt|config[^/]*\\.local\\.json|setup-config[^/]*|(install|setup)\\.(lock|token))$|\\.(bak|old|tmp|log|pyc|py)$", "i").isMatch(name) or name == "core/test.php"
+}
+fn filesAt(folder: String, prefix: String, shallow: Bool) -> List {
+    let result = []
+    workspace.list(folder, prefix)
+    for name in fs.list(path.join(folder, prefix)) {
+        var child = name
+        if not prefix.isEmpty { child = prefix + "/" + name }
+        if excluded(child) { continue }
+        let info = fs.stat(path.join(folder, child))
+        if info["isLink"] { fail("Linked package input: " + child) }
+        if info["type"] == "directory" {
+            if not shallow { for file in filesAt(folder, child, false) { result.push(file) } }
+        } else if info["type"] == "file" { result.push(child) }
+        else { fail("Irregular package input: " + child) }
+    }
+    return result.sort()
+}
+fn files(name: String, shallow: Bool) -> List { return filesAt(_root, relative(name), shallow) }
+
+// Build and validate only the native edition. PHP sources are read as compiler
+// inputs below; they are never executed or included in the application ZIP.
+fn verify(archiveName: String) -> Map {
+    let archive = zip.open(archiveName)
+    try {
+        let entries = zip.list(archive)
+        if entries.length > 20000 { fail("Release has too many entries") }
+        let metadata = json.parse(zip.read(archive, "SuperIntuitive/PACKAGE.json").decodeUtf8())
+        if metadata["format"] != 1 or metadata["backend"] != "sipl" { fail("Expected a SIPL release") }
+        let seen: Map = {:}
+        for record in metadata["files"] {
+            let name = relative(record["path"])
+            if seen.contains(name.toLower()) { fail("Duplicate release path") }
+            if regex.compile("\\.(php|py|pyc|exe|dll|msi)$", "i").isMatch(name) { fail("Foreign backend/runtime in SIPL release") }
+            seen[name.toLower()] = true
+        }
+        for entry in entries {
+            if not entry.startsWith("SuperIntuitive/") { fail("Unsafe archive root") }
+            var name = entry.slice(15)
+            if name.isEmpty { continue }
+            if name.endsWith("/") { relative(name.slice(0, name.length - 1))
+                continue }
+            relative(name)
+            if name != "PACKAGE.json" and not seen.contains(name.toLower()) { fail("Unlisted release file") }
+        }
+        for required in ["core_sipl/main.sipl", "core_sipl/src/Plugins.sipl", "core/plugin-schema.sql", "packaging/Package.sipl"] {
+            if not seen.contains(required.toLower()) { fail("Incomplete release: " + required) }
+        }
+        let plugins = zip.read(archive, "SuperIntuitive/core_sipl/src/Plugins.sipl").decodeUtf8()
+        if plugins.contains("CONFINED_PLUGIN_ARCHIVE_INSTALLATION") or not plugins.contains("return manage(context") { fail("SIPL plugin installation is still a placeholder") }
+        for name in ["dispatch", "manage", "action", "readManifest", "seedPages", "storage", "runHandler"] {
+            if not plugins.contains("fn " + name + "(") { fail("Incomplete Plugins.sipl: " + name) }
+        }
+        let dispatcher = zip.read(archive, "SuperIntuitive/core_sipl/src/Dispatcher.sipl").decodeUtf8()
+        if not dispatcher.contains("Plugins.action") or not dispatcher.contains("GetLocalPlugins") { fail("Plugin discovery/actions are not wired") }
+        zip.close(archive)
+        return metadata
+    } fail { zip.close(archive)
+        fail(fail) }
+}
+fn validateHashes(archiveName: String, metadata: Map, folder: String) {
+    let archive = zip.open(archiveName)
+    directory(folder)
+    let probe = path.join(folder, "checked-file.tmp")
+    try {
+        for record in metadata["files"] {
+            if record["bytes"] > 33554432 { fail("Release file too large") }
+            zip.extract(archive, "SuperIntuitive/" + record["path"], probe)
+            if fs.size(probe) != record["bytes"] or hashFile(probe) != record["sha256"] { fail("Release checksum mismatch: " + record["path"]) }
+        }
+        if fs.exists(probe) { fs.remove(probe) }
+        zip.close(archive)
+    } fail { if fs.exists(probe) { fs.remove(probe) }
+        zip.close(archive)
+        fail(fail) }
+}
+fn extractRelease(archiveName: String, target: String) {
+    if fs.exists(target) and (not fs.isDirectory(target) or not fs.list(target).isEmpty) { fail("Release extraction requires an empty directory") }
+    let metadata = verify(archiveName)
+    let checked = root("core_sipl/runtime/extract-check-" + nonce())
+    try { validateHashes(archiveName, metadata, checked)
+        removeTree(checked)
+    } fail { removeTree(checked)
+        fail(fail) }
+    directory(target)
+    let archive = zip.open(archiveName)
+    try {
+        for name in zip.list(archive) {
+            var relativeName = name.slice(15)
+            if relativeName.isEmpty { continue }
+            if relativeName.endsWith("/") { relativeName = relativeName.slice(0, relativeName.length - 1)
+                directory(path.join(target, relative(relativeName)))
+            } else { let file = path.join(target, relative(relativeName))
+                directory(path.dirname(file))
+                zip.extract(archive, name, file) }
+        }
+        zip.close(archive)
+    } fail { zip.close(archive)
+        fail(fail) }
+}
+fn compiledInputs() {
+    let compiled = json.parse(text("core_sipl/generated/installer-schema.json"))
+    for name, expected in compiled["inputs"] {
+        var digest = ""
+        if expected["text"] { digest = hashText(text(name)) }
+        else { digest = hashFile(root(relative(name))) }
+        if digest != expected["sha256"] { fail("Native installer assets are stale. Run sipl run packaging/Package.sipl assets") }
+    }
+}
+fn build(output: String) {
+    // Browser code is shared source. Never release a cached native editor template.
+    templates()
+    let compiled = system.exec([system.executable, "check", root("core_sipl/main.sipl")])
+    if compiled["exitCode"] != 0 or compiled["outputTruncated"] { fail("Native application compilation failed: " + compiled["output"]) }
+    compiledInputs()
+    let manifest = json.parse(text("packaging/files.json"))
+    let selected: Map = {:}
+    let selections = []
+    for item in manifest["shared"] { selections.push(item) }
+    for item in manifest["sipl"] { selections.push(item) }
+    for selection in selections {
+        let name = relative(selection["source"])
+        let source = root(name)
+        if checked(_root, name) == none { fail("Missing package input: " + name) }
+        var inputs = [name]
+        if fs.isDirectory(source) { inputs = files(name, selection.get("shallow", false)) }
+        else if not fs.isFile(source) { fail("Missing package input: " + name) }
+        var count = 0
+        for file in inputs {
+            if fs.isDirectory(source) and not selection["extensions"].contains(path.extension(file).toLower()) { continue }
+            if excluded(file) { fail("Private package input: " + file) }
+            let destination = relative(selection.get("destination", name) + file.slice(name.length))
+            if selected.contains(destination.toLower()) { fail("Duplicate package destination") }
+            if regex.compile("\\.(php|py|pyc|exe|dll|msi)$", "i").isMatch(destination) { fail("Foreign runtime/source in native release") }
+            selected[destination.toLower()] = {"path": destination, "source": file}
+            count += 1
+        }
+        if count == 0 { fail("Empty required package input: " + name) }
+    }
+    directory(output)
+    let target = path.join(output, "SuperIntuitive-sipl.zip")
+    let temporary = target + "." + nonce() + ".tmp"
+    let metadataFile = temporary + ".json"
+    let archive = zip.open(temporary)
+    let records = []
+    try {
+        for key in selected.keys().sort() {
+            let entry = selected[key]
+            let source = root(entry["source"])
+            zip.add(archive, source, "SuperIntuitive/" + entry["path"])
+            records.push({"path": entry["path"], "bytes": fs.size(source), "sha256": hashFile(source)})
+        }
+        fs.writeText(metadataFile, json.stringify({"format": 1, "backend": "sipl", "builtAtUtc": time.format(time.now(), TimeZone("UTC")), "files": records}) + "\n")
+        zip.add(archive, metadataFile, "SuperIntuitive/PACKAGE.json")
+        zip.close(archive)
+        let verified = verify(temporary)
+        let checked = temporary + ".check"
+        try { validateHashes(temporary, verified, checked)
+            removeTree(checked)
+        } fail { removeTree(checked)
+            fail(fail) }
+        fs.move(temporary, target, true)
+        fs.remove(metadataFile)
+    } fail { try { zip.close(archive) } fail {}
+        if fs.exists(temporary) { fs.remove(temporary) }
+        if fs.exists(metadataFile) { fs.remove(metadataFile) }
+        fail(fail) }
+    print("Created " + target + " SHA256 " + hashFile(target))
+}
+fn contact(output: String) {
+    plugin("contact", output)
+}
+fn plugin(id: String, output: String) {
+    if not regex.compile("^[A-Za-z0-9][A-Za-z0-9_-]\{0,127\}$").isMatch(id) { fail("Invalid plugin ID") }
+    let base = "plugin-packages/" + id
+    let manifest = json.parse(text(base + "/install.json"))
+    if manifest.get("id", "") != id { fail("Manifest plugin ID mismatch") }
+    let info: Map = {:}
+    for line in text(base + "/info.conf").split("\n") {
+        let parts = line.split(":")
+        if parts.length > 1 { info[parts[0]] = line.slice(parts[0].length + 1) }
+    }
+    for name in ["name", "version", "author", "type", "shortdesc", "longdesc"] { if info.get(name, "").isEmpty { fail("Missing info.conf metadata: " + name) } }
+    if info["version"] != manifest["version"] { fail("Manifest version mismatch") }
+    directory(path.dirname(output))
+    let temporary = output + "." + nonce() + ".tmp"
+    let archive = zip.open(temporary)
+    try {
+        for file in files(base, false) { zip.add(archive, root(file), file.slice(base.length + 1)) }
+        zip.close(archive)
+        fs.move(temporary, output, true)
+    } fail { try { zip.close(archive) } fail {}
+        if fs.exists(temporary) { fs.remove(temporary) }
+        fail(fail) }
+    print(output)
+}
+
+// Offline upgrades preserve installation state and never invoke an installer.
+fn protected(name: String) -> Bool {
+    let parts = relative(name).split("/")
+    for part in parts { if part.startsWith(".") { return true } }
+    let filename = parts[parts.length - 1].toLower()
+    return ["domains", "plugins", "logs", "lib", "sql", "dist"].contains(parts[0]) or regex.compile("^(dbcreds|config\\.local|setup-config)").isMatch(filename) or filename.contains(".local.") or ["install.lock", "setup.lock", "setup.token", "docker-compose.yml", "dockerfile", "readme.txt"].contains(filename) or regex.compile("^(core/(plugin-packages|plugin-requests|upgrade-backups|setup/domaintemplate)|core_sipl/runtime|docker)/").isMatch(name)
+}
+fn parentConfined(target: String, name: String) {
+    relative(name)
+    checkedRoot(target)
+    var current = ""
+    let parts = name.split("/")
+    for index in 0..(parts.length - 1) {
+        if not current.isEmpty { current += "/" }
+        current += parts[index]
+        let old = checked(target, current)
+        if old != none { if old["type"] != "directory" { fail("Non-directory upgrade parent") } }
+        else { workspace.makeDirectory(target, current) }
+    }
+}
+fn replace(staged: String, filename: String, mode: Int, existed: Bool) {
+    fs.chmod(staged, mode)
+    var unlocked = false
+    // Windows read-only attributes block replacement. Restore them on either
+    // the published file or the untouched original if replacement fails.
+    if existed and system.executable.toLower().endsWith(".exe") and fs.stat(filename)["mode"] == 292 {
+        fs.chmod(filename, 438)
+        unlocked = true
+    }
+    try { fs.move(staged, filename, true) }
+    fail { if unlocked { fs.chmod(filename, mode) }
+        fail(fail) }
+}
+fn upgrade(archiveName: String, target: String, apply: Bool) -> Map {
+    checkedRoot(target)
+    let metadata = verify(archiveName)
+    let checkFolder = root("core_sipl/runtime/upgrade-check-" + nonce())
+    try { validateHashes(archiveName, metadata, checkFolder)
+        removeTree(checkFolder)
+    } fail { removeTree(checkFolder)
+        fail(fail) }
+    let plan = []
+    for record in metadata["files"] {
+        let name = record["path"]
+        if protected(name) { continue }
+        let file = path.join(target, name)
+        let old = checked(target, name)
+        if old != none and old["type"] != "file" { fail("Upgrade file conflicts with directory") }
+        if old != none and hashFile(file) == record["sha256"] { continue }
+        plan.push(name)
+    }
+    if not apply { return {"applied": false, "files": plan, "preserved": "configuration, media, installed plugins, CMS data and server configuration"} }
+    let backup = "core/upgrade-backups/" + nonce()
+    parentConfined(target, backup + "/previous.zip")
+    let previous = zip.open(path.join(target, backup, "previous.zip"))
+    let archive = zip.open(archiveName)
+    let journal = []
+    try {
+        for name in plan {
+            let file = path.join(target, name)
+            let old = checked(target, name)
+            let existed = old != none
+            var mode = 420
+            if existed { mode = old["mode"] }
+            // Native zip.add rejects links, including linked parents. Keep an
+            // immutable recovery copy before replacing any existing code.
+            if existed { zip.add(previous, file, name) }
+            parentConfined(target, name)
+            let staged = file + ".upgrade-" + nonce()
+            try { zip.extract(archive, "SuperIntuitive/" + name, staged)
+                replace(staged, file, mode, existed)
+                journal.push({"name": name, "existed": existed, "mode": mode})
+            } fail { if fs.exists(staged) { fs.remove(staged) }
+                fail(fail) }
+        }
+        workspace.write(target, backup + "/journal.json", json.stringify({"files": plan, "replacements": journal}))
+        zip.close(previous)
+        zip.close(archive)
+        return {"applied": true, "files": plan.length, "backup": path.join(target, backup)}
+    } fail {
+        let error = fail
+        var index = journal.length - 1
+        while index >= 0 {
+            let row = journal[index]
+            let file = path.join(target, row["name"])
+            if row["existed"] {
+                let staged = file + ".rollback-" + nonce()
+                zip.extract(previous, row["name"], staged)
+                replace(staged, file, row["mode"], true)
+            }
+            else { fs.remove(file) }
+            index -= 1
+        }
+        zip.close(previous)
+        zip.close(archive)
+        fail(error)
+    }
+}
+
+// Default theme: edit installer sources only, never an installed site's SQL.
+fn seedTokens(line: String) -> List {
+    let result = []
+    var index = 1
+    while index < line.length {
+        while index < line.length and line.slice(index, index + 1).trim().isEmpty { index += 1 }
+        if index == line.length or line.slice(index, index + 1) == ")" { break }
+        let begin = index
+        if line.slice(index, index + 1) == "'" {
+            index += 1
+            while index < line.length {
+                let character = line.slice(index, index + 1)
+                index += 1
+                if character == "\\" { index += 1 }
+                else if character == "'" { break }
+            }
+        } else {
+            while index < line.length and not [",", ")"].contains(line.slice(index, index + 1)) { index += 1 }
+        }
+        result.push({"value": line.slice(begin, index).trim(), "start": begin, "end": index})
+        while index < line.length and line.slice(index, index + 1).trim().isEmpty { index += 1 }
+        if index < line.length and line.slice(index, index + 1) == "," { index += 1 }
+        else if index < line.length and line.slice(index, index + 1) != ")" { fail("Unexpected SQL separator") }
+    }
+    return result
+}
+fn sqlQuote(value: String) -> String { return "'" + value.replace("\\", "\\\\").replace("'", "\\'").replace("\r", "\\r").replace("\n", "\\n") + "'" }
+fn patchSeed(line: String, columns: List, values: Map) -> String {
+    let tokens = seedTokens(line)
+    if tokens.length != columns.length { fail("Unexpected seed row shape") }
+    var result = line
+    var index = columns.length - 1
+    while index >= 0 {
+        let column = columns[index]
+        if values.contains(column) { result = result.slice(0, tokens[index]["start"]) + sqlQuote(values[column]) + result.slice(tokens[index]["end"]) }
+        index -= 1
+    }
+    return result
+}
+fn theme() {
+    let folder = "core/setup/default-theme/"
+    let header = text(folder + "header.html").trim()
+    let home = text(folder + "home.html").trim()
+    let footer = text(folder + "footer.html").trim()
+    let css = text(folder + "site.css").trim()
+    let script = text(folder + "site.js").trim()
+    let loginCss = text(folder + "login.css").trim()
+    let loginScript = text(folder + "login.js").trim()
+    let blocks: Map = {"_SI_GUID_5": [header, css, script], "_SI_GUID_6": [home, "", ""], "_SI_GUID_2": [footer, "", ""]}
+    let options = json.stringify({"tag": "div", "style": {"position": "relative", "width": "100%", "height": "auto"}})
+    var table = ""
+    var columns = []
+    let lines = []
+    let updated: Map = {:}
+    for original in text("core/setup/super_intuitive_install.sql").split("\n") {
+        var line = original
+        let inserts = regex.compile("^INSERT INTO `(\\w+)`").findAll(line)
+        if not inserts.isEmpty {
+            table = inserts[0]["groups"][1]
+            columns = []
+            let names = regex.compile("`([^`]+)`").findAll(line)
+            for index in 1..names.length { columns.push(names[index]["groups"][1]) }
+        }
+        if table == "blocks" and line.startsWith("(") {
+            let guid = line.split(",")[0].slice(1)
+            let values: Map = {:}
+            for stage in ["live", "test", "dev", "rollback"] {
+                if blocks.contains(guid) {
+                    values[stage + "-html"] = blocks[guid][0]
+                    values[stage + "-style"] = blocks[guid][1]
+                    values[stage + "-script"] = blocks[guid][2]
+                    values[stage + "-options"] = options
+                } else if guid == "_SI_GUID_8" { values[stage + "-style"] = loginCss
+                    values[stage + "-script"] = loginScript }
+            }
+            if not values.isEmpty { line = patchSeed(line, columns, values)
+                updated[guid] = true }
+        } else if table == "relations" and line.startsWith("(") {
+            let tokens = seedTokens(line)
+            if tokens.length == columns.length {
+                let row: Map = {:}
+                for index in 0..columns.length { row[columns[index]] = tokens[index]["value"] }
+                if row["parent_id"] == "_SI_GUID_40" and blocks.contains(row["child_id"]) {
+                    let value = json.stringify({"tag": "div", "style": {"position": "relative", "width": "100%", "height": "auto"}, "options": []})
+                    line = patchSeed(line, columns, {"live-options": value, "test-options": value, "dev-options": value})
+                }
+            }
+        } else if table == "pages" and line.startsWith("(_SI_GUID_40,") { line = line.replace("#101827", "#0b1120") }
+        lines.push(line)
+    }
+    if updated.length != 4 { fail("Missing default-theme blocks") }
+    write(root("core/setup/super_intuitive_install.sql"), lines.join("\n"))
+    var preview = "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"theme-color\" content=\"#0b1120\">\n<meta name=\"description\" content=\"Super Intuitive: a visual workspace for building your own website.\">\n<title>Super Intuitive — Visual website platform</title>\n<style>\n" + css + "\n</style>\n</head>\n<body class=\"si-home\" data-si-preview>\n"
+    for item in [["Header", header], ["Menu", home], ["Footer", footer]] { preview += "<div id=\"si_block_" + item[0] + "\" class=\"si-block\">" + item[1] + "</div>\n" }
+    write(root("default-page-preview.html"), preview + "<script>\n" + script + "\n</script>\n</body>\n</html>\n")
+    print("Updated installer theme and preview")
+}
+
+// Native installer/compiler inputs: trusted SQL and literal PHP source only.
+fn sqlStatements(source: String) -> List {
+    let result = []
+    var parts = []
+    var quote = ""
+    var index = 0
+    while index < source.length {
+        let character = source.slice(index, index + 1)
+        if not quote.isEmpty {
+            parts.push(character)
+            if character == "\\" and quote != "`" and index + 1 < source.length { index += 1
+                parts.push(source.slice(index, index + 1))
+            } else if character == quote {
+                if index + 1 < source.length and source.slice(index + 1, index + 2) == quote { index += 1
+                    parts.push(quote)
+                } else { quote = "" }
+            }
+        } else if ["'", "\"", "`"].contains(character) { quote = character
+            parts.push(character)
+        } else if source.slice(index, index + 2) == "/*" {
+            let rest = source.slice(index + 2)
+            let pieces = rest.split("*/")
+            if pieces.length < 2 { fail("Unclosed SQL comment") }
+            index += pieces[0].length + 3
+            parts.push(" ")
+        } else if source.slice(index, index + 2) == "--" and (index + 2 == source.length or source.slice(index + 2, index + 3).trim().isEmpty) {
+            index += source.slice(index).split("\n")[0].length
+            parts.push("\n")
+        } else if character == ";" {
+            let statement = parts.join("").trim()
+            if not statement.isEmpty { result.push(statement) }
+            parts = []
+        } else { parts.push(character) }
+        index += 1
+    }
+    if not quote.isEmpty { fail("Unclosed SQL literal") }
+    if not parts.join("").trim().isEmpty { result.push(parts.join("").trim()) }
+    return result
+}
+fn installer() {
+    let source = text("core/setup/super_intuitive_install.sql")
+    let schema = []
+    let data = []
+    let tables = []
+    for command in sqlStatements(source) {
+        if command.startsWith("CREATE TABLE ") {
+            tables.push(regex.compile("CREATE TABLE `(\\w+)`").findAll(command)[0]["groups"][1])
+            schema.push(command)
+        } else if command.startsWith("ALTER TABLE ") { schema.push(command) }
+        else if command.startsWith("INSERT INTO ") { data.push(command) }
+        else if not regex.compile("^(SET |START TRANSACTION|COMMIT\\b)").isMatch(command) { fail("Unexpected installer SQL operation") }
+    }
+    if tables.length != 16 or schema.length != 32 or data.length != 12 { fail("Installer schema changed; review the compiler") }
+    let inputs: Map = {:}
+    for name in ["core/setup/super_intuitive_install.sql", "core/setup/installer.php"] { inputs[name] = {"sha256": hashText(text(name)), "text": true} }
+    let mediaRoot = "core/setup/domaintemplate"
+    for name in files(mediaRoot, false) { inputs[name] = {"sha256": hashFile(root(name)), "text": false} }
+    let tokens = []
+    for occurrence in regex.compile("_SI_GUID_\\d+").findAll(source) { if not tokens.contains(occurrence["text"]) { tokens.push(occurrence["text"]) } }
+    write(root("core_sipl/generated/installer-schema.json"), json.stringify({"format": 1, "sourceSha256": hashText(source), "inputs": inputs, "schema": schema, "data": data, "tables": tables, "guidTokens": tokens.sort()}) + "\n")
+    let original = text("core/setup/installer.php")
+    let first = original.split("?>")[0].length + 2
+    var template = original.slice(first).trim()
+    let replacements = {"$csrf": "__CSRF__", "$host": "__HOST__", "$notificationEmail": "", "$dboptions": "<option value=\"mysql\">mysql</option>", "$langoptions": "__LANGUAGES__", "$timezonesoptions": "__TIMEZONES__", "$currenciesoptions": "__CURRENCIES__", "$year": "__YEAR__", "$setupAuthorized ? 'true' : 'false'": "__AUTHORIZED__", "$setupAuthorized ? 'hidden' : ''": "__KEY_HIDDEN__", "$setupAuthorized ? 'disabled' : 'required'": "__KEY_REQUIRED__", "$setupAuthorized ? \"data-state='success'\" : 'hidden'": "__AUTH_STATUS__", "$setupAuthorized ? 'Installation authorized for this session.' : ''": "__AUTH_MESSAGE__"}
+    for occurrence in regex.compile("<\\?=\\s*(.*?)\\s*\\?>").findAll(template) {
+        let expression = occurrence["groups"][1].trim()
+        if not replacements.contains(expression) { fail("Unsupported installer expression: " + expression) }
+        template = template.replace(occurrence["text"], replacements[expression])
+    }
+    if template.contains("<?") { fail("Unexpected PHP in native installer template") }
+    template = template.replace("FIRST-TIME SETUP", "SIPL / FIRST-TIME SETUP").replace("Enter the installation key configured for this server.", "Enter the key from core/setup.token on this server, or your configured SI_SETUP_TOKEN.")
+    template = template.replace("value='privuser' checked", "value='privuser'").replace("value='existuser' name=", "value='existuser' checked name=").replace("id='si_prevuserbox' class='setup-credential-fields'", "id='si_prevuserbox' class='setup-credential-fields' style='display:none'").replace("id='si_existuserbox' class='setup-credential-fields' style='display:none'", "id='si_existuserbox' class='setup-credential-fields'").replace("<script>SI.Setup.Init();</script>", "<script>SI.Setup.Init();SI.Setup.ChangeDbLoginType(document.getElementById(\"si_setup_existuser\"));</script>")
+    write(root("core_sipl/generated/installer.html.tmpl"), template + "\n")
+    let temporary = root("core_sipl/generated/installer-media.zip." + nonce() + ".tmp")
+    let archive = zip.open(temporary)
+    try {
+        for name in files(mediaRoot, false) { zip.add(archive, root(name), name.slice(mediaRoot.length + 1)) }
+        zip.close(archive)
+        fs.move(temporary, root("core_sipl/generated/installer-media.zip"), true)
+    } fail { try { zip.close(archive) } fail {}
+        if fs.exists(temporary) { fs.remove(temporary) }
+        fail(fail) }
+    print("Compiled native installer: 16 tables, 32 schema statements, 12 seed statements and starter media")
+}
+
+// Parse literal static PHP arrays without eval, includes, or a PHP executable.
+fn literal(source: String, start: Int) -> Map {
+    var index = start
+    while index < source.length and source.slice(index, index + 1).trim().isEmpty { index += 1 }
+    let character = source.slice(index, index + 1)
+    if character == "'" or character == "\"" {
+        index += 1
+        let parts = []
+        while index < source.length {
+            let current = source.slice(index, index + 1)
+            index += 1
+            if current == character { return {"value": parts.join(""), "next": index} }
+            if current == "\\" and index < source.length {
+                let escaped = source.slice(index, index + 1)
+                if escaped == character or escaped == "\\" { parts.push(escaped)
+                    index += 1
+                    continue }
+                if character == "\"" and {"n": "\n", "r": "\r", "t": "\t"}.contains(escaped) { parts.push({"n": "\n", "r": "\r", "t": "\t"}[escaped])
+                    index += 1
+                    continue }
+            }
+            parts.push(current)
+        }
+        fail("Unclosed PHP literal")
+    }
+    let tail = source.slice(index)
+    if tail.startsWith("array") {
+        index += 5
+        while source.slice(index, index + 1).trim().isEmpty { index += 1 }
+        if source.slice(index, index + 1) != "(" { fail("Expected literal array") }
+        index += 1
+        let values = []
+        let pairs: Map = {:}
+        while index < source.length {
+            while source.slice(index, index + 1).trim().isEmpty { index += 1 }
+            if source.slice(index, index + 1) == ")" {
+                if not pairs.isEmpty { return {"value": pairs, "next": index + 1} }
+                return {"value": values, "next": index + 1}
+            }
+            let first = literal(source, index)
+            index = first["next"]
+            while source.slice(index, index + 1).trim().isEmpty { index += 1 }
+            if source.slice(index, index + 2) == "=>" {
+                let second = literal(source, index + 2)
+                var key = first["value"]
+                if key.type != "String" { key = "{key}" }
+                pairs[key] = second["value"]
+                index = second["next"]
+            } else { values.push(first["value"]) }
+            while source.slice(index, index + 1).trim().isEmpty { index += 1 }
+            if source.slice(index, index + 1) == "," { index += 1 }
+        }
+        fail("Unclosed PHP literal array")
+    }
+    for word, value in {"true": true, "false": false, "null": none} { if tail.startsWith(word) { return {"value": value, "next": index + word.length} } }
+    let numbers = regex.compile("^-?\\d+(?:\\.\\d+)?").findAll(tail)
+    if not numbers.isEmpty {
+        let value = numbers[0]["text"]
+        if value.contains(".") { return {"value": value.toFloat(), "next": index + value.length} }
+        return {"value": value.toInt(), "next": index + value.length}
+    }
+    fail("Unsupported nonliteral PHP source")
+}
+fn templates() {
+    var widgets = text("style/widgets.css").replace("﻿", "")
+    let header = widgets.split("?>")[0]
+    let comment = header.replace("<?php", "").trim()
+    widgets = widgets.slice(header.length + 2)
+    if not comment.startsWith("/*") or not comment.endsWith("*/") or widgets.contains("<?") { fail("Widget CSS needs an explicit native port") }
+    write(root("core_sipl/generated/widgets.css"), widgets)
+    let source = text("editor/editor.js")
+    let begin = source.split("?>")[0].length + 2
+    let ending = source.length - source.split("<?php")[source.split("<?php").length - 1].length - 5
+    var body = source.slice(begin, ending)
+    for occurrence in regex.compile("DataAge\\s*:\\s*\\\{\\s*<\\?=\\s*\\$dataage\\s*\\?>\\s*\\\}").findAll(body) { body = body.replace(occurrence["text"], "DataAge: __SIPL_DATA_AGE__") }
+    for occurrence in regex.compile("`<\\?php\\s+echo\\s+Tools::GetPhpInfo\\(\\)\\s*\\?>`").findAll(body) { body = body.replace(occurrence["text"], "__SIPL_RUNTIME_INFO__") }
+    let slots: Map = {"__SIPL_DATA_AGE__": "$dataage", "__SIPL_RUNTIME_INFO__": "runtime_info"}
+    let pattern = regex.compile("([\"'])<\\?=\\s*(.*?)\\s*\\?>\\1|<\\?=\\s*(.*?)\\s*\\?>", "s")
+    let parts = []
+    var offset = 0
+    for occurrence in pattern.findAll(body) {
+        var expression = occurrence["groups"][2]
+        if expression == none { expression = occurrence["groups"][3] }
+        let marker = "__SIPL_SLOT_" + "{slots.length}" + "__"
+        slots[marker] = expression.trim()
+        parts.push(body.slice(offset, occurrence["start"]))
+        parts.push(marker)
+        offset = occurrence["end"]
+    }
+    parts.push(body.slice(offset))
+    body = parts.join("")
+    if body.contains("<?php") or body.contains("<?=") { fail("Unconverted PHP editor expression") }
+    write(root("core_sipl/generated/editor.js.tmpl"), body)
+    write(root("core_sipl/generated/editor-slots.json"), json.stringify(slots) + "\n")
+    let misc = text("core/MiscData.php")
+    let lookups: Map = {:}
+    for name in ["Languages", "TimeZones", "Currencies", "MimeTypes", "ColorNames"] {
+        let declarations = regex.compile("public\\s+\\$" + name + "\\s*=\\s*").findAll(misc)
+        if not declarations.isEmpty { lookups[name] = literal(misc, declarations[0]["end"])["value"] }
+    }
+    let quick = regex.compile("public\\s+\\$UserDefaultQuickmenu\\s*=\\s*").findAll(misc)
+    lookups["QuickMenu"] = []
+    if not quick.isEmpty {
+        var encoded = literal(misc, quick[0]["end"])["value"]
+        for occurrence in regex.compile(",(\\s*[\}\\]])").findAll(encoded) { encoded = encoded.replace(occurrence["text"], occurrence["groups"][1]) }
+        lookups["QuickMenu"] = json.parse(encoded)
+    }
+    let ages: Map = {:}
+    for name in ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods", "css_new", "css_pseudo"] {
+        let digest = hashFile(root("editor/media/data/" + name + ".json"))
+        var version = 0
+        for character in digest.slice(0, 10).chars() { version = version * 16 + "0123456789abcdef".split(character)[0].length }
+        ages[name] = version
+    }
+    lookups["DataAge"] = ages
+    write(root("core_sipl/generated/lookups.json"), json.stringify(lookups) + "\n")
+    print("Extracted native editor, " + "{slots.length}" + " slots, static lookups and widget CSS")
+}
+fn preservation() {
+    let baseline = json.parse(text("core_sipl/php-baseline.json"))
+    for name, digest in baseline["files"] { if not fs.isFile(root(name)) or hashFile(root(name)) != digest { fail("Protected PHP content changed: " + name) } }
+    let count = baseline["files"].length
+    print("PASS " + "{count}" + " PHP files and assets unchanged")
+}
+fn start() {
+    let arguments = system.args
+    var command = "help"
+    if not arguments.isEmpty { command = arguments[0] }
+    let options: Map = {:}
+    let positional = []
+    var index = 1
+    while index < arguments.length {
+        let argument = arguments[index]
+        if argument.startsWith("--") {
+            let name = argument.slice(2)
+            if name == "apply" { options[name] = true }
+            else { index += 1
+                if index >= arguments.length { fail("Missing option value") }
+                options[name] = arguments[index] }
+        } else { positional.push(argument) }
+        index += 1
+    }
+    _root = path.absolute(options.get("root", _root))
+    if command == "runtime-check" { print("PASS native SIPL packaging runtime") }
+    else if command == "build" { build(path.absolute(options.get("output", root("dist")))) }
+    else if command == "contact" { contact(path.absolute(options.get("output", root("dist/contact.zip")))) }
+    else if command == "plugin" {
+        if positional.isEmpty { fail("Plugin ID required") }
+        plugin(positional[0], path.absolute(options.get("output", root("dist/" + positional[0] + ".zip"))))
+    }
+    else if command == "theme" { theme() }
+    else if command == "assets" { templates()
+        installer() }
+    else if command == "templates" { templates() }
+    else if command == "preservation" { preservation() }
+    else if command == "extract" {
+        if positional.isEmpty or not options.contains("target") { fail("extract ZIP --target EMPTY_DIR") }
+        extractRelease(path.absolute(positional[0]), path.absolute(options["target"]))
+    }
+    else if command == "verify" {
+        let archive = options.get("archive", root("dist/SuperIntuitive-sipl.zip"))
+        let metadata = verify(archive)
+        let folder = root("core_sipl/runtime/release-check-" + nonce())
+        try { validateHashes(archive, metadata, folder)
+            removeTree(folder)
+        } fail { removeTree(folder)
+            fail(fail) }
+        print("PASS SIPL release hashes, paths, native tools and plugin dispatcher")
+    } else if command == "upgrade" {
+        if positional.isEmpty or not options.contains("target") { fail("upgrade ZIP --target DIR [--apply]") }
+        print(json.stringify(upgrade(path.absolute(positional[0]), path.absolute(options["target"]), options.get("apply", false))))
+    } else { print("SIPL edition: sipl run packaging/Package.sipl build|contact|plugin ID|theme|assets|templates|preservation|verify|upgrade [ZIP] [--root DIR] [--output PATH] [--target DIR] [--apply]") }
+}

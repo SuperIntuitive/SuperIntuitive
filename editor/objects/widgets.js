@@ -9,14 +9,6 @@ SI.Editor.Objects.Widgets = {
         tabs.Items.Add("Widget Editor", SI.Editor.Objects.Widgets.Editor());
         container.appendChild(tabs.Draw());
 
-        //make the window
-        var obj = {
-            Id: "si_edit_widget_editor_window",
-            Title: "Widget Editor",
-            Trigger: "#si_edit_widget_editor_open_button"
-        };
-        new SI.Widget.Window(obj);
-
         return container;
     },
     //for managing current instances of widgets.
@@ -65,14 +57,16 @@ SI.Editor.Objects.Widgets = {
         return base;
     },
     PlacementSize: function (name) {
-        const sizes = {Field: [240, 60], IconLink: [160, 48], Table: [320, 200], DataGrid: [320, 200], Tab: [320, 240], Map: [320, 240], Menu: [240, 160], Tree: [240, 200], Tile: [160, 180]};
+        const sizes = {Field: [280, 100], Lookup: [320, 110], IconLink: [180, 58], Table: [360, 220], DataGrid: [360, 220], Tab: [360, 240], Map: [360, 240], Menu: [280, 160], Tree: [280, 220], Tile: [180, 200]};
         const size = sizes[name] || [320, 240];
-        return {width: size[0], height: size[1]};
+        const style = document.createElement('div').style;
+        for (const operation of SI.Tools.Widget.Designs[name] || []) if (!operation.path.length && operation.attributes && operation.attributes.style) style.cssText = operation.attributes.style;
+        return {width: /^\d+(?:\.\d+)?px$/.test(style.width) ? parseFloat(style.width) : size[0], height: /^\d+(?:\.\d+)?px$/.test(style.height) ? parseFloat(style.height) : size[1]};
     },
-    AddInstance: function (block, widget, options) {
+    AddInstance: function (block, widget, options, preview = false) {
         const parent = options.Parent;
-        if (!parent || !parent.closest('.si-block') || typeof SI.Widget[widget] !== 'function') throw new Error('Invalid widget destination');
-        const id = SI.Tools.Element.SafeId(widget);
+        if (!parent || !(preview ? this.CanvasFor(parent) : parent.closest('.si-block')) || typeof SI.Widget[widget] !== 'function') throw new Error('Invalid widget destination');
+        const id = SI.Tools.Element.SafeId(widget === 'Lookup' ? 'LookupField' : widget);
         const starter = {
             Field: {Label: 'Field', Placeholder: 'Enter text…'},
             Accordian: {Sections: {'Section 1': 'Your content'}},
@@ -81,6 +75,7 @@ SI.Editor.Objects.Widgets = {
             Window: {Title: 'Window'}
         };
         const input = Object.assign({}, starter[widget] || {}, options, {Id: id});
+        if (preview) Object.assign(input, {SIWidgetPreview: true, SIWidgetRaw: true});
         // Constructors have historically returned either the instance or its DOM node.
         // Normalize both forms and mount exactly once, only after a valid placement.
         let result;
@@ -109,7 +104,12 @@ SI.Editor.Objects.Widgets = {
         if (instance && !instance.Container) instance.Container = element;
         // Store a serializable parent reference, never a live DOM node in JSON.
         element.dataset.siWidget = widget;
-        const saved = Object.assign({}, input, {Parent: parent.id});
+        if (preview) {
+            this.CaptureBase(element);
+            return element;
+        }
+        this.CaptureBase(element);
+        const saved = Object.assign({}, input, this.OptionsFor(element), {Id: id, Parent: parent.id, SIWidgetVersion: 1});
         if (!SI.Page.Blocks[block].Widgets) SI.Page.Blocks[block].Widgets = {};
         if (!Array.isArray(SI.Page.Blocks[block].Widgets[widget])) SI.Page.Blocks[block].Widgets[widget] = [];
         SI.Page.Blocks[block].Widgets[widget].push(JSON.stringify(saved));
@@ -119,6 +119,7 @@ SI.Editor.Objects.Widgets = {
         return element;
     },
     UpdatePlacement: function (element, oldBlock) {
+        if (this.CanvasFor(element)) { this.MarkCanvasDirty(); return; }
         const type = element.dataset.siWidget;
         if (!type) return;
         const block = element.closest('.si-block').id.replace('si_block_', '');
@@ -178,6 +179,8 @@ SI.Editor.Objects.Widgets = {
         const description = document.createElement('p');
         description.textContent = element.dataset.siWidget + ' #' + element.id + ' is selected. Edit its content, attributes, and styles on the page.';
         box.appendChild(description);
+        const name = this.NameForType(element.dataset.siWidget);
+        if (name) for (const kind of ['script', 'style']) Ele('button', {type: 'button', innerText: kind === 'script' ? 'Edit JavaScript' : 'Edit CSS', onclick: () => this.OpenSource(name, kind), appendTo: box});
         Ele('button', {id: 'si_edit_widget_instance_edit', type: 'button', innerText: 'Edit widget on page', onclick: function () {
             const menu = SI.Editor.UI.MainMenu.Element;
             menu.style.display = 'block';
@@ -189,81 +192,265 @@ SI.Editor.Objects.Widgets = {
 
     },
     //for editing widget scripts / styles. will effect all Instances
-    Editor: function(){
-        let base = Ele('div', {
-            style: {
-                width: "100%",
-                height: "100%",
-                overflow: "auto",
-
-                backgroundSize: 'cover',
-                position: "absolute"
-            }
+    Sources: null,
+    Bases: SI.Tools.Widget.Bases,
+    CanvasFor: function (element) { return element instanceof HTMLElement && element.closest('[data-si-widget-canvas]'); },
+    Status: function (message) {
+        const status = document.getElementById('si_edit_widget_status');
+        if (status) status.textContent = message;
+    },
+    Request: function (data) {
+        return new Promise((resolve, reject) => {
+            let completed = false;
+            const xhr = SI.Editor.Ajax.Run({Data: data, Callback: value => {
+                completed = true;
+                value === undefined ? reject(new Error('Widget request failed. Refresh your administrator session and try again.')) : resolve(value);
+            }});
+            if (!xhr || xhr.status === 403) { reject(new Error('This installation does not allow saving widget definitions.')); return; }
+            xhr.timeout = 20000;
+            xhr.addEventListener('loadend', () => { if (!completed) reject(new Error('Widget request failed (HTTP ' + xhr.status + ').')); });
         });
-        let menu = Ele('div', {
-            style: {
-                width: "100%",
-                height: "26px",
-
-
-            },
-            appendTo: base
-        });
-        Ele('label', {
-            innerHTML:"Widget to edit:",
-            for: "si_edit_widget_editor_selector",
-            style: {
-                marginLeft: '2em'
-            },
-            appendTo: menu
-        })
-        let widgetselector = Ele('select', {
-            id: "si_edit_widget_editor_selector",
-            style: {
-                margin: '4px',
-            },
-            onchange: function (ev) {
-                SI.Editor.Objects.Widgets.SelectWidget(this.options[this.selectedIndex].value);
-            },
-            appendTo: menu
-        });
-        let editorWindowButton = Ele("button", {
-            innerHTML: "Edit Window",
-            id:"si_edit_widget_editor_open_button",
-            appendTo: menu
-        });
-
-
-
-        Ele("option", {
-            innerHTML: "",
-            appendTo: widgetselector
-        });
-        //Populate Widget Selector
-        let widgets = SI.Widget;
-        for (let widget in widgets) {
-            if (widgets.hasOwnProperty(widget)) {
-                Ele("option", {
-                    innerHTML: widget,
-                    value: widget,
-                    appendTo: widgetselector
-                });
-            }
+    },
+    LoadSources: function () {
+        if (this.Sources) return Promise.resolve(this.Sources);
+        if (!this.SourceRequest) this.SourceRequest = (SI.Editor.Data.WidgetSources ? Promise.resolve(SI.Editor.Data.WidgetSources) : this.Request({KEY: 'GetWidgetSources'}))
+            .then(sources => { this.Sources = sources; return sources; }).finally(() => { this.SourceRequest = null; });
+        return this.SourceRequest;
+    },
+    SaveSource: async function (name, kind, source) {
+        const result = await this.Request({KEY: 'SaveWidgetSource', name, kind, source});
+        if (!result.saved) throw new Error('Widget was not saved.');
+        this.Sources[name] = result.widget;
+        SI.Tools.Widget.Designs[result.widget.type] = result.widget.design;
+        this.Status('Saved ' + name + ' in Dev. Promote to Test, then Live to publish.');
+        if (kind === 'style') {
+            const current = document.getElementById('si_widgets_style');
+            if (current) { const address = new URL(current.href); address.searchParams.set('v', Date.now()); current.href = address.href; }
+            if (this.PreviewStyle) this.PreviewStyle.textContent = source;
         }
-
-        let builderbox = Ele('div', {
-            id: "si_edit_widget_editor_tools",
-            style: {
-                margin: "8px",
-                backgroundColor: "rgba(128,128,128,0.2)"
-            },
-            appendTo: base
+        return result;
+    },
+    NameForType: function (type) { return Object.keys(this.Sources || {}).find(name => this.Sources[name].type === type); },
+    AddSourceOptions: async function (selector) {
+        try {
+            const sources = await this.LoadSources();
+            const group = document.createElement('optgroup'); group.label = 'Widgets';
+            for (const [name, entry] of Object.entries(sources)) {
+                const option = new Option(entry.type, name); option.dataset.sourcetype = 'Widget'; group.appendChild(option);
+            }
+            selector.appendChild(group);
+        } catch (error) { this.Status(error.message); }
+    },
+    OpenSource: async function (name, kind) {
+        try {
+            await this.LoadSources();
+            const title = kind === 'script' ? 'Scripter' : 'Styler';
+            const windowId = 'si_edit_' + title.toLowerCase() + '_window';
+            if (!SI.Widgets.Window[windowId] || !SI.Widgets.Window[windowId].IsVisible()) SI.Editor.UI.ToolsPanel.OpenToolWindow(title);
+            const editor = SI.Editor.Objects[title];
+            const select = kind === 'script' ? editor.ScriptSelect : document.getElementById('si_styler_sheetselector');
+            if (!Array.from(select.options).some(option => option.value === name && option.dataset.sourcetype === 'Widget')) {
+                const option = new Option(this.Sources[name].type, name); option.dataset.sourcetype = 'Widget'; select.appendChild(option);
+            }
+            if (kind === 'script') await editor.OpenScript(name, 'Widget');
+            else {
+                for (const option of select.options) option.selected = option.value === name && option.dataset.sourcetype === 'Widget';
+                select.onchange();
+            }
+        } catch (error) { this.Status(error.message); }
+    },
+    Editor: function () {
+        const base = Ele('div', {class: 'si-widget-editor si-tool-panel-body'});
+        const menu = Ele('div', {class: 'si-tool-toolbar', appendTo: base});
+        Ele('label', {innerText: 'Widget to edit:', for: 'si_edit_widget_editor_selector', appendTo: menu});
+        this.WidgetSelector = Ele('select', {id: 'si_edit_widget_editor_selector', onchange: () => this.SelectWidget(this.WidgetSelector.value), appendTo: menu});
+        for (const type of Object.keys(SI.Widget).sort()) if (typeof SI.Widget[type] === 'function') this.WidgetSelector.appendChild(new Option(type, type));
+        const newName = Ele('input', {id: 'si_edit_widget_new_name', type: 'text', placeholder: 'NewWidgetName', 'aria-label': 'New widget name', appendTo: menu});
+        Ele('button', {id: 'si_edit_widget_create', type: 'button', innerText: 'New widget', onclick: async () => {
+            try {
+                if (this.CanvasDirty) { this.Status('Save the current design before creating another widget.'); return; }
+                const name = newName.value.trim();
+                if (!/^[A-Z][A-Za-z0-9_]{0,63}$/.test(name)) throw new Error('Use a widget name beginning with a capital letter, followed by letters, digits or underscores.');
+                const result = await this.Request({KEY: 'CreateWidget', name});
+                if (!result.saved) throw new Error('Widget was not created.');
+                this.Sources[name] = result.widget;
+                SI.Widget[name] = SI.Tools.Widget.Derive(name); SI.Tools.Widget.Register(name, []);
+                this.WidgetSelector.appendChild(new Option(name, name));
+                SI.Editor.UI.AddPanel.Item(document.getElementById('si_edit_add_widget'), {kind: 'widget', name}, name, 'Add a ' + name + ' widget');
+                newName.value = ''; this.SelectWidget(name, true);
+            } catch (error) { this.Status(error.message); }
+        }, appendTo: menu});
+        for (const kind of ['script', 'style']) Ele('button', {type: 'button', innerText: kind === 'script' ? 'Edit JavaScript' : 'Edit CSS', onclick: () => this.OpenSource(this.NameForType(this.SelectedWidget), kind), appendTo: menu});
+        Ele('button', {id: 'si_edit_widget_edit_selected', type: 'button', innerText: 'Edit selected', onclick: () => {
+            if (!this.Preview) return;
+            if (!this.CanvasFor(SI.Editor.Objects.Elements.Selected)) SI.Editor.Objects.Elements.Select(null, this.Preview.id);
+            SI.Editor.UI.MainMenu.Element.style.display = 'block';
+            document.getElementById('si_edit_edit_menuitem').style.display = 'none';
+            SI.Editor.UI.MainMenu.SelectMenu('si_edit_edit_menuitem');
+        }, appendTo: menu});
+        Ele('button', {id: 'si_edit_widget_save_design', type: 'button', innerText: 'Save design', onclick: () => this.SaveDesign(), appendTo: menu});
+        Ele('button', {type: 'button', innerText: 'Place on page', onclick: event => {
+            if (this.SelectedWidget && this.Preview) SI.Editor.Objects.Placement.Begin(event, {kind: 'widget', name: this.SelectedWidget, options: this.OptionsFor(this.Preview), design: this.Design(this.Preview), size: {width: parseFloat(this.Preview.style.width) || this.Preview.offsetWidth, height: parseFloat(this.Preview.style.height) || this.Preview.offsetHeight}});
+        }, appendTo: menu});
+        for (const target of ['test', 'live']) Ele('button', {type: 'button', innerText: 'To ' + (target === 'test' ? 'Test' : 'Live'), onclick: async () => {
+            try {
+                if (this.CanvasDirty) { this.Status('Save the canvas design before promoting.'); return; }
+                await this.Request({KEY: 'PromoteWidgetSource', name: this.NameForType(this.SelectedWidget), target});
+                this.Status('Promoted ' + (target === 'test' ? 'Dev → Test' : 'Test → Live') + '.');
+            } catch (error) { this.Status(error.message); }
+        }, appendTo: menu});
+        Ele('p', {class: 'si-add-hint', innerText: 'Drag tags or widgets from Add into this canvas. Double-click an element to edit it with Edit. Canvas changes are separate from page instances.', appendTo: base});
+        Ele('p', {id: 'si_edit_widget_status', role: 'status', appendTo: base});
+        this.Canvas = Ele('div', {id: 'si_edit_widget_canvas', class: 'si-widget-canvas', appendTo: base});
+        this.Canvas.dataset.siWidgetCanvas = 'true';
+        this.PreviewStyle = Ele('style', {appendTo: base});
+        this.WidgetSelector.value = 'Template'; this.SelectWidget('Template', true);
+        this.LoadSources().then(() => {
+            for (const [name, source] of Object.entries(this.Sources)) if (!Array.from(this.WidgetSelector.options).some(option => option.value === source.type)) this.WidgetSelector.appendChild(new Option(source.type, source.type));
+            const selected = this.Sources[this.NameForType(this.SelectedWidget)];
+            if (selected) this.PreviewStyle.textContent = selected.style;
+        }).catch(error => {
+            this.Status(error.message + ' The canvas remains available for temporary editing.');
         });
         return base;
     },
-    SelectWidget: function (widget) {
+    ReleasePreview: function () {
+        if (!this.Canvas) return;
+        if (this.CanvasFor(SI.Editor.Objects.Elements.Selected)) SI.Editor.Objects.Elements.SelectNone();
+        for (const input of this.Canvas.querySelectorAll('input[type="lookup"]')) SI.Widgets.Lookup.Lookup.Detach(input);
+        for (const [type, instances] of Object.entries(SI.Widgets)) for (const [id, instance] of Object.entries(instances)) {
+            const element = instance instanceof HTMLElement ? instance : instance.Container;
+            if (element instanceof HTMLElement && this.Canvas.contains(element)) {
+                if (typeof instance.Destroy === 'function') instance.Destroy();
+                delete instances[id];
+            }
+        }
+        this.Canvas.replaceChildren(); this.Preview = null;
     },
-    DeleteWidget: function (widget) {
+    SelectWidget: function (type, force = false) {
+        if (!force && this.CanvasDirty && !window.confirm('Discard the unsaved widget canvas changes?')) { this.WidgetSelector.value = this.SelectedWidget; return; }
+        this.ReleasePreview(); this.SelectedWidget = type; this.WidgetSelector.value = type;
+        try {
+            const size = this.PlacementSize(type);
+            this.Preview = this.AddInstance(null, type, {Parent: this.Canvas, Width: size.width + 'px', Height: size.height + 'px'}, true);
+            Object.assign(this.Preview.style, {position: 'absolute', left: '24px', top: '24px'});
+            // Layout belongs to the canvas, not the saved widget design.
+            this.CaptureBase(this.Preview, true);
+            const source = this.Sources && this.Sources[this.NameForType(type)];
+            SI.Tools.Widget.ApplyDesign(this.Preview, source ? source.design : SI.Tools.Widget.Designs[type]);
+            this.MakeCanvasEditable(); this.CanvasDirty = false;
+            this.PreviewStyle.textContent = source ? source.style : '';
+            this.Status(type + ' preview · changes affect this working copy until saved.');
+        } catch (error) { this.Status('Cannot preview ' + type + ': ' + error.message); }
+    },
+    MakeCanvasEditable: function () {
+        if (!this.Preview) return;
+        for (const element of [this.Preview, ...this.Preview.querySelectorAll('*')]) SI.Editor.Objects.Elements.Editable(element);
+    },
+    MarkCanvasDirty: function () { this.CanvasDirty = true; this.Status('Unsaved widget design · Save design to keep it in Dev.'); },
+    Clean: function (element) {
+        const clone = element.cloneNode(true);
+        for (const node of [clone, ...clone.querySelectorAll('*')]) {
+            if (node.classList.contains('si-editable-element') || node.classList.contains('si-editor-selected')) {
+                node.classList.remove('si-editable-element', 'si-editor-selected');
+                if (!node.classList.length) node.removeAttribute('class');
+            }
+            for (const attribute of Array.from(node.attributes)) {
+                if (attribute.name.startsWith('data-sistyle_') || attribute.name.startsWith('data-siattr_')) {
+                    const property = attribute.name.replace(/^data-si(?:style|attr)_/, '');
+                    if (attribute.name.startsWith('data-sistyle_')) node.style.setProperty(property, attribute.value === 'null' ? '' : attribute.value);
+                    else if (attribute.value === 'null') node.removeAttribute(property); else node.setAttribute(property, attribute.value);
+                    node.removeAttribute(attribute.name);
+                }
+            }
+        }
+        return clone;
+    },
+    CaptureBase: function (root) {
+        SI.Tools.Widget.Remember(root, node => this.Clean(node));
+    },
+    NodeDesign: function (node, root, paths) {
+        if (node.nodeType === Node.TEXT_NODE) return {text: node.textContent};
+        if (!(node instanceof HTMLElement)) return null;
+        if (paths && paths.has(node)) return {ref: paths.get(node)};
+        const attributes = Object.fromEntries(Array.from(this.Clean(node).attributes, attr => [attr.name, attr.value]));
+        if (attributes.id) attributes.id = attributes.id.startsWith(root.id + '_') ? '__SI_WIDGET__' + attributes.id.slice(root.id.length) : '__SI_WIDGET___' + attributes.id;
+        const type = node.dataset.siWidget;
+        if (type && this.Bases.has(node)) {
+            const instance = SI.Widgets[type] && SI.Widgets[type][node.id];
+            const options = this.OptionsFor(node);
+            delete options.Parent; delete options.SIWidgetRaw; delete options.SIWidgetPreview;
+            options.Id = attributes.id; options.Design = this.Design(node);
+            return {widget: type, options};
+        }
+        return {tag: node.tagName.toLowerCase(), attributes, children: Array.from(node.childNodes, child => this.NodeDesign(child, root, paths)).filter(Boolean)};
+    },
+    Design: function (root) {
+        const operations = [];
+        const paths = new WeakMap();
+        const remember = (node, path) => {
+            paths.set(node, path);
+            const base = this.Bases.get(node);
+            if (base) base.children.filter(child => child instanceof HTMLElement).forEach((child, index) => remember(child, path.concat(index)));
+        };
+        if (root) remember(root, []);
+        const walk = (node, path) => {
+            const base = this.Bases.get(node); if (!base) return;
+            const current = Object.fromEntries(Array.from(this.Clean(node).attributes, attr => [attr.name, attr.value]));
+            const attributes = {};
+            for (const key of new Set([...Object.keys(base.attributes), ...Object.keys(current)])) {
+                if (key === 'id' || key === 'data-si-widget') continue;
+                if (base.attributes[key] !== current[key]) attributes[key] = current[key] === undefined ? null : current[key];
+            }
+            const operation = {path, attributes};
+            const originalElements = base.children.filter(child => child instanceof HTMLElement);
+            for (const [index, child] of originalElements.entries()) {
+                if (child.parentNode === node) walk(child, path.concat(index));
+                else {
+                    if (root.contains(child)) walk(child, path.concat(index));
+                    operations.push({path: path.concat(index), remove: true});
+                }
+            }
+            if (!originalElements.length && !node.children.length) {
+                if (base.text !== node.textContent) operation.text = node.textContent;
+            } else {
+                const added = Array.from(node.childNodes).filter(child => !base.children.includes(child));
+                if (added.length) operation.append = added.map(child => this.NodeDesign(child, root, paths)).filter(Boolean);
+            }
+            if (Object.keys(attributes).length || operation.text !== undefined || operation.append) operations.push(operation);
+        };
+        if (root) walk(root, []);
+        return operations;
+    },
+    SaveDesign: async function () {
+        try {
+            if (!this.Preview) return;
+            await this.SaveSource(this.NameForType(this.SelectedWidget), 'design', this.Design(this.Preview));
+            this.CanvasDirty = false;
+        } catch (error) { this.Status(error.message); }
+    },
+    SaveInstances: function (block) {
+        const records = SI.Page.Blocks[block].Widgets || {};
+        for (const [type, instances] of Object.entries(records)) {
+            records[type] = instances.map(stored => {
+                const options = typeof stored === 'string' ? JSON.parse(stored) : Object.assign({}, stored);
+                const element = document.getElementById(options.Id);
+                if (element) {
+                    const current = this.OptionsFor(element);
+                    for (const key of ['Value', 'Selected', 'Items', 'Columns', 'Rows']) if (Object.prototype.hasOwnProperty.call(current, key)) options[key] = current[key];
+                }
+                if (element && this.Bases.has(element)) options.InstanceDesign = this.Design(element);
+                const table = document.getElementById('si_block_widgets_table_' + block);
+                if (table) for (const row of table.rows) if (row.dataset.widgetId === options.Id) row.querySelector('textarea').value = JSON.stringify(options);
+                return JSON.stringify(options);
+            });
+        }
+    },
+    OptionsFor: function (element) {
+        const instance = SI.Widgets[element.dataset.siWidget] && SI.Widgets[element.dataset.siWidget][element.id];
+        const options = JSON.parse(JSON.stringify(instance && instance.Input || {}, (key, value) => value instanceof Node || typeof value === 'function' ? undefined : value));
+        for (const key of ['Id', 'Parent', 'SIWidgetRaw', 'SIWidgetPreview']) delete options[key];
+        return options;
     },
 
     Tools:{

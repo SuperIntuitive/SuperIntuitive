@@ -2,13 +2,43 @@ use Tools
 use Security
 use Config
 use Deployment
+use Database
+use RateLimit
 
+// Discovery, package downloads, editor data and asset bundles
 fn dispatch(context: Map, action: String, post: Map) -> Map {
     Security.requireAdmin(context)
     if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
-    // Package installation needs confined extraction, staged filesystem commits,
-    // and a multipart upload contract. Leave the PHP store available meanwhile.
-    return Tools.gap("CONFINED_PLUGIN_ARCHIVE_INSTALLATION")
+    if action == "GetLocalPlugins" { return {"PLUGINSLIST": {"downloaded": local("downloaded"), "installed": editorData(context)}} }
+    if ["GetMorePlugins", "DownloadPlugin", "UploadPluginPackage"].contains(action) {
+        if action == "UploadPluginPackage" {
+            // JSON transport is supported by the actual runtime; browser upload uses base64.
+            let id = manifestName(post.get("plugin", ""))
+            let body = bytes.fromBase64(post.get("archive", ""))
+            if body.length > 25165824 { fail("PLUGIN_ARCHIVE_TOO_LARGE") }
+            makeDirectory(Config.get("root", path.absolute(".")), "plugins/downloaded")
+            fs.writeBytes(Config.root("plugins/downloaded/" + id + ".zip"), body)
+            return {"DOWNLOADEDPLUGIN": id + ".zip"}
+        }
+        var url = "https://plugins.superintuitive.net/"
+        if action == "DownloadPlugin" {
+            let requested = post.get("appname", "")
+            var filename = requested
+            if requested.startsWith("https://plugins.superintuitive.net/plugins/") { filename = requested.slice("https://plugins.superintuitive.net/plugins/".length) }
+            if filename.endsWith(".zip") { filename = filename.slice(0, filename.length - 4) }
+            manifestName(filename)
+            url += "plugins/" + filename + ".zip"
+        }
+        let response = http.get(url, {"redirects": "none", "maxBody": 16777216}).waitBlocking()
+        if response.status != 200 { fail("PLUGIN_REPOSITORY_UNAVAILABLE") }
+        if action == "GetMorePlugins" { return {"MOREPLUGINS": response.body.decodeUtf8()} }
+        let filename = path.basename(url)
+        if response.body.length > 25165824 { fail("PLUGIN_ARCHIVE_TOO_LARGE") }
+        makeDirectory(Config.get("root", path.absolute(".")), "plugins/downloaded")
+        fs.writeBytes(Config.root("plugins/downloaded/" + filename), response.body)
+        return {"DOWNLOADEDPLUGIN": filename}
+    }
+    return manage(context, action, post)
 }
 
 fn local(status: String) -> List {
@@ -22,10 +52,10 @@ fn local(status: String) -> List {
     return names.sort()
 }
 
-fn sourceFiles(plugin: String, kind: String, level: String) -> List {
+fn sourceFilesAt(root: String, kind: String, level: String) -> List {
     var folder = "scripts"
     if kind == "style" { folder = "styles" }
-    let directory = Config.root("plugins/installed/" + plugin + "/" + folder)
+    let directory = path.join(root, folder)
     if not fs.isDirectory(directory) { return [] }
     let candidates: Map = {:}
     var extension = ".js"
@@ -48,12 +78,14 @@ fn sourceFiles(plugin: String, kind: String, level: String) -> List {
     return selected.sort()
 }
 
-fn bundle(kind: String, level: String) -> String {
+fn bundle(context: Map, kind: String, level: String) -> String {
     var combined = ""
-    for plugin in local("installed") {
-        for filename in sourceFiles(plugin, kind, level) {
+    for plugin in ids(context) {
+        if not enabled(context, plugin) { continue }
+        try { readManifest(package(context, plugin), plugin) } fail { continue }
+        for filename in sourceFilesFor(context, plugin, kind, level) {
             var source = fs.readText(filename)
-            if kind == "style" { source = Deployment.mediaPaths(rebaseCss(source, plugin), level) }
+            if kind == "style" { source = Deployment.mediaPaths(rebaseSourceCss(source, plugin, path.basename(path.dirname(filename))), level) }
             if source.contains("<?php") or source.contains("<?=") { fail("DYNAMIC_ASSET_NOT_PORTED") }
             combined += "\n" + source + "\n"
         }
@@ -61,12 +93,12 @@ fn bundle(kind: String, level: String) -> String {
     return combined
 }
 
-fn editorData() -> Map {
+fn editorData(context: Map) -> Map {
     let result: Map = {:}
-    for plugin in local("installed") {
-        let entry: Map = {"scripts": {:}, "styles": {:}}
+    for plugin in ids(context) {
+        let entry: Map = {"scripts": {:}, "styles": {:}, "enabled": enabled(context, plugin), "pages": navigation(context).filter(fn(page) => page["plugin"] == plugin)}
         for kind, field in {"script": "scripts", "style": "styles"} {
-            for filename in sourceFiles(plugin, kind, "dev") { entry[field][path.basename(filename).replace(path.extension(filename), "")] = fs.readText(filename) }
+            for filename in sourceFilesFor(context, plugin, kind, "dev") { entry[field][path.basename(filename).replace(path.extension(filename), "")] = fs.readText(filename) }
         }
         result[plugin] = entry
     }
@@ -91,4 +123,544 @@ fn rebaseCss(source: String, plugin: String) -> String {
     }
     parts.push(source.slice(offset))
     return parts.join("")
+}
+
+fn sourceFiles(plugin: String, kind: String, level: String) -> List { return sourceFilesAt(Config.root("plugins/installed/" + plugin), kind, level) }
+fn sourceFilesFor(context: Map, plugin: String, kind: String, level: String) -> List {
+    let root = package(context, plugin)
+    let result = sourceFilesAt(root, kind, level)
+    var folder = "js"
+    var extension = ".js"
+    if kind == "style" { folder = "css"
+        extension = ".css" }
+    let directory = path.join(root, folder)
+    let variants: Map = {:}
+    if fs.isDirectory(directory) {
+        for name in fs.list(directory) {
+            if not name.endsWith(extension) { continue }
+            let base = name.replace("-min" + extension, extension)
+            var choice = "normal"
+            if name.endsWith("-min" + extension) { choice = "min" }
+            if not variants.contains(base) { variants[base] = {:} }
+            variants[base][choice] = path.join(directory, name)
+        }
+    }
+    for name, options in variants {
+        var file = options.get("normal", options.get("min"))
+        if level != "dev" { file = options.get("min", options.get("normal")) }
+        result.push(file)
+    }
+    return result.sort()
+}
+
+fn rebaseSourceCss(source: String, plugin: String, folder: String) -> String {
+    let parts = []
+    var offset = 0
+    for occurrence in regex.compile("url\\(\\s*[^)]*\\)", "i").findAll(source) {
+        let original = occurrence["text"]
+        var target = original.slice(4, original.length - 1).trim()
+        if target.startsWith("\"") and target.endsWith("\"") or target.startsWith("'") and target.endsWith("'") { target = target.slice(1, target.length - 1) }
+        var replacement = original
+        if not target.isEmpty and not target.startsWith("/") and not target.startsWith("#") and not target.contains(":") and not target.contains("\\") {
+            replacement = "url(\"/plugin-asset.php?plugin=" + plugin + "&file=" + url.encode(assetPath(folder, target)) + "\")"
+        }
+        parts.push(source.slice(offset, occurrence["start"]))
+        parts.push(replacement)
+        offset = occurrence["end"]
+    }
+    parts.push(source.slice(offset))
+    return parts.join("")
+}
+
+fn assetPath(folder: String, target: String) -> String {
+    let parts = []
+    for part in (folder + "/" + target).split("/") {
+        if part == "." or part.isEmpty { continue }
+        if part == ".." { if parts.isEmpty { fail("UNSAFE_PLUGIN_ASSET") }
+            parts.pop() }
+        else { parts.push(part) }
+    }
+    return manifestPath(parts.join("/"))
+}
+
+// Manifest validation and confined paths
+fn manifestName(value) -> String {
+    if value.type != "String" or not regex.compile("^[A-Za-z0-9][A-Za-z0-9_-]\{0,127\}$").isMatch(value) { fail("INVALID_PLUGIN_NAME") }
+    return value
+}
+fn manifestPath(value) -> String {
+    if value.type != "String" or not regex.compile("^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$").isMatch(value) or value.contains("..") { fail("UNSAFE_PLUGIN_PATH") }
+    for part in value.split("/") {
+        if ["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"].contains(part.split(".")[0].toUpper()) { fail("UNSAFE_PLUGIN_PATH") }
+    }
+    return value
+}
+fn readSource(root: String, value: String) -> String {
+    manifestPath(value)
+    return workspace.read(root, value)
+}
+fn readManifest(root: String, id: String) -> Map {
+    manifestName(id)
+    var m: Map = {:}
+    if fs.isFile(path.join(root, "install.json")) {
+        let source = readSource(root, "install.json")
+        if not json.isValid(source) { fail("INVALID_PLUGIN_MANIFEST") }
+        if json.parse(source).type != "Map" { fail("INVALID_PLUGIN_MANIFEST") }
+        m = json.parse(source)
+    }
+    for key, fallback in {"id": id, "version": "0.0.0", "backend": {:}, "actions": {:}, "permissions": {:}, "pages": [], "migrations": []} { if not m.contains(key) { m[key] = fallback } }
+    if m["id"] != id or m["version"].type != "String" or not regex.compile("^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$").isMatch(m["version"]) { fail("INVALID_PLUGIN_ID_OR_VERSION") }
+    for key in ["backend", "actions", "permissions"] { if m[key].type != "Map" { fail("INVALID_PLUGIN_MANIFEST") } }
+    for key in ["pages", "migrations"] { if m[key].type != "List" { fail("INVALID_PLUGIN_MANIFEST") } }
+    let backend = m["backend"]
+    if (backend.get("required", false) or not m["actions"].isEmpty) and not backend.contains("sipl") { fail("PLUGIN_REQUIRES_SIPL_HANDLER") }
+    if backend.contains("sipl") {
+        let entry = manifestPath(backend["sipl"])
+        if not entry.startsWith("sipl/") or not entry.endsWith(".sipl") { fail("INVALID_PLUGIN_HANDLER") }
+        try { readSource(root, entry) } fail { fail("PLUGIN_REQUIRES_SIPL_HANDLER") }
+    }
+    for permission, roles in m["permissions"] {
+        manifestName(permission)
+        if roles.type != "List" or roles.isEmpty { fail("INVALID_PLUGIN_PERMISSION") }
+        for role in roles { if role.type != "String" { fail("INVALID_PLUGIN_PERMISSION") } }
+    }
+    for action, rule in m["actions"] {
+        manifestName(action)
+        if rule.type != "Map" or not m["permissions"].contains(rule.get("permission", "")) { fail("INVALID_PLUGIN_ACTION_PERMISSION") }
+    }
+    let keys: Map = {:}
+    let paths: Map = {:}
+    for page in m["pages"] {
+        manifestName(page.get("key", ""))
+        if page["key"].length > 64 or keys.contains(page["key"]) or not regex.compile("^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*$").isMatch(page.get("path", "")) or paths.contains(page["path"]) { fail("INVALID_PLUGIN_PAGE") }
+        keys[page["key"]] = true
+        paths[page["path"]] = true
+        if page.contains("permission") and not m["permissions"].contains(page["permission"]) { fail("INVALID_PLUGIN_PAGE_PERMISSION") }
+        for field, folder in {"html": "html", "style": "css", "script": "js"} {
+            if page.contains(field) {
+                if not page[field].startsWith(folder + "/") { fail("INVALID_PLUGIN_PAGE_SOURCE") }
+                readSource(root, page[field])
+            }
+        }
+    }
+    let seen: Map = {:}
+    for migration in m["migrations"] {
+        manifestName(migration.get("id", ""))
+        if seen.contains(migration["id"]) or not migration.get("sql", "").startsWith("sql/") { fail("INVALID_PLUGIN_MIGRATION") }
+        seen[migration["id"]] = true
+        readSource(root, migration["sql"])
+    }
+    return m
+}
+
+// Private package directories
+fn makeDirectory(root: String, relative: String) {
+    manifestPath(relative)
+    var current = ""
+    for part in relative.split("/") {
+        if not current.isEmpty { current += "/" }
+        current += part
+        if fs.isDirectory(path.join(root, current)) { workspace.list(root, current) }
+        else { workspace.makeDirectory(root, current) }
+    }
+}
+
+// Tenant installation state, permissions and navigation
+fn tenant(context: Map) -> String { return Security.scope(context, "blocks") }
+fn ready() -> Bool { return Database.one("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='si_plugin_installations'", {:}) != none }
+fn bootstrap() {
+    for statement in fs.readText(Config.root("core/plugin-schema.sql")).split(";") { if not statement.trim().isEmpty { Database.execute(statement, {:}) } }
+}
+fn state(context: Map, id: String) {
+    manifestName(id)
+    if not ready() { return none }
+    return Database.one("SELECT * FROM si_plugin_installations WHERE tenant=:tenant AND plugin=:plugin", {"tenant": tenant(context), "plugin": id})
+}
+fn package(context: Map, id: String) -> String {
+    let row = state(context, id)
+    if row != none { return Config.root(manifestPath(row["package"])) }
+    return Config.root("plugins/installed/" + manifestName(id))
+}
+fn enabled(context: Map, id: String) -> Bool {
+    let row = state(context, id)
+    if row != none { return row["installed"] == 1 and row["enabled"] == 1 }
+    return fs.isDirectory(Config.root("plugins/installed/" + id))
+}
+fn ids(context: Map) -> List {
+    let result = []
+    let folder = Config.root("plugins/installed")
+    if fs.isDirectory(folder) { for id in fs.list(folder) { if regex.compile("^[A-Za-z0-9][A-Za-z0-9_-]\{0,127\}$").isMatch(id) and fs.isDirectory(path.join(folder, id)) { result.push(id) } } }
+    if ready() {
+        for row in Database.query("SELECT plugin FROM si_plugin_installations WHERE tenant=:tenant AND installed=1", {"tenant": tenant(context)}) { if not result.contains(row["plugin"]) { result.push(row["plugin"]) } }
+    }
+    return result.filter(fn(id) => state(context, id) == none or state(context, id)["installed"] == 1).sort()
+}
+fn allowed(context: Map, m: Map, permission: String) -> Bool {
+    for role in m["permissions"].get(permission, []) { if Security.hasRole(context, role) { return true } }
+    return false
+}
+fn pageAccess(context: Map, pathname: String) -> Bool {
+    if not ready() { return true }
+    let rows = Database.query("SELECT pp.plugin,pp.page_key FROM si_plugin_pages pp JOIN pages p ON p.id=UNHEX(pp.page_id) AND p.entity_id=UNHEX(:scope) WHERE pp.tenant=:tenant AND p.path=:path", {"scope": Security.scope(context, "pages"), "tenant": tenant(context), "path": pathname})
+    for row in rows {
+        if not enabled(context, row["plugin"]) { return false }
+        let m = readManifest(package(context, row["plugin"]), row["plugin"])
+        for page in m["pages"] { if page["key"] == row["page_key"] { return not page.contains("permission") or allowed(context, m, page["permission"]) } }
+        return false
+    }
+    return true
+}
+fn navigation(context: Map) -> List {
+    let items = []
+    for id in ids(context) {
+        if not enabled(context, id) { continue }
+        try {
+            let m = readManifest(package(context, id), id)
+            for page in m["pages"] { if page.get("admin", false) and page.contains("permission") and allowed(context, m, page["permission"]) { items.push({"key": page["key"], "plugin": id, "title": page.get("title", page["key"]), "path": "/" + page["path"]}) } }
+        } fail { continue }
+    }
+    for item in items {
+        let actual = Database.one("SELECT p.path FROM si_plugin_pages pp JOIN pages p ON p.id=UNHEX(pp.page_id) AND p.entity_id=UNHEX(:scope) WHERE pp.tenant=:tenant AND pp.plugin=:plugin AND pp.page_key=:key", {"scope": Security.scope(context, "pages"), "tenant": tenant(context), "plugin": item["plugin"], "key": item["key"]})
+        if actual != none { item["path"] = "/" + actual["path"] }
+    }
+    return items
+}
+
+// Tenant-scoped storage SDK
+fn storageKeys(tenant: String, plugin: String, collection: String, id: String) -> Map {
+    for key in [collection, id] { if not regex.compile("^[A-Za-z0-9_-]\{1,64\}$").isMatch(key) { fail("INVALID_STORAGE_KEY") } }
+    return {"tenant": tenant, "plugin": plugin, "collection": collection}
+}
+fn storagePut(tenant: String, plugin: String, collection: String, id: String, value) -> String {
+    let p = storageKeys(tenant, plugin, collection, id)
+    p["id"] = id
+    p["value"] = json.stringify(value)
+    Database.execute("INSERT INTO si_plugin_data (tenant,plugin,collection,record_id,value) VALUES (:tenant,:plugin,:collection,:id,:value) ON DUPLICATE KEY UPDATE value=VALUES(value)", p)
+    return id
+}
+fn storageList(tenant: String, plugin: String, collection: String) -> List {
+    let rows = Database.query("SELECT record_id AS id,value,created_at FROM si_plugin_data WHERE tenant=:tenant AND plugin=:plugin AND collection=:collection ORDER BY created_at DESC,record_id LIMIT 200", storageKeys(tenant, plugin, collection, "all"))
+    for row in rows { row["value"] = json.parse(row["value"]) }
+    return rows
+}
+fn storageDelete(tenant: String, plugin: String, collection: String, id: String) -> Bool {
+    let p = storageKeys(tenant, plugin, collection, id)
+    p["id"] = id
+    return Database.execute("DELETE FROM si_plugin_data WHERE tenant=:tenant AND plugin=:plugin AND collection=:collection AND record_id=:id", p) > 0
+}
+fn storageGet(tenant: String, plugin: String, collection: String, id: String) {
+    let p = storageKeys(tenant, plugin, collection, id)
+    p["id"] = id
+    let row = Database.one("SELECT record_id AS id,value,created_at FROM si_plugin_data WHERE tenant=:tenant AND plugin=:plugin AND collection=:collection AND record_id=:id", p)
+    if row != none { row["value"] = json.parse(row["value"]) }
+    return row
+}
+fn storageInteger(value, minimum: Int, maximum: Int) -> Int {
+    if value.type != "Int" or value < minimum or value > maximum { fail("INVALID_STORAGE_RANGE") }
+    return value
+}
+fn storagePage(tenant: String, plugin: String, collection: String, offset, limit) -> List {
+    let p = storageKeys(tenant, plugin, collection, "all")
+    p["offset"] = storageInteger(offset, 0, 100000)
+    p["limit"] = storageInteger(limit, 1, 200)
+    let rows = Database.query("SELECT record_id AS id,value,created_at FROM si_plugin_data WHERE tenant=:tenant AND plugin=:plugin AND collection=:collection ORDER BY created_at DESC,record_id DESC LIMIT :limit OFFSET :offset", p)
+    for row in rows { row["value"] = json.parse(row["value"]) }
+    return rows
+}
+fn storageCount(tenant: String, plugin: String, collection: String, seconds, field: String, value) -> Int {
+    storageInteger(seconds, 0, 86400)
+    let p = storageKeys(tenant, plugin, collection, "all")
+    var where = ""
+    if seconds > 0 { where += " AND created_at>=DATE_SUB(CURRENT_TIMESTAMP,INTERVAL :seconds SECOND)"
+        p["seconds"] = seconds }
+    if not field.isEmpty {
+        if not regex.compile("^[A-Za-z_][A-Za-z0-9_]\{0,63\}$").isMatch(field) { fail("INVALID_STORAGE_FIELD") }
+        where += " AND BINARY JSON_UNQUOTE(JSON_EXTRACT(value,:field))=BINARY JSON_UNQUOTE(JSON_EXTRACT(:expected,'$')) AND JSON_TYPE(JSON_EXTRACT(value,:fieldType))=JSON_TYPE(JSON_EXTRACT(:expectedType,'$'))"
+        p["field"] = "$." + field
+        p["expected"] = json.stringify(value)
+        p["fieldType"] = p["field"]
+        p["expectedType"] = p["expected"]
+    }
+    return Database.one("SELECT COUNT(*) AS total FROM si_plugin_data WHERE tenant=:tenant AND plugin=:plugin AND collection=:collection" + where, p)["total"]
+}
+fn storageAtomic(tenant: String, plugin: String, name: String, operation: Function) {
+    storageKeys(tenant, plugin, "locks", name)
+    let digest = Database.one("SELECT LEFT(SHA2(:text,256),56) AS digest", {"text": tenant + "|" + plugin + "|" + name})["digest"]
+    let p = {"name": "si-plug:" + digest}
+    if Database.one("SELECT GET_LOCK(:name,10) AS acquired", p)["acquired"] != 1 { fail("PLUGIN_BUSY") }
+    try {
+        let response = Database.transaction(operation)
+        Database.query("SELECT RELEASE_LOCK(:name)", p)
+        return response
+    } fail { Database.query("SELECT RELEASE_LOCK(:name)", p)
+        fail(fail) }
+}
+fn storage(tenant: String, plugin: String) -> Map {
+    return {"put": fn(collection, id, value) => storagePut(tenant, plugin, collection, id, value), "get": fn(collection, id) => storageGet(tenant, plugin, collection, id), "list": fn(collection) => storageList(tenant, plugin, collection), "delete": fn(collection, id) => storageDelete(tenant, plugin, collection, id), "page": fn(collection, offset, limit) => storagePage(tenant, plugin, collection, offset, limit), "count": fn(collection, seconds, field, value) => storageCount(tenant, plugin, collection, seconds, field, value), "atomic": fn(name, operation) => storageAtomic(tenant, plugin, name, operation)}
+}
+
+// SQL pages and preservation of CMS edits
+fn insertCms(context: Map, table: String, id: String, values: Map, binaryFields: List) {
+    let columns = ["`id`", "`entity_id`"]
+    let expressions = ["UNHEX(:id)", "UNHEX(:scope)"]
+    let params: Map = {"id": id, "scope": Security.scope(context, table)}
+    for key, value in values {
+        let parameter = "p" + "{params.length}"
+        columns.push("`" + key + "`")
+        var expression = ":" + parameter
+        if binaryFields.contains(key) { expression = "UNHEX(" + expression + ")" }
+        expressions.push(expression)
+        params[parameter] = value
+    }
+    Database.execute("INSERT INTO `" + table + "` (" + columns.join(",") + ") VALUES (" + expressions.join(",") + ")", params)
+}
+fn seedPages(context: Map, id: String, m: Map, root: String) -> List {
+    let conflicts = []
+    for page in m["pages"] {
+        let p: Map = {"tenant": tenant(context), "plugin": id, "key": page["key"]}
+        let old = Database.one("SELECT * FROM si_plugin_pages WHERE tenant=:tenant AND plugin=:plugin AND page_key=:key", p)
+        let sources: Map = {:}
+        for field in ["html", "style", "script"] {
+            sources[field] = ""
+            if page.contains(field) { sources[field] = readSource(root, page[field]) }
+        }
+        if old == none {
+            if Database.one("SELECT id FROM pages WHERE entity_id=UNHEX(:scope) AND path=:path", {"scope": Security.scope(context, "pages"), "path": page["path"]}) != none { fail("PLUGIN_PAGE_PATH_CONFLICT") }
+            let pageId = Tools.newGuid()
+            let blockId = Tools.newGuid()
+            let pv: Map = {"name": page.get("title", page["key"]), "path": page["path"]}
+            let bv: Map = {"name": id + "-" + page["key"]}
+            let rv: Map = {"parententity_id": Security.scope(context, "pages"), "childentity_id": Security.scope(context, "blocks"), "parent_id": pageId, "child_id": blockId, "note": "pages_blocks"}
+            for level in ["dev", "test", "live", "rollback"] {
+                if level != "rollback" { pv[level + "-options"] = "\{\}"
+                    rv[level + "-order"] = 0
+                    rv[level + "-options"] = "\{\"tag\":\"div\"\}" }
+                bv[level + "-order"] = 0
+                bv[level + "-options"] = "\{\}"
+                bv[level + "-modified"] = "1970-01-01 00:00:00"
+                for field, value in sources { bv[level + "-" + field] = value }
+            }
+            insertCms(context, "pages", pageId, pv, [])
+            insertCms(context, "blocks", blockId, bv, [])
+            insertCms(context, "relations", Tools.newGuid(), rv, ["parententity_id", "childentity_id", "parent_id", "child_id"])
+            p["page"] = pageId
+            p["block"] = blockId
+            p["sources"] = json.stringify(sources)
+            Database.execute("INSERT INTO si_plugin_pages (tenant,plugin,page_key,page_id,block_id,sources) VALUES (:tenant,:plugin,:key,:page,:block,:sources)", p)
+        } else {
+            let previous = json.parse(old["sources"])
+            let sets = []
+            let params: Map = {"block": old["block_id"], "scope": Security.scope(context, "blocks")}
+            let block = Database.one("SELECT * FROM blocks WHERE id=UNHEX(:block) AND entity_id=UNHEX(:scope)", params)
+            if block == none { fail("PLUGIN_BLOCK_MISSING") }
+            for level in ["dev", "test", "live", "rollback"] {
+                for field, value in sources {
+                    let column = level + "-" + field
+                    if block[column] == previous.get(field, "") {
+                        let key = "v" + "{params.length}"
+                        sets.push("`" + column + "`=:" + key)
+                        params[key] = value
+                    } else if block[column] != value { conflicts.push(page["key"] + ":" + column) }
+                }
+            }
+            if not sets.isEmpty { Database.execute("UPDATE blocks SET " + sets.join(",") + " WHERE id=UNHEX(:block) AND entity_id=UNHEX(:scope)", params) }
+            p["sources"] = json.stringify(sources)
+            Database.execute("UPDATE si_plugin_pages SET sources=:sources WHERE tenant=:tenant AND plugin=:plugin AND page_key=:key", p)
+        }
+    }
+    return conflicts
+}
+
+// Install, update, enable, disable, uninstall and migrations
+fn handlerSource(entry: String) -> String {
+    // Immutable package layout: core/plugin-packages/id/revision.
+    let module = entry.slice(0, entry.length - 5)
+    return "use " + module + "\nuse ../../../../core_sipl/src/Plugins\nfn start() \{ Plugins.runHandler(" + path.basename(module) + ".handle) \}\n"
+}
+fn wrapper(root: String, entry: String) -> String {
+    workspace.write(root, "si-handler.sipl", handlerSource(entry))
+    let filename = path.join(root, "si-handler.sipl")
+    let checked = system.exec([system.executable, "check", filename])
+    if checked["exitCode"] != 0 { fail("INVALID_PLUGIN_SIPL_HANDLER") }
+    return filename
+}
+fn migrate(context: Map, id: String, m: Map, root: String) {
+    for migration in m["migrations"] {
+        let statement = readSource(root, migration["sql"]).trim()
+        var checked = statement
+        if checked.endsWith(";") { checked = checked.slice(0, checked.length - 1) }
+        if checked.contains(";") { fail("ONE_STATEMENT_PER_MIGRATION") }
+        let checksum = Database.one("SELECT LOWER(SHA2(:statement,256)) AS checksum", {"statement": statement})["checksum"]
+        let p: Map = {"tenant": tenant(context), "plugin": id, "migration": migration["id"]}
+        let old = Database.one("SELECT checksum,status FROM si_plugin_migrations WHERE tenant=:tenant AND plugin=:plugin AND migration=:migration", p)
+        if old != none {
+            if old["checksum"] != checksum { fail("MIGRATION_CHECKSUM_CHANGED") }
+            if old["status"] != "applied" { fail("MIGRATION_REPAIR_REQUIRED") }
+            continue
+        }
+        p["checksum"] = checksum
+        Database.execute("INSERT INTO si_plugin_migrations (tenant,plugin,migration,checksum,status) VALUES (:tenant,:plugin,:migration,:checksum,'pending')", p)
+        p.remove("checksum")
+        Database.execute(statement, {:})
+        Database.execute("UPDATE si_plugin_migrations SET status='applied' WHERE tenant=:tenant AND plugin=:plugin AND migration=:migration", p)
+    }
+}
+fn extract(id: String) -> Map {
+    let source = Config.root("plugins/downloaded/" + id + ".zip")
+    if not fs.isFile(source) { fail("PLUGIN_PACKAGE_NOT_FOUND") }
+    let relative = "core/plugin-packages/" + id + "/" + Tools.newGuid()
+    makeDirectory(Config.get("root", path.absolute(".")), relative)
+    let root = Config.root(relative)
+    let archive = zip.open(source)
+    try {
+        let entries = zip.list(archive)
+        if entries.length > 2048 { fail("PLUGIN_ARCHIVE_TOO_LARGE") }
+        var total = 0
+        let seen: Map = {:}
+        for entry in entries {
+            var name = entry
+            if name.endsWith("/") { name = name.slice(0, name.length - 1) }
+            manifestPath(name)
+            if seen.contains(name.toLower()) { fail("DUPLICATE_ARCHIVE_PATH") }
+            seen[name.toLower()] = true
+            if entry.endsWith("/") { makeDirectory(root, name)
+                continue }
+            let body = zip.read(archive, entry)
+            total += body.length
+            if body.length > 4194304 or total > 33554432 { fail("PLUGIN_ARCHIVE_TOO_LARGE") }
+            let folder = path.dirname(name)
+            if folder != "." { makeDirectory(root, folder) }
+            // Write only regular files into a fresh private tree; never restore archive modes/links.
+            fs.writeBytes(path.join(root, name), body)
+        }
+    } fail { zip.close(archive)
+        fail(fail) }
+    zip.close(archive)
+    return {"root": root, "relative": relative}
+}
+fn versionParts(value: String) -> List { return value.split("-")[0].split("+")[0].split(".").map(fn(part) => part.toInt()) }
+fn install(context: Map, id: String) -> Map {
+    let old = state(context, id)
+    let package = extract(id)
+    let root = package["root"]
+    let m = readManifest(root, id)
+    if old != none {
+        let after = versionParts(m["version"])
+        let before = versionParts(old["version"])
+        for index in [0, 1, 2] {
+            if after[index] < before[index] { fail("PLUGIN_DOWNGRADE_REJECTED") }
+            if after[index] > before[index] { break }
+        }
+    }
+    if m["backend"].contains("sipl") { wrapper(root, m["backend"]["sipl"]) }
+    migrate(context, id, m, root)
+    return Database.transaction(fn() {
+        let conflicts = seedPages(context, id, m, root)
+        var enabled = 1
+        if old != none and old["installed"] == 1 { enabled = old["enabled"] }
+        Database.execute("INSERT INTO si_plugin_installations (tenant,plugin,version,package,installed,enabled) VALUES (:tenant,:plugin,:version,:package,1,:enabled) ON DUPLICATE KEY UPDATE version=VALUES(version),package=VALUES(package),installed=1,enabled=VALUES(enabled)", {"tenant": tenant(context), "plugin": id, "version": m["version"], "package": package["relative"], "enabled": enabled})
+        return {"INSTALLPLUGIN": id, "PLUGINCONFLICTS": conflicts}
+    })
+}
+fn lifecycle(context: Map, id: String, action: String) -> Map {
+    let row = state(context, id)
+    let root = package(context, id)
+    if not fs.isDirectory(root) or row != none and row["installed"] != 1 { fail("PLUGIN_NOT_INSTALLED") }
+    var version = "0.0.0"
+    if row != none { version = row["version"] }
+    if action == "EnablePlugin" {
+        let m = readManifest(root, id)
+        version = m["version"]
+        if m["backend"].contains("sipl") {
+            // Legacy directories need a wrapper with a different relative import depth.
+            let checked = system.exec([system.executable, "check", path.join(root, m["backend"]["sipl"])])
+            if checked["exitCode"] != 0 { fail("INVALID_PLUGIN_SIPL_HANDLER") }
+        }
+    }
+    var relative = "plugins/installed/" + id
+    if row != none { relative = row["package"] }
+    var installed = 1
+    var enabled = 0
+    if action == "UninstallPlugin" { installed = 0 }
+    if action == "EnablePlugin" { enabled = 1 }
+    Database.execute("INSERT INTO si_plugin_installations (tenant,plugin,version,package,installed,enabled) VALUES (:tenant,:plugin,:version,:package,:installed,:enabled) ON DUPLICATE KEY UPDATE installed=VALUES(installed),enabled=VALUES(enabled)", {"tenant": tenant(context), "plugin": id, "version": version, "package": relative, "installed": installed, "enabled": enabled})
+    if action == "UninstallPlugin" { return {"UNINSTALLPLUGIN": id} }
+    return {"PLUGINSTATE": id}
+}
+fn manage(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let id = manifestName(post.get("plugin", ""))
+    let lock = {"name": "si-plugin-lifecycle"}
+    if Database.one("SELECT GET_LOCK(:name,10) AS acquired", lock)["acquired"] != 1 { fail("PLUGIN_BUSY") }
+    try {
+        bootstrap()
+        var result: Map = {:}
+        if ["InstallPlugin", "UpdatePlugin"].contains(action) { result = install(context, id) }
+        else { result = lifecycle(context, id, action) }
+        Database.query("SELECT RELEASE_LOCK(:name)", lock)
+        return result
+    } fail { Database.query("SELECT RELEASE_LOCK(:name)", lock)
+        fail(fail) }
+}
+
+// Action dispatch
+fn action(context: Map, id: String, action: String, post: Map) -> Map {
+    manifestName(id)
+    if not enabled(context, id) { fail("PLUGIN_DISABLED") }
+    if not Security.hasRole(context, "Admin") and not RateLimit.allow("plugin:" + tenant(context), 60, 300) { fail("RATE_LIMITED") }
+    let root = package(context, id)
+    let m = readManifest(root, id)
+    let rule = m["actions"].get(action)
+    if rule == none or not allowed(context, m, rule["permission"]) { fail("FORBIDDEN") }
+    if not m["backend"].contains("sipl") { fail("PLUGIN_REQUIRES_SIPL_HANDLER") }
+    let row = state(context, id)
+    if row == none { fail("REINSTALL_LEGACY_BACKEND_PLUGIN") }
+    let filename = path.join(root, "si-handler.sipl")
+    // Refresh adapters from earlier hosts without reinstalling the plugin or changing its data.
+    if not fs.isFile(filename) or workspace.read(root, "si-handler.sipl") != handlerSource(m["backend"]["sipl"]) { wrapper(root, m["backend"]["sipl"]) }
+    let relative = "core/plugin-requests/" + Tools.newGuid() + ".json"
+    makeDirectory(Config.get("root", path.absolute(".")), "core/plugin-requests")
+    workspace.write(Config.get("root", path.absolute(".")), relative, json.stringify({"config": Config.current(), "tenant": tenant(context), "plugin": id, "action": action, "post": post}))
+    var result: Map = {:}
+    try { result = system.exec([system.executable, "run", filename, Config.root(relative)]) }
+    fail { fs.remove(Config.root(relative))
+        fail(fail) }
+    fs.remove(Config.root(relative))
+    if result["exitCode"] != 0 or result["outputTruncated"] or not json.isValid(result["output"].trim()) { fail("PLUGIN_HANDLER_FAILED") }
+    let response = json.parse(result["output"].trim())
+    if response.type != "Map" { fail("PLUGIN_HANDLER_FAILED") }
+    return response
+}
+
+// Native handler process entry
+// The private request file carries credentials; argv carries only its random path.
+fn runHandler(handler: Function) {
+    let input = json.parse(fs.readText(system.args[0]))
+    Config.setForTests(input["config"])
+    Database.connect()
+    try {
+        let response = handler(storage(input["tenant"], input["plugin"]), input["action"], input["post"])
+        print(json.stringify(response))
+    } fail { print(json.stringify({"ERROR": "PLUGIN_HANDLER_FAILED"})) }
+}
+
+// Public inert assets
+fn asset(context: Map, query: String) -> Map {
+    let values: Map = {:}
+    for pair in query.split("&") {
+        let parts = pair.split("=")
+        if parts.length == 2 { values[parts[0]] = url.decode(parts[1]) }
+    }
+    let id = manifestName(values.get("plugin", ""))
+    let filename = manifestPath(values.get("file", ""))
+    if not enabled(context, id) { fail("FORBIDDEN") }
+    for part in filename.toLower().split("/") { if ["php", "sipl", "sql"].contains(part) { fail("FORBIDDEN") } }
+    if not [".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".woff", ".woff2", ".ttf"].contains(path.extension(filename).toLower()) { fail("FORBIDDEN") }
+    let root = package(context, id)
+    // workspace traversal rejects linked parents; binary file reads are confined by an immutable package.
+    var parent = path.dirname(filename)
+    if parent == "." { parent = "" }
+    if not workspace.list(root, parent).contains(path.basename(filename)) { fail("FORBIDDEN") }
+    return {"body": fs.readBytes(path.join(root, filename), 1048576), "headers": {"Content-Type": {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "application/octet-stream", ".ico": "image/x-icon", ".woff": "font/woff", ".woff2": "font/woff2", ".ttf": "font/ttf"}[path.extension(filename).toLower()], "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'"}}
 }

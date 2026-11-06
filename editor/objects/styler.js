@@ -36,9 +36,11 @@ SI.Editor.Objects.Styler = {
             checked: 'checked',
             onclick: function (e) {
                 if (this.checked) {
+                    SI.Editor.Objects.Styler.BuildStyle();
                     document.getElementById('si_styler_codeview').style.display = 'block';
                     document.getElementById('si_styler_workspace').style.display = 'none';
                 } else {
+                    SI.Editor.Objects.Styler.LoadStyleCode(SI.Editor.Objects.Styler.Codepad.innerText);
                     document.getElementById('si_styler_codeview').style.display = 'none';
                     document.getElementById('si_styler_workspace').style.display = 'block';
                 }
@@ -56,6 +58,9 @@ SI.Editor.Objects.Styler = {
                 let type = option.getAttribute('data-sourcetype');
                 let style = null;
                 switch (type) {
+                    case "Widget":
+                        style = SI.Editor.Objects.Widgets.Sources[stylesheet].style;
+                        break;
                     case "Block": 
                         style = SI.Editor.Data.Objects.Blocks[stylesheet].style; 
                         break;
@@ -79,6 +84,7 @@ SI.Editor.Objects.Styler = {
             appendTo: mainmenu,
         });
         //Add blocks to the list
+        if (SI.Editor.Objects.Widgets?.AddSourceOptions) SI.Editor.Objects.Widgets.AddSourceOptions(styleSheetSelect);
         if (SI.Editor.Data.Objects.Blocks !== 'undefined') {
            //debugger;
             let blocks = Object.keys(SI.Editor.Data.Objects.Blocks);
@@ -288,63 +294,84 @@ SI.Editor.Objects.Styler = {
         //First delete all the workspace and codepad data
         SI.Tools.Element.SetParent(SI.Editor.Objects.Styler.SelectorMenu, SI.Editor.Objects.Styler.Container);
         SI.Editor.Objects.Styler.Workspace.innerHTML = '';
-        SI.Editor.Objects.Styler.Codepad.innerHTML = '';
+        SI.Editor.Objects.Styler.Codepad.textContent = '';
+        SI.Editor.Objects.Styler.LoadedComments = [];
         if(!style){
             return;
         }
         //debugger;
         //Write the style to the codepad
-        SI.Editor.Objects.Styler.Codepad.innerHTML = style+"\n\n\n";
+        SI.Editor.Objects.Styler.Codepad.textContent = style+"\n\n\n";
 
-        //replace the comments with flags becuse who knows with they have in them that could fuck up our parsing
-        let commentnum = 0;
-        style = style.replace(/\/\*[\s\S]*?\*\//g, (matched, index, original) => {
-            let flag = '_COMMENT__' + commentnum + "__ ";
-            SI.Editor.Objects.Styler.LoadedComments[commentnum] = matched;
-            commentnum++;
-            return flag;
-        });
-        //debugger;
-        //this seldom used thing fucks up the parse. maybe I should look at tokening all strings as well.
-        style = style.replace(";base", "__BASE__");  
-
-        let allstyles = style.split(/[\{\}]+/);
-        //odd elements = selector;
-        //even elements = properties;
-        let styles = [];
-        let itter = 0;
-
-        //Loop through all of the styles in the stylesheet and put them in an object
-        for (let s in allstyles) {
-
-            if (typeof allstyles[itter] !== 'undefined' && typeof allstyles[itter + 1] !== 'undefined') {
-                let selector = allstyles[itter];
-                let tmp;
-                if (selector.indexOf("_COMMENT__") > -1) {
-                    let comments = selector.match(/__(.*)__/g);
-                  //debugger;
-                    for (let c in comments) {
-                        if (comments.hasOwnProperty(c)) {
-                            let num = comments[c];
-                            let properties = parseInt( num.replace(/__/g, ''));
-                            tmp = selector;
-                            selector = "COMMENT";
-                            styles.push({ selector, properties });
-                            let remove = "_COMMENT" + num;
-                            tmp = tmp.replace(remove, '').trim();
-                        }
-                    }
-                    selector = tmp;
-                }
-                let properties = allstyles[itter + 1];
-                styles.push({ selector, properties });
-                itter += 2;
-            }
-        }
-        //Loop through the object
-        for (let s of styles) {
+        for (let s of this.ParseRules(style)) {
             SI.Editor.Objects.Styler.Workspace.appendChild(SI.Editor.Objects.Styler.DrawStyleBlock(s));
         }
+    },
+    ParseRules: function (source) {
+        const rules = [];
+        let start = 0, open = -1, depth = 0, groupDepth = 0, quote = '', nested = false;
+        for (let index = 0; index < source.length; index++) {
+            const char = source[index];
+            if (char === '\\') { index++; continue; }
+            if (quote) { if (char === quote) quote = ''; continue; }
+            if (char === '"' || char === "'") { quote = char; continue; }
+            if (char === '/' && source[index + 1] === '*') {
+                const end = source.indexOf('*/', index + 2);
+                if (end < 0) break;
+                if (depth === 0 && !source.slice(start, index).trim()) {
+                    const comment = this.LoadedComments.push(source.slice(index, end + 2)) - 1;
+                    rules.push({selector: 'COMMENT', properties: comment});
+                    start = end + 2;
+                }
+                index = end + 1;
+                continue;
+            }
+            if (char === '(' || char === '[') { groupDepth++; continue; }
+            if (char === ')' || char === ']') { groupDepth--; continue; }
+            if (groupDepth > 0) continue;
+            if (char === '{') {
+                if (depth === 0) { open = index; nested = false; }
+                else nested = true;
+                depth++;
+            } else if (char === '}' && depth > 0) {
+                depth--;
+                if (depth === 0) {
+                    const selector = source.slice(start, open).trim();
+                    if (nested || selector.startsWith('@')) rules.push({raw: source.slice(start, index + 1).trim()});
+                    else rules.push({selector, properties: source.slice(open + 1, index)});
+                    start = index + 1;
+                }
+            } else if (char === ';' && depth === 0) {
+                if (source.slice(start, index + 1).trim()) rules.push({raw: source.slice(start, index + 1).trim()});
+                start = index + 1;
+            }
+        }
+        if (source.slice(start).trim()) rules.push({raw: source.slice(start).trim()});
+        return rules;
+    },
+    SplitDeclarations: function (source) {
+        const declarations = [];
+        let start = 0, quote = '', depth = 0;
+        for (let index = 0; index < source.length; index++) {
+            const char = source[index];
+            if (char === '\\') { index++; continue; }
+            if (quote) { if (char === quote) quote = ''; continue; }
+            if (char === '"' || char === "'") { quote = char; continue; }
+            if (char === '/' && source[index + 1] === '*') {
+                const end = source.indexOf('*/', index + 2);
+                if (end < 0) break;
+                index = end + 1;
+                continue;
+            }
+            if (char === '(' || char === '[' || char === '{') depth++;
+            else if (char === ')' || char === ']' || char === '}') depth--;
+            else if (char === ';' && depth === 0) {
+                declarations.push(source.slice(start, index));
+                start = index + 1;
+            }
+        }
+        if (source.slice(start).trim()) declarations.push(source.slice(start));
+        return declarations;
     },
     DrawStyleBlock : function (style) {
         let rand =  SI.Tools.String.RandomString(11);
@@ -381,6 +408,12 @@ SI.Editor.Objects.Styler = {
                 }
             }
         });
+
+        if (style.raw !== undefined) {
+            Ele('label', {textContent: 'CSS rule', appendTo: stylebox});
+            Ele('textarea', {class: 'si-styler-raw-rule', ariaLabel: 'CSS rule', value: style.raw, appendTo: stylebox});
+            return stylebox;
+        }
 
         //Create a Selector Box
         let styleSelectorCb = Ele("input", {
@@ -464,9 +497,20 @@ SI.Editor.Objects.Styler = {
             let addSelect = Ele("select", {
                 id: "si_styler_propertiesselect_" + rand,
                 value: null,
+                ariaLabel: 'CSS property',
+                onchange: function () {
+                    customProperty.hidden = this.value !== '__custom__';
+                    if (!customProperty.hidden) customProperty.focus();
+                },
                 appendTo: addSelectCell
             });
             Ele("option", { value: '', innerHTML: '', appendTo: addSelect });
+            Ele('option', {value: '__custom__', textContent: 'Other CSS property…', appendTo: addSelect});
+            const customProperty = Ele('input', {
+                type: 'text', hidden: true, class: 'si-styler-custom-property',
+                placeholder: '--custom-name or CSS property', ariaLabel: 'Custom CSS property name',
+                appendTo: addSelectCell,
+            });
             for (let group in SI.Editor.Data.css_properties) {
                 if (group !== "Pseudo Class" && group !== "Pseudo Element") {
                     let groupset = Ele("optgroup", { label: group, appendTo: addSelect });
@@ -487,9 +531,16 @@ SI.Editor.Objects.Styler = {
                 type: 'button',
                 onclick: function (ev) {
                     let select = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiesselect_"));
-                    if (select.value.length) {
+                    const property = (select.value === '__custom__' ? customProperty.value : select.value).trim();
+                    if (property.length) {
+                        if (!/^(?:--[\w-]+|-?[a-z][\w-]*)$/i.test(property)) {
+                            customProperty.setCustomValidity('Enter a CSS property name, such as color-scheme or --accent.');
+                            customProperty.reportValidity();
+                            return;
+                        }
+                        customProperty.setCustomValidity('');
                         let table = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiestable_"));
-                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": select.value.trim(),  "Effect": "none", "Preserve":true, "Draggable": true,   });
+                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": property, "Affected": "none", "Preserve":true, "Draggable": true, "Removable": true });
                         table.appendChild(propControl);
                     } else {
                         alert("To add a new property, select it from the drop down list.");
@@ -501,38 +552,20 @@ SI.Editor.Objects.Styler = {
             if (style.properties) {
                 //debugger;
                 let properties = style.properties.trim('"').trim('"');
-                let propertyList = properties.match(/("[^"]*")|[^;]+/g); 
+                let propertyList = this.SplitDeclarations(properties);
 
-                //BUG:: some urls have a ; in them such in the case of the MS only validation in jqueryui.css.
-                //once this list is complete we will need to go through every cell and if there is a ' or " in this cell and the one before it, we are in quotes and should merge these two cells with a semicolon
-                //the above match was supposed to work and it is only a few seconds longer to compile jqui.css but it does not seem to do the trick on the url(data;gif issue)
-                //debugger;
                 for (let p in propertyList) {
-                    var kvp = propertyList[p].split(':');
+                    let declaration = propertyList[p].trim();
+                    const leadingComments = declaration.match(/^(?:\/\*[\s\S]*?\*\/\s*)+/);
+                    if (leadingComments) {
+                        const commentbox = Ele('tr', {class: 'si-edit-style-propertyrow', appendTo: propertiesbox});
+                        const cell = Ele('td', {colSpan: 4, appendTo: commentbox});
+                        Ele('textarea', {class: 'si-styler-comment-prop', value: leadingComments[0].trim(), ariaLabel: 'CSS comment', appendTo: cell});
+                        declaration = declaration.slice(leadingComments[0].length).trim();
+                    }
+                    if (!declaration) continue;
+                    var kvp = declaration.split(':');
                     if (typeof kvp[1] !== "undefined") {
-                        //determine if we have a comment
-                        if (kvp[0].indexOf('_COMMENT__') !== -1) {
-
-                            kvp[0] = kvp[0].replace('_COMMENT__', '');
-                            let tmp = kvp[0].split('__');
-                            let num = tmp.shift().trim();
-                            if (typeof this.LoadedComments[num] !== 'undefined') {
-                                let commentbox = Ele('div', {
-                                    appendTo: propertiesbox,
-                                });
-                                let commenttxt = Ele('textarea', {
-                                    style: {
-                                        width: '100%',
-                                        color: 'lightgreen',
-                                        backgroundColor: 'transparent',
-                                    },
-                                    class:"si-styler-comment-prop",
-                                    innerHTML: this.LoadedComments[num],
-                                    appendTo: commentbox,
-                                });
-                            }
-                            kvp[0] = tmp.join('').trim();
-                        }
                         if (kvp.length > 2) {
 
                             let k = kvp[0];
@@ -542,12 +575,15 @@ SI.Editor.Objects.Styler = {
                             kvp = tmp;
                         }
 
-                        kvp[1] = kvp[1].replace("__BASE__", ";base");  //this little iritent :-P
-                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": kvp[0].trim(), "InitialValue": kvp[1].trim(), "OnChange": function (ele) { /* { alert(ele) */ }, "Draggable": true, "Removable":true });
+                        let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": kvp[0].trim(), "InitialValue": kvp[1].trim(), "Affected": "none", "Draggable": true, "Removable":true });
                         propControl.ondrop = function (e) {
                                console.log(e);
                         },
                         propertiesbox.appendChild(propControl);
+                    } else {
+                        const rawRow = Ele('tr', {class: 'si-edit-style-propertyrow', appendTo: propertiesbox});
+                        const cell = Ele('td', {colSpan: 4, appendTo: rawRow});
+                        Ele('textarea', {class: 'si-styler-comment-prop', value: declaration + ';', ariaLabel: 'CSS declaration', appendTo: cell});
                     }
                 }
             }
@@ -568,7 +604,7 @@ SI.Editor.Objects.Styler = {
                         minHeight: '32px'
                     },
                     class: "si-styler-comment",
-                    innerHTML: comment,
+                    value: comment,
                     appendTo: stylebox,
                 });
 
@@ -824,6 +860,7 @@ SI.Editor.Objects.Styler = {
                         let picked = this.options[this.selectedIndex];
                         SI.Editor.Objects.Styler.SelectorMenuEffects.innerHTML = picked.innerHTML;
                         SI.Editor.Objects.Styler.SelectorMenuEffects.value = picked.value;
+                        SI.Editor.Objects.Styler.SelectorMenuEffects.dataset.type = stype;
                         switch (stype) {
                             case "element": SI.Editor.Objects.Styler.SelectorMenuEffects.style.backgroundColor = 'yellow'; break;
                             case "class": SI.Editor.Objects.Styler.SelectorMenuEffects.style.backgroundColor = "lightgreen"; break;
@@ -1064,6 +1101,8 @@ SI.Editor.Objects.Styler = {
         for (let s in styleboxes) {
             if (styleboxes.hasOwnProperty(s)) {
                 let stylebox = styleboxes[s];
+                const raw = stylebox.querySelector('.si-styler-raw-rule');
+                if (raw) { styleText += raw.value + '\n\n'; continue; }
                 //debugger;
                 let comment = stylebox.querySelector(".si-styler-comment");
                 if (comment) {
@@ -1091,9 +1130,9 @@ SI.Editor.Objects.Styler = {
                             if (comment) {
                                 props += "\t" + comment.value + "\n";
                             } else {
-                                let key = propboxes[pr].querySelector(".si-edit-style-propertyname").innerHTML;
+                                let key = propboxes[pr].querySelector(".si-edit-style-propertyname").textContent;
                                 let val = propboxes[pr].querySelector(".si-edit-style-propertyvalue").value;
-                                props += "\t" + key + ":" + val + ";\n";
+                                if (val.trim()) props += "\t" + key + ":" + val + ";\n";
                             }
 
                         }
@@ -1105,14 +1144,19 @@ SI.Editor.Objects.Styler = {
 
             }
         }
-        document.getElementById('si_styler_codepad').innerHTML = styleText;
+        document.getElementById('si_styler_codepad').textContent = styleText;
         console.timeEnd("StyleBuildTime");
     },
     SaveStyle : function () {
         let s = this;
         let csstype = SI.Editor.Objects.Styler.LoadedType; 
         let sheetname= SI.Editor.Objects.Styler.LoadedSheet;
+        if (!document.getElementById('si_styler_codeorguidcb').checked) SI.Editor.Objects.Styler.BuildStyle();
         let code = document.getElementById("si_styler_codepad").innerText;
+        if (csstype === 'Widget') {
+            SI.Editor.Objects.Widgets.SaveSource(sheetname, 'style', code).catch(error => SI.Tools.SuperAlert(error.message));
+            return;
+        }
         if (csstype === 'Block') {
             SI.Editor.Data.Objects.Blocks[sheetname].style = code.trim();
             //debugger;
@@ -1124,11 +1168,11 @@ SI.Editor.Objects.Styler = {
                 id : 'si_page_style',
                 rel: 'stylesheet',
                 type: 'text/css',
-                href: 'style/page.css?' + Date.now(),
+                href: (() => { const address = new URL(currentStyle.href, location.href); address.searchParams.set('v', Date.now()); return address.href; })(),
                 media: 'all',
                 appendTo:head
             });
-            setTimeout(function () { debugger; currentStyle.parentElement.removeChild(currentStyle); }, 500);
+            setTimeout(function () { currentStyle.remove(); }, 500);
         }
 
         //let entityid = SI.Editor.

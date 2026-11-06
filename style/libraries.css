@@ -1,30 +1,12 @@
 <?php
 namespace SuperIntuitive;
-header("Content-type: text/css; charset: UTF-8");
-
-$path = dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
-//echo $path;
-require_once $path;
+require_once dirname(__DIR__).'/core/Tools.php';
 Tools::ConfigureSessionCookieParams();
 session_start();
 Tools::DefineServer();
 Tools::SendSecurityHeaders();
-
-
-if (!empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['libraries'])) {
-    $libraryids = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['libraries'];
-    Tools::Autoload('subroot');
-    $db = new Database();
-    $guids = "";
-    foreach($libraryids as $libid){
-            $guids.= '0x'.$libid.',';
-        }
-        $guids = rtrim($guids, ',');
-        $libs = $db->GetLibsByIds($guids, 'css');
-
-        foreach($libs as $name => $lib){
-            echo '/*-!'.$name."!-*/ \n";
-            echo $lib['CSS']."\n\n\n\n";
-        }
- }
- ?>
+header('Content-Type: text/css; charset=utf-8');
+header('Cache-Control: no-store, private');
+foreach (Page::AssetData(true)['libraries'] as $library) {
+    echo '/*-!'.str_replace('*/','',$library['name'])."!-*/\n".($library['style'] ?? '')."\n";
+}

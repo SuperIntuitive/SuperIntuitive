@@ -1,0 +1,230 @@
+// Plugin-owned service and SDK actions. Installed layout: core/plugin-packages/id/revision/sipl.
+use ../../../../../core_sipl/src/Config
+use ../../../../../core_sipl/src/Database
+use ../../../../../core_sipl/src/Tools
+use ../../../../../core_sipl/src/Page
+use ../../../../../core_sipl/src/Editor
+use ../../../../../core_sipl/src/Security
+use ../../../../../core_sipl/src/Plugins
+use ../../../../../core_sipl/src/Assets
+use ../../../../../core_sipl/src/RateLimit
+use ../../../../../core_sipl/src/Content
+
+var _settings: Map = {:}
+var _current: Map = {:}
+var _publicAssets: List = []
+var _cached: Map = {:}
+var _package = ""
+
+fn configuration(value: Map) -> Map {
+    let origin = Tools.required(value, "origin")
+    if not regex.compile("^https?://[A-Za-z0-9.-]+(:[0-9]\{1,5\})?$").isMatch(origin) { fail("INVALID_DEMO_ORIGIN") }
+    let parsed = url.parse(origin)
+    let host = parsed["host"].toLower()
+    let domain = Config.get("domain", "localhost").toLower()
+    if not Tools.domainValid(host) or (parsed["scheme"] != "https" and host != "demo.localhost") or [domain, Config.get("subdomain", "").toLower() + "." + domain, "localhost", "127.0.0.1"].contains(host) { fail("INVALID_DEMO_ORIGIN") }
+    let parents = value.get("parents", [])
+    if parents.type != "List" or parents.isEmpty or parents.length > 8 { fail("INVALID_DEMO_PARENTS") }
+    for parent in parents {
+        if parent.type != "String" or not regex.compile("^https?://[A-Za-z0-9.-]+(:[0-9]\{1,5\})?$").isMatch(parent) { fail("INVALID_DEMO_PARENTS") }
+        let parsedParent = url.parse(parent)
+        if parsedParent["scheme"] != "https" and not ["localhost", "127.0.0.1"].contains(parsedParent["host"].toLower()) { fail("INVALID_DEMO_PARENTS") }
+    }
+    return {"origin": origin, "parents": parents, "page": Tools.pagePath(Tools.required(value, "page"))}
+}
+fn handle(storage: Map, action: String, post: Map) -> Map {
+    if action == "configure" {
+        var config: Map = {:}
+        try { config = configuration(post.get("config", {:})) }
+        fail { return {"ERROR": "Choose a separate HTTPS demo origin, allowed parent origins and a published source page.", "__httpStatus": 400} }
+        storage["put"]("settings", "config", config)
+        return {"configured": true}
+    }
+    let row = storage["get"]("settings", "config")
+    var config: Map = {:}
+    if row != none { config = row["value"] }
+    if action == "settings" { return {"config": config, "package": Plugins.package({"scopes": Database.scopes()}, "editor-demo")} }
+    if action == "bootstrap" { return {"origin": config.get("origin", "")} }
+    return {"ERROR": "Unknown demo action.", "__httpStatus": 404}
+}
+
+fn assets() -> List {
+    if not _publicAssets.isEmpty { return _publicAssets }
+    let result = ["/scripts/tools.js", "/editor/editor.css", "/editor/vendor/acorn.js", "/style/widgets.css"]
+    for folder in ["editor/objects", "scripts/widgets"] {
+        for file in fs.list(Config.root(folder)) { if file.endsWith(".js") { result.push("/" + folder + "/" + file) } }
+    }
+    for folder in ["editor/media/icons", "editor/media/fonts/Roboto", "editor/media/fonts/Inconsolata", "scripts/widgets/icons", "scripts/widgets/media/icons"] {
+        for file in fs.list(Config.root(folder)) {
+            if [".png", ".jpg", ".gif", ".ico", ".svg", ".ttf"].contains(path.extension(file).toLower()) { result.push("/" + folder + "/" + file) }
+        }
+    }
+    _publicAssets = result
+    return result
+}
+fn policy() -> String {
+    let base = _settings["origin"]
+    var scripts = "'unsafe-inline' 'unsafe-eval' " + base + "/editor.js " + base + "/demo/prelude.js " + base + "/demo/canvas.js"
+    var styles = "'unsafe-inline'"
+    var images = "data: blob:"
+    var fonts = ""
+    for file in assets() {
+        let address = base + url.build({"path": file})
+        if file.endsWith(".js") { scripts += " " + address }
+        else if file.endsWith(".css") { styles += " " + address }
+        else if file.endsWith(".ttf") { fonts += " " + address }
+        else { images += " " + address }
+    }
+    return "sandbox allow-scripts; default-src 'none'; script-src " + scripts + "; style-src " + styles + "; img-src " + images + "; font-src" + fonts + "; connect-src 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors " + _settings["parents"].join(" ")
+}
+fn limited(request: Map) -> Bool {
+    if not RateLimit.allow("demo-burst", Config.get("requestBurst", 240), 10) or not RateLimit.allow("demo-minute", Config.get("requestsPerMinute", 1800), 60) { return true }
+    if ["/cms/sample/canvas", "/editor.js"].contains(request["path"]) {
+        return not RateLimit.allow("demo-content-burst", Config.get("contentBurst", 8), 5) or not RateLimit.allow("demo-content-minute", Config.get("contentPerMinute", 60), 60)
+    }
+    return false
+}
+fn reply(status: Int, body: String, kind: String) -> Map {
+    return {"status": status, "body": body, "headers": {"Content-Type": kind, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()", "Origin-Agent-Cluster": "?1"}}
+}
+fn published() -> Map { return Page.load(_current, "/" + _settings["page"]) }
+
+fn model(current: Map, sample: Map) -> Map {
+    let context = current
+    let data = Editor.lookups()
+    let definitions: Map = {:}
+    for name in ["pages", "blocks", "media", "settings", "localtext"] {
+        if context["schema"].contains(name) { definitions[name] = context["schema"][name] }
+    }
+    let blockObjects = Editor.blockData(sample)
+    let blockRows = []
+    for name, block in blockObjects { blockRows.push(block) }
+    let pages = [{"id": "0x" + sample["id"], "name": sample["name"], "path": sample["path"], "page": sample["path"], "domain": context["domain"], "subdomain": context["subdomain"], "domainName": context["domain"], "subdomainName": context["subdomain"], "pageName": sample["name"], "pageId": sample["id"]}]
+    let settings = []
+    for name, value in sample.get("settings", {:}) { settings.push({"settingname": name, "settingvalue": value}) }
+    var colors = "<option value=''>Color Names</option>"
+    for color in data["ColorNames"] { colors += "<option value='" + Tools.escapeHtml(color) + "'>" + Tools.escapeHtml(color) + "</option>" }
+    var languages = "<option value=''></option>"
+    for code, name in data["Languages"] { languages += "<option value='" + Tools.escapeHtml(code) + "'>" + Tools.escapeHtml(name) + "</option>" }
+    let session = {"domains": {context["domain"]: {"subdomains": {context["subdomain"]: {"deployment": "dev", "user": {"loggedin": false, "name": "guest", "roles": ["Guest"], "preferences": {:}}, "entities": definitions}}}}}
+    // No site-wide user, role, setting, language, media, plugin or inbox reads.
+    return {"$dataage": data["DataAge"], "runtime_info": "<p>Public sample editor. Changes are temporary.</p>", "$entityDefinitions": definitions, "$recordCount": definitions.length, "$blockObjects": blockObjects, "$pageObjects": pages, "$mediaObjects": [], "$rolesdata": [], "$relationsjson": [], "$settings2": settings, "$localtexts": [], "$myLangs": ["en"], "$currentPlugins": {:}, "$downloadedplugs": [], "$PasswordStrength": "^[\\s\\S]\{10,72\}$", "$helplinks": ["mdn", "w3"], "$quickmenuitems": data["QuickMenu"], "$allmimetypes": data["MimeTypes"], "$mimes": {"Images": ["image/png", "image/jpeg", "image/gif", "image/webp"], "Audio": ["audio/mpeg", "audio/ogg", "audio/wav"], "Video": ["video/mp4", "video/webm"], "Docs": ["application/pdf"], "Data": ["application/json", "text/csv"], "Fonts": ["font/woff2"]}, "json_encode($coloroptions)": colors, "json_encode($langoptions)": languages, "json_encode($supportedLanguages)": "<option value='en'>English</option>", "json_encode($usertable)": "<table id='si_editor_users_table'><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody></tbody></table>", "json_encode(SI_LANGS)": "en", "SI_DOMAIN_NAME": context["domain"], "SI_SUBDOMAIN_NAME": context["subdomain"], "$sessionPageData": session}
+}
+
+fn editorScript(page: Map) -> String {
+    let values = model(_current, page)
+    let lookups: Map = {:}
+    for name in ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"] { lookups[name] = json.parse(fs.readText(Config.root("editor/media/data/" + name + ".json"))) }
+    let blockRows = []
+    for name, block in values["$blockObjects"] { blockRows.push(block) }
+    let records = {"pages": values["$pageObjects"], "blocks": blockRows, "settings": values["$settings2"], "media": [], "localtext": []}
+    var result = "SI.Sample = " + Tools.scriptJson({"lookups": lookups, "records": records}) + ";\n" + Editor.renderModel(values).replace("SI.Editor.Run();", "")
+    let widgets = {:}
+    for file in fs.list(Config.root("scripts/widgets")).sort() {
+        if not file.endsWith(".js") { continue }
+        let script = fs.readText(Config.root("scripts/widgets/" + file))
+        let matches = regex.compile("SI\\.Widget\\.[A-Za-z][A-Za-z0-9_]*\\s*=").findAll(script)
+        if matches.isEmpty { continue }
+        let widgetType = matches[0]["text"].replace("SI.Widget.", "").replace("=", "").trim()
+        let name = file.slice(0, file.length - 3)
+        widgets[name] = {"name": name, "type": widgetType, "script": script, "style": "[data-si-widget=\"" + widgetType + "\"] \{\n\}\n", "design": [], "custom": []}
+        result += "\nSI.Tools.Widget.Register(" + Tools.scriptJson(widgetType) + ",[]);\n"
+    }
+    result += "\nSI.Editor.Data.WidgetSources=" + Tools.scriptJson(widgets) + ";\n"
+    result += "\nSI.Sample.runPage = function() \{\n"
+    for block in page["blocks"] { if block.get("script").type == "String" { result += block["script"] + "\n" } }
+    return result + "\n\};\n"
+}
+fn renderCanvas(page: Map) -> String {
+    let data: Map = {:}
+    for block in page["blocks"] {
+        var options: Map = {:}
+        if block["relationsOptions"].type == "String" and json.isValid(block["relationsOptions"]) { options = json.parse(block["relationsOptions"]) }
+        data[block["name"]] = {"Settings": options.get("settings", {:}), "Widgets": options.get("widgets", {:})}
+    }
+    let bootstrap = {"Page": {"Settings": {:}, "Blocks": data}, "CSRF": {"Token": ""}, "User": {"Name": "guest", "Roles": ["Guest"], "Preferences": {:}}, "Widget": {:}, "Widgets": {:}}
+    var result = "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Editor demo</title><script src='/demo/prelude.js'></script><script>window.SI=" + Tools.scriptJson(bootstrap) + ";</script><style id='si_page_style'>"
+    for block in page["blocks"] { result += "/*-!" + block["name"].replace("*/", "") + "!-*/\n" + Tools.text(block.get("style"), "").replace("</style", "<\\/style") + "\n" }
+    result += "</style><link rel='stylesheet' href='/style/widgets.css'><link rel='stylesheet' href='/editor/editor.css'><script defer src='/scripts/tools.js'></script>"
+    for file in assets() {
+        if file.startsWith("/scripts/widgets/") and file.endsWith(".js") { result += "<script defer src='" + file + "'></script>" }
+    }
+    result += "<script defer src='/editor.js'></script>"
+    for file in assets() {
+        if file.startsWith("/editor/objects/") and file.endsWith(".js") { result += "<script defer src='" + file + "'></script>" }
+    }
+    result += "<script defer src='/demo/canvas.js'></script></head><body data-guid='0x" + page["id"] + "'><i id='si_colorscheme'></i>"
+    for block in page["blocks"] {
+        var options: Map = {:}
+        if block["relationsOptions"].type == "String" and json.isValid(block["relationsOptions"]) { options = json.parse(block["relationsOptions"]) }
+        let tag = options.get("tag", "div")
+        if not ["div", "section", "article", "header", "footer", "nav", "main", "aside", "span"].contains(tag) { fail("INVALID_BLOCK_TAG") }
+        var style = ""
+        for name, value in options.get("style", {:}) { if regex.compile("^[A-Za-z-]+$").isMatch(name) { style += name + ":" + "{value}" + ";" } }
+        let content = Content.expand(_current, Tools.text(block.get("html"), ""))
+        let order = block["relationsOrder"]
+        result += "<" + tag + " id='si_block_" + Tools.safeId(block["name"]) + "' class='si-block' data-order='" + "{order}" + "' style='" + Tools.escapeHtml(style) + "'>" + content + "</" + tag + ">"
+    }
+    return result + "</body></html>"
+}
+fn request(request: Map) -> Map {
+    // No sessions, account refresh, application endpoint or SQL before this gate.
+    if limited(request) { let response = reply(429, "Demo busy. Please try again shortly.", "text/plain")
+        response["headers"]["Retry-After"] = "60"
+        return response }
+    if not ["GET", "HEAD"].contains(request["method"]) { return reply(403, "Demo changes are temporary. Writes are disabled.", "text/plain") }
+    let file = request["path"]
+    let query = request.get("query", "")
+    if not query.isEmpty and not (file == "/cms/sample/canvas" and regex.compile("^reset=[0-9]\{1,16\}$").isMatch(query)) { return reply(403, "Unavailable in the demo.", "text/plain") }
+    if not ["/cms/sample/canvas", "/editor.js", "/demo/prelude.js", "/demo/canvas.js"].contains(file) and not assets().contains(file) { return reply(403, "Unavailable in the demo.", "text/plain") }
+    if request.get("headers", {:}).get("host", "").toLower() != _settings["origin"].split("://")[1].toLower() { return reply(400, "Invalid demo host.", "text/plain") }
+    try {
+        Database.prepareRequest()
+        if not Plugins.enabled(_current, "editor-demo") { return reply(403, "Demo plugin disabled.", "text/plain") }
+        if ["/cms/sample/canvas", "/editor.js"].contains(file) {
+            let now = Tools.now()
+            if _cached.isEmpty or now - _cached["at"] >= 30 {
+                let page = published()
+                _cached = {"at": now, "html": renderCanvas(page), "script": editorScript(page)}
+            }
+            if file == "/editor.js" { return reply(200, _cached["script"], "application/javascript; charset=utf-8") }
+            let response = reply(200, _cached["html"], "text/html; charset=utf-8")
+            response["headers"]["Content-Security-Policy"] = policy()
+            return response
+        }
+        if ["/demo/prelude.js", "/demo/canvas.js"].contains(file) {
+            var name = "prelude"
+            if file == "/demo/canvas.js" { name = "canvas" }
+            return reply(200, fs.readText(path.join(_package, "js/canvas/" + name + ".js")), "application/javascript; charset=utf-8")
+        }
+        let response = Assets.readStatic(file)
+        response["status"] = 200
+        response["headers"]["Cache-Control"] = "no-store"
+        response["headers"]["X-Content-Type-Options"] = "nosniff"
+        if file.endsWith(".ttf") { response["headers"]["Access-Control-Allow-Origin"] = "*" }
+        return response
+    } fail { return reply(403, "The published demo is unavailable. Check plugin configuration and Guest page access.", "text/plain") }
+}
+fn start() {
+    if system.args.length != 1 { fail("Run the installed demo.sipl with a private service configuration path.") }
+    let service = json.parse(fs.readText(system.args[0]))
+    for name in ["requestBurst", "requestsPerMinute", "contentBurst", "contentPerMinute"] {
+        let value = service.get(name, 1)
+        if value.type != "Int" or value < 1 or value > 100000 { fail("INVALID_DEMO_LIMIT") }
+    }
+    if service.get("host", "127.0.0.1") != "127.0.0.1" { fail("BIND_DEMO_TO_LOOPBACK_AND_USE_HTTPS_PROXY") }
+    Config.install(service)
+    Database.connect()
+    let grants = Database.query("SHOW GRANTS FOR CURRENT_USER()", {:})
+    for row in grants {
+        for key, value in row { if not regex.compile("^GRANT (USAGE|SELECT) ON ").isMatch(value) { fail("DEMO_REQUIRES_SELECT_ONLY_DATABASE_USER") } }
+    }
+    _current = {"domain": Config.get("domain", "localhost"), "subdomain": Config.get("subdomain", ""), "scopes": Database.scopes(), "schema": Database.schema(), "user": Security.guest(), "deployment": "live", "settings": {:}}
+    if not Plugins.enabled(_current, "editor-demo") { fail("DEMO_PLUGIN_DISABLED") }
+    let row = Plugins.storage(Security.scope(_current, "blocks"), "editor-demo")["get"]("settings", "config")
+    if row == none { fail("CONFIGURE_DEMO_PLUGIN_FIRST") }
+    _settings = configuration(row["value"])
+    _package = Plugins.package(_current, "editor-demo")
+    web.serve(_package, Config.get("port", 8096), request, {"host": "127.0.0.1"})
+}
+

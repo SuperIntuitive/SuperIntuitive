@@ -1,97 +1,25 @@
-﻿if(!SI.Widgets.Tree){SI.Widgets.Tree = {}};
-SI.Widget.Tree = function (options) { 
-    if (!(this instanceof SI.Widget.Tree)) { return new SI.Widget.Tree(options); }
-
-    options = typeof options !== 'undefined' ? options : {};
-    if ("Id" in options) { this.Id = options.Id; } else { this.Id = SI.Tools.Element.SafeId("Tree");}
-    this.Input = {...options};
-    SI.Widgets.Tree[this.Id] = this;
-
-    this.Defaults = {
-        "Leaves": {},
-    };
-    this.Options = SI.Tools.Object.SetDefaults(options, this.Defaults);
-
-    this.Random = SI.Tools.String.RandomString(11);
-    options = this.Options;
-    let self = this;
-    //debugger;
-    let dir = Ele("ul", {
-        id: this.Id,
-        style: {
-            backgroundColor: "#333",
-            listStyleType: 'none',
-        },
-    });
-    for (let i in this.Options.Leaves) {
-        if (this.Options.Leaves.hasOwnProperty(i)) {
-            switch (typeof this.Options.Leaves[i]) {
-                case 'array':
-                case 'object':
-                    let color;
-                    switch (i) {
-                        case 'domains': color = 'yellow'; break;
-                        default: color = 'white'; break;
-                    }
-                    let btn = Ele("div", {
-                        innerHTML: i,
-                        style: {
-                            height: '22px',
-                            paddingLeft: '20px',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundImage: 'url(scripts/widgets/icons/minus.png)',
-                            backgroundPosition: 'left',
-                            cursor: 'zoom-out',
-                            color: color
-                        },
-                        onclick: function (e) {
-                            e.stopPropagation();
-                            //debugger;
-                            var children = this.parentElement.children;
-                            if (children.length > 1) {
-                                if (children[1].style.display === 'block' || children[1].style.display === '') {
-                                    this.style.backgroundImage = 'url(scripts/widgets/icons/plus.png)';
-                                    this.style.cursor = 'zoom-in';
-                                    for (let i = 1; i < children.length; i++) {
-                                        children[i].style.display = 'none';
-                                    }
-                                } else {
-                                    for (let i = 1; i < children.length; i++) {
-                                        this.style.backgroundImage = 'url(scripts/widgets/icons/minus.png)';
-                                        this.style.cursor = 'zoom-out';
-                                        children[i].style.display = 'block';
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    let li = Ele("li", {
-                        append: btn,
-                        appendTo: dir
-                    });
-                    let suboptions = Object.assign({}, options, {Id: SI.Tools.Element.SafeId('TreeBranch'), Leaves: this.Options.Leaves[i]});
-                    li.appendChild(new SI.Widget.Tree(suboptions));
-
-                    break;
-                default:
-                    Ele("li", {
-                        innerText: i + ": " + this.Options.Leaves[i],
-                        style: {
-                            backgroundColor: "#888",
-                            color: '#000',
-                            paddingLeft: '5px',
-                            listStyleType: 'none'
-                        },
-                        onclick: function (e) {
-                            e.stopPropagation();
-                        },
-                        appendTo: dir
-                    });
+if (!SI.Widgets.Tree) SI.Widgets.Tree = {};
+SI.Widget.Tree = function (options) {
+    if (!(this instanceof SI.Widget.Tree)) return new SI.Widget.Tree(options);
+    options=options||{};this.Id=options.Id||SI.Tools.Element.SafeId('Tree');this.Input={...options};
+    this.Defaults={Parent:null,Leaves:{},OnSelect:null};this.Options=SI.Tools.Object.SetDefaults(options,this.Defaults);
+    const tree=this.Container=Ele('ul',{id:this.Id,class:'si-widget si-widget-tree',role:'tree'});
+    const build=(leaves,parent)=>{
+        for(const [key,value] of Object.entries(leaves)){
+            const item=Ele('li',{role:'treeitem',appendTo:parent});
+            if(value&&typeof value==='object'&&!(value instanceof Node)){
+                item.setAttribute('aria-expanded','true');
+                const button=Ele('button',{type:'button',class:'si-tree-branch',innerText:key,appendTo:item});
+                const group=Ele('ul',{role:'group',appendTo:item});build(value,group);
+                button.onclick=()=>{group.hidden=!group.hidden;item.setAttribute('aria-expanded',String(!group.hidden));};
+                button.onkeydown=event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();group.hidden=event.key==='ArrowLeft';item.setAttribute('aria-expanded',String(!group.hidden));}};
+            }else{
+                const button=Ele('button',{type:'button',class:'si-tree-leaf',innerText:key,appendTo:item});
+                if(value!=null&&String(value)!=='')Ele('small',{innerText:String(value),appendTo:button});
+                button.onclick=event=>{tree.querySelectorAll('[aria-selected]').forEach(node=>node.removeAttribute('aria-selected'));item.setAttribute('aria-selected','true');if(this.Options.OnSelect)this.Options.OnSelect(key,value,event);tree.dispatchEvent(new CustomEvent('treeselect',{bubbles:true,detail:{key,value}}));};
             }
         }
-    }
-
-    this.Container = dir;
-    return dir;
+    };
+    build(this.Options.Leaves,tree);if(!tree.children.length)Ele('li',{class:'si-widget-empty',innerText:'No items yet',appendTo:tree});
+    if(this.Options.Parent)this.Options.Parent.appendChild(tree);SI.Widgets.Tree[this.Id]=this;return tree;
 };

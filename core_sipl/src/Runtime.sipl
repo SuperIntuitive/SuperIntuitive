@@ -2,7 +2,7 @@ var _capabilities: Map = {:}
 
 fn inspect() -> Map {
     if not _capabilities.isEmpty { return _capabilities }
-    let capabilities: Map = {"mysqlApi": true, "mysqlDriver": true, "namedParameters": true, "transactions": true, "phpBcryptVerify": auth.passwordVerify("Sipl-interop-2026", "$2y$10$XTyXvFDJKaLGPgSxxFGHQ.jBWulChGNIUp68j9PEhSIYn8J9ofQue"), "phpBcryptHash": false, "multipartUploads": false, "peerAddress": false, "phpSessionInterop": false}
+    let capabilities: Map = {"mysqlApi": true, "mysqlDriver": true, "namedParameters": true, "transactions": true, "phpBcryptVerify": auth.passwordVerify("Sipl-interop-2026", "$2y$10$XTyXvFDJKaLGPgSxxFGHQ.jBWulChGNIUp68j9PEhSIYn8J9ofQue"), "phpBcryptHash": false, "multipartUploads": false, "pluginJsonUpload": true, "pluginNativeHandlers": true, "peerAddress": false, "phpSessionInterop": false}
     let testHash = auth.bcryptHash("SIPL compatibility probe")
     capabilities["phpBcryptHash"] = testHash.startsWith("$2b$") and auth.passwordVerify("SIPL compatibility probe", testHash)
     try {

@@ -37,6 +37,9 @@ SI.Editor = {
         }
     },
     Run: function () {
+        if (this.Started) return;
+        this.Started = true;
+        const initialize = function () {
         console.time('EditorLoadTime');
         SI.Editor.Data.Init(); 
         //wait for all the code to load before continuing. 
@@ -55,6 +58,12 @@ SI.Editor = {
         if(lookup){
             lookup.CheckLookups();
         }
+        };
+        // Data may already be cached while deferred tool modules are still loading.
+        // DOMContentLoaded runs after those scripts, so every entity is available.
+        if (document.readyState === 'loading' || document.readyState !== 'complete' && document.currentScript && document.currentScript.defer) {
+            document.addEventListener('DOMContentLoaded', initialize, {once: true});
+        } else initialize();
     },
     Data: {
         loaded : false,
@@ -557,8 +566,9 @@ SI.Editor = {
         SetDocumentEvents: function () {
             SI.Editor.Objects.Placement.Init();
             document.oncontextmenu = function (event) {
-                if (event.target.closest('#si_edit_container')) return;
+                if (!SI.Editor.Objects.Widgets.CanvasFor(event.target) && event.target.closest('#si_edit_container,.si-editor-tool-window')) return;
                 const menu = SI.Editor.UI.MainMenu.Element;
+                if (getComputedStyle(menu).display !== 'none') return;
                 const selected = SI.Editor.Objects.Elements.Selected;
                 const target = event.target.closest('.si-editable-element');
                 // Keep native text-field menus unless this click clears the selected item.
@@ -572,7 +582,7 @@ SI.Editor = {
                 event.preventDefault();
             };
             window.onbeforeunload = function (event) {
-                if (!SI.Editor.DeploymentSwitchAccepted && Object.values(SI.Editor.Data.Objects.Blocks).some(block => block.IsDirty)) {
+                if (!SI.Editor.DeploymentSwitchAccepted && (SI.Editor.Objects.Widgets.CanvasDirty || Object.values(SI.Editor.Data.Objects.Blocks).some(block => block.IsDirty))) {
                     event.preventDefault();
                     event.returnValue = '';
                 }
@@ -593,7 +603,7 @@ SI.Editor = {
                     SI.Editor.UI.EditPanel.SaveSelected();
                     return;
                 }
-                if (typing || event.target.closest('#si_edit_container,.si-window-container')) return;
+                if (typing || !SI.Editor.Objects.Widgets.CanvasFor(event.target) && event.target.closest('#si_edit_container,.si-window-container')) return;
                 const movements = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
                 if (movements[event.key] && /^(absolute|relative|fixed)$/.test(getComputedStyle(selected).position)) {
                     event.preventDefault();
@@ -787,8 +797,7 @@ SI.Editor = {
                         }
                     } else {
                         for (const name of Object.keys(SI.Widget).sort()) {
-                            // Lookup manages existing lookup fields; it has no standalone page element.
-                            if (typeof SI.Widget[name] === 'function' && name !== 'Lookup') SI.Editor.UI.AddPanel.Item(list, {kind, name}, name === 'Accordian' ? 'Accordion' : name, 'Add a ' + name + ' widget');
+                            if (typeof SI.Widget[name] === 'function') SI.Editor.UI.AddPanel.Item(list, {kind, name}, name === 'Accordian' ? 'Accordion' : name, 'Add a ' + name + ' widget');
                         }
                     }
                 }
@@ -894,6 +903,7 @@ SI.Editor = {
             },
             SaveSelected: function () {
                 const element = SI.Editor.Objects.Elements.Selected;
+                if (SI.Editor.Objects.Widgets.CanvasFor(element)) { SI.Editor.Objects.Widgets.SaveDesign(); return; }
                 const block = element && element.closest('.si-block');
                 if (block) SI.Editor.Objects.Blocks.Save(block.id.replace('si_block_', ''), 'html');
             },
@@ -905,7 +915,9 @@ SI.Editor = {
                 const summary = document.getElementById('si_edit_selection_summary');
                 if (summary) summary.textContent = selected ? selected.tagName.toLowerCase() + ' #' + selected.id + (data && data.IsDirty ? ' · Unsaved changes' : '') : 'Right-click an element to edit it.';
                 const save = document.getElementById('si_edit_save_selected');
-                if (save) save.disabled = !block;
+                const canvas = SI.Editor.Objects.Widgets.CanvasFor(selected);
+                if (summary && canvas) summary.textContent = selected.tagName.toLowerCase() + ' #' + selected.id + ' · Widget design' + (SI.Editor.Objects.Widgets.CanvasDirty ? ' · Unsaved changes' : '');
+                if (save) save.disabled = !block && !canvas;
             },
             //Draw the Main tab 
             DrawMain: function (e) {
@@ -1664,8 +1676,8 @@ SI.Editor = {
                                 Trigger: '#si_edit_scripter_trigger',
                                 IconImg: '/editor/media/icons/scripter-code.png',
                                 Title: "Scripter",
-                                Error: "This tool has issues with some browsers. It works fine in Chrome and Edge based on Chromium, Firefox has trouble parsing some of the regular expresions used.",
-                                Populate:SI.Editor.Objects.Scripter.Draw                                    };
+                                Populate: SI.Editor.Objects.Scripter.Draw.bind(SI.Editor.Objects.Scripter)
+                            };
                             break;
                         case "Widgets":
                             options = {
@@ -1836,7 +1848,7 @@ SI.Editor = {
                             case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
                             //User
                             case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
-                            case 'PASSWORDCHANGED': if (value === true) { SI.Tools.SuperAlert('Password changed.', 2000); } break;
+                            case 'PASSWORDCHANGED': SI.Editor.Objects.User.PasswordChanged(value); break;
                             case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
                             case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
                             case 'ERROR': SI.Tools.SuperAlert(value, 4000); break;
@@ -1844,10 +1856,12 @@ SI.Editor = {
                             case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
                             case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
                             //Plugins
+                            case 'PLUGINCONFLICTS': if (value.length) alert('CMS edits preserved in: ' + value.join(', ')); break;
+                            case 'PLUGINSTATE': location.reload(); break;
                             case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
                             case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
                             case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
-                            case 'INSTALLPLUGINFAILED': alert('Plugin install has failed'); break;
+                            case 'INSTALLPLUGINFAILED': alert(value); break;
                             case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
                             case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
                             //Settings

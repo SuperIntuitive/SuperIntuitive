@@ -1,0 +1,97 @@
+use Config
+use Database
+use Security
+use Tools
+
+// SQL overrides share the PHP schema. Public reads never create tables.
+fn catalog(context: Map) -> Map {
+    let saved = {:}
+    if Database.one("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='si_widget_sources'", {:}) != none {
+        for row in Database.query("SELECT name,source FROM si_widget_sources WHERE tenant=:tenant AND level=:level", {"tenant": Security.scope(context, "blocks"), "level": context["deployment"]}) { saved[row["name"]] = json.parse(row["source"]) }
+    }
+    let result = {:}
+    for file in fs.list(Config.root("scripts/widgets")).sort() {
+        if not file.endsWith(".js") { continue }
+        let script = fs.readText(Config.root("scripts/widgets/" + file))
+        let matches = regex.compile("SI\\.Widget\\.[A-Za-z][A-Za-z0-9_]*\\s*=").findAll(script)
+        if matches.isEmpty { continue }
+        let widgetType = matches[0]["text"].replace("SI.Widget.", "").replace("=", "").trim()
+        let name = file.slice(0, file.length - 3)
+        let entry = saved.get(name, {:})
+        result[name] = {"name": name, "type": widgetType, "script": entry.get("script", script), "style": entry.get("style", "[data-si-widget=\"" + widgetType + "\"] \{\n\}\n"), "design": entry.get("design", []), "custom": entry.keys()}
+    }
+    for name, entry in saved {
+        if not result.contains(name) and regex.compile("^[A-Z][A-Za-z0-9_]\{0,63\}$").isMatch(name) and entry.contains("script") {
+            result[name] = {"name": name, "type": name, "script": entry["script"], "style": entry.get("style", ""), "design": entry.get("design", []), "custom": entry.keys()}
+        }
+    }
+    return result
+}
+
+fn dispatch(context: Map, action: String, post: Map) -> Map {
+    Security.requireAdmin(context)
+    if context["deployment"] != "dev" { fail("WIDGET_ADMIN_DEV_REQUIRED") }
+    if action == "GetWidgetSources" { return {"PARAMETER": catalog(context)} }
+    let name = Tools.required(post, "name")
+    let sources = catalog(context)
+    if action == "CreateWidget" {
+        if not regex.compile("^[A-Z][A-Za-z0-9_]\{0,63\}$").isMatch(name) or sources.contains(name) { fail("INVALID_OR_EXISTING_WIDGET") }
+        for key, entry in sources { if entry["type"] == name { fail("INVALID_OR_EXISTING_WIDGET") } }
+    } else if not sources.contains(name) { fail("INVALID_WIDGET") }
+    Database.execute("CREATE TABLE IF NOT EXISTS si_widget_sources (tenant CHAR(32) NOT NULL,name VARCHAR(64) NOT NULL,level VARCHAR(8) NOT NULL,source MEDIUMTEXT NOT NULL,PRIMARY KEY(tenant,name,level)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", {:})
+    let p = {"tenant": Security.scope(context, "blocks"), "name": name, "level": "dev"}
+    var source = {:}
+    let row = Database.one("SELECT source FROM si_widget_sources WHERE tenant=:tenant AND name=:name AND level=:level", p)
+    if row != none { source = json.parse(row["source"]) }
+    if action == "CreateWidget" {
+        source = {"script": "SI.Widget." + name + " = SI.Tools.Widget.Derive(" + Tools.scriptJson(name) + ");\n", "style": "[data-si-widget=\"" + name + "\"] \{\n\}\n", "design": []}
+    } else if action == "SaveWidgetSource" {
+        let kind = Tools.required(post, "kind")
+        let value = post.get("source")
+        if not ["script", "style", "design"].contains(kind) { fail("INVALID_WIDGET_SOURCE") }
+        if kind == "design" { if value.type != "List" { fail("INVALID_WIDGET_SOURCE") } }
+        else { if value.type != "String" { fail("INVALID_WIDGET_SOURCE") } }
+        if bytes.encodeUtf8(json.stringify(value)).length > 524288 { fail("WIDGET_SOURCE_TOO_LARGE") }
+        source[kind] = value
+    } else if action == "PromoteWidgetSource" {
+        let target = post.get("target", "")
+        if not ["test", "live"].contains(target) { fail("INVALID_WIDGET_DEPLOYMENT") }
+        if target == "live" {
+            p["level"] = "test"
+            let tested = Database.one("SELECT source FROM si_widget_sources WHERE tenant=:tenant AND name=:name AND level=:level", p)
+            source = {:}
+            if tested != none { source = json.parse(tested["source"]) }
+        }
+        p["level"] = target
+    } else { fail("UNKNOWN_WIDGET_ACTION") }
+    let targetContext = {"scopes": context["scopes"], "deployment": p["level"]}
+    let targetCatalog = catalog(targetContext)
+    let candidate = sources.get(name, {"name": name, "type": name})
+    for field, value in source { candidate[field] = value }
+    targetCatalog[name] = candidate
+    if bytes.encodeUtf8(json.stringify(targetCatalog)).length > 921600 { fail("WIDGET_LIBRARY_TOO_LARGE") }
+    p["source"] = json.stringify(source)
+    var statement = "INSERT INTO si_widget_sources (tenant,name,level,source) VALUES (:tenant,:name,:level,:source)"
+    if action == "SaveWidgetSource" {
+        p["path"] = "$." + post["kind"]
+        p["value"] = json.stringify(post["source"])
+        statement += " ON DUPLICATE KEY UPDATE source=JSON_SET(source,:path,JSON_EXTRACT(:value,'$'))"
+    } else if action != "CreateWidget" { statement += " ON DUPLICATE KEY UPDATE source=VALUES(source)" }
+    Database.execute(statement, p)
+    return {"PARAMETER": {"saved": true, "name": name, "level": p["level"], "widget": catalog(context)[name]}}
+}
+
+fn asset(context: Map, query: String) -> Map {
+    var kind = ""
+    for pair in url.parseQuery(query) { if pair[0] == "kind" { kind = pair[1] } }
+    if not ["script", "style"].contains(kind) { fail("INVALID_WIDGET_ASSET") }
+    let entries = catalog(context)
+    var source = ""
+    if kind == "style" { source = fs.readText(Config.root("core_sipl/generated/widgets.css")) }
+    for name, entry in entries { source += "\n" + entry[kind] + "\n" }
+    if kind == "script" { for name, entry in entries { source += "SI.Tools.Widget.Register(" + Tools.scriptJson(entry["type"]) + "," + Tools.scriptJson(entry["design"]) + ");\n" } }
+    if kind == "script" { source += "SI.Tools.Widget.Hydrate();\n" }
+    var mime = "text/css"
+    if kind == "script" { mime = "application/javascript" }
+    return {"body": source, "headers": {"Content-Type": mime + "; charset=utf-8", "Cache-Control": "private, no-store"}}
+}

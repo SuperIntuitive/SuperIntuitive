@@ -5,9 +5,9 @@ use Page
 use Sessions
 
 fn bundle(context: Map, request: Map, kind: String) -> String {
-    if not context["scopes"].contains("libraries") or not context["schema"].contains("libraries") { return "" }
-    let pathname = web.sessionGet(request, Sessions.key("pagePath"), "/")
+    let pathname = Page.assetPath(request)
     let page = Page.load(context, pathname)
+    if not context["scopes"].contains("libraries") or not context["schema"].contains("libraries") { return "" }
     var field = context["deployment"] + "-" + kind
     let definition = Entity.definition(context, "libraries")
     if not definition["columns"].contains(field) { field = "live-" + kind }

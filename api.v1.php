@@ -31,6 +31,11 @@ if(Tools::UserHasRole('Admin')){ //ToBe removed when Roles is integrated into en
     $rawPost = file_get_contents("php://input");
     $post = json_decode($rawPost, true);
     $jsonPost = json_decode($rawPost);
+    if (($post['Operation'] ?? '') === 'Lookup') {
+        try { echo json_encode(Lookup::Search($post), JSON_THROW_ON_ERROR); }
+        catch (\Throwable $error) { http_response_code($error->getMessage()==='FORBIDDEN' ? 403 : 400); echo json_encode(['ERROR'=>$error->getMessage()]); }
+        exit;
+    }
 	if(isset($_POST)){unset($_POST);}
 	if(isset($_GET)){unset($_GET);}
 	if(isset($post["Entity"]) && isset($post["Entity"]['Name']) && isset($post["Operation"])){

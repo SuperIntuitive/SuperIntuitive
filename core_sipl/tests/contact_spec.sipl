@@ -1,0 +1,84 @@
+use ../src/Config
+use ../src/Database
+use ../src/Plugins
+use ../src/Tools
+use contact_spec_handler
+var _checks = 0
+fn check(value: Bool, message: String) { assert(value, message)
+    _checks += 1
+    print("PASS SIPL contact " + message) }
+fn rejects(operation: Function, message: String) {
+    var rejected = false
+    try { operation() } fail { rejected = true }
+    check(rejected, message)
+}
+fn post(token: String, email: String) -> Map { return {"name": "Native Sender", "email": email, "topic": "SIPL", "message": "Native 日本語 🚀", "website": "", "submission": token} }
+fn start() {
+    let c = json.parse(fs.readText(system.args[0]))
+    Config.setForTests(c)
+    Database.connect()
+    if system.args.length > 1 and system.args[1] == "race" {
+        print(json.stringify(contact_spec_handler.handle(Plugins.storage(c["contactRaceTenant"], "contact"), "submit", {"name": "Test Sender", "email": "race@example.test", "topic": "SIPL", "message": "First line\nSecond line 日本語 🚀", "website": "", "submission": c["contactRaceToken"]})))
+        return
+    }
+    let shared = Plugins.storage(c["contactSpecTenant"], "contact")
+    let saved = shared["get"]("messages", c["contactSpecToken"])
+    check(saved["value"]["email"] == "spec@example.test", "reads PHP-normalized message")
+    let changed = contact_spec_handler.handle(shared, "update", {"id": c["contactSpecToken"], "state": "read"})
+    check(changed["CONTACTMESSAGEUPDATED"]["state"] == "read", "updates PHP message read state")
+    check(contact_spec_handler.handle(shared, "update", {"id": c["contactSpecToken"], "state": "other"})["code"] == "CONTACT_VALIDATION_FAILED", "rejects invalid state")
+    check(contact_spec_handler.handle(shared, "update", {"id": "ffffffffffffffffffffffffffffffff", "state": "read"})["__httpStatus"] == 404, "missing message returns 404")
+    let foreign = Plugins.storage(Tools.newGuid(), "contact")
+    check(contact_spec_handler.handle(foreign, "update", {"id": c["contactSpecToken"], "state": "read"})["__httpStatus"] == 404, "cannot update another tenant's message")
+    let input = post(Tools.newGuid(), "NATIVE-SPEC@EXAMPLE.TEST")
+    let first = contact_spec_handler.handle(shared, "submit", input)
+    check(first.contains("CONTACTSENT"), "native handler accepts website topic/token payload")
+    check(contact_spec_handler.handle(shared, "submit", input)["CONTACTSENT"] == first["CONTACTSENT"], "retry receives identical receipt")
+    let conflict = input.copy()
+    conflict["message"] = "Changed payload"
+    check(contact_spec_handler.handle(shared, "submit", conflict)["__httpStatus"] == 409, "changed payload conflicts with received token")
+    for field, bad in {"name": "", "email": "bad@example.test\r\nBcc: other@example.test", "topic": "arbitrary", "message": [], "website": "spam", "submission": "bad"} {
+        let invalid = post(Tools.newGuid(), "invalid@example.test")
+        invalid[field] = bad
+        check(contact_spec_handler.handle(shared, "submit", invalid)["code"] == "CONTACT_VALIDATION_FAILED", "validates " + field)
+    }
+    for field, maximum in {"name": 100, "email": 254, "message": 5000} {
+        let invalid = post(Tools.newGuid(), "invalid@example.test")
+        invalid[field] = "x".repeat(maximum + 1)
+        check(contact_spec_handler.handle(shared, "submit", invalid)["code"] == "CONTACT_VALIDATION_FAILED", "rejects over-limit " + field)
+    }
+    let boundary = post(Tools.newGuid(), "e".repeat(64) + "@" + "a".repeat(63) + "." + "b".repeat(63) + "." + "c".repeat(56) + ".test")
+    boundary["name"] = "n".repeat(100)
+    boundary["message"] = "m".repeat(5000)
+    check(contact_spec_handler.handle(shared, "submit", boundary).contains("CONTACTSENT"), "accepts exact source validation limits")
+    let nul = post(Tools.newGuid(), "nul@example.test")
+    nul["name"] = "Name\0"
+    check(contact_spec_handler.handle(shared, "submit", nul)["code"] == "CONTACT_VALIDATION_FAILED", "rejects trailing NUL consistently")
+    let quota = Plugins.storage(Tools.newGuid(), "contact")
+    var last: Map = {:}
+    for index in [0, 1, 2] {
+        last = post(Tools.newGuid(), "LIMIT@example.test")
+        check(contact_spec_handler.handle(quota, "submit", last).contains("CONTACTSENT"), "accepts per-email message " + "{index}")
+    }
+    check(contact_spec_handler.handle(quota, "submit", post(Tools.newGuid(), "limit@example.test"))["__httpStatus"] == 429, "fourth normalized-email message limited")
+    check(contact_spec_handler.handle(quota, "submit", last).contains("CONTACTSENT"), "retry succeeds at quota")
+    let global = Plugins.storage(Tools.newGuid(), "contact")
+    for index in 0..20 { check(contact_spec_handler.handle(global, "submit", post(Tools.newGuid(), "sender" + "{index}" + "@example.test")).contains("CONTACTSENT"), "accepts global message " + "{index}") }
+    check(contact_spec_handler.handle(global, "submit", post(Tools.newGuid(), "last@example.test"))["__httpStatus"] == 429, "twenty-first global message limited")
+    let paged = Plugins.storage(Tools.newGuid(), "contact")
+    for index in 0..41 { paged["put"]("messages", Tools.newGuid(), {"name": "Pagination", "email": "page@example.test", "topic": "General", "message": "<script>plain text</script>", "read": index == 0}) }
+    let page1 = contact_spec_handler.handle(paged, "inbox", {:})["CONTACTMESSAGES"]
+    let page2 = contact_spec_handler.handle(paged, "inbox", {"offset": 20})["CONTACTMESSAGES"]
+    let page3 = contact_spec_handler.handle(paged, "inbox", {"offset": 40})["CONTACTMESSAGES"]
+    check(page1["messages"].length == 20 and page1["hasMore"] and page2["messages"].length == 20 and page3["messages"].length == 1 and not page3["hasMore"], "paginates twenty messages")
+    check(page1["total"] == 41 and page1["unread"] == 40, "counts all unread messages")
+    let firstIds = page1["messages"].map(fn(message) => message["id"])
+    check(not page2["messages"].any(fn(message) => firstIds.contains(message["id"])), "page ordering does not duplicate records")
+    for offset in [-1, 100001, "0", false] { check(contact_spec_handler.handle(paged, "inbox", {"offset": offset})["code"] == "CONTACT_VALIDATION_FAILED", "rejects invalid offset") }
+    let total = paged["count"]("messages", 0, "", none)
+    rejects(fn() { paged["atomic"]("messages", fn() { paged["put"]("messages", "rollback", {"temporary": true})
+        fail("INJECTED_FAILURE") }) }, "transaction failure reported")
+    check(paged["count"]("messages", 0, "", none) == total, "transaction failure rolls back writes")
+    rejects(fn() { paged["count"]("messages", 0, "read\" OR 1=1 --", true) }, "JSON field injection rejected")
+    print("SIPL contact specification checks passed: " + "{_checks}")
+}

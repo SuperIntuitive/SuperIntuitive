@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS si_contact_schema (version INT PRIMARY KEY) ENGINE=InnoDB

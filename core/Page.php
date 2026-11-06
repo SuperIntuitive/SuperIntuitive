@@ -1,8 +1,48 @@
 <?php
 namespace SuperIntuitive; 
+use \PDO;
 Tools::Autoload();
 
 class Page {
+    // Asset requests identify their own page, independently of other tabs.
+    public static function AssetPath(): string {
+        $pages=[];
+        foreach (explode('&', $_SERVER['QUERY_STRING'] ?? '') as $pair) {
+            [$key,$value]=array_pad(explode('=', $pair, 2),2,'');
+            if (urldecode($key)==='page') $pages[]=urldecode($value);
+        }
+        $path=$pages[0] ?? ($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['page']['path'] ?? '');
+        if (count($pages)>1 || !is_string($path) || !preg_match('#^[A-Za-z0-9_.~/-]*$#D',$path)) {
+            http_response_code(400); exit('Invalid page path.');
+        }
+        foreach (explode('/',$path) as $part) if ($path!=='' && ($part==='' || $part[0]==='.')) { http_response_code(400); exit('Invalid page path.'); }
+        return $path;
+    }
+    public static function AssetData(bool $libraries=false): array {
+        $path=self::AssetPath(); $db=new Database(); $domain=$db->GetDomainInstance();
+        if (!is_array($domain)) { http_response_code(404); exit('Page not found.'); }
+        (new Sessions())->SetInitialUser();
+        $scope=$domain['entities']; $pdo=$db->DBC(); $level=Tools::GetCurrentDeployment();
+        if (!PluginManager::current()->pageAccess($path)) { http_response_code(403); exit('Page unavailable.'); }
+        $query=$pdo->prepare("SELECT HEX(id) AS id,name,path FROM pages WHERE path=:path AND entity_id=UNHEX(:scope) AND status='active' LIMIT 1");
+        $query->execute([':path'=>$path,':scope'=>$scope['pages']]); $page=$query->fetch(PDO::FETCH_ASSOC);
+        if (!$page) { http_response_code(404); exit('Page not found.'); }
+        $query=$pdo->prepare("SELECT sr.name FROM relations r INNER JOIN securityroles sr ON sr.id=r.child_id AND sr.entity_id=r.childentity_id WHERE r.parent_id=UNHEX(:id) AND r.parententity_id=UNHEX(:pages) AND r.entity_id=UNHEX(:relations) AND sr.entity_id=UNHEX(:roles) AND r.status='active' AND sr.status='active'");
+        $query->execute([':id'=>$page['id'],':pages'=>$scope['pages'],':relations'=>$scope['relations'],':roles'=>$scope['securityroles']]);
+        $roles=$query->fetchAll(PDO::FETCH_COLUMN);
+        if ($roles && !Tools::UserHasRole('Admin') && !Tools::UserHasRole($roles)) { http_response_code(403); exit('Page unavailable.'); }
+        $table=$libraries?'libraries':'blocks';
+        if (!isset($scope[$table])) return ['page'=>$page,$table=>[]];
+        if ($libraries) {
+            $columns=$pdo->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='libraries'")->fetchAll(PDO::FETCH_COLUMN);
+            if (!$columns) return ['page'=>$page,'libraries'=>[]];
+            $field=in_array($level.'-css',$columns,true)?$level.'-css':'live-css';
+            $select="child.name,child.`$field` AS style";
+        } else $select="HEX(child.id) AS id,child.name,child.modifiedon,child.`$level-html` AS html,child.`$level-script` AS script,child.`$level-style` AS style,HEX(r.id) AS relationsId,r.`$level-options` AS options,r.`$level-order` AS `order`";
+        $query=$pdo->prepare("SELECT $select FROM pages p INNER JOIN relations r ON r.parent_id=p.id AND r.parententity_id=p.entity_id INNER JOIN `$table` child ON child.id=r.child_id AND child.entity_id=r.childentity_id WHERE p.id=UNHEX(:id) AND p.entity_id=UNHEX(:pages) AND r.entity_id=UNHEX(:relations) AND child.entity_id=UNHEX(:scope) AND p.status='active' AND r.status='active' AND child.status='active' ORDER BY r.`$level-order`,r.id");
+        $query->execute([':id'=>$page['id'],':pages'=>$scope['pages'],':relations'=>$scope['relations'],':scope'=>$scope[$table]]);
+        return ['page'=>$page,$table=>$query->fetchAll(PDO::FETCH_ASSOC)];
+    }
 	private $pageobjects;
 	private $options;
 	//private $settings;
@@ -136,6 +176,7 @@ class Page {
 			$toolsVersion = Tools::GetStaticAssetVersion($_SERVER['DOCUMENT_ROOT'].'/scripts/tools.js');
 			$pluginsScriptVersion = Tools::GetPluginBundleVersion('scripts');
 
+			$pageQuery='page='.rawurlencode($this->pageobjects['page']['path'] ?? '');
 			$head = "";
 
 			if($title != null){
@@ -233,9 +274,9 @@ if (!SI) { var SI = {}; }
 			$head .= "
 		<style id='si_htmlstyle'>html{width: 100%; height:1vh; overflow-x: hidden;}</style>
 		<link rel='stylesheet' type='text/css' id='si_plugins_style' href='/style/plugins.css?$pluginsStyleVersion'>
-		<link rel='stylesheet' type='text/css' id='si_page_style' href='/style/page.css?$lastModified'>
-		<link rel='stylesheet' type='text/css' href='/style/libraries.css?$librariesVersion'>
-		<link rel='stylesheet' type='text/css' href='/style/widgets.css?$widgetsVersion'>
+		<link rel='stylesheet' type='text/css' id='si_page_style' href='/style/page.css?v=$lastModified&amp;$pageQuery'>
+		<link rel='stylesheet' type='text/css' href='/style/libraries.css?v=$librariesVersion&amp;$pageQuery'>
+		<link rel='stylesheet' type='text/css' id='si_widgets_style' href='/widget-asset.php?kind=style'>
 		<style id='si_page_media'>
 			@media (prefers-color-scheme: light) {#si_colorscheme {color:white}}
 			@media (prefers-color-scheme: dark) {#si_colorscheme {color:black}}
@@ -244,14 +285,7 @@ if (!SI) { var SI = {}; }
 
 		<script src='/scripts/tools.js?$toolsVersion' defer ></script>\n";
 
-		$widgetfiles = scandir('scripts/widgets');
-		//Tools::Log($widgetfiles);
-		foreach($widgetfiles as $widget){
-			if(!is_dir('scripts/widgets/'.$widget)){
-				$moded = filemtime('scripts/widgets/'.$widget);
-				$head .= "\t\t<script src='/scripts/widgets/$widget?$moded' defer></script>\n";	
-			}
-		}
+		$head .= "<script src='/widget-asset.php?kind=script' defer></script>\n";
 
 
 
@@ -279,7 +313,7 @@ if (!SI) { var SI = {}; }
 
 						$head .= "
 			<script src='/scripts/plugins.js?$pluginsScriptVersion' defer id='si_plugin_script'></script>
-		<script src='/scripts/page.js?$lastModified' defer id='si_page_script'></script>
+		<script src='/scripts/page.js?v=$lastModified&amp;$pageQuery' defer id='si_page_script'></script>
 		";
 
 			//Replace any constants or variables with their values

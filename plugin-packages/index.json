@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Swiper",
+    "type": "UI",
+    "shortdesc": "Swiper slider plugin",
+    "longdesc": "Installs the Swiper plugin package.",
+    "author": "Vladimir Kharlampidi",
+    "download": "swiper.zip",
+    "downloads": 0,
+    "Screenshots": []
+  },
+  {
+    "name": "Contact",
+    "type": "Communication",
+    "shortdesc": "Contact form and private Admin inbox for PHP and SIPL.",
+    "longdesc": "A public contact form with product topics, duplicate-safe submissions and spam limits, plus an Admin inbox with pagination and read/unread controls. Supports native PHP and SIPL handlers and tenant-scoped storage.",
+    "author": "Robert Allen",
+    "download": "contact.zip",
+    "downloads": 0,
+    "Screenshots": []
+  },
+  {
+    "name": "Editor Demo",
+    "type": "UI",
+    "shortdesc": "An isolated public editor demo for PHP and SIPL.",
+    "longdesc": "All twelve CMS editor tools with temporary editing and reset. Runs as a separate plugin-owned service and survives CMS upgrades.",
+    "author": "Robert Allen",
+    "download": "editor-demo.zip",
+    "downloads": 0,
+    "Screenshots": []
+  }
+]
