@@ -5,3 +5,7 @@ setup-config*.tmp
 *.log
 runtime/
 __pycache__/
+
+# Local test results, not application inputs.
+validation.json
+*-validation.json
