@@ -194,7 +194,7 @@ class DataTable{
 			}
 			foreach($this->Columns as $v){
 				if($v->Name != null)
-				$table.="<th $borders >$v->Name</th>";
+				$table.="<th $borders >".($v->Caption ?? $v->Name)."</th>";
 			}
 			$table.="<tr>";
 			$i = 1;
@@ -248,6 +248,7 @@ class DataTable{
 class DataColumn{
 	public $DataTable = null;
 	public $Name = null;
+	public $Caption = null;
 	public $Ordinal = 0;
 	public $DataType = "string";
 	public $Default = null;
@@ -270,5 +271,4 @@ class DataRow{
 	public $Cells = array();
 	public $RowNumber= null;
 }
-
 

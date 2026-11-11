@@ -1,10 +1,11 @@
 <?php
 /** Plugin SDK entry and separate, session-free demo router. No CMS entry point is intercepted. */
 final class SIEditorDemoPlugin {
-    private array $config,$scopes=[],$settings=[]; private ?PDO $db=null; private string $package='';
+    private array $config,$scopes=[],$settings=[],$copy=[],$localtexts=[]; private ?PDO $db=null; private string $package='',$language='en';
     public function __construct(array $config) {
         $this->config=$config;
         if(!is_string($config['root']??null)||!is_dir($config['root']))throw new RuntimeException('Set the CMS root in the private demo configuration.');
+        require_once $this->root('core/Editor.php');
         foreach(['requestBurst'=>240,'requestsPerMinute'=>1800,'contentBurst'=>8,'contentPerMinute'=>60]as$key=>$default){
             $value=$config[$key]??$default;if(!is_int($value)||$value<1||$value>100000)throw new RuntimeException('Invalid demo request limit.');$this->config[$key]=$value;
         }
@@ -94,6 +95,35 @@ final class SIEditorDemoPlugin {
         $page['blocks']=$this->query("SELECT LOWER(HEX(b.id)) AS id,b.name,b.`live-html` AS html,b.`live-style` AS style,b.`live-script` AS script,LOWER(HEX(r.id)) AS relationsId,r.`live-options` AS relationsOptions,r.`live-order` AS relationsOrder FROM relations r JOIN blocks b ON b.id=r.child_id AND b.entity_id=r.childentity_id WHERE r.parent_id=UNHEX(:page) AND r.parententity_id=UNHEX(:pages) AND r.entity_id=UNHEX(:relations) AND b.entity_id=UNHEX(:blocks) AND r.status='active' AND b.status='active' ORDER BY r.`live-order`,r.id",['page'=>$page['id'],'pages'=>$this->scopes['pages'],'relations'=>$this->scopes['relations'],'blocks'=>$this->scopes['blocks']]);
         return $page;
     }
+    public static function language(string $header):string {
+        return \SuperIntuitive\Editor::Language($header);
+    }
+    private function localize(array $page,string $header):array {
+        $this->copy=[];$this->localtexts=[];
+        $this->language=self::language($header);
+        if($this->language!=='en'){
+            $this->copy=json_decode(file_get_contents($this->package.'/locales/'.$this->language.'.json'),true,512,JSON_THROW_ON_ERROR);
+            if(($this->copy['language']??null)!==$this->language||!is_array($this->copy['texts']??null))throw new RuntimeException('INVALID_DEMO_TRANSLATION');
+            $this->copy['texts']=array_replace(\SuperIntuitive\Editor::Locale($header)['texts'],$this->copy['texts']);
+            $preset=trim(file_get_contents($this->package.'/html/source.html'));
+            foreach($page['blocks']as&$block)if(trim($block['html']??'')===$preset)$block['html']=$this->copy['sample'];
+            unset($block);
+        }
+        $names=[];
+        foreach($page['blocks']as$block){preg_match_all('/SI_MULTILANG_([A-Z]{20})/',$block['html']??'',$matches);$names=array_merge($names,$matches[1]);}
+        $names=array_values(array_unique($names));
+        if($names){
+            $installed=array_column($this->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND COLUMN_NAME IN ('_en','_es','_zh','_tl')"),'COLUMN_NAME');
+            $columns=implode(',',array_map(fn($column)=>"`$column`",$installed));
+            $this->localtexts=$this->query("SELECT LOWER(HEX(id)) AS id,name,$columns FROM localtext WHERE entity_id=UNHEX(?) AND status='active' AND name IN (".implode(',',array_fill(0,count($names),'?')).') ORDER BY id',array_merge([$this->scopes['localtext']],$names));
+        }
+        return $page;
+    }
+    private function text(string $source):string {return $this->copy['texts'][$source]??$source;}
+    private function content(string $source):string {
+        $values=[];foreach($this->localtexts as$row){$value='';foreach([$this->language,'en']as$code)if(isset($row['_'.$code])&&$row['_'.$code]!==''){$value=$row['_'.$code];break;}$values['SI_MULTILANG_'.$row['name']]=$value;}
+        return strtr($source,$values);
+    }
     private function model(array $page):array {
         require_once $this->root('core/Tools.php');require_once $this->root('core/MiscData.php');$misc=new \SuperIntuitive\MiscData();
         $definitions=[];
@@ -106,11 +136,19 @@ final class SIEditorDemoPlugin {
         }
         $blocks=[];foreach($page['blocks']as$block){$key=$block['name'];$n=2;while(isset($blocks[$key]))$key=$block['name'].$n++;$block['id']='0x'.$block['id'];$block['relationsId']='0x'.$block['relationsId'];$block['options']=$block['relationsOptions'];$block['order']=$block['relationsOrder'];$block['ittr']='';$block['modifiedon']='';$blocks[$key]=$block;}
         $pages=[['id'=>'0x'.$page['id'],'name'=>$page['name'],'path'=>$page['path'],'page'=>$page['path'],'domain'=>$this->config['domain'],'subdomain'=>$this->config['subdomain']??'','domainName'=>$this->config['domain'],'subdomainName'=>$this->config['subdomain']??'','pageName'=>$page['name'],'pageId'=>$page['id']]];
-        $colors="<option value=''>Color Names</option>";foreach($misc->ColorNames as$color)$colors.="<option value='".self::escape($color)."'>".self::escape($color).'</option>';
+        $colors="<option value=''>".self::escape($this->text('Color Names'))."</option>";foreach($misc->ColorNames as$color)$colors.="<option value='".self::escape($color)."'>".self::escape($color).'</option>';
         $languages="<option value=''></option>";foreach($misc->Languages as$code=>$name)$languages.="<option value='".self::escape($code)."'>".self::escape($name).'</option>';
         $session=['domains'=>[$this->config['domain']=>['subdomains'=>[($this->config['subdomain']??'')=>['deployment'=>'dev','user'=>['loggedin'=>false,'name'=>'guest','roles'=>['Guest'],'preferences'=>(object)[]],'entities'=>$definitions]]]]];
         $values=['$blockObjects'=>(object)$blocks,'$pageObjects'=>$pages,'$entityDefinitions'=>$definitions,'$recordCount'=>count($definitions),'$mediaObjects'=>[],'$rolesdata'=>[],'$relationsjson'=>[],'$settings2'=>[],'$localtexts'=>[],'$myLangs'=>['en'],'$currentPlugins'=>(object)[],'$downloadedplugs'=>[],'$PasswordStrength'=>'^[\\s\\S]{10,72}$','$helplinks'=>['mdn','w3'],'$quickmenuitems'=>$misc->UserDefaultQuickmenu,'$allmimetypes'=>$misc->MimeTypes,'$mimes'=>['Images'=>['image/png','image/jpeg'],'Audio'=>['audio/mpeg'],'Video'=>['video/mp4'],'Docs'=>['application/pdf'],'Data'=>['application/json'],'Fonts'=>['font/woff2']],'json_encode($coloroptions)'=>$colors,'json_encode($langoptions)'=>$languages,'json_encode($supportedLanguages)'=>"<option value='en'>English</option>",'json_encode($usertable)'=>"<table id='si_editor_users_table'><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody></tbody></table>",'json_encode(SI_LANGS)'=>'en','SI_DOMAIN_NAME'=>$this->config['domain'],'SI_SUBDOMAIN_NAME'=>$this->config['subdomain']??'','$sessionPageData'=>$session];
-        return [$values,['pages'=>$pages,'blocks'=>array_values($blocks),'settings'=>[],'media'=>[],'localtext'=>[]]];
+        $values['json_encode($defaultLanguages)']=['en'];
+        $values['$myLangs']=array_values(array_unique([$this->language,'en']));
+        $values['json_encode(SI_LANGS)']=$this->language;
+        $values['$localtexts']=$this->localtexts;
+        $supported='';foreach(['en','es','zh','tl']as$code)if(in_array('_'.$code,$definitions['localtext']['columns'],true))$supported.="<option value='$code'>".self::escape($this->text($misc->Languages[$code])).'</option>';
+        $values['json_encode($supportedLanguages)']=$supported;
+        $table="<table id='si_editor_users_table'><thead><tr>";foreach(['Name','Email','Status']as$label)$table.='<th>'.self::escape($this->text($label)).'</th>';
+        $values['json_encode($usertable)']=$table.'</tr></thead><tbody></tbody></table>';
+        return [$values,['pages'=>$pages,'blocks'=>array_values($blocks),'settings'=>[],'media'=>[],'localtext'=>$this->localtexts]];
     }
     private function editorScript(array $page):string {
         [$values,$records]=$this->model($page);$lookups=[];
@@ -118,7 +156,7 @@ final class SIEditorDemoPlugin {
         $source=file_get_contents($this->root('editor/editor.js'));$start=strpos($source,'?>');$end=strrpos($source,'<?php');if($start===false||$end<=$start)throw new RuntimeException('EDITOR_TEMPLATE_CHANGED');
         $source=substr($source,$start+2,$end-$start-2);
         $source=preg_replace('~\{\s*<\?(?:=\s*\$dataage|php\s+echo\s+\$dataage\s*;?)\s*\?>\s*\}~','{}',$source);
-        $source=preg_replace('~'.chr(96).'<\?php\s+echo\s+Tools::GetPhpInfo\(\)\s*\?>'.chr(96).'~',self::json('<p>Public editor demo. Changes are temporary.</p>'),$source);
+        $source=preg_replace('~'.chr(96).'<\?php\s+echo\s+Tools::GetPhpInfo\(\)\s*\?>'.chr(96).'~',self::json('<p>'.self::escape($this->text('Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.')).'</p>'),$source);
         foreach(['SI_DOMAIN_NAME','SI_SUBDOMAIN_NAME']as$key)$source=str_replace('"<'.'?= '.$key.' ?>"',self::json($values[$key]),$source);
         // The CMS stores QuickMenu as a trusted JavaScript literal, not JSON.
         // Preserve that one public slot's existing format; never evaluate editor PHP.
@@ -126,7 +164,7 @@ final class SIEditorDemoPlugin {
         if(str_contains($source,'<?php')||str_contains($source,'<?='))throw new RuntimeException('EDITOR_TEMPLATE_CHANGED');
         $widgets=[];
         foreach(glob($this->root('scripts/widgets').'/*.js')as$file){$script=file_get_contents($file);if(preg_match('/SI\.Widget\.([A-Za-z][A-Za-z0-9_]*)\s*=/',$script,$match)){$name=basename($file,'.js');$widgets[$name]=['name'=>$name,'type'=>$match[1],'script'=>$script,'style'=>"[data-si-widget=\"".$match[1]."\"] {\n}\n",'design'=>[],'custom'=>[]];}}
-        $result='SI.Sample='.self::json(['lookups'=>$lookups,'records'=>$records]).";\n".str_replace('SI.Editor.Run();','',$source)."\nSI.Editor.Data.WidgetSources=".self::json($widgets).";\n";
+        $result='SI.EditorText='.self::json((object)($this->copy['texts']??[])).";\nSI.Sample=".self::json(['lookups'=>$lookups,'records'=>$records]).";\n".str_replace('SI.Editor.Run();','',$source)."\nSI.Editor.Data.WidgetSources=".self::json($widgets).";\n";
         foreach($widgets as$widget)$result.='SI.Tools.Widget.Register('.self::json($widget['type']).",[]);\n";
         $result.="\nSI.Sample.runPage=function(){\n";
         foreach($page['blocks']as$block)$result.=($block['script']??'')."\n";
@@ -134,17 +172,18 @@ final class SIEditorDemoPlugin {
     }
     private function html(array $page):string {
         $data=[];foreach($page['blocks']as$block){$options=json_decode($block['relationsOptions']??'{}',true)??[];$data[$block['name']]=['Settings'=>$options['settings']??(object)[],'Widgets'=>$options['widgets']??(object)[]];}
-        $result="<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Editor demo</title><script src='/demo/prelude.js'></script><script>window.SI={Page:{Settings:{},Blocks:".self::json((object)$data)."},CSRF:{Token:''},User:{Name:'guest',Roles:['Guest'],Preferences:{}},Widget:{},Widgets:{}}</script><style id='si_page_style'>";
+        $result="<!doctype html><html lang='".$this->language."'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>".self::escape($this->text('Editor demo'))."</title><script src='/demo/prelude.js'></script><script>window.SI={Page:{Settings:{},Blocks:".self::json((object)$data)."},CSRF:{Token:''},User:{Name:'guest',Roles:['Guest'],Preferences:{}},Widget:{},Widgets:{}}</script><style id='si_page_style'>";
         foreach($page['blocks']as$block)$result.='/*-!'.str_replace('*/','',$block['name'])."!-*/\n".str_ireplace('</style','<\\/style',$block['style']??'')."\n";
         $result.="</style><link rel='stylesheet' href='/style/widgets.css'><link rel='stylesheet' href='/editor/editor.css'><script defer src='/scripts/tools.js'></script>";
         foreach($this->assets()as$file)if(str_starts_with($file,'/scripts/widgets/')&&str_ends_with($file,'.js'))$result.="<script defer src='".self::escape($file)."'></script>";
         $result.="<script defer src='/editor.js'></script>";
         foreach($this->assets()as$file)if(str_starts_with($file,'/editor/objects/')&&str_ends_with($file,'.js'))$result.="<script defer src='".self::escape($file)."'></script>";
         $result.="<script defer src='/demo/canvas.js'></script></head><body data-guid='0x".$page['id']."'><i id='si_colorscheme'></i>";
-        foreach($page['blocks']as$block){$options=json_decode($block['relationsOptions']??'{}',true)??[];$tag=$options['tag']??'div';if(!in_array($tag,['div','section','article','header','footer','nav','main','aside','span'],true))throw new RuntimeException('INVALID_BLOCK_TAG');$styles='';foreach($options['style']??[]as$name=>$value)if(preg_match('/^[A-Za-z-]+$/D',$name))$styles.=$name.':'.$value.';';$id=preg_replace('/[^A-Za-z0-9_]/','_',$block['name']);if($id===''||ctype_digit($id[0]))$id='id'.$id;$result.="<$tag id='si_block_$id' class='si-block' data-order='".$block['relationsOrder']."' style='".self::escape($styles)."'>".($block['html']??'')."</$tag>";}
+        foreach($page['blocks']as$block){$options=json_decode($block['relationsOptions']??'{}',true)??[];$tag=$options['tag']??'div';if(!in_array($tag,['div','section','article','header','footer','nav','main','aside','span'],true))throw new RuntimeException('INVALID_BLOCK_TAG');$styles='';foreach($options['style']??[]as$name=>$value)if(preg_match('/^[A-Za-z-]+$/D',$name))$styles.=$name.':'.$value.';';$id=preg_replace('/[^A-Za-z0-9_]/','_',$block['name']);if($id===''||ctype_digit($id[0]))$id='id'.$id;$source=$block['html']??'';$classes='si-block';$binding='';if(preg_match('/^SI_MULTILANG_([A-Z]{20})$/D',trim($source),$match)){$classes.=' si-multilingual si-multilingual-'.$match[1];$binding=" data-si_ml_token='".$match[1]."'";}$result.="<$tag id='si_block_$id' class='$classes'$binding data-order='".$block['relationsOrder']."' style='".self::escape($styles)."'>".$this->content($source)."</$tag>";}
+        if($this->language!=='en')$result.="<small id='si_sample_ai_notice' style='display:block;margin:24px;text-align:center;opacity:.7;font:11px Arial,sans-serif'>".self::escape($this->text('Translated by AI')).'</small>';
         return $result.'</body></html>';
     }
-    public function response(string $method,string $uri,string $host):array {
+    public function response(string $method,string $uri,string $host,string $acceptLanguage='en'):array {
         $path=rawurldecode(parse_url($uri,PHP_URL_PATH)?:'/');$query=parse_url($uri,PHP_URL_QUERY)??'';
         $reply=fn($status,$body,$type='text/plain; charset=utf-8')=>[$status,$body,['Content-Type'=>$type,'Cache-Control'=>'no-store','X-Content-Type-Options'=>'nosniff','Referrer-Policy'=>'no-referrer','Permissions-Policy'=>'camera=(), microphone=(), geolocation=(), payment=(), usb=()','Origin-Agent-Cluster'=>'?1']];
         if($this->limited($path)){[$status,$body,$headers]=$reply(429,'Demo busy. Please try again shortly.');$headers['Retry-After']='60';return [$status,$body,$headers];}
@@ -153,8 +192,13 @@ final class SIEditorDemoPlugin {
         if(!in_array($path,array_merge(['/cms/sample/canvas','/editor.js','/demo/prelude.js','/demo/canvas.js'],$this->assets()),true))return $reply(403,'Unavailable in the demo.');
         try{
             $this->load();if(strtolower($host)!==strtolower(explode('://',$this->settings['origin'],2)[1]))return $reply(400,'Invalid demo host.');
-            if($path==='/cms/sample/canvas'){[$status,$body,$headers]=$reply(200,$this->html($this->published()),'text/html; charset=utf-8');$headers['Content-Security-Policy']=$this->policy();return [$status,$body,$headers];}
-            if($path==='/editor.js')return $reply(200,$this->editorScript($this->published()),'application/javascript; charset=utf-8');
+            if(in_array($path,['/cms/sample/canvas','/editor.js'],true)){
+                $page=$this->localize($this->published(),$acceptLanguage);
+                [$status,$body,$headers]=$path==='/editor.js'?$reply(200,$this->editorScript($page),'application/javascript; charset=utf-8'):$reply(200,$this->html($page),'text/html; charset=utf-8');
+                $headers['Content-Language']=$this->language;
+                if($path==='/cms/sample/canvas')$headers['Content-Security-Policy']=$this->policy();
+                return [$status,$body,$headers];
+            }
             if(in_array($path,['/demo/prelude.js','/demo/canvas.js'],true))return $reply(200,file_get_contents($this->package.'/js/canvas/'.($path==='/demo/prelude.js'?'prelude':'canvas').'.js'),'application/javascript; charset=utf-8');
             $file=$this->root(ltrim($path,'/'));$source=file_get_contents($file);$extension=strtolower(pathinfo($file,PATHINFO_EXTENSION));
             if($path==='/style/widgets.css')$source=preg_replace('~^<\?php.*?\?>~s','',ltrim($source,"\xEF\xBB\xBF"));
@@ -166,7 +210,7 @@ final class SIEditorDemoPlugin {
     }
 }
 if(PHP_SAPI==='cli-server'){
-    try{$file=getenv('SI_DEMO_CONFIG');if(!$file)throw new RuntimeException('Set SI_DEMO_CONFIG to a private service configuration path.');$plugin=new SIEditorDemoPlugin(json_decode(file_get_contents($file),true,512,JSON_THROW_ON_ERROR));[$status,$body,$headers]=$plugin->response($_SERVER['REQUEST_METHOD'],$_SERVER['REQUEST_URI'],$_SERVER['HTTP_HOST']??'');http_response_code($status);foreach($headers as$name=>$value)header($name.': '.$value);if($_SERVER['REQUEST_METHOD']!=='HEAD')echo $body;}
+    try{$file=getenv('SI_DEMO_CONFIG');if(!$file)throw new RuntimeException('Set SI_DEMO_CONFIG to a private service configuration path.');$plugin=new SIEditorDemoPlugin(json_decode(file_get_contents($file),true,512,JSON_THROW_ON_ERROR));[$status,$body,$headers]=$plugin->response($_SERVER['REQUEST_METHOD'],$_SERVER['REQUEST_URI'],$_SERVER['HTTP_HOST']??'',$_SERVER['HTTP_ACCEPT_LANGUAGE']??'en');http_response_code($status);foreach($headers as$name=>$value)header($name.': '.$value);if($_SERVER['REQUEST_METHOD']!=='HEAD')echo $body;}
     catch(Throwable $error){error_log('Editor demo: '.$error->getMessage());http_response_code(503);header('Content-Type: text/plain');echo 'The demo service needs operator configuration.';}
     exit;
 }

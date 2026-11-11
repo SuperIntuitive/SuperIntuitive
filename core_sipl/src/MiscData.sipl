@@ -1,0 +1,7 @@
+use Config
+
+var _lookups = none
+fn lookups() -> Map {
+    if _lookups == none { _lookups = json.parse(fs.readText(Config.root("core_sipl/generated/lookups.json"))) }
+    return _lookups
+}

@@ -162,6 +162,9 @@ if(Tools::UserHasRole('Admin')){
 					$localT = new Localtext();
 					$localT->AddLanguage($post);
 					break;
+                case "RemoveLanguage":
+                    (new Localtext())->RemoveLanguage($post);
+                    break;
 				case "LocaltextNew":
 					$localT = new Localtext();
 					$localT->New($post);
@@ -250,7 +253,6 @@ if(Tools::UserHasRole('Admin')){
 	echo json_encode(array('ERROR' => 'Forbidden'));
 	exit();
 }
-
 
 
 

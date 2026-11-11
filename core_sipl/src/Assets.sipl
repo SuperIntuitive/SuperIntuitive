@@ -101,6 +101,7 @@ fn editor(context: Map, request: Map) -> String {
 
 fn safeMedia(pathname: String) -> Bool {
     if not pathname.startsWith("/media/") or not safePath(pathname) { return false }
+    if pathname.startsWith("/media/downloads/") { return [".zip", ".gz", ".rpm", ".txt"].contains(path.extension(pathname).toLower()) }
     // These inert media formats may use the native server's confined file reads.
     return [".png", ".gif", ".jpg", ".jpeg", ".webp", ".ico", ".woff", ".woff2", ".ttf", ".mp3", ".wav", ".ogg", ".flac", ".mp4", ".webm"].contains(path.extension(pathname).toLower())
 }

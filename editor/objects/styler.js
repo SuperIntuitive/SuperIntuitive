@@ -26,7 +26,7 @@ SI.Editor.Objects.Styler = {
 
         //Code View Label/Checkbox
         let codeOrGuiCbLabel = Ele("label", {
-            innerHTML: "Code",
+            innerHTML: SI.Tools.Text.Editor("Code"),
             for: "si_styler_codeorguidcb",
             appendTo: mainmenu,
         });
@@ -72,7 +72,7 @@ SI.Editor.Objects.Styler = {
                         style = SI_StyleSheetsLibrary[stylesheet].style; 
                         break;
                     default: 
-                        SI.Tools.SuperAlert("No known group type. Can't get style"); 
+                        SI.Tools.SuperAlert(SI.Tools.Text.Editor("No known group type. Can't get style")); 
                         return;
                 }
                 SI.Editor.Objects.Styler.LoadedType = type;
@@ -153,7 +153,7 @@ SI.Editor.Objects.Styler = {
         //Menu Buttons
         //New Button adds a new style to the selected sheet
         Ele('button', {
-            innerHTML: 'New Style',
+            innerHTML: SI.Tools.Text.Editor('New Style'),
             style: {
                 marginLeft: '8px',
             },
@@ -169,7 +169,7 @@ SI.Editor.Objects.Styler = {
             style: {
                 marginLeft: "8px",
             },
-            value: "Update",
+            value: SI.Tools.Text.Editor("Update"),
             onclick: SI.Editor.Objects.Styler.BuildStyle,
             appendTo: mainmenu,
         });
@@ -179,7 +179,7 @@ SI.Editor.Objects.Styler = {
             style: {
                 marginLeft: "8px",
             },
-            value: "Save",
+            value: SI.Tools.Text.Editor("Save"),
             onclick: SI.Editor.Objects.Styler.SaveStyle,
             appendTo: mainmenu,
         });
@@ -411,8 +411,8 @@ SI.Editor.Objects.Styler = {
         });
 
         if (style.raw !== undefined) {
-            Ele('label', {textContent: 'CSS rule', appendTo: stylebox});
-            Ele('textarea', {class: 'si-styler-raw-rule', ariaLabel: 'CSS rule', value: style.raw, appendTo: stylebox});
+            Ele('label', {textContent: SI.Tools.Text.Editor('CSS rule'), appendTo: stylebox});
+            Ele('textarea', {class: 'si-styler-raw-rule', ariaLabel: SI.Tools.Text.Editor('CSS rule'), value: style.raw, appendTo: stylebox});
             return stylebox;
         }
 
@@ -498,7 +498,7 @@ SI.Editor.Objects.Styler = {
             let addSelect = Ele("select", {
                 id: "si_styler_propertiesselect_" + rand,
                 value: null,
-                ariaLabel: 'CSS property',
+                ariaLabel: SI.Tools.Text.Editor('CSS property'),
                 onchange: function () {
                     customProperty.hidden = this.value !== '__custom__';
                     if (!customProperty.hidden) customProperty.focus();
@@ -506,10 +506,10 @@ SI.Editor.Objects.Styler = {
                 appendTo: addSelectCell
             });
             Ele("option", { value: '', innerHTML: '', appendTo: addSelect });
-            Ele('option', {value: '__custom__', textContent: 'Other CSS property…', appendTo: addSelect});
+            Ele('option', {value: '__custom__', textContent: SI.Tools.Text.Editor('Other CSS property…'), appendTo: addSelect});
             const customProperty = Ele('input', {
                 type: 'text', hidden: true, class: 'si-styler-custom-property',
-                placeholder: '--custom-name or CSS property', ariaLabel: 'Custom CSS property name',
+                placeholder: SI.Tools.Text.Editor('--custom-name or CSS property'), ariaLabel: SI.Tools.Text.Editor('Custom CSS property name'),
                 appendTo: addSelectCell,
             });
             for (let group in SI.Editor.Data.css_properties) {
@@ -528,7 +528,7 @@ SI.Editor.Objects.Styler = {
             let addNewCell = Ele("td", { appendTo: addRow });
             let addNewButton = Ele("input", {
                 id: "si_styler_propertiesbutton_" + rand,
-                value: "Add new property",
+                value: SI.Tools.Text.Editor("Add new property"),
                 type: 'button',
                 onclick: function (ev) {
                     let select = document.getElementById(this.id.replace("_propertiesbutton_", "_propertiesselect_"));
@@ -544,7 +544,7 @@ SI.Editor.Objects.Styler = {
                         let propControl = SI.Editor.Objects.Elements.Styles.Widget({ "Property": property, "Affected": "none", "Preserve":true, "Draggable": true, "Removable": true });
                         table.appendChild(propControl);
                     } else {
-                        alert("To add a new property, select it from the drop down list.");
+                        alert(SI.Tools.Text.Editor("To add a new property, select it from the drop down list."));
                     }
                 },
                 appendTo: addNewCell
@@ -561,7 +561,7 @@ SI.Editor.Objects.Styler = {
                     if (leadingComments) {
                         const commentbox = Ele('tr', {class: 'si-edit-style-propertyrow', appendTo: propertiesbox});
                         const cell = Ele('td', {colSpan: 4, appendTo: commentbox});
-                        Ele('textarea', {class: 'si-styler-comment-prop', value: leadingComments[0].trim(), ariaLabel: 'CSS comment', appendTo: cell});
+                        Ele('textarea', {class: 'si-styler-comment-prop', value: leadingComments[0].trim(), ariaLabel: SI.Tools.Text.Editor('CSS comment'), appendTo: cell});
                         declaration = declaration.slice(leadingComments[0].length).trim();
                     }
                     if (!declaration) continue;
@@ -584,7 +584,7 @@ SI.Editor.Objects.Styler = {
                     } else {
                         const rawRow = Ele('tr', {class: 'si-edit-style-propertyrow', appendTo: propertiesbox});
                         const cell = Ele('td', {colSpan: 4, appendTo: rawRow});
-                        Ele('textarea', {class: 'si-styler-comment-prop', value: declaration + ';', ariaLabel: 'CSS declaration', appendTo: cell});
+                        Ele('textarea', {class: 'si-styler-comment-prop', value: declaration + ';', ariaLabel: SI.Tools.Text.Editor('CSS declaration'), appendTo: cell});
                     }
                 }
             }
@@ -702,7 +702,7 @@ SI.Editor.Objects.Styler = {
         if (sel === 'COMMENT') {
             selectorbox.style.position = 'absolute';
             selectorbox.style.width = '80px';
-            selectorbox.innerHTML = "Comment:";
+            selectorbox.innerHTML = SI.Tools.Text.Editor("Comment:");
 
             return selectorbox;
         }
@@ -990,7 +990,7 @@ SI.Editor.Objects.Styler = {
         let deleteButton = Ele('input', {
             id: 'si_styler_selector_menu_delete',
             type: 'button',
-            value: 'delete',
+            value: SI.Tools.Text.Editor('delete'),
             style: {
                 marginLeft:"24px",
             },
@@ -1022,7 +1022,7 @@ SI.Editor.Objects.Styler = {
             style: {
                 marginLeft: "5px",
             },
-            value: 'new selector',
+            value: SI.Tools.Text.Editor('new selector'),
             onclick: function () {            
                 //hide the menu
                 let menu = document.getElementById('si_styler_selectormenu');
@@ -1047,7 +1047,7 @@ SI.Editor.Objects.Styler = {
                     let aniname = Ele('input', {
                         type: 'list',
 
-                        placeholder: "Animation Name",
+                        placeholder: SI.Tools.Text.Editor("Animation Name"),
                         style: {
                             marginLeft: '8px',
                             paddingLeft: '8px',
@@ -1057,7 +1057,7 @@ SI.Editor.Objects.Styler = {
                         onchange: function () {
                             if (this.value.toLowerCase() === 'none') {
                                 this.value = '';
-                                alert("'none' cant be used for an animation name.");
+                                alert(SI.Tools.Text.Editor("'none' cant be used for an animation name."));
                                 return;
                             }
                             if (this.value.toLowerCase() !== 'none' && SI.Editor.Data.DataLists.AnimationNames.indexOf(this.value) === -1 && this.value.length > 0) {

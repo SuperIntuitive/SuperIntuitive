@@ -3,7 +3,7 @@ SI.Editor.Objects.Media = {
     Draw : function(){
         let container = Ele("div", {
             class: 'si-tool-body',});
-        var tabs = new SI.Widget.Tab({});
+        var tabs = new SI.Widget.Tab({TranslateLabels: true});
 
         tabs.Items.Add('Images', SI.Editor.Objects.Media.MediaTab('Images'));
         tabs.Items.Add('Audio', SI.Editor.Objects.Media.MediaTab('Audio'));
@@ -102,11 +102,11 @@ SI.Editor.Objects.Media = {
                 float: 'left'
             },
             appendTo: menu,
-            append: Ele("legend", { innerHTML: "File" })
+            append: Ele("legend", { innerHTML: SI.Tools.Text.Editor("File") })
         });
         //Replace File button;
         Ele('label', {
-            innerHTML: "Replace Dev File",
+            innerHTML: SI.Tools.Text.Editor("Replace Dev File"),
             htmlFor: 'si_media_' + tabname + '_update_dev',
             appendTo: fileOpsBox,
         });
@@ -125,8 +125,8 @@ SI.Editor.Objects.Media = {
         Ele('input', {
             id: 'si_media_' + tabname + '_recycle',
             type: 'button',
-            value: 'Move To Recycle',
-            title: "Moves the 4 images to the recycle bin and deletes the entity",
+            value: SI.Tools.Text.Editor('Move To Recycle'),
+            title: SI.Tools.Text.Editor("Moves the 4 images to the recycle bin and deletes the entity"),
             style: {
                 position: 'relative',
                 display: 'block',
@@ -231,7 +231,7 @@ SI.Editor.Objects.Media = {
                 left: '260px'
             },
             appendTo: container,
-            onclick: function () { alert("Sort and filter stuff will be here soon"); },
+            onclick: function () { alert(SI.Tools.Text.Editor("Sort and filter stuff will be here soon")); },
         });
         //Media Scroller
         var mediascroller = Ele('div', {
@@ -398,7 +398,7 @@ SI.Editor.Objects.Media = {
                 media.type = mime;
                 switch (tabname) {
                     case "Images":
-                        media.title = deployC + " image   Width: " + media.naturalWidth + " Height: " + media.naturalHeight;
+                        media.title = deployC + SI.Tools.Text.Editor(" image   Width: ") + media.naturalWidth + SI.Tools.Text.Editor(" Height: ") + media.naturalHeight;
                         break;
                     case "Audio":
                         media.parentElement.load();
@@ -440,7 +440,7 @@ SI.Editor.Objects.Media = {
     },
     Recycle : function () {
 
-        var r = confirm("Are you sure you would like to delete this file?");
+        var r = confirm(SI.Tools.Text.Editor("Are you sure you would like to delete this file?"));
         if (r === false) {
             return;
         }

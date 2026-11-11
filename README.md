@@ -30,6 +30,51 @@ The source text remains authoritative. Switching between Code and Blocks retains
 
 Both editions use the same browser editor and the locally bundled [Acorn](https://github.com/acornjs/acorn) 8.19.0 parser at `editor/vendor/acorn.js`. Its MIT license is included in that file. No CDN, npm installation or additional server runtime is required. Standard JavaScript script and module syntax are supported; advanced constructs remain fully editable through their JavaScript source rather than being translated into a smaller language. Run `node tests/editor_browser.cjs --scripter` for the isolated browser regression. `--styler` checks the CSS editor.
 
+## Language tool
+
+### Editor interface language
+
+The authenticated editor and public demo share the CMS-owned interface catalogs
+in `editor/locales/` for Spanish (`es`), Simplified Chinese (`zh`) and Tagalog
+(`tl`). English and missing entries use the original source labels. Both PHP and
+SIPL choose the editor language from `Accept-Language`, respecting regional
+variants and quality weights, and supply only that dictionary before editor
+initialization. The browser assets remain shared static JavaScript.
+
+These catalogs are framework files, not website local-text records. Editor
+language selection does not depend on installed website languages, create
+database columns, change website content or install Tagalog by default.
+The Language tool remains reserved for website content. Tool keys, IDs,
+record names, user-entered data and executable JavaScript/CSS are not translated.
+Localized editor responses remain private and uncached. The demo's preset
+sample and restricted-mode notices stay in its separate plugin.
+
+Run the native unit suite and `php tests/Fixture.php --framework --runtime PATH_TO_SIPL`
+with ZIP enabled after building both editions. The packaged browser checks
+exercise the real administrator editor's twelve tools in all four languages,
+preserved website content and administrator saves; `--demo` checks isolated
+demo localization and update preservation.
+
+**Language** lists every local-text record, including records without a translation in your preferred language. Select a record, choose an installed-language tab, edit its HTML, and use **Save**. Empty translations can be saved; preview uses the same regional/base-language preference order as page rendering. **New** selects the created record after confirmation, and failed requests retain the draft.
+
+The element editor's **innerHTML** field keeps source markup intact while typing.
+It applies the complete draft on leaving the field or saving the block.
+For elements inside a multilingual block, **Save block** saves the edited displayed
+translation and the block/layout together. It retains the translation marker and
+other languages; a failed save leaves the block dirty.
+
+Language installation adds a shared database column and requires administrator access, local-text write permission, and CSRF protection. Repeating an installation does not add another column. PHP and SIPL use the same language catalog. New columns allow missing translations; older required language columns remain supported.
+
+**Remove** requires an explicit data-loss confirmation and local-text delete permission as well. It permanently drops that language's column and translations for **every site sharing the database**; back up first. The text records and other languages remain, and the removed language can be installed again empty. Configured defaults across those sites and the last installed language are protected by the backend. Language schema changes are serialized so simultaneous removals cannot bypass the last-language check.
+
+The element editor's **Advanced → Multilingual** selector binds by record identity. Removing that binding keeps the displayed text and the Language record; save the containing block to retain binding changes. The character map loads successive Unicode ranges near its scroll boundary.
+
+Both editions translate page titles and metadata on the server and identify the preferred installed language in the document's `lang` attribute. Unchanged page saves preserve the original translation markers. A block whose complete HTML is a single `SI_MULTILANG_TOKEN` is bound as a whole without adding a layout wrapper; block saves preserve that marker.
+
+Large multilingual catalogs can exceed the SIPL listener's default 1 MiB response budget. With a runtime supporting `web.serve`'s `maxResponseBody`, set `maxResponseBody` in the private SIPL configuration (1 byte through 16 MiB) and restart the listener. This sets both the CMS and native response limits; it does not raise request/upload limits.
+
+Run `node .\tests\editor_browser.cjs --language` for isolated UI regressions. After building both editions, run `php tests/Fixture.php --language --runtime PATH_TO_SIPL` with ZIP enabled for disposable PHP/SIPL database and packaged-browser checks.
+
 ## Widgets
 
 Open **Widgets → Widget Editor** and choose a type: a working instance appears in the canvas. Drag tags or widgets from **Add** into it, including nested containers. Double-click an element, then use **Edit selected** to open the existing element controls. **Edit JavaScript** opens Scripter (Code or Blocks); **Edit CSS** opens Styler (Code or GUI). **New widget** creates a named definition based on Template. The Instances tab manages widgets already placed on the page.
@@ -169,6 +214,8 @@ Choose an administrator password of 10 to 72 bytes. Existing domain folders, dat
 
 Authenticated sessions expire after 30 idle minutes or 12 hours, and account, password, and role changes take effect on subsequent application requests. Login/password verification allows 10 attempts per peer IP per 5 minutes across browser sessions. Configure trusted proxy handling at the web server if hosting behind a reverse proxy. Media URLs are public; page permissions do not make attachments private.
 
+Public pages expose `SI.Session.OS`, read from the server session in both editions. Its values are `windows`, `linux`, `macos`, `android`, `ios`, `chromeos`, or `unknown`. A recognized platform client hint takes priority over the user agent when the session first records it. This field is a display preference for download ordering; it does not grant permissions. No other session data is exposed through `SI.Session`. Public release archives can be served from `/media/downloads/`.
+
 ### Default page theme
 
 The default page uses the navy palette, typography, and sidebar navigation from [the SIPL reference](docs/sipl-reference.html). Its editable source files are in `core/setup/default-theme/`.
@@ -245,6 +292,10 @@ Both editions include the page path in CSS, JavaScript, library CSS and editor r
 Normal administrator editing uses the existing authentication, authorization and CSRF checks.
 
 ### Updating an installed site
+
+For the proposed Settings upgrade button, release distribution and recovery
+design, see [Safe, easy CMS updates](docs/UPDATES.md). This is a design proposal;
+the current supported process remains the offline updater described below.
 
 Back up the installation and database first. Extract the new release to a temporary directory and run its updater against the existing installation. For SIPL:
 

@@ -1,26 +1,81 @@
 use Database
 use Entity
+use MiscData
 use Security
 use Tools
 
 fn dispatch(context: Map, action: String, post: Map) -> Map {
     Security.requireAdmin(context)
-    if action == "AddLanguage" {
-        let language = Tools.required(post, "langcode")
-        if not regex.compile("^[a-z]\{2,3\}(?:-[a-z]\{2\})?$").isMatch(language) { fail("INVALID_LANGUAGE") }
+    if ["AddLanguage", "RemoveLanguage"].contains(action) {
+        let language = languageCode(Tools.required(post, "langcode"))
         Security.demand(context, "localtext", "write")
-        Database.execute("ALTER TABLE localtext ADD `_" + language + "` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL", {:})
-        return {"ADDEDLANGUAGE": post}
+        let name = MiscData.lookups()["Languages"][language]
+        if action == "RemoveLanguage" {
+            Security.demand(context, "localtext", "delete")
+            if post.get("confirm").type != "Bool" or post["confirm"] != true { fail("LANGUAGE_REMOVAL_CONFIRMATION_REQUIRED") }
+        }
+        return schemaChange(fn() {
+            let columns = Database.query("SELECT COLUMN_NAME AS column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND LEFT(COLUMN_NAME,1)='_'", {:}).map(fn(row) => row["column_name"])
+            if action == "RemoveLanguage" {
+                if not columns.contains("_" + language) { fail("LANGUAGE_NOT_INSTALLED") }
+                if columns.length <= 1 { fail("LAST_LANGUAGE_PROTECTED") }
+                if defaultLanguages().contains(language) { fail("DEFAULT_LANGUAGE_PROTECTED") }
+                Database.execute("ALTER TABLE localtext DROP COLUMN `_" + language + "`", {:})
+                context["schema"]["localtext"]["columns"] = context["schema"]["localtext"]["columns"].filter(fn(column) => column != "_" + language)
+                context["schema"]["localtext"]["attributes"].remove("_" + language)
+                return {"REMOVEDLANGUAGE": {"langcode": language, "name": name}}
+            }
+            if not columns.contains("_" + language) {
+                let comment = json.stringify({"Name": name}).replace("'", "''")
+                Database.execute("ALTER TABLE localtext ADD `_" + language + "` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '" + comment + "'", {:})
+            }
+            if not context["schema"]["localtext"]["columns"].contains("_" + language) {
+                context["schema"]["localtext"]["columns"].push("_" + language)
+                context["schema"]["localtext"]["attributes"]["_" + language] = {"type": "text", "optional": "YES", "maxchars": 16777215}
+            }
+            return {"ADDEDLANGUAGE": {"langcode": language, "name": name}}
+        })
     }
+    if not ["LocaltextNew", "UpdateLocaltext"].contains(action) { fail("UNKNOWN_LOCALTEXT_ACTION") }
+    let language = languageCode(Tools.required(post, "language"))
+    if not context["schema"]["localtext"]["columns"].contains("_" + language) { fail("LANGUAGE_NOT_INSTALLED") }
+    let text = Tools.required(post, "text")
     if action == "LocaltextNew" {
-        let language = Tools.required(post, "language")
+        if text.isEmpty { fail("LOCALTEXT_REQUIRED") }
         let name = newToken()
-        let id = Entity.create(context, "localtext", {"name": name, "_" + language: Tools.required(post, "text"), "options": post.get("options", {:})})
-        return {"NEWLOCALTEXT": {"id": id, "token": name, "text": post["text"], "language": "_" + language}}
+        let values: Map = {"name": name, "_" + language: text, "options": post.get("options", {:})}
+        // Retain compatibility with older required language columns.
+        for column, definition in context["schema"]["localtext"]["attributes"] {
+            if column.startsWith("_") and column != "_" + language and definition.get("optional") == "NO" and not definition.contains("default") { values[column] = "" }
+        }
+        let id = Entity.create(context, "localtext", values)
+        return {"NEWLOCALTEXT": {"id": id, "token": name, "text": text, "language": "_" + language}}
     }
-    let language = Tools.required(post, "language")
-    Entity.update(context, "localtext", Tools.required(post, "id"), {"_" + language: Tools.required(post, "text")})
+    if not Entity.update(context, "localtext", Tools.required(post, "id"), {"_" + language: text}) { fail("LOCALTEXT_NOT_FOUND") }
     return {"LOCALTEXTUPDATED": true}
+}
+
+fn defaultLanguages() -> List {
+    return Database.query("SELECT COALESCE(NULLIF(s.settingvalue,''),'en') AS language FROM entities lt LEFT JOIN entities se ON se.name='settings' AND se.domain_id=lt.domain_id AND se.subdomain_id=lt.subdomain_id AND se.status='active' LEFT JOIN settings s ON s.entity_id=se.id AND s.settingname='DefaultLanguage' AND s.status='active' WHERE lt.name='localtext' AND lt.status='active'", {:}).map(fn(row) => row["language"].trim().toLower())
+}
+
+fn schemaChange(operation: Function) -> Map {
+    let lock = Database.one("SELECT GET_LOCK(CONCAT('si_localtext_',MD5(DATABASE())),5) AS acquired", {:})
+    if lock == none or lock["acquired"] != 1 { fail("LANGUAGE_SCHEMA_BUSY") }
+    var result = none
+    try { result = operation() }
+    fail {
+        Database.query("SELECT RELEASE_LOCK(CONCAT('si_localtext_',MD5(DATABASE())))", {:})
+        fail(fail)
+    }
+    Database.query("SELECT RELEASE_LOCK(CONCAT('si_localtext_',MD5(DATABASE())))", {:})
+    return result
+}
+
+fn languageCode(value: String) -> String {
+    let code = value.trim().toLower()
+    if not regex.compile("^[a-z]\{2,3\}(?:-[a-z]\{2\})?$").isMatch(code) or not MiscData.lookups()["Languages"].contains(code) { fail("INVALID_LANGUAGE") }
+    return code
 }
 
 fn newToken() -> String {

@@ -15,6 +15,7 @@ use ../src/Plugins
 use ../src/Page
 use ../src/User
 use ../src/Assets
+use ../src/Sessions
 
 var _checks = 0
 fn check(value: Bool, message: String) {
@@ -81,11 +82,29 @@ fn context() -> Map {
     return {"scopes": scopes, "schema": schema, "user": {"id": "0x" + "a".repeat(32), "name": "Test", "roles": ["Admin"], "permissions": permissions}, "deployment": "dev"}
 }
 fn start() {
+    for agent, expected in {"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": "windows", "Mozilla/5.0 (X11; Linux x86_64)": "linux", "Mozilla/5.0 (Linux; Android 15)": "android", "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)": "macos", "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)": "ios", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) Mobile/15E148": "ios", "Mozilla/5.0 (X11; CrOS x86_64)": "chromeos", "": "unknown"} {
+        check(Sessions.detectOS({"user-agent": agent}) == expected, "Visitor OS classification: " + agent)
+    }
+    check(Sessions.detectOS({"sec-ch-ua-platform": "\"Android\"", "user-agent": "Linux"}) == "android", "Client platform hint takes priority")
+    check(Sessions.detectOS({"sec-ch-ua-platform": "\"Unknown\"", "user-agent": "Windows NT 10.0"}) == "windows", "Unknown hints use the user agent")
+    check(Assets.safeMedia("/media/downloads/sipl/windows.zip") and Assets.safeMedia("/media/downloads/sipl/sources.tar.gz"), "Public download archives use confined static serving")
+    check(not Assets.safeMedia("/media/archive.zip") and not Assets.safeMedia("/media/downloads/config.json") and not Assets.safeMedia("/media/downloads/../private.zip"), "Download support stays inside the public archive directory")
     check(RateLimit.allowAt("long-window-test", 1, 60, 100), "Long rate window admits its first request")
     check(RateLimit.allowAt("short-window-test", 1, 5, 111), "Short rate window admits its first request")
     check(not RateLimit.allowAt("long-window-test", 1, 60, 111), "Short rate checks do not reset longer rate windows")
     check(RateLimit.allowAt("long-window-test", 1, 60, 160), "Rate windows expire at their own boundary")
     Config.setForTests({"root": path.absolute("."), "domain": "localhost", "subdomain": ""})
+    for header, expected in {"": "en", "de-DE": "en", "zh-CN, en;q=0.8": "zh", "es-MX": "es", "tl-PH": "tl", "es;q=0.2,zh;q=0.9": "zh", "zh;q=0,en;q=1": "en", "tl;q=0.5,es;q=0.5": "tl", "../../zh": "en", "zh;q=wrong,es": "es"} {
+        check(Editor.language(header) == expected, "Independent editor language negotiation: " + header)
+    }
+    for code in ["es", "zh", "tl"] {
+        let copy = Editor.locale(code)
+        check(copy["language"] == code and copy["texts"].length == 559, "Shared editor catalog: " + code)
+        check(not copy.contains("sample") and not copy["texts"].contains("Translated by AI"), "Demo sample and notices stay plugin-owned: " + code)
+        check(copy["texts"]["Language"] != "Language", "Language tool has a translated display label: " + code)
+        check(not Editor.bootstrap(copy).contains("SI_MULTILANG_"), "Editor translations do not use website localization records: " + code)
+    }
+    check(Editor.locale("en")["texts"].isEmpty, "English editor preserves source labels")
     check(Tools.guid("0x" + "A".repeat(32)) == "a".repeat(32), "GUID normalization")
     check(Tools.guid("b".repeat(32)) == "b".repeat(32), "Unprefixed GUID")
     rejects(fn() { Tools.guid("x".repeat(32)) }, "INVALID_GUID")
@@ -131,6 +150,9 @@ fn start() {
     check(constants["__NOW.DAY__"] == "27" and constants["__NOW.DAYSHORT__"] == "27th", "Constants honor the configured timezone")
     check(Content.substitute("🚀 __BRAND__ __NOW.YEAR__", constants) == "🚀 Super Intuitive 2026", "Named constants and Unicode")
     check(Content.substitute("__FIRST__", {"__FIRST__": "__SECOND__", "__SECOND__": "recursive"}) == "__SECOND__", "Content replacements cannot cascade")
+    check(Content.blockToken(" SI_MULTILANG_" + "A".repeat(20) + " ") == "A".repeat(20), "Whole-block translations retain their stable binding")
+    check(Content.blockToken("<p>SI_MULTILANG_" + "A".repeat(20) + "</p>") == "", "Inline translations do not bind the whole block")
+    check(Content.binding("Plain", "Plain") == "" and Content.binding("SI_MULTILANG_" + "A".repeat(20), "Quoted '<text>'").contains("&lt;text&gt;"), "Localized head bindings escape rendered values and omit ordinary text")
     check(Server.operationReply(Tools.portGap("EXAMPLE"), false)["status"] == 501, "Unported features are explicit")
     let sharedTools = Assets.readStatic("/scripts/tools.js")["body"]
     check(not sharedTools.contains("<?php") and sharedTools.contains("AddPhp:"), "Literal PHP comment text cannot block the shared JavaScript")
@@ -138,6 +160,59 @@ fn start() {
     check(Assets.staticAsset("/editor/vendor/acorn.js"), "The bundled Scripter parser is a native frontend asset")
     check(Assets.readStatic("/editor/vendor/acorn.js")["body"].contains("MIT License"), "Native Scripter parser is served with its license")
     let current = context()
+    let localScope = "0x" + "7".repeat(32)
+    current["scopes"]["localtext"] = localScope
+    current["user"]["permissions"][localScope] = {"read": true, "write": true, "create": true, "delete": true}
+    current["schema"]["localtext"] = {"columns": ["id", "entity_id", "name", "options", "_en", "_fr"], "attributes": {"name": {"type": "text"}, "options": {"type": "text"}, "_en": {"type": "text"}, "_fr": {"type": "text", "optional": "NO"}}}
+    let languages = recording([{"columns": ["acquired"], "rows": [[1]]}, {"columns": ["column_name"], "rows": [["_en"], ["_fr"]]}])
+    let added = Localtext.dispatch(current, "AddLanguage", {"langcode": " AF ", "name": "Untrusted label"})
+    check(added["ADDEDLANGUAGE"] == {"langcode": "af", "name": "Afrikaans"}, "Installed language code and label come from the canonical catalog")
+    check(languages.statements[2].contains("NULL DEFAULT NULL") and languages.statements[2].contains("Afrikaans"), "Language DDL allows missing translations and stores canonical metadata")
+    languages.replies.push({"columns": ["acquired"], "rows": [[1]]})
+    languages.replies.push({"columns": ["column_name"], "rows": [["_en"], ["_fr"], ["_af"]]})
+    Localtext.dispatch(current, "AddLanguage", {"langcode": "af"})
+    check(languages.statements.filter(fn(statement) => statement.startsWith("ALTER")).length == 1, "Duplicate language installation does not repeat DDL")
+    check(current["schema"]["localtext"]["attributes"].contains("_af"), "Installing a language updates the current schema")
+    rejects(fn() { Localtext.dispatch(current, "AddLanguage", {"langcode": "zz"}) }, "INVALID_LANGUAGE")
+    rejects(fn() { Localtext.dispatch(current, "AddLanguage", {"langcode": []}) }, "INVALID_FIELD_langcode")
+    rejects(fn() { Localtext.dispatch(current, "LocaltextNew", {"language": "zu", "text": "Hello"}) }, "LANGUAGE_NOT_INSTALLED")
+    rejects(fn() { Localtext.dispatch(current, "LocaltextNew", {"language": "en", "text": ""}) }, "LOCALTEXT_REQUIRED")
+    rejects(fn() { Localtext.dispatch(current, "LocaltextNew", {"language": "en", "text": []}) }, "INVALID_FIELD_text")
+    rejects(fn() { Localtext.dispatch(current, "LocaltextNew", {"language": "en", "text": "Hello", "options": []}) }, "OPTIONS_MUST_BE_OBJECT")
+    let localInsert = recording([])
+    let createdText = Localtext.dispatch(current, "LocaltextNew", {"language": "EN", "text": "<b>Hello</b>"})
+    check(createdText["NEWLOCALTEXT"]["language"] == "_en" and createdText["NEWLOCALTEXT"]["text"] == "<b>Hello</b>", "Localtext creation retains HTML and normalizes the language")
+    check(localInsert.parameters[0].values().contains("") and localInsert.statements[0].contains("_fr"), "Creation fills older required translation columns")
+    let localUpdate = recording([{"columns": ["found"], "rows": [[1]]}])
+    check(Localtext.dispatch(current, "UpdateLocaltext", {"id": "a".repeat(32), "language": "en", "text": ""})["LOCALTEXTUPDATED"], "An intentionally cleared translation can be saved")
+    check(localUpdate.parameters.last.values().contains(""), "Cleared translation remains an empty string")
+    recording([])
+    rejects(fn() { Localtext.dispatch(current, "UpdateLocaltext", {"id": "a".repeat(32), "language": "en", "text": "Missing"}) }, "LOCALTEXT_NOT_FOUND")
+    let localDenied = context()
+    localDenied["scopes"]["localtext"] = localScope
+    localDenied["schema"]["localtext"] = current["schema"]["localtext"]
+    localDenied["user"]["permissions"][localScope] = {"read": true, "write": false, "create": false}
+    rejects(fn() { Localtext.dispatch(localDenied, "AddLanguage", {"langcode": "af"}) }, "FORBIDDEN")
+    rejects(fn() { Localtext.dispatch(localDenied, "LocaltextNew", {"language": "en", "text": "Denied"}) }, "FORBIDDEN")
+    rejects(fn() { Localtext.dispatch(localDenied, "UpdateLocaltext", {"id": "a".repeat(32), "language": "en", "text": "Denied"}) }, "FORBIDDEN")
+    localDenied["user"]["roles"] = ["Guest"]
+    rejects(fn() { Localtext.dispatch(localDenied, "AddLanguage", {"langcode": "af"}) }, "FORBIDDEN")
+    rejects(fn() { Localtext.dispatch(current, "RemoveLanguage", {"langcode": "af"}) }, "LANGUAGE_REMOVAL_CONFIRMATION_REQUIRED")
+    let localRemoval = recording([{"columns": ["acquired"], "rows": [[1]]}, {"columns": ["column_name"], "rows": [["_en"], ["_fr"], ["_af"]]}, {"columns": ["language"], "rows": [["en"]]}])
+    check(Localtext.dispatch(current, "RemoveLanguage", {"langcode": "af", "confirm": true})["REMOVEDLANGUAGE"]["langcode"] == "af", "Language removal confirms its canonical identity")
+    check(localRemoval.statements.filter(fn(statement) => statement.startsWith("ALTER")) == ["ALTER TABLE localtext DROP COLUMN `_af`"], "Removal only drops the selected translation column")
+    check(not current["schema"]["localtext"]["columns"].contains("_af") and not current["schema"]["localtext"]["attributes"].contains("_af"), "Removal updates both schema surfaces")
+    recording([{"columns": ["acquired"], "rows": [[1]]}, {"columns": ["column_name"], "rows": [["_en"], ["_fr"]]}, {"columns": ["language"], "rows": [["EN"], ["fr"]]}])
+    rejects(fn() { Localtext.dispatch(current, "RemoveLanguage", {"langcode": "fr", "confirm": true}) }, "DEFAULT_LANGUAGE_PROTECTED")
+    recording([{"columns": ["acquired"], "rows": [[1]]}, {"columns": ["column_name"], "rows": [["_fr"]]}])
+    rejects(fn() { Localtext.dispatch(current, "RemoveLanguage", {"langcode": "fr", "confirm": true}) }, "LAST_LANGUAGE_PROTECTED")
+    recording([{"columns": ["acquired"], "rows": [[1]]}, {"columns": ["column_name"], "rows": [["_en"], ["_fr"]]}])
+    rejects(fn() { Localtext.dispatch(current, "RemoveLanguage", {"langcode": "af", "confirm": true}) }, "LANGUAGE_NOT_INSTALLED")
+    recording([{"columns": ["acquired"], "rows": [[0]]}])
+    rejects(fn() { Localtext.dispatch(current, "RemoveLanguage", {"langcode": "fr", "confirm": true}) }, "LANGUAGE_SCHEMA_BUSY")
+    current["user"]["permissions"][localScope]["delete"] = false
+    rejects(fn() { Localtext.dispatch(current, "RemoveLanguage", {"langcode": "fr", "confirm": true}) }, "FORBIDDEN")
+    current["user"]["permissions"][localScope]["delete"] = true
     let newPageRecording = recording([])
     let newPage = Page.create(current, {"page": "new-page"})
     check(newPage["PAGECREATED"].values() == ["new-page"], "New page response matches the existing browser callback")
@@ -159,6 +234,11 @@ fn start() {
     let translation = recording([{"columns": ["name", "_fr", "_en"], "rows": [["A".repeat(20), "Bonjour 🚀", "Hello"]]}])
     check(Content.expand(multilingual, "SI_MULTILANG_" + "A".repeat(20)) == "Bonjour 🚀", "Scoped multilingual text uses requested language fallback")
     check(translation.statements[0].contains("entity_id=UNHEX(:scope)") and translation.parameters[0]["n0"] == "A".repeat(20), "Translation uses tenant scope and bound tokens")
+    multilingual["settings"]["__SITE__"] = "__NOW.YEAR__"
+    recording([{"columns": ["name", "_fr", "_en"], "rows": [["A".repeat(20), "Copyright __NOW.YEAR__ __SITE__ SI_MULTILANG_" + "B".repeat(20), "English"]]}])
+    let expandedRecord = Content.expand(multilingual, "SI_MULTILANG_" + "A".repeat(20))
+    check(expandedRecord.startsWith("Copyright " + Content.constants(multilingual["settings"], time.now())["__NOW.YEAR__"]), "Constants expand inside translated HTML and metadata")
+    check(expandedRecord.endsWith("__NOW.YEAR__ SI_MULTILANG_" + "B".repeat(20)), "Translated values retain one-pass constant and language substitution")
     let raw = "text'); DROP TABLE users; -- \\" + "日本語"
     let insert = recording([])
     let id = Entity.create(current, "blocks", {"name": raw, "dev-options": encoded})
@@ -192,6 +272,20 @@ fn start() {
     check(response["BLOCKSAVED"] == "Menu", "Block save response contract")
     check(saved.events == ["begin", "commit"], "Content and layout share one transaction")
     check(saved.statements.filter(fn(statement) => statement.startsWith("UPDATE")).length == 2, "Both writes occur inside the transaction")
+    let translated = recording([{"columns": ["name"], "rows": [["Menu"]]}, {"columns": ["found"], "rows": [[1]]}, {"columns": ["found"], "rows": [[1]]}, {"columns": ["found"], "rows": [[1]]}])
+    let link = "<p><a href='https://example.test/app?x=1&y=2' target='_blank'>Try app</a></p>"
+    Block.save(current, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "html": "SI_MULTILANG_" + "A".repeat(20), "options": value, "localtext": [{"id": "a".repeat(32), "language": "en", "text": link}]})
+    check(translated.events == ["begin", "commit"] and translated.statements.last.startsWith("UPDATE `localtext`"), "Block content, layout and translation share one transaction")
+    check(translated.parameters.last.values().contains(link) and not translated.statements.last.contains("_fr"), "Complete translated link is bound without changing another language")
+    let missingTranslation = recording([{"columns": ["name"], "rows": [["Menu"]]}, {"columns": ["found"], "rows": [[1]]}, {"columns": ["found"], "rows": []}])
+    rejects(fn() { Block.save(current, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "html": raw, "localtext": [{"id": "a".repeat(32), "language": "en", "text": link}]}) }, "LOCALTEXT_NOT_FOUND")
+    check(missingTranslation.events == ["begin", "rollback"], "A failed translation rolls back the complete block save")
+    recording([])
+    rejects(fn() { Block.save(current, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "localtext": {:}}) }, "INVALID_BLOCK_TRANSLATIONS")
+    localDenied["user"]["roles"] = ["Admin"]
+    let translationDenied = recording([{"columns": ["name"], "rows": [["Menu"]]}])
+    rejects(fn() { Block.save(localDenied, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "localtext": [{"id": "a".repeat(32), "language": "en", "text": link}]}) }, "FORBIDDEN")
+    check(translationDenied.events == ["begin", "rollback"], "Translated block saves retain local-text permissions")
     let invalid = recording([])
     rejects(fn() { Block.save(current, {"guid": "b".repeat(32), "relationsId": "c".repeat(32), "options": []}) }, "OPTIONS_MUST_BE_OBJECT")
     check(invalid.statements.isEmpty, "Invalid options cause no partial writes")
@@ -226,6 +320,7 @@ fn start() {
     ])
     let model = Editor.model(editorContext, {"blocks": []})
     check(model["$rolesdata"][0]["rules"].type == "Map", "Editor roles remain structured objects")
+    check(model["$pageObjects"].type == "List" and model["$pageObjects"][0]["domainName"] == "localhost" and model["$pageObjects"][0]["pageId"] == "c".repeat(32), "Site tool receives the shared iterable page-directory contract")
     check(regex.compile(model["$PasswordStrength"]).isMatch("abcdefghij") and not regex.compile(model["$PasswordStrength"]).isMatch("abcdefghi"), "Native editor password rule accepts ten characters")
     check(model["$settings2"][0].contains("id") and model["$myLangs"] == ["en"], "Editor model carries setting IDs and supported languages")
     check(modelQueries.replies.isEmpty, "Native editor materializes all expected frontend datasets")

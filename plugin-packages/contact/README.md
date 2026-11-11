@@ -1,4 +1,4 @@
-# Contact system 1.1.0 — PHP and SIPL
+# Contact system 1.1.1 — PHP and SIPL
 
 This plugin adapts the working contact system in the local `superintutitive.com` repository (the superintuitive.com website). The source is `core_sipl/src/Contact.sipl`; its form/inbox assets are stored in `sql/contact-page.sql`. [Source fingerprints](reference/source.json) record the files inspected. The PHP handler is a native port of the same behavior; SIPL never executes PHP.
 

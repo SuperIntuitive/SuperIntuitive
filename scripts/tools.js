@@ -505,6 +505,34 @@ SI.Tools = {
         }
     },
     Text: {
+        Editor: function (text) {
+            const translations = SI.EditorText || {};
+            const key = text.trim();
+            return Object.prototype.hasOwnProperty.call(translations, key) ? text.replace(key, () => translations[key]) : text;
+        },
+        MultilingualValue: function (element, attribute) {
+            const value = attribute ? element.getAttribute(attribute) : element.textContent;
+            return element.dataset.si_ml_source && element.dataset.si_ml_rendered === value ? element.dataset.si_ml_source : value;
+        },
+        RestoreMultilingual: function (element, dirty = {}, updates = []) {
+            const texts = [...element.querySelectorAll('.si-multilingual')].reverse();
+            if (element.classList.contains('si-multilingual')) texts.push(element);
+            for (const text of texts) {
+                const token = text.dataset.si_ml_token;
+                if (dirty[token]?.has(text.id)) {
+                    const language = SI.Editor.Objects.Language;
+                    const record = SI.Editor.Data.Objects.Language.Current.find(value => value.name === token);
+                    if (!record) throw new Error('The multilingual text was not found.');
+                    const translation = language.Translation(record);
+                    if (!translation.language) throw new Error('Select a text and an installed language first.');
+                    const id = language.Id(record.id);
+                    const previous = updates.find(update => update.id === id && update.language === translation.language);
+                    if (previous && previous.text !== text.innerHTML) throw new Error('The same translation has conflicting edits. Save one version of its text.');
+                    if (!previous) updates.push({id: id, language: translation.language, text: text.innerHTML});
+                }
+                text.textContent = 'SI_MULTILANG_' + token;
+            }
+        },
         InsertAtCursor: function (text) {
             var sel, range, html;
             if (window.getSelection) {

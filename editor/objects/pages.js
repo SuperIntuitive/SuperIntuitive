@@ -23,7 +23,7 @@ SI.Editor.Objects.Page = {
             Icon: 'save',
             appendTo: pageContainer,
             class: 'si-page-action',
-            title: "Save the Page",
+            title: SI.Tools.Text.Editor("Save the Page"),
             onclick: function () {
                 SI.Editor.Objects.Page.Save();
             }
@@ -39,7 +39,7 @@ SI.Editor.Objects.Page = {
             },
             appendTo: pageContainer,
             append: Ele("legend", {
-                innerHTML: "Path",
+                innerHTML: SI.Tools.Text.Editor("Path"),
                 style: {
 
                     border: "inherit",
@@ -59,9 +59,9 @@ SI.Editor.Objects.Page = {
             appendTo: pathFieldset
         });
         let pathHeaderRow = Ele('tr', { appendTo: pathTable, style: { } });
-        let subHeader = Ele('th', { innerHTML: "Business Unit", appendTo: pathHeaderRow, userSelect: 'none' });
-        let domainHeader = Ele('th', { innerHTML: "Domain", appendTo: pathHeaderRow, userSelect: 'none' });
-        let pageHeader = Ele('th', { innerHTML: "Directory", appendTo: pathHeaderRow, userSelect: 'none' });
+        let subHeader = Ele('th', { innerHTML: SI.Tools.Text.Editor("Business Unit"), appendTo: pathHeaderRow, userSelect: 'none' });
+        let domainHeader = Ele('th', { innerHTML: SI.Tools.Text.Editor("Domain"), appendTo: pathHeaderRow, userSelect: 'none' });
+        let pageHeader = Ele('th', { innerHTML: SI.Tools.Text.Editor("Directory"), appendTo: pathHeaderRow, userSelect: 'none' });
         let spaceHeader = Ele('th', { appendTo: pathHeaderRow });
         let pathDataRow = Ele('tr', { appendTo: pathTable });
         let subData = Ele('td', { appendTo: pathDataRow });
@@ -77,7 +77,7 @@ SI.Editor.Objects.Page = {
             value: dir,
             onblur: function (evt) {
                 if (!evt.target.checkValidity()) {
-                    SI.Tools.SuperAlert("The Directory has invalid characters. Only .-_~ and / are allowed", 3000);
+                    SI.Tools.SuperAlert(SI.Tools.Text.Editor("The Directory has invalid characters. Only .-_~ and / are allowed"), 3000);
                 }
             },
             appendTo: dirData
@@ -93,7 +93,7 @@ SI.Editor.Objects.Page = {
             colSpan: 4,
             appendTo: pageredirectrow
         });
-        let redirectLuLbl = Ele('label', { for: 'si_edit_page_redirectlu', appendTo: pageredirectto, innerHTML: "Redirect To: " });
+        let redirectLuLbl = Ele('label', { for: 'si_edit_page_redirectlu', appendTo: pageredirectto, innerHTML: SI.Tools.Text.Editor("Redirect To: ") });
         let redirectLu = Ele('input', {
             id: "si_edit_page_redirectlu",
             type: "lookup",
@@ -110,7 +110,7 @@ SI.Editor.Objects.Page = {
         redirectLu.addEventListener('change',
             function () {
                 if (this.value !== "Database Lookup") {
-                    if (!confirm('If you redirect this page, you will only be able to remove the redirect from the Site tool. Are you sure you want to redirect it?')) {
+                    if (!confirm(SI.Tools.Text.Editor('If you redirect this page, you will only be able to remove the redirect from the Site tool. Are you sure you want to redirect it?'))) {
                         this.value = null;
                     }
                 }
@@ -129,7 +129,7 @@ SI.Editor.Objects.Page = {
             },
             appendTo: pageContainer,
             append: Ele("legend", {
-                innerHTML: "Meta Tags",
+                innerHTML: SI.Tools.Text.Editor("Meta Tags"),
                 style: {
 
                     border: "inherit",
@@ -153,7 +153,7 @@ SI.Editor.Objects.Page = {
                 }
         });
         let metaPageTitle = Ele('td', {
-            innerHTML: "Title",
+            innerHTML: SI.Tools.Text.Editor("Title"),
             appendTo: metaPageTitleRow,
             style: {
                 width: '150px'
@@ -164,7 +164,7 @@ SI.Editor.Objects.Page = {
         });
         let cleantitle = document.title.replace("dev - ", "");
         let metaPageTitleInput = Ele('input', {
-            placeholder: "The Page Title that appears in the tab",
+            placeholder: SI.Tools.Text.Editor("The Page Title that appears in the tab"),
             value: cleantitle,
             appendTo: metaPageTitleCell,
             style: {
@@ -189,12 +189,12 @@ SI.Editor.Objects.Page = {
         }
 
         let metaPageIconRow = Ele('tr', { appendTo: metaTable, style: { } });
-        let metaPageIcon = Ele('td', { innerHTML: "Favicon", appendTo: metaPageIconRow });
+        let metaPageIcon = Ele('td', { innerHTML: SI.Tools.Text.Editor("Favicon"), appendTo: metaPageIconRow });
         let metaPageIconLookupCell = Ele('td', { appendTo: metaPageIconRow });
         let metaPageIconLookup = Ele('input', {
             type: "lookup",
             data: { type: "media", column: 'path' },
-            placeholder: "Temp",
+            placeholder: SI.Tools.Text.Editor("Temp"),
             value: favicon,
             appendTo: metaPageIconLookupCell,
             style: {
@@ -218,11 +218,11 @@ SI.Editor.Objects.Page = {
         }
 
         let metaPageCharsetRow = Ele('tr', { appendTo: metaTable, style: { } });
-        let metaPageCharset = Ele('td', { innerHTML: "Charset", appendTo: metaPageCharsetRow });
+        let metaPageCharset = Ele('td', { innerHTML: SI.Tools.Text.Editor("Charset"), appendTo: metaPageCharsetRow });
         let metaPageCharsetLookupCell = Ele('td', { appendTo: metaPageCharsetRow });
 
         let metaPageCharsetLookup = Ele('input', {
-            placeholder: "utf-8",
+            placeholder: SI.Tools.Text.Editor("utf-8"),
             value: charset,
             list: "si_datalist_charsets",
             appendTo: metaPageCharsetLookupCell,
@@ -238,7 +238,7 @@ SI.Editor.Objects.Page = {
         //More or Less link
         let metaPageMoreRow = Ele('tr', { appendTo: metaTable, style: { } });
         let metaPageMore = Ele('th', {
-            innerHTML: "more",
+            innerHTML: SI.Tools.Text.Editor("more"),
             id: 'si_moremetatoggle',
             appendTo: metaPageMoreRow,
             colspan: '1',
@@ -247,16 +247,16 @@ SI.Editor.Objects.Page = {
             onclick: function () {
                 metafieldfix = document.getElementsByClassName("si-editor-page-metainput");
                 for (let i = 0; i < metafieldfix.length; i++) {
-                    if (this.innerHTML === "more") {
+                    if (this.innerHTML === SI.Tools.Text.Editor("more")) {
                         metafieldfix[i].style.display = 'table-row';
                     } else {
                         metafieldfix[i].style.display = 'none';
                     }
                 }
-                if (this.innerHTML === "more") {
-                    this.innerHTML = 'less';
+                if (this.innerHTML === SI.Tools.Text.Editor("more")) {
+                    this.innerHTML = SI.Tools.Text.Editor('less');
                 } else {
-                    this.innerHTML = 'more';
+                    this.innerHTML = SI.Tools.Text.Editor('more');
                 }
             }
         });
@@ -344,7 +344,7 @@ SI.Editor.Objects.Page = {
                 },
                 appendTo: pageContainer,
                 append: Ele("legend", {
-                    innerHTML: "Body Style",
+                    innerHTML: SI.Tools.Text.Editor("Body Style"),
                     style: {
 
                         border: "inherit",
@@ -357,7 +357,7 @@ SI.Editor.Objects.Page = {
 
             //Add body style
             let addBodyStyle = Ele("button", {
-                innerHTML: 'Add Style',
+                innerHTML: SI.Tools.Text.Editor('Add Style'),
                 style: {
                     height: '20px',
                     marginLeft: '12px'
@@ -382,7 +382,7 @@ SI.Editor.Objects.Page = {
                             leftbox.appendChild(stylebox);
                         }
                     } else {
-                        alert('Select a style to add it to the block');
+                        alert(SI.Tools.Text.Editor('Select a style to add it to the block'));
                     }
                     this.nextSibling.selectedIndex = 0;
                 },
@@ -479,7 +479,7 @@ SI.Editor.Objects.Page = {
                 },
                 appendTo: pageContainer,
                 append: Ele("legend", {
-                    innerHTML: "Deployment",
+                    innerHTML: SI.Tools.Text.Editor("Deployment"),
                     style: {
 
                         border: "inherit",
@@ -515,7 +515,7 @@ SI.Editor.Objects.Page = {
             },
             appendTo: pageContainer,
             append: Ele("legend", {
-                innerHTML: "Page Settings",
+                innerHTML: SI.Tools.Text.Editor("Page Settings"),
                 style: {
 
                     border: "inherit",
@@ -547,7 +547,7 @@ SI.Editor.Objects.Page = {
         base.appendChild(blocklib);
 
         let blocklabel = Ele('span', {
-            innerHTML: "Blocks",
+            innerHTML: SI.Tools.Text.Editor("Blocks"),
             style: {
                 },
             appendTo: blocklib
@@ -557,15 +557,15 @@ SI.Editor.Objects.Page = {
             Icon: 'newBlock',
             appendTo: blocklib,
             class: 'si-page-action',
-            title: "New Block",
+            title: SI.Tools.Text.Editor("New Block"),
             onclick: function (ev) {
-                let newBlockName = prompt("Please enter a unique name for the Block : ", "");
+                let newBlockName = prompt(SI.Tools.Text.Editor("Please enter a unique name for the Block : "), "");
                 if (newBlockName !== null) {
                     var potentialId = SI.Tools.RegEx.Fix("OkId", newBlockName);
                     if (document.getElementById("si_bid_" + potentialId) === null) {
                         SI.Editor.Objects.Blocks.New(newBlockName);
                     } else {
-                        alert("That Blockname is already in use on this page.");
+                        alert(SI.Tools.Text.Editor("That Blockname is already in use on this page."));
                     }
 
                 }
@@ -578,13 +578,13 @@ SI.Editor.Objects.Page = {
             id:'si_edit_importblock_trigger',
             appendTo: blocklib,
             class: 'si-page-action',
-            title: "Import Existing Block",
+            title: SI.Tools.Text.Editor("Import Existing Block"),
             onclick: function () {
                 let win = SI.Widgets.Window.si_edit_importblocks_window;
                 if (!win) {
                     win = new SI.Widget.Window({
                         Id: 'si_edit_importblocks_window',
-                        Title: 'Import Block',
+                        Title: SI.Tools.Text.Editor('Import Block'),
                         Width: '520px',
                         Height: '300px',
                         Resizable: true,
@@ -606,13 +606,13 @@ SI.Editor.Objects.Page = {
             id:'si_edit_blocktemplates_trigger',
             appendTo: blocklib,
             class: 'si-page-action',
-            title: "Block Template Library",
+            title: SI.Tools.Text.Editor("Block Template Library"),
             onclick: function () {
                 if(!SI.Widgets.Window.si_edit_blocktemplates_window){
                     var obj = {
                         Id: "si_edit_blocktemplates_window",
                         Trigger: '#si_edit_blocktemplates_trigger',
-                        Title: "Block Templates",
+                        Title: SI.Tools.Text.Editor("Block Templates"),
                         IconImg: '/editor/media/icons/blocktemplates.png',
                         Populate: SI.Editor.Objects.Page.DrawBlockTemplate
                     };
@@ -667,7 +667,7 @@ SI.Editor.Objects.Page = {
             //debugger;
             let title = document.getElementById('si_pagetitle');
             if (title !== null) {
-                let t1 = title.innerHTML;
+                let t1 = SI.Tools.Text.MultilingualValue(title);
                 if (t1.length > 0) {
                     t1 = t1.replace("dev - ", "");
                     data.head.title = t1;
@@ -698,18 +698,21 @@ SI.Editor.Objects.Page = {
                 if (metadatas.hasOwnProperty(metaEle)) {
                     let ele = metadatas[metaEle];
                     if (ele.content !== null && ele.content.length > 0) {
-                        let content = ele.content;
+                        let content = SI.Tools.Text.MultilingualValue(ele, 'content');
 
                         if (ele.name !== null && ele.name.length > 0) {
                             if (typeof data.head.meta.name === 'undefined') { //Deal with name metas
                                 data.head.meta.name = {};
                             }
                             data.head.meta.name[ele.name] = content;
-                        } else if (ele.httpEquiv !== null) { //Deal with http-equiv metas
+                        } else if (ele.httpEquiv.length > 0) { //Deal with http-equiv metas
                             if (typeof data.head.meta.httpEquiv === 'undefined') {
                                 data.head.meta.httpEquiv = {};
                             }
                             data.head.meta.httpEquiv[ele.httpEquiv] = content;
+                        } else if (ele.getAttribute('property')) {
+                            if (typeof data.head.meta.property === 'undefined') data.head.meta.property = {};
+                            data.head.meta.property[ele.getAttribute('property')] = content;
                         } else { //Deal with http-equiv metas
                             //debugger;
 
@@ -762,7 +765,7 @@ SI.Editor.Objects.Page = {
 
             SI.Editor.Ajax.Run(ajax);
         } else {
-            alert("Error: cannot find the page guid");
+            alert(SI.Tools.Text.Editor("Error: cannot find the page guid"));
             return;
         }
 
@@ -782,7 +785,7 @@ SI.Editor.Objects.Page = {
             }
         }
         if (data.hasOwnProperty('DUPE')) {
-            alert("Sorry,that page already exists.\nIf you would like to redirect this page to that one, please do so in the redirect field below.");
+            alert(SI.Tools.Text.Editor("Sorry,that page already exists.\nIf you would like to redirect this page to that one, please do so in the redirect field below."));
             namefield = document.getElementById('si_page_directory_field');
             namefield.value = namefield.dataset.name;
         }
@@ -792,12 +795,12 @@ SI.Editor.Objects.Page = {
         //Only if the name changed do we need to redirect to the new path.
         console.log(SI.Tools.GetPathDirectory());
         console.log(data);
-        SI.Tools.SuperAlert(SI.Tools.GetPathDirectory() + " page was saved!", 1500);
+        SI.Tools.SuperAlert(SI.Tools.GetPathDirectory() + SI.Tools.Text.Editor(" page was saved!"), 1500);
     },
     Created: function (data) {
         debugger;
         alert(data[Object.keys(data)[0]]);
-        if (window.confirm('Your new page has been created. Click Yes to go to it or No to stay here.')) {
+        if (window.confirm(SI.Tools.Text.Editor('Your new page has been created. Click Yes to go to it or No to stay here.'))) {
             window.location.href = '/' + data[Object.keys(data)[0]];
         }
     },
@@ -902,7 +905,7 @@ SI.Editor.Objects.Page = {
         }
      //   console.log(options);
         let btn = document.createElement('button');
-        btn.innerHTML = 'Add Block Template';
+        btn.innerHTML = SI.Tools.Text.Editor('Add Block Template');
         btn.style.float = 'right';
         btn.style.marginTop = '40px';
         btn.style.marginRight = '10px';
@@ -914,8 +917,8 @@ SI.Editor.Objects.Page = {
 
     DrawImportBlocks: function () {
         const container = Ele('div', {id: 'si_edit_importblock_form', class: 'si-tool-body si-import-block-form'});
-        Ele('p', {class: 'si-import-block-help', innerText: 'Add an existing block to this page. Changes to a shared block appear on every page that uses it.', appendTo: container});
-        Ele('label', {for: 'si_edit_importblock_select', innerText: 'Block to import', appendTo: container});
+        Ele('p', {class: 'si-import-block-help', innerText: SI.Tools.Text.Editor('Add an existing block to this page. Changes to a shared block appear on every page that uses it.'), appendTo: container});
+        Ele('label', {for: 'si_edit_importblock_select', innerText: SI.Tools.Text.Editor('Block to import'), appendTo: container});
         Ele('select', {
             id: 'si_edit_importblock_select',
             disabled: true,
@@ -926,9 +929,9 @@ SI.Editor.Objects.Page = {
         status.setAttribute('role', 'status');
         status.setAttribute('aria-live', 'polite');
         const actions = Ele('div', {class: 'si-import-block-actions', appendTo: container});
-        Ele('button', {id: 'si_edit_importblock_refresh', type: 'button', innerText: 'Refresh', onclick: function () { SI.Editor.Objects.Page.LoadImportBlocks(); }, appendTo: actions});
-        Ele('button', {type: 'button', innerText: 'Cancel', onclick: function () { SI.Widgets.Window.si_edit_importblocks_window.Hide(); }, appendTo: actions});
-        Ele('button', {id: 'si_edit_importblock_button', type: 'button', class: 'si-import-block-submit', innerText: 'Import block', disabled: true, onclick: SI.Editor.Objects.Page.ImportBlock, appendTo: actions});
+        Ele('button', {id: 'si_edit_importblock_refresh', type: 'button', innerText: SI.Tools.Text.Editor('Refresh'), onclick: function () { SI.Editor.Objects.Page.LoadImportBlocks(); }, appendTo: actions});
+        Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Cancel'), onclick: function () { SI.Widgets.Window.si_edit_importblocks_window.Hide(); }, appendTo: actions});
+        Ele('button', {id: 'si_edit_importblock_button', type: 'button', class: 'si-import-block-submit', innerText: SI.Tools.Text.Editor('Import block'), disabled: true, onclick: SI.Editor.Objects.Page.ImportBlock, appendTo: actions});
         SI.Editor.Objects.Page.LoadImportBlocks(container);
         return container;
     },
@@ -940,7 +943,7 @@ SI.Editor.Objects.Page = {
         const status = container.querySelector('[role="status"]');
         select.replaceChildren(new Option('Loading blocks…', ''));
         select.disabled = submit.disabled = refresh.disabled = true;
-        status.textContent = 'Loading available blocks…';
+        status.textContent = SI.Tools.Text.Editor('Loading available blocks…');
         container.dataset.loadstate = 'loading';
         const request = SI.Tools.Api.Send({
             Data: {Operation: 'Retrieve', Entity: {Name: 'blocks'}, Columns: 'id,name'},
@@ -952,7 +955,7 @@ SI.Editor.Objects.Page = {
             if (container.dataset.loadstate === 'loading') {
                 container.dataset.loadstate = 'error';
                 select.replaceChildren(new Option('Blocks could not be loaded', ''));
-                status.textContent = 'Could not load blocks. Select Refresh to try again.';
+                status.textContent = SI.Tools.Text.Editor('Could not load blocks. Select Refresh to try again.');
             }
         });
     },
@@ -968,7 +971,7 @@ SI.Editor.Objects.Page = {
         select.disabled = available.length === 0;
         container.querySelector('#si_edit_importblock_button').disabled = true;
         container.querySelector('#si_edit_importblock_refresh').disabled = false;
-        container.querySelector('[role="status"]').textContent = available.length ? 'Blocks already on this page are excluded.' : 'No other blocks are available to import.';
+        container.querySelector('[role="status"]').textContent = available.length ? SI.Tools.Text.Editor('Blocks already on this page are excluded.') : SI.Tools.Text.Editor('No other blocks are available to import.');
         container.dataset.loadstate = 'ready';
     },
     ImportBlock: function () {
@@ -981,13 +984,13 @@ SI.Editor.Objects.Page = {
         container.dataset.importing = 'true';
         select.disabled = true;
         for (const button of container.querySelectorAll('#si_edit_importblock_button, #si_edit_importblock_refresh')) button.disabled = true;
-        status.textContent = 'Importing ' + name + '…';
+        status.textContent = SI.Tools.Text.Editor('Importing ') + name + '…';
         const finish = function (success) {
             container.dataset.importing = 'false';
             select.disabled = false;
             container.querySelector('#si_edit_importblock_refresh').disabled = false;
             container.querySelector('#si_edit_importblock_button').disabled = success;
-            status.textContent = success ? name + ' was added to this page.' : 'Could not import this block. Try again or refresh the page.';
+            status.textContent = success ? name + SI.Tools.Text.Editor(' was added to this page.') : SI.Tools.Text.Editor('Could not import this block. Try again or refresh the page.');
             if (success) SI.Widgets.Window.si_edit_importblocks_window.Hide();
         };
         const request = SI.Editor.Objects.Blocks.Relate(id);

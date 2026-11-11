@@ -27,6 +27,7 @@ final class FixtureClient {
 final class Fixture {
     public bool $frameworkMode=false;
     public ?string $nativeBase=null;
+    public ?int $responseLimit=null;
     public string $root,$folder,$site,$name,$network,$database,$password,$base='';
     public array $containers=[],$processes=[],$results=[]; public int $checks=0; public bool $networkCreated=false;
     public string $adminPassword='Plugin-fixture-2026!';
@@ -103,6 +104,7 @@ final class Fixture {
         foreach (['DOMAIN_NAME'=>'localhost','USER_NAME'=>'Plugin Administrator','USER_EMAIL'=>'admin@example.test','USER_PASSWORD'=>password_hash($this->adminPassword,PASSWORD_BCRYPT),'DEFAULT_NOTEEMAIL'=>'info@example.test','DEFAULT_LANGUAGE'=>'en','DEFAULT_TIMEZONE'=>'UTC','DEFAULT_CURRENCY'=>'USD'] as $name=>$value) $sql=str_replace("'__SI_".$name."__'",'0x'.bin2hex($value),$sql);
         $this->sql($sql."\nUPDATE relations SET parent_id=0x".$ids['_SI_GUID_53']." WHERE child_id=0x".$ids['_SI_GUID_54']." AND note='users_securityroles';\nCOMMIT;\n");
         $config=['root'=>$this->site,'dsn'=>'mysql:host=127.0.0.1;port='.$port.';dbname=si_plugins;charset=utf8mb4','dbUser'=>'si_plugins','dbPassword'=>$this->password,'phpDsn'=>'mysql:host=plugin-db;dbname=si_plugins;charset=utf8mb4','domain'=>'localhost','subdomain'=>'','host'=>'127.0.0.1','port'=>0,'secureCookies'=>false,'contactSpecTenant'=>bin2hex(random_bytes(16)),'contactSpecToken'=>bin2hex(random_bytes(16)),'contactRaceTenant'=>bin2hex(random_bytes(16)),'contactRaceToken'=>bin2hex(random_bytes(16))];
+        if($this->responseLimit!==null)$config['maxResponseBody']=$this->responseLimit;
         Package::write($this->site.'/plugin-test.json',json_encode($config,JSON_UNESCAPED_SLASHES));
     }
     public function php(string $source,array $arguments=[]): array { return array_merge(['docker','run','--rm','--network',$this->network,'--entrypoint','php','-v',$this->site.':/workspace','superintuitive-security-check','/workspace/'.$source,'/workspace/plugin-test.json'],$arguments); }
@@ -225,6 +227,166 @@ final class Fixture {
         }
         foreach($defaults as$file=>$hash)$this->check(hash_file('sha256',$file)===$hash,'widget edits leave shipped default unchanged: '.basename($file));
     }
+    public function language(string $runtime): void {
+        $this->frameworkMode=true;
+        $this->responseLimit=4194304;
+        $this->plugins(true,false,$runtime);
+        $scope=$this->sql("SELECT HEX(id) FROM entities WHERE name='localtext' AND domain_id=(SELECT id FROM domains WHERE name='localhost' LIMIT 1)");
+        $role=$this->sql("SELECT HEX(id) FROM securityroles WHERE name='Admin' LIMIT 1");
+        $rules=json_decode(hex2bin($this->sql('SELECT HEX(rules) FROM securityroles WHERE id=0x'.$role)),true);
+        $this->check(is_array($rules)&&count($rules)>0,'Language permission fixture reads the exact stored rules');
+        $login=function(string $base):FixtureClient {
+            $client=new FixtureClient($base);$client->bootstrap('/');
+            $result=$client->request('/delegate.php',['KEY'=>'LoginAttempt','email'=>'admin@example.test','password'=>$this->adminPassword]);
+            $this->check(!empty($result['value']['REFRESH']),'Language fixture administrator login');
+            $client->bootstrap('/');return $client;
+        };
+        $failed=function(array $response,string $message):void {
+            $value=$response['value'];
+            $this->check(is_array($value)&&(!empty($value['ERROR'])||!empty($value['EXCEPTION']))&&!isset($value['NEWLOCALTEXT'])&&!isset($value['ADDEDLANGUAGE'])&&!isset($value['LOCALTEXTUPDATED']),$message);
+        };
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $guest=new FixtureClient($base);$guest->bootstrap('/');
+            $failed($guest->request('/delegate-admin.php',['KEY'=>'LocaltextNew','language'=>'en','text'=>'Denied']),$backend.' guests cannot create local text');
+            $admin=$login($base);
+            $failed($admin->request('/delegate-admin.php',['KEY'=>'AddLanguage','langcode'=>'af'],false),$backend.' language writes require CSRF');
+            $code=$backend==='php'?'af':'zu';$name=$backend==='php'?'Afrikaans':'Zulu';
+            $added=$admin->request('/delegate-admin.php',['KEY'=>'AddLanguage','langcode'=>strtoupper($code),'name'=>'Forged label']);
+            $this->check(($added['value']['ADDEDLANGUAGE']??null)===['langcode'=>$code,'name'=>$name],$backend.' language installation returns canonical code and name');
+            $duplicate=$admin->request('/delegate-admin.php',['KEY'=>'AddLanguage','langcode'=>$code]);
+            $this->check(($duplicate['value']['ADDEDLANGUAGE']??null)===['langcode'=>$code,'name'=>$name],$backend.' duplicate language installation is idempotent');
+            $column=json_decode($this->sql("SELECT COLUMN_COMMENT FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND COLUMN_NAME='_$code'"),true);
+            $this->check(($column['Name']??null)===$name&&$this->sql("SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND COLUMN_NAME='_$code'")==='YES',$backend.' new language columns allow absent translations and retain their catalog metadata');
+            foreach([['KEY'=>'AddLanguage','langcode'=>'zz'],['KEY'=>'AddLanguage','langcode'=>[]],['KEY'=>'LocaltextNew','language'=>'vi','text'=>'Not installed'],['KEY'=>'LocaltextNew','language'=>'en','text'=>''],['KEY'=>'LocaltextNew','language'=>'en','text'=>['bad']],['KEY'=>'LocaltextNew','language'=>'en','text'=>'Bad options','options'=>[]]]as$post){
+                $failed($admin->request('/delegate-admin.php',$post),$backend.' rejects invalid Language request '.json_encode($post));
+            }
+            $text="<b>Quoted ' text</b> \u{1F680}";
+            $created=$admin->request('/delegate-admin.php',['KEY'=>'LocaltextNew','language'=>$code,'text'=>$text]);
+            $row=$created['value']['NEWLOCALTEXT']??[];
+            $this->check(($row['text']??null)===$text&&($row['language']??null)==='_'.$code&&preg_match('/^[A-Z]{20}$/D',$row['token']??'')===1,$backend.' creates a scoped HTML translation with a valid token');
+            $id=preg_replace('/^0x/i','',$row['id']??'');
+            $stored=$this->sql("SELECT HEX(`_$code`) FROM localtext WHERE id=0x$id AND entity_id=0x$scope");
+            $this->check(preg_match('/^[a-f0-9]{32}$/Di',$id)===1&&strtolower($stored)===bin2hex($text),$backend.' created translation persists without changing its bytes: '.json_encode(['stored'=>$stored,'expected'=>bin2hex($text)]));
+            foreach(['Changed','','']as$value){
+                $updated=$admin->request('/delegate-admin.php',['KEY'=>'UpdateLocaltext','id'=>$id,'language'=>$code,'text'=>$value]);
+                $this->check(($updated['value']['LOCALTEXTUPDATED']??false)===true&&$this->sql("SELECT `_$code` FROM localtext WHERE id=0x$id")===$value,$backend.' saves changed, cleared, and unchanged translations');
+            }
+            foreach([['id'=>bin2hex(random_bytes(16)),'language'=>$code,'text'=>'Missing'],['id'=>$id,'language'=>'vi','text'=>'Uninstalled'],['id'=>$id,'language'=>$code,'text'=>[]],['id'=>'invalid','language'=>$code,'text'=>'Invalid ID']]as$post){
+                $failed($admin->request('/delegate-admin.php',['KEY'=>'UpdateLocaltext']+$post),$backend.' rejects invalid translation update');
+            }
+            $foreign=bin2hex(random_bytes(16));$otherScope=$this->sql("SELECT HEX(id) FROM entities WHERE name='blocks' LIMIT 1");
+            $this->sql("INSERT INTO localtext(id,entity_id,name,`_$code`) VALUES(0x$foreign,0x$otherScope,'".strtoupper(bin2hex(random_bytes(10)))."',0x".bin2hex('Foreign').")");
+            $failed($admin->request('/delegate-admin.php',['KEY'=>'UpdateLocaltext','id'=>$foreign,'language'=>$code,'text'=>'Forbidden']),$backend.' cannot update a record from another entity scope');
+            $this->check($this->sql("SELECT `_$code` FROM localtext WHERE id=0x$foreign")==='Foreign',$backend.' rejected update leaves foreign text unchanged');
+        }
+        $page=bin2hex(random_bytes(16));$block=bin2hex(random_bytes(16));$relation=bin2hex(random_bytes(16));
+        $scopes=[];
+        foreach(['pages','blocks','relations','settings']as$name)$scopes[$name]=$this->sql("SELECT HEX(id) FROM entities WHERE name='$name' AND domain_id=(SELECT id FROM domains WHERE name='localhost' LIMIT 1) LIMIT 1");
+        $token=$this->sql("SELECT name FROM localtext WHERE id=0x$id");$foreignToken=str_repeat('Z',20);
+        $html='<p id="language-preview">SI_MULTILANG_'.$token.'</p><p id="foreign-preview">SI_MULTILANG_'.$foreignToken.'</p>';
+        $pageOptions=bin2hex(json_encode(['head'=>['title'=>'SI_MULTILANG_'.$token,'meta'=>['name'=>['description'=>'SI_MULTILANG_'.$token],'property'=>['og:title'=>'SI_MULTILANG_'.$token]]],'body'=>['style'=>(object)[]]]));
+        $blockOptions=bin2hex('{"tag":"div","style":{},"settings":{},"widgets":{}}');
+        $this->sql("UPDATE localtext SET _en=0x".bin2hex('English fallback').",_fr=0x".bin2hex("Fran\u{E7}ais").",`_en-us`='' WHERE id=0x$id; INSERT INTO localtext(id,entity_id,name,_en) VALUES(0x".bin2hex(random_bytes(16)).",0x".$scopes['blocks'].",'$foreignToken','FOREIGNLEAK_SENTINEL'); INSERT INTO pages(id,entity_id,name,path,`dev-options`,`test-options`,`live-options`) VALUES(0x$page,0x".$scopes['pages'].",'LanguagePreview','language-preview',0x$pageOptions,0x$pageOptions,0x$pageOptions)");
+        $blockFields=['id'=>'0x'.$block,'entity_id'=>'0x'.$scopes['blocks'],'name'=>"'LanguagePreview'"];
+        foreach(['dev','test','live','rollback']as$level){
+            $blockFields[$level.'-order']='0';$blockFields[$level.'-modified']='CURRENT_TIMESTAMP()';
+            $blockFields[$level.'-html']='0x'.bin2hex($html);$blockFields[$level.'-options']='0x'.$blockOptions;
+        }
+        $this->sql('INSERT INTO blocks ('.implode(',',array_map(fn($column)=>'`'.$column.'`',array_keys($blockFields))).') VALUES ('.implode(',',$blockFields).')');
+        $this->sql("INSERT INTO relations(id,entity_id,parententity_id,childentity_id,parent_id,child_id,note,`dev-order`,`test-order`,`live-order`,`dev-options`,`test-options`,`live-options`) VALUES(0x$relation,0x".$scopes['relations'].",0x".$scopes['pages'].",0x".$scopes['blocks'].",0x$page,0x$block,'pages_blocks',0,0,0,0x$blockOptions,0x$blockOptions,0x$blockOptions)");
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $guest=new FixtureClient($base);
+            foreach(['fr-CA,fr;q=0.9,en;q=0.8'=>"Fran\u{E7}ais",'zz-ZZ'=>'English fallback','EN-us,en;q=0.9'=>'English fallback']as$header=>$expected){
+                $response=$guest->request('/language-preview',null,true,['Accept-Language'=>$header]);
+                $this->check($response['status']===200&&str_contains($response['text'],'id="language-preview">'.$expected.'</p>'),$backend.' rendered language uses regional/base/default fallback: '.$header);
+                $this->check(!str_contains($response['text'],'FOREIGNLEAK_SENTINEL'),$backend.' rendered translation never reads another entity scope');
+                $documentLanguage=str_starts_with(strtolower($header),'fr')?'fr':(str_starts_with(strtolower($header),'en-us')?'en-us':'en');
+                $this->check(preg_match('/<html[^>]*lang=[\'"]'.preg_quote($documentLanguage,'/').'[\'"]/',$response['text'])===1,$backend.' document language uses installed preferences');
+                $this->check(str_contains($response['text'],'>'.$expected.'</title>')&&str_contains($response['text'],"content='$expected'")&&str_contains($response['text'],"data-si_ml_source='SI_MULTILANG_$token'"),$backend.' title and metadata translate while retaining their source');
+            }
+        }
+        $this->sql("UPDATE settings SET settingvalue='FR' WHERE entity_id=0x".$scopes['settings']." AND settingname='DefaultLanguage'");
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $guest=new FixtureClient($base);
+            $response=$guest->request('/language-preview',null,true,['Accept-Language'=>'zz-ZZ']);
+            $this->check($response['status']===200&&str_contains($response['text'],'id="language-preview">'."Fran\u{E7}ais".'</p>'),$backend.' configured default language fallback');
+        }
+        $this->sql("UPDATE settings SET settingvalue='en' WHERE entity_id=0x".$scopes['settings']." AND settingname='DefaultLanguage'");
+        $this->sql("UPDATE blocks SET `live-html`='SI_MULTILANG_$token' WHERE id=0x$block");
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $response=(new FixtureClient($base))->request('/language-preview',null,true,['Accept-Language'=>'fr']);
+            $this->check(str_contains($response['text'],"class='si-block si-multilingual si-multilingual-$token'")&&str_contains($response['text'],"data-si_ml_token='$token'"),$backend.' whole-block translation renders without inserting a layout wrapper');
+        }
+        $largeId=bin2hex(random_bytes(16));$largeToken=str_repeat('Q',20);
+        $this->sql("INSERT INTO localtext(id,entity_id,name,_en) VALUES(0x$largeId,0x$scope,'$largeToken',REPEAT('a',2097152))");
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $admin=$login($base);$catalog=$admin->request('/editor/editor.js');
+            $this->check($catalog['status']===200&&strlen($catalog['text'])>2097152&&str_contains($catalog['text'],$largeToken),$backend.' configured multilingual editor catalog serves more than two MiB without truncation');
+        }
+        $this->sql("UPDATE localtext SET _af='' WHERE _af IS NULL; ALTER TABLE localtext MODIFY _af MEDIUMTEXT NOT NULL");
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $admin=$login($base);
+            $created=$admin->request('/delegate-admin.php',['KEY'=>'LocaltextNew','language'=>'en','text'=>'Legacy required column '.$backend]);
+            $this->check(isset($created['value']['NEWLOCALTEXT']),$backend.' creation remains compatible with older required language columns');
+        }
+        $restricted=$rules;
+        foreach($restricted as$key=>&$permission)if(strcasecmp(preg_replace('/^0x/i','',$key),$scope)===0){$permission['write']='false';$permission['create']='false';}
+        unset($permission);
+        $this->sql('UPDATE securityroles SET rules=0x'.bin2hex(json_encode($restricted)).' WHERE id=0x'.$role);
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $admin=$login($base);
+            foreach([['KEY'=>'AddLanguage','langcode'=>'af'],['KEY'=>'LocaltextNew','language'=>'en','text'=>'Denied'],['KEY'=>'UpdateLocaltext','id'=>$id,'language'=>'en','text'=>'Denied']]as$post){
+                $failed($admin->request('/delegate-admin.php',$post),$backend.' Language operation honors entity permissions');
+            }
+        }
+        $this->sql('UPDATE securityroles SET rules=0x'.bin2hex(json_encode($rules)).' WHERE id=0x'.$role);
+        $otherSubdomain=bin2hex(random_bytes(16));$otherLocaltext=bin2hex(random_bytes(16));$otherSettings=bin2hex(random_bytes(16));
+        $domain=$this->sql("SELECT HEX(id) FROM domains WHERE name='localhost' LIMIT 1");
+        $this->sql("INSERT INTO subdomains(id,domain_id,name) VALUES(0x$otherSubdomain,0x$domain,'language-guard'); INSERT INTO entities(id,domain_id,subdomain_id,name,options) VALUES(0x$otherLocaltext,0x$domain,0x$otherSubdomain,'localtext',''),(0x$otherSettings,0x$domain,0x$otherSubdomain,'settings',''); INSERT INTO settings(id,entity_id,settingname,settingvalue) VALUES(0x".bin2hex(random_bytes(16)).",0x$otherSettings,'DefaultLanguage','fr')");
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $admin=$login($base);
+            foreach([['KEY'=>'RemoveLanguage','langcode'=>'en','confirm'=>true],['KEY'=>'RemoveLanguage','langcode'=>'fr','confirm'=>true],['KEY'=>'RemoveLanguage','langcode'=>'zu'],['KEY'=>'RemoveLanguage','langcode'=>'zu','confirm'=>'true'],['KEY'=>'RemoveLanguage','langcode'=>'vi','confirm'=>true]]as$post){
+                $failed($admin->request('/delegate-admin.php',$post),$backend.' removal protects defaults, requires confirmation, and validates installed languages');
+            }
+            $code=$backend==='php'?'fi':'pl';$name=$backend==='php'?'Finnish':'Polish';
+            $added=$admin->request('/delegate-admin.php',['KEY'=>'AddLanguage','langcode'=>$code]);
+            $translated=$admin->request('/delegate-admin.php',['KEY'=>'UpdateLocaltext','id'=>$id,'language'=>$code,'text'=>'Delete only this language']);
+            $this->check(isset($added['value']['ADDEDLANGUAGE'])&&($translated['value']['LOCALTEXTUPDATED']??false)===true,$backend.' removal fixture contains a saved translation');
+            $count=$this->sql('SELECT COUNT(*) FROM localtext');
+            $removed=$admin->request('/delegate-admin.php',['KEY'=>'RemoveLanguage','langcode'=>$code,'confirm'=>true]);
+            $this->check(($removed['value']['REMOVEDLANGUAGE']??null)===['langcode'=>$code,'name'=>$name]&&$this->sql("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND COLUMN_NAME='_$code'")==='0',$backend.' confirmed removal drops the selected column');
+            $this->check($this->sql('SELECT COUNT(*) FROM localtext')===$count&&$this->sql("SELECT COUNT(*) FROM localtext WHERE id=0x$id")==='1',$backend.' removal preserves local-text records and other languages');
+            $admin->request('/delegate-admin.php',['KEY'=>'AddLanguage','langcode'=>$code]);
+            $this->check($this->sql("SELECT COUNT(*) FROM localtext WHERE `_$code` IS NOT NULL")==='0',$backend.' reinstalling a removed language starts empty');
+        }
+        $phpAdmin=$login($this->base);$nativeAdmin=$login($this->nativeBase);
+        $columns=explode("\n",$this->sql("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND LEFT(COLUMN_NAME,1)='_'"));
+        $this->sql('RENAME TABLE localtext TO fixture_localtext; CREATE TABLE localtext LIKE fixture_localtext');
+        try{
+            foreach($columns as$column)if(!in_array($column,['_af','_zu'],true))$this->sql('ALTER TABLE localtext DROP COLUMN `'.$column.'`');
+            $requests=[];
+            foreach([[$phpAdmin,'af'],[$nativeAdmin,'zu']]as[$client,$code]){
+                $requests[]=['url'=>$client->base.'/delegate-admin.php','headers'=>['Host'=>'localhost','Content-Type'=>'application/json','X-SI-CSRF'=>$client->csrf,'Cookie'=>implode('; ',array_map(fn($key)=>$key.'='.$client->cookies[$key],array_keys($client->cookies)))],'body'=>json_encode(['KEY'=>'RemoveLanguage','langcode'=>$code,'confirm'=>true])];
+            }
+            $parallel=$this->run(['node','-e','const fs=require("node:fs");const requests=JSON.parse(fs.readFileSync(0,"utf8"));Promise.all(requests.map(async request=>{const response=await fetch(request.url,{method:"POST",headers:request.headers,body:request.body});return response.json();})).then(results=>console.log(JSON.stringify(results))).catch(error=>{console.error(error);process.exitCode=1;});'],json_encode($requests));
+            $results=json_decode($parallel,true);
+            $this->check(count(array_filter($results,fn($value)=>isset($value['REMOVEDLANGUAGE'])))===1&&count(array_filter($results,fn($value)=>isset($value['ERROR'])))===1,'simultaneous PHP/SIPL removals cannot delete the last language');
+            $this->check($this->sql("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND LEFT(COLUMN_NAME,1)='_'")==='1','the final language remains after simultaneous removals');
+        }finally{
+            $this->sql('DROP TABLE localtext; RENAME TABLE fixture_localtext TO localtext');
+        }
+        foreach(['php'=>$this->base,'sipl'=>$this->nativeBase]as$backend=>$base){
+            $this->sql("UPDATE blocks SET `dev-html`='SI_MULTILANG_$token',`test-html`='SI_MULTILANG_$token' WHERE id=0x$block");
+            $admin=$login($base);
+            $relation=$this->sql("SELECT HEX(id) FROM relations WHERE parent_id=0x$page AND child_id=0x$block");
+            $before=$this->sql("SELECT HEX(`dev-html`) FROM blocks WHERE id=0x$block");
+            $textBefore=$this->sql("SELECT HEX(_en) FROM localtext WHERE id=0x$id");
+            $failed($admin->request('/delegate-admin.php',['KEY'=>'BlockSave','guid'=>$block,'relationsId'=>$relation,'html'=>'must roll back','localtext'=>[['id'=>$id,'language'=>'en','text'=>'must also roll back'],['id'=>str_repeat('0',32),'language'=>'en','text'=>'missing record']]]),$backend.' translated block save rejects a missing translation');
+            $this->check($this->sql("SELECT HEX(`dev-html`) FROM blocks WHERE id=0x$block")===$before&&$this->sql("SELECT HEX(_en) FROM localtext WHERE id=0x$id")===$textBefore,$backend.' translation failure rolls back block and prior translation writes together');
+            $this->test($backend.'-language-browser',['node',$this->root.'/tests/editor_browser.cjs','--language-fixture'],json_encode(['disposable'=>true,'base'=>$base,'backend'=>$backend,'email'=>'admin@example.test','password'=>$this->adminPassword,'languageToken'=>$token,'languageBlock'=>$block,'languagePage'=>$page]));
+        }
+        echo 'Packaged Language checks passed: '.$this->checks.PHP_EOL;
+    }
     public function framework(string $runtime): void {
         $this->frameworkMode=true;
         $this->plugins(true,false,$runtime);
@@ -278,6 +440,13 @@ final class Fixture {
             $admin->bootstrap('/asset-a');$admin->request('/asset-b');
             $editor=$admin->request('/editor/editor.js?page=asset-a');
             $this->check($editor['status']===200&&str_contains($editor['text'],'FrameworkA'),$backend.' editor reads requested page blocks');
+            $beforeLocales=$this->sql('SELECT COUNT(*) FROM localtext');
+            foreach(['es-MX'=>'es','zh-CN'=>'zh','tl-PH'=>'tl','en-US'=>'en','de-DE'=>'en','es;q=0.2,zh;q=0.9'=>'zh','zh;q=0,en;q=1'=>'en']as$header=>$code){
+                $response=$admin->request('/editor/editor.js?page=asset-a',null,true,['Accept-Language'=>$header]);
+                $this->check($response['status']===200&&preg_match('/SI\.EditorLanguage\s*=\s*(".*?");/',$response['text'],$locale)&&json_decode($locale[1],true)===$code,$backend.' editor locale negotiation '.$header);
+                $this->check(str_contains(implode(' ',$response['headers']['cache-control']??[]),'no-store'),$backend.' locale response is uncached '.$code);
+            }
+            $this->check($this->sql('SELECT COUNT(*) FROM localtext')===$beforeLocales&&$this->sql("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='localtext' AND COLUMN_NAME='_tl'")==='0',$backend.' UI translations leave website local-text records and installed languages unchanged');
             $row=json_decode($admin->request('/api.v1.php',['Operation'=>'Retrieve','Entity'=>['Name'=>'blocks','Attributes'=>['name'=>'FrameworkA']],'Columns'=>['id','dev-html']])['text'],true)['0'];
             $changed=$admin->request('/api.v1.php',['Operation'=>'Update','Entity'=>['Name'=>'blocks','Id'=>$row['id'],'Attributes'=>['dev-html'=>'<h2 id="framework_title_A">Administrator edit</h2>']]]);
             $rendered=$admin->request('/asset-a');
@@ -520,6 +689,7 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '')===__FILE__) {
     $runtime=getenv('SI_SIPL_RUNTIME') ?: $fixture->root.'/sipl.exe'; $index=array_search('--runtime',$argv,true); if ($index!==false) $runtime=$argv[$index+1] ?? throw new RuntimeException('Runtime path required');
     try {
         if (in_array('--widgets',$argv,true)) $fixture->widgets($runtime);
+        elseif (in_array('--language',$argv,true)) $fixture->language($runtime);
         elseif (in_array('--demo',$argv,true)) $fixture->demo($runtime);
         elseif (in_array('--framework',$argv,true)) $fixture->framework($runtime);
         elseif (in_array('--apache',$argv,true)) $fixture->apache();
@@ -535,7 +705,8 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '')===__FILE__) {
             foreach(['php','sipl']as$edition){$archive=dirname(__DIR__).'/dist/SuperIntuitive-'.$edition.'.zip';if(is_file($archive))$report['archives'][$edition]=hash_file('sha256',$archive);}
             if(in_array('--demo',$argv,true)){$report['scope']='editor-demo-plugin';$report['pluginArchive']=['file'=>'editor-demo.zip','sha256'=>hash_file('sha256',dirname(__DIR__).'/dist/editor-demo.zip')];}
             if(in_array('--widgets',$argv,true))$report['scope']='widget-editor';
-            file_put_contents(dirname(__DIR__).'/core_sipl/'.((in_array('--framework',$argv,true)||in_array('--demo',$argv,true)||in_array('--widgets',$argv,true))?'site-validation.json':'plugin-validation.json'),json_encode($report,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
+            if(in_array('--language',$argv,true))$report['scope']='language-tool';
+            file_put_contents(dirname(__DIR__).'/core_sipl/'.((in_array('--framework',$argv,true)||in_array('--demo',$argv,true)||in_array('--widgets',$argv,true)||in_array('--language',$argv,true))?'site-validation.json':'plugin-validation.json'),json_encode($report,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
         }
     }
     exit($status ?? 0);

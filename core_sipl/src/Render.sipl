@@ -16,10 +16,12 @@ fn bootstrap(context: Map, request: Map, page: Map) -> String {
         blockData[block["name"]] = {"Settings": options.get("settings", {:}), "Widgets": options.get("widgets", {:})}
     }
     let csrf = Sessions.csrf(request)
+    let session = {"OS": Sessions.os(request)}
     let values: Map = {"__SETTINGS__": page.get("settings", {:}), "__BLOCKS__": blockData, "__CSRF__": csrf, "__USER__": context["user"]["name"], "__ROLES__": context["user"].get("roles", []), "__PREFERENCES__": context["user"].get("preferences", {:}), "__BACKEND__": {"current": "sipl", "phpOrigin": Config.get("phpOrigin", "http://localhost:8090"), "siplOrigin": ""}}
     var source = fs.readText(Config.root("core_sipl/generated/page-bootstrap.js.tmpl"))
     let replacements: Map = {:}
     for marker, value in values { replacements[marker] = Tools.scriptJson(value) }
+    replacements["__SESSION__"] = Tools.scriptJson(session)
     return "<script>" + Tools.fillTemplate(source, replacements) + "</script>"
 }
 
@@ -29,8 +31,10 @@ fn deploymentControls(context: Map) -> String {
     for level, color in {"live": "red", "test": "yellow", "dev": "green"} {
         if level == "dev" and not Security.hasRole(context, "Admin") { continue }
         var disabled = ""
-        if context["deployment"] == level { disabled = " disabled" }
-        result += "<button type='button' id='si_deployment_control_" + level + "' class='si-deployment-control' title='" + level + "' onclick='SI.Deployment.Change(this)' style='border:0;border-radius:50%;width:16px;height:16px;background:" + color + "'" + disabled + "></button>"
+        var brightness = 50
+        if context["deployment"] == level { disabled = " disabled"
+            brightness = 150 }
+        result += "<button type='button' id='si_deployment_control_" + level + "' class='si-deployment-control' title='" + level + "' onclick='SI.Deployment.Change(this)' style='border:0;border-radius:50%;width:16px;height:16px;background:" + color + ";filter:brightness({brightness}%)'" + disabled + "></button>"
     }
     return result + "</div>"
 }
@@ -42,16 +46,23 @@ fn renderPage(context: Map, request: Map, page: Map) -> String {
         if parsed.type == "Map" { options = parsed }
     }
     let head = options.get("head", {:})
-    var title = head.get("title", page["name"])
+    let titleSource = head.get("title", page["name"])
+    var title = Content.expand(context, titleSource)
     if context["deployment"] != "live" { title = context["deployment"] + " - " + title }
-    var output = "<!doctype html><html lang='en'><head><meta id='si_meta_charset' charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title id='si_pagetitle'>" + Tools.escapeHtml(title) + "</title>"
+    let languages = Content.languages(context)
+    var language = "en"
+    if not languages.isEmpty { language = languages[0] }
+    var output = "<!doctype html><html lang='" + Tools.escapeHtml(language) + "'><head><meta id='si_meta_charset' charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title id='si_pagetitle'" + Content.binding(titleSource, title) + ">" + Tools.escapeHtml(title) + "</title>"
     let meta = head.get("meta", {:})
     for kind, entries in meta {
         if entries.type != "Map" { continue }
         var attribute = kind
         if kind == "httpEquiv" { attribute = "http-equiv" }
         if not ["name", "http-equiv", "property"].contains(attribute) { continue }
-        for name, content in entries { output += "<meta id='si_meta_" + name.replace("-", "_") + "' " + attribute + "='" + Tools.escapeHtml(name) + "' content='" + Tools.escapeHtml(content) + "'>" }
+        for name, content in entries {
+            let rendered = Content.expand(context, content)
+            output += "<meta id='si_meta_" + name.replace("-", "_") + "' " + attribute + "='" + Tools.escapeHtml(name) + "' content='" + Tools.escapeHtml(rendered) + "'" + Content.binding(content, rendered) + ">"
+        }
     }
     if head.get("favicon").type == "String" { output += "<link rel='icon' id='si_favicon' href='" + Tools.escapeHtml(head["favicon"]) + "'>" }
     output += bootstrap(context, request, page)
@@ -94,10 +105,17 @@ fn renderPage(context: Map, request: Map, page: Map) -> String {
             if regex.compile("^[A-Za-z-]+$").isMatch(property) { styles += property + ":" + "{value}" + ";" }
         }
         var content = Tools.text(block.get("html"), "")
+        let token = Content.blockToken(content)
+        var classes = "si-block"
+        var binding = ""
+        if not token.isEmpty {
+            classes += " si-multilingual si-multilingual-" + token
+            binding = " data-si_ml_token='" + token + "'"
+        }
         content = Content.expand(context, content)
         content = Deployment.mediaPaths(content, context["deployment"])
         let order = block["relationsOrder"]
-        output += "<" + tag + " id='si_block_" + Tools.safeId(block["name"]) + "' class='si-block' data-order='" + "{order}" + "' style='" + Tools.escapeHtml(styles) + "'>" + content + "</" + tag + ">"
+        output += "<" + tag + " id='si_block_" + Tools.safeId(block["name"]) + "' class='" + classes + "'" + binding + " data-order='" + "{order}" + "' style='" + Tools.escapeHtml(styles) + "'>" + content + "</" + tag + ">"
     }
     return output + deploymentControls(context) + "</body></html>"
 }

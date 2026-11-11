@@ -8,7 +8,9 @@ const {spawn} = require('node:child_process');
   const stylerOnly=process.argv.includes('--styler');
   const scripterOnly=process.argv.includes('--scripter');
   const contextMenuOnly=process.argv.includes('--context-menu');
-  const isolated=stylerOnly||scripterOnly||contextMenuOnly;
+  const languageOnly=process.argv.includes('--language');
+  const saveOnly=process.argv.includes('--save');
+  const isolated=stylerOnly||scripterOnly||contextMenuOnly||languageOnly||saveOnly;
   const config=isolated ? {disposable:true} : JSON.parse(fs.readFileSync(0, 'utf8'));
   assert.equal(config.disposable, true, 'This test edits and saves content; use a disposable fixture');
   if(!isolated)assert(config.base && config.email && config.password, 'Fixture URL and credentials are required');
@@ -36,6 +38,237 @@ const {spawn} = require('node:child_process');
     await send('Page.enable',{},sessionId);
     await send('Network.enable',{},sessionId);
     await resize(1440);
+    if(saveOnly){
+      let checks=0;
+      const check=(value,message)=>{assert(value,message);checks++;console.log('PASS Save '+message);};
+      const token='A'.repeat(20),id='a'.repeat(32);
+      await evaluate(`document.body.innerHTML='<section id="si_block_Test" class="si-block si-multilingual si-multilingual-${token}" data-si_ml_token="${token}"><p id="target">Original description</p></section><div id="si_bid_Test" data-name="Test" data-guid="0x${id}" data-relationsId="0x${'b'.repeat(32)}"></div><input id="si_bid_tag_Test" value="section"><input id="si_bid_order_Test" value="0"><input id="si_bid_name_Test" value="Test"><div id="si_edit_page_window"></div>';
+        window.SI={Widgets:{Lookup:{}},Editor:{Data:{Objects:{Blocks:{Test:{id:"0x${id}"}},Language:{Current:[{id:"${id}",name:"${token}",_en:'<p id="target">Original description</p>',_fr:"Traduction"}],Installed:["en"],CurrentPreference:"en"}},html_attributes:{GLOBAL:[{n:"innerHTML",dt:"INNERHTML",d:"HTML source"}]},Tools:{}},Objects:{Settings:{Help:{Show:()=>{}}},Widgets:{CanvasFor:()=>null,SaveInstances:()=>{}}},UI:{EditPanel:{SelectionSummary:()=>{}},ToolsPanel:{}}}};
+        window.requests=[];window.notifications=[];
+        window.alert=message=>notifications.push(message);`);
+      for(const file of ['scripts/tools.js','editor/objects/elements.js','editor/objects/language.js','editor/objects/blocks.js'])await evaluate(fs.readFileSync(path.join(__dirname,'..',file),'utf8'));
+      await evaluate(`SI.Tools.SuperAlert=message=>notifications.push(message);
+        SI.Editor.Ajax={Run:options=>{requests.push(options);return {};}};
+        SI.Editor.Objects.Elements.Editable=element=>element;
+        SI.Editor.Objects.Elements.Selected=document.getElementById("target");
+        document.body.appendChild(SI.Editor.Objects.Elements.Attributes.Widget({Group:"GLOBAL",Index:0}));
+        window.field=document.querySelector(".si-edit-attribute-GLOBAL-innerHTML");field.focus();`);
+      const markup='<a href="https://automate.example.test/?x=1&y=2" target="_blank" rel="noopener">Open Automate</a>';
+      for(const character of markup){
+        await send('Input.insertText',{text:character},sessionId);
+        assert.equal(await evaluate('document.getElementById("target").textContent'),'Original description');
+      }
+      check(await evaluate('field.value==='+JSON.stringify(markup)),'typing retains complete source tags without applying unfinished markup');
+      // A keyboard Save can run before the input loses focus.
+      await evaluate('SI.Editor.Objects.Elements.Selected=null;SI.Editor.Objects.Blocks.Save("Test","html")');
+      const result=await evaluate('requests.at(-1)');
+      check(result.Data.html==='SI_MULTILANG_'+token,'saved block retains its multilingual marker');
+      check(result.Data.localtext.length===1&&result.Data.localtext[0].language==='en','save updates only the displayed translation');
+      check(result.Data.localtext[0].text.includes(markup.replace('&y','&amp;y')),'save contains the complete link rather than unfinished markup');
+      check(await evaluate('document.querySelector("#target a").getAttribute("href")==="https://automate.example.test/?x=1&y=2"'),'committing preserves the complete link URL');
+      check(await evaluate('SI.Editor.Data.Objects.Blocks.Test.IsDirty&&SI.Editor.Data.Objects.Language.Current[0]._en===\'<p id="target">Original description</p>\''),'sending a request without a success acknowledgment retains the unsaved draft');
+      await evaluate('SI.Editor.Objects.Blocks.Saved("Test",requests.at(-1))');
+      check(await evaluate('!SI.Editor.Data.Objects.Blocks.Test.IsDirty&&SI.Editor.Data.Objects.Language.Current[0]._fr==="Traduction"'),'acknowledged saves clear dirty state without changing other languages');
+      await evaluate('document.getElementById("target").innerHTML="<b>Second</b>";SI.Editor.Objects.Elements.MarkDirty(document.getElementById("target"));SI.Editor.Objects.Blocks.Save("Test","html");document.getElementById("target").innerHTML="<i>Newer draft</i>";SI.Editor.Objects.Elements.MarkDirty(document.getElementById("target"));SI.Editor.Objects.Blocks.Saved("Test",requests.at(-1))');
+      check(await evaluate('SI.Editor.Data.Objects.Blocks.Test.IsDirty&&SI.Editor.Data.Objects.Blocks.Test.DirtyTranslations['+JSON.stringify(token)+']'),'an older acknowledgment cannot clear a newer draft');
+      await evaluate('SI.Editor.Objects.Elements.Selected=document.getElementById("target");field.value="<strong>Pasted HTML</strong>";field.dispatchEvent(new InputEvent("input",{bubbles:true,inputType:"insertFromPaste"}));field.dispatchEvent(new Event("change"))');
+      check(await evaluate('document.querySelector("#target strong").textContent==="Pasted HTML"&&SI.Editor.Objects.Elements.PendingContent.size===0'),'blur/change commits pasted markup');
+      await evaluate(`const group=document.createElement("section");group.innerHTML='<span id="one" class="si-multilingual" data-si_ml_token="${token}">Changed</span><span id="two" class="si-multilingual" data-si_ml_token="${token}">Original</span>';window.translations=[];SI.Tools.Text.RestoreMultilingual(group,{["${token}"]:new Set(["one"])},translations);`);
+      check(await evaluate('translations.length===1&&translations[0].text==="Changed"'),'an unchanged duplicate binding cannot overwrite the edited translation');
+      check(exceptions.length===0,'no browser exceptions while typing and saving source HTML');
+      console.log('Save browser checks passed: '+checks);return;
+    }
+    if(languageOnly){
+      let checks=0;
+      const check=(value,message)=>{assert(value,message);checks++;console.log('PASS Language '+message);};
+      const guid=letter=>letter.repeat(32),token=letter=>letter.repeat(20);
+      const records=[
+        {id:guid('a'),name:token('A'),_en:'',_fr:null},
+        {id:'0x'+guid('b'),name:token('B'),_en:null,_fr:'Bonjour'},
+        {id:guid('c'),name:token('C'),_en:'Hello',_fr:'Salut'},
+        {id:guid('d'),name:token('D'),_en:'<b>Bold</b> &amp; plain',_fr:''},
+      ];
+      await evaluate(`document.body.innerHTML='<div id="advanced"></div><p id="target" class="si-multilingual si-multilingual-${token('C')}">Hello</p>';
+        window.SI={Widgets:{Lookup:{}},Widget:{},Editor:{Style:{TextColor:"#304763"},Data:{User:{HelpLinks:[]},Objects:{Language:{Current:${JSON.stringify(records)},Installed:["zz-ZZ"],CurrentPreference:"zz-ZZ",SupportedLanguages:'<option value=""></option><option value="en">English</option><option value="fr">French</option>',Options:'<option value=""></option><option value="en">English</option><option value="fr">French</option><option value="af">Afrikaans</option>'},Entities:{Definitions:{localtext:{instanceguid:"0x${guid('f')}",attributes:{_en:{type:"text"},_fr:{type:"text"}}}}}},Tools:{}}}};
+        window.alerts=[];window.requests=[];window.marked=[];window.confirm=()=>true;
+        SI.Editor.Objects={Elements:{Selected:document.getElementById("target"),MarkDirty:element=>marked.push(element.id)}};
+        SI.Editor.UI={EditPanel:{SetSelectedElementValues:element=>{const select=document.getElementById("si_edit_main_advanced_mlselect");const option=Array.from(select.options).find(value=>value.dataset.token===element.dataset.si_ml_token);select.value=option?option.value:"";}}};`);
+      for(const file of ['scripts/tools.js','scripts/widgets/Tabs.js','editor/objects/language.js'])await evaluate(fs.readFileSync(path.join(__dirname,'..',file),'utf8'));
+      check(await evaluate(`(()=>{const title=document.createElement("title");title.textContent="dev - Localized title";title.dataset.si_ml_source="SI_MULTILANG_${token('C')}";title.dataset.si_ml_rendered=title.textContent;const preserved=SI.Tools.Text.MultilingualValue(title)==="SI_MULTILANG_${token('C')}";title.textContent="A new title";return preserved&&SI.Tools.Text.MultilingualValue(title)==="A new title";})()`),'head bindings survive an unchanged save and allow intentional replacement');
+      check(await evaluate(`(()=>{const meta=document.createElement("meta");meta.content="Localized description";meta.dataset.si_ml_source="SI_MULTILANG_${token('C')}";meta.dataset.si_ml_rendered=meta.content;return SI.Tools.Text.MultilingualValue(meta,"content")==="SI_MULTILANG_${token('C')}";})()`),'metadata serialization preserves translation markers');
+      check(await evaluate(`(()=>{const block=document.createElement("section");block.className="si-block si-multilingual";block.dataset.si_ml_token="${token('C')}";block.innerHTML="<p>Localized content</p>";const snapshot=block.cloneNode(true);SI.Tools.Text.RestoreMultilingual(snapshot);return snapshot.innerHTML==="SI_MULTILANG_${token('C')}"&&block.innerHTML==="<p>Localized content</p>";})()`),'whole-block serialization restores its marker without changing the live DOM');
+      const editorSource=fs.readFileSync(path.join(__dirname,'../editor/editor.js'),'utf8');
+      const ajaxStart=editorSource.indexOf('    Ajax: {'),ajaxEnd=editorSource.indexOf('\n}\nSI.Editor.Run();',ajaxStart);
+      assert(ajaxStart>=0&&ajaxEnd>ajaxStart,'Editor Ajax handlers are available');
+      await evaluate('SI.Editor.Ajax=({'+editorSource.slice(ajaxStart,ajaxEnd)+'}).Ajax');
+      await evaluate(`SI.Editor.Data.Objects.Language.DefaultLanguages=["en"];SI.Tools.SuperAlert=message=>alerts.push(message);
+        window.XMLHttpRequest=class {
+          constructor(){this.status=0;this.readyState=0;this.responseText="";}
+          open(){} setRequestHeader(){}
+          send(body){if(window.throwSend)throw Error("Fixture send failure");requests.push(JSON.parse(body));window.pendingXHR=this;}
+          finish(status,reply){this.status=status;this.readyState=4;this.responseText=typeof reply==="string"?reply:JSON.stringify(reply);this.onreadystatechange();}
+        };
+        window.lang=SI.Editor.Objects.Language;
+        window.originalPreferences=SI.Editor.Data.Objects.Language.Installed.slice();
+        window.languageBody=lang.Draw();`);
+      check(await evaluate('languageBody.querySelector("#si_edit_lang_availablelangs")!==null&&languageBody.querySelector("#si_edit_lang_save").disabled'),'Draw works before its returned body is mounted and blank selection cannot save');
+      await evaluate('document.body.appendChild(languageBody)');
+      check(await evaluate('lang.PerferredInstalledLanguage==="en"&&lang.CurrentInstalled.join(",")==="en,fr"&&JSON.stringify(originalPreferences)===JSON.stringify(SI.Editor.Data.Objects.Language.Installed)'),'unmatched preferences fall back to an installed language without mutating the preference list');
+      check(await evaluate('document.getElementById("si_edit_lang_textselect").options.length===5'),'empty and other-language records remain selectable');
+      check(await evaluate('Array.from(document.getElementById("si_edit_lang_textselect").options).every(option=>!option.value.startsWith("0x0x"))'),'prefixed and unprefixed GUIDs are normalized once');
+      check(await evaluate('Array.from(document.getElementById("si_edit_lang_textselect").options).find(option=>option.dataset.token==="'+token('D')+'").textContent==="Bold & plain"'),'HTML translation previews are plain text');
+      const advancedStart=editorSource.indexOf('//MULTILINGUAL SELECT'),advancedEnd=editorSource.indexOf('let ignoreInnerlbl',advancedStart);
+      assert(advancedStart>=0&&advancedEnd>advancedStart,'Multilingual controls are available');
+      await evaluate('(()=>{const advancedpanel=document.getElementById("advanced");'+editorSource.slice(advancedStart,advancedEnd)+'})()');
+      await evaluate('SI.Editor.Data.Objects.Language.Current.reverse();lang.Select("0x'+guid('c')+'");document.getElementById("si_edit_lang_box_en").innerHTML="Pasted <b>text</b>";document.getElementById("si_edit_lang_box_en").dispatchEvent(new InputEvent("input",{bubbles:true,inputType:"insertFromPaste"}))');
+      check(await evaluate('lang.Selected().name==="'+token('C')+'"&&lang.Selected()._en==="Pasted <b>text</b>"&&document.getElementById("target").innerHTML==="Pasted <b>text</b>"'),'record identity survives reordered data and paste updates the matching live preview');
+      await click('si_edit_lang_save');await click('si_edit_lang_save');
+      check(await evaluate('requests.length===1&&requests[0].id==="0x'+guid('c')+'"&&requests[0].language==="en"&&requests[0].text==="Pasted <b>text</b>"'),'save sends the selected record and language once, not the dropdown ordinal');
+      await evaluate('pendingXHR.finish(400,{ERROR:"Fixture rejection"})');
+      check(await evaluate('alerts.at(-1)==="Fixture rejection"&&!document.getElementById("si_edit_lang_save").disabled&&lang.Selected()._en==="Pasted <b>text</b>"'),'HTTP failure is visible, re-enables save, and preserves the draft');
+      await click('si_edit_lang_save');await evaluate('pendingXHR.finish(200,{LOCALTEXTUPDATED:true})');
+      check(await evaluate('alerts.at(-1)==="Translation saved."'),'successful saves receive an explicit confirmation');
+      await evaluate('SI.Editor.Data.Objects.Language.Installed=["en","fr"];SI.Editor.Data.Objects.Language.CurrentPreference="en,fr";const box=document.getElementById("si_edit_lang_box_en");box.focus();getSelection().selectAllChildren(box);document.execCommand("delete")');
+      check(await evaluate('lang.Selected()._en===""&&document.getElementById("target").innerHTML==="Salut"'),'deleting editable content clears the translation and previews the next preferred language');
+      await evaluate('SI.Editor.Data.Objects.Language.Installed=["FR-CA","fr","en"];SI.Editor.Data.Objects.Language.CurrentPreference="FR-CA,fr,en";lang.Selected()["_fr-ca"]="Regional"');
+      check(await evaluate('lang.Translation(lang.Selected()).text==="Regional"'),'regional preferences are case-insensitive and take precedence over base-language fallback');
+      await evaluate('delete lang.Selected()["_fr-ca"]');
+      check(await evaluate('lang.Translation(lang.Selected()).text==="Salut"'),'missing regional text falls back to the base language');
+      await evaluate('SI.Editor.Data.Objects.Language.Installed=["en"];SI.Editor.Data.Objects.Language.CurrentPreference="en";lang.Select("'+guid('c')+'");document.getElementById("si_edit_lang_newtext").value="New text"');
+      await click('si_edit_lang_new');await click('si_edit_lang_new');
+      check(await evaluate('requests.at(-1).KEY==="LocaltextNew"&&document.getElementById("si_edit_lang_new").value==="New"&&lang.Selected().name==="'+token('C')+'"'),'creating text retains the current editor until success and does not clear the New button label');
+      await evaluate('pendingXHR.finish(403,{ERROR:"Creation denied"})');
+      check(await evaluate('document.getElementById("si_edit_lang_newtext").value==="New text"&&!document.getElementById("si_edit_lang_new").disabled'),'failed creation preserves the input and restores controls');
+      await click('si_edit_lang_new');
+      await evaluate('document.getElementById("si_edit_lang_newtext").value="Next draft";window.createdReply={NEWLOCALTEXT:{id:"0x'+guid('e')+'",token:"'+token('E')+'",language:"_en",text:"New text"}};pendingXHR.finish(200,createdReply)');
+      check(await evaluate('lang.Selected().name==="'+token('E')+'"&&document.getElementById("si_edit_lang_box_en").innerHTML==="New text"&&document.getElementById("si_edit_lang_newtext").value==="Next draft"'),'creation selects the new record without discarding a subsequently typed input');
+      await evaluate('lang.Selected()._en="Unsaved new draft";lang.Select(lang.Selected().id);SI.Editor.Ajax.Complete(createdReply,{})');
+      check(await evaluate('SI.Editor.Data.Objects.Language.Current.filter(record=>record.name==="'+token('E')+'").length===1&&document.getElementById("si_edit_lang_box_en").innerHTML==="Unsaved new draft"'),'duplicate creation callbacks neither duplicate records nor overwrite a draft');
+      await click('si_edit_lang_new');
+      await evaluate('pendingXHR.finish(200,{NEWLOCALTEXT:{id:"'+guid('f')+'",token:"'+token('F')+'",language:"_en",text:"Next draft"}})');
+      check(await evaluate('document.getElementById("si_edit_lang_newtext").value===""&&lang.Selected().name==="'+token('F')+'"'),'matching creation input clears only after success');
+      await evaluate('document.getElementById("si_edit_lang_box_en").innerHTML="Keep draft";document.getElementById("si_edit_lang_box_en").dispatchEvent(new InputEvent("input",{bubbles:true}));document.getElementById("si_edit_lang_availablelangs").value="af";document.getElementById("si_edit_lang_availablelangs").dispatchEvent(new Event("change"))');
+      await click('si_edit_language_add');await evaluate('pendingXHR.finish(200,{ADDEDLANGUAGE:{langcode:"af",name:"Afrikaans"}});lang.Added({langcode:"af",name:"Afrikaans"})');
+      check(await evaluate('lang.CurrentInstalled.filter(code=>code==="af").length===1&&Array.from(document.getElementById("si_edit_lang_supportedlangs").options).filter(option=>option.value==="af").length===1&&document.querySelectorAll("#si_edit_lang_box_af").length===1'),'language installation updates the select and tab exactly once');
+      check(await evaluate('document.getElementById("si_edit_lang_box_en").innerHTML==="Keep draft"&&SI.Editor.Data.Objects.Language.SupportedLanguages.includes("af")&&SI.Editor.Data.Objects.Entities.Definitions.localtext.attributes._af.type==="text"'),'installing a language preserves drafts and synchronizes editor schema data');
+      await evaluate('document.getElementById("si_edit_lang_supportedlangs").value="en";lang.Controls()');
+      check(await evaluate('document.getElementById("si_edit_language_remove").disabled'),'configured default languages cannot be removed from the UI');
+      await evaluate('document.getElementById("si_edit_lang_supportedlangs").value="af";lang.Controls();window.confirm=()=>false;window.beforeRemoval=requests.length');
+      await click('si_edit_language_remove');
+      check(await evaluate('requests.length===beforeRemoval&&lang.CurrentInstalled.includes("af")'),'cancelling the data-loss warning sends no removal request');
+      await evaluate('window.confirm=message=>{window.removalWarning=message;return true}');
+      await click('si_edit_language_remove');
+      check(await evaluate('requests.at(-1).KEY==="RemoveLanguage"&&requests.at(-1).confirm===true&&removalWarning.includes("EVERY site")&&removalWarning.includes("cannot be undone")'),'removal requires an explicit all-sites data-loss confirmation');
+      await evaluate('pendingXHR.finish(403,{ERROR:"Removal denied"})');
+      check(await evaluate('lang.CurrentInstalled.includes("af")&&!!document.getElementById("si_edit_lang_box_af")'),'failed removal retains the language and its editor');
+      await click('si_edit_language_remove');
+      await evaluate('pendingXHR.finish(200,{REMOVEDLANGUAGE:{langcode:"af",name:"Afrikaans"}})');
+      check(await evaluate('!lang.CurrentInstalled.includes("af")&&!document.getElementById("si_edit_lang_box_af")&&!SI.Editor.Data.Objects.Entities.Definitions.localtext.attributes._af&&Array.from(document.getElementById("si_edit_lang_availablelangs").options).find(option=>option.value==="af").disabled===false&&document.getElementById("si_edit_lang_box_en").innerHTML==="Keep draft"'),'successful removal updates tabs, schema and installation options without discarding other-language drafts');
+      await evaluate('const select=document.getElementById("si_edit_main_advanced_mlselect");select.value="0x'+guid('d')+'";select.dispatchEvent(new Event("change"))');
+      check(await evaluate('document.getElementById("target").dataset.si_ml_token==="'+token('D')+'"&&!document.getElementById("target").classList.contains("si-multilingual-'+token('C')+'")&&marked.length===1'),'Advanced binds by identity, removes the old token class, and marks the element dirty');
+      await evaluate('document.getElementById("si_edit_main_advanced_mlselect").value="";document.getElementById("si_edit_main_advanced_mlselect").dispatchEvent(new Event("change"))');
+      check(await evaluate('document.getElementById("target").innerHTML==="<b>Bold</b> &amp; plain"&&!document.getElementById("target").classList.contains("si-multilingual")&&!document.getElementById("target").dataset.si_ml_token&&!document.getElementById("target").dataset.si_ml_index&&marked.length===2'),'removing multilingual tracking preserves content and removes both classes and attributes');
+      await evaluate('lang.LastChar=32;lang.Element("si_edit_language_charmap").replaceChildren();lang.DrawChars(100)');
+      check(await evaluate('lang.LastChar===132&&lang.Element("si_edit_language_charmap").lastChild.textContent.codePointAt(0)===32'),'character-map progress counts code points, not generated markup bytes');
+      await evaluate('lang.LastChar=0xD7FF;lang.DrawChars(4)');
+      check(await evaluate('lang.LastChar===0xD803&&Array.from(lang.Element("si_edit_language_charmap").lastChild.textContent).length===1'),'surrogate code points are skipped without corrupting progress');
+      await evaluate('lang.LastChar=0x1F600;lang.DrawChars(2)');
+      check(await evaluate('lang.LastChar===0x1F602&&Array.from(lang.Element("si_edit_language_charmap").lastChild.textContent).filter(value=>value!==" ").map(value=>value.codePointAt(0)).join(",")==="128512,128513"'),'the character map renders supplementary-plane characters');
+      await evaluate('lang.LastChar=299999;lang.DrawChars(100)');
+      check(await evaluate('lang.LastChar===300000'),'the character map stops at its existing limit');
+      await evaluate('languageBody.remove();document.body.appendChild(lang.Draw());lang.Element("si_edit_language_charmap").style.display="block";lang.DrawChars(3000);lang.Element("si_edit_language_charmap").dispatchEvent(new Event("scroll"))');
+      check(await evaluate('lang.LastChar===3032'),'reopening resets the character map and scrolling away from the bottom does not load more');
+      await evaluate('lang.Element("si_edit_language_charmap").scrollTop=lang.Element("si_edit_language_charmap").scrollHeight;lang.Element("si_edit_language_charmap").dispatchEvent(new Event("scroll"))');
+      check(await evaluate('lang.LastChar>3032'),'scrolling to the bottom loads the next character range');
+      await evaluate('lang.Body.remove();SI.Editor.Data.Objects.Language.SupportedLanguages="<option value=\\"\\"></option>";document.body.appendChild(lang.Draw())');
+      check(await evaluate('lang.CurrentInstalled.length===0&&lang.Element("si_edit_lang_new").disabled&&lang.Element("si_edit_lang_save").disabled'),'no installed languages disables creation and saving without exceptions');
+      await evaluate('lang.Added({langcode:"en",name:"English"})');
+      check(await evaluate('lang.Element("si_edit_lang_newtext").dataset.language==="en"&&!lang.Element("si_edit_lang_new").disabled&&lang.Element("si_edit_lang_box_en")!==null'),'installing the first language establishes creation and tab state');
+      await evaluate('window.throwSend=true;lang.Element("si_edit_lang_newtext").value="Retained";lang.New()');
+      check(await evaluate('!lang.Pending.LocaltextNew&&lang.Element("si_edit_lang_newtext").value==="Retained"&&alerts.at(-1).includes("could not be sent")'),'synchronous transport failure releases controls and reports failure');
+      await evaluate('window.throwSend=false;SI.Editor.Ajax.Run({Data:{KEY:"fixture"}});pendingXHR.finish(500,"<html>Fixture failure</html>")');
+      check(await evaluate('alerts.at(-1)==="The editor request could not be completed."'),'non-JSON server failures are visible');
+      let callbackCalled=false;
+      await evaluate('window.callbackCalled=false;SI.Editor.Ajax.Complete({ERROR:"Rejected"},{Callback:()=>{window.callbackCalled=true}})');
+      callbackCalled=await evaluate('window.callbackCalled');
+      check(!callbackCalled,'error responses never invoke a success callback');
+      check(exceptions.length===0,'no browser exceptions during language editing');
+      console.log('Language browser checks passed: '+checks);return;
+    }
+    if(process.argv.includes('--language-fixture')){
+      let checks=0;
+      const check=(value,message)=>{assert(value,message);checks++;console.log('PASS '+config.backend+' Language '+message);};
+      const wait=async(expression,label)=>{const until=Date.now()+20000;while(Date.now()<until){if(await evaluate(expression))return;await new Promise(resolve=>setTimeout(resolve,60));}throw Error(label+'; browser errors: '+JSON.stringify(exceptions));};
+      await send('Page.navigate',{url:config.base+'/'},sessionId);
+      await wait('document.readyState==="complete"&&!!window.SI?.CSRF?.Token','Guest bootstrap');
+      check(await evaluate('(async()=>{const response=await fetch("/delegate.php",{method:"POST",headers:{"Content-Type":"application/json","X-SI-CSRF":SI.CSRF.Token},body:JSON.stringify('+JSON.stringify({KEY:'LoginAttempt',email:config.email,password:config.password})+')});const value=await response.json();return response.ok&&!!(Array.isArray(value)?value[0]:value).REFRESH;})()'),'normal administrator signs in');
+      await evaluate('window.languageReloadPending=true');
+      await send('Page.navigate',{url:config.base+'/'},sessionId);
+      await wait('!window.languageReloadPending&&document.readyState==="complete"&&!!window.SI?.Editor?.Objects?.Language?.Draw&&!!document.getElementById("si_edit_main_advanced_mlselect")','Packaged editor');
+      await evaluate('window.languageAlerts=[];const notify=SI.Tools.SuperAlert;SI.Tools.SuperAlert=(message,...args)=>{languageAlerts.push(message);return notify(message,...args)};document.body.appendChild(SI.Editor.Objects.Language.Draw())');
+      const text='Packaged '+config.backend+' language text';
+      await evaluate('document.getElementById("si_edit_lang_newtext").value='+JSON.stringify(text));
+      await click('si_edit_lang_new');
+      await wait('SI.Editor.Objects.Language.Selected()?.["_"+SI.Editor.Objects.Language.ActiveLanguage]==='+JSON.stringify(text)+'&&!SI.Editor.Objects.Language.Pending.LocaltextNew','New local text callback');
+      check(await evaluate('document.getElementById("si_edit_lang_newtext").value===""&&document.getElementById("si_edit_lang_new").value==="New"'),'packaged creation selects the record and clears only the text input');
+      const code=config.backend==='php'?'nl':'tr';
+      check(await evaluate('Array.from(document.getElementById("si_edit_lang_availablelangs").options).some(option=>option.value==='+JSON.stringify(code)+'&&!option.disabled)'),'fixture language is available for installation');
+      await evaluate('document.getElementById("si_edit_lang_availablelangs").value='+JSON.stringify(code)+';document.getElementById("si_edit_lang_availablelangs").dispatchEvent(new Event("change"))');
+      await click('si_edit_language_add');
+      await wait('!!document.getElementById("si_edit_lang_box_'+code+'")&&!SI.Editor.Objects.Language.Pending.AddLanguage','Language install callback');
+      check(await evaluate('SI.Editor.Objects.Language.CurrentInstalled.includes('+JSON.stringify(code)+')&&document.getElementById("si_edit_lang_box_"+SI.Editor.Objects.Language.ActiveLanguage).innerHTML==='+JSON.stringify(text)),'packaged language installation creates its tab and retains the current record');
+      await evaluate('const installed=document.getElementById("si_edit_lang_supportedlangs");installed.value='+JSON.stringify(code)+';installed.dispatchEvent(new Event("change"));const box=document.getElementById("si_edit_lang_box_'+code+'");box.innerHTML="<b>Translation</b>";box.dispatchEvent(new InputEvent("input",{bubbles:true}))');
+      await click('si_edit_lang_save');
+      await wait('languageAlerts.includes("Translation saved.")&&!SI.Editor.Objects.Language.Pending.UpdateLocaltext','Translation save acknowledgment');
+      check(true,'packaged translation saves through the normal Admin/CSRF endpoint');
+      await evaluate('window.savedLanguageId=SI.Editor.Objects.Language.Selected().id');
+      const id=await evaluate('savedLanguageId');
+      await evaluate('window.languageReloadPending=true');
+      await send('Page.reload',{},sessionId);
+      await wait('!window.languageReloadPending&&!!window.SI?.Editor?.Objects?.Language?.Draw&&!!document.getElementById("si_edit_main_advanced_mlselect")','Reloaded editor');
+      check(await evaluate('SI.Editor.Objects.Language.Find('+JSON.stringify(id)+')?.["_'+code+'"]==="<b>Translation</b>"'),'saved translation survives a full reload');
+      await evaluate('(()=>{window.boundText=document.querySelector(".si-block h1,.si-block h2,.si-block p");SI.Editor.Objects.Elements.Selected=boundText;const select=document.getElementById("si_edit_main_advanced_mlselect");window.confirm=()=>true;select.value=SI.Editor.Objects.Language.Id('+JSON.stringify(id)+');select.dispatchEvent(new Event("change"))})()');
+      check(await evaluate('boundText.dataset.si_ml_token===SI.Editor.Objects.Language.Find('+JSON.stringify(id)+').name&&boundText.classList.contains("si-multilingual")'),'normal Advanced selector binds the saved record');
+      await evaluate('(()=>{window.boundHTML=boundText.innerHTML;const select=document.getElementById("si_edit_main_advanced_mlselect");select.value="";select.dispatchEvent(new Event("change"))})()');
+      check(await evaluate('!boundText.classList.contains("si-multilingual")&&!boundText.dataset.si_ml_token&&boundText.innerHTML===boundHTML'),'normal Advanced selector removes tracking without deleting the text');
+      await evaluate('document.body.appendChild(SI.Editor.Objects.Language.Draw());const installed=document.getElementById("si_edit_lang_supportedlangs");installed.value='+JSON.stringify(code)+';installed.dispatchEvent(new Event("change"));window.confirm=()=>true');
+      await click('si_edit_language_remove');
+      await wait('!SI.Editor.Objects.Language.CurrentInstalled.includes('+JSON.stringify(code)+')&&!SI.Editor.Objects.Language.Pending.RemoveLanguage','Language removal callback');
+      await evaluate('window.languageReloadPending=true');
+      await send('Page.reload',{},sessionId);
+      await wait('!window.languageReloadPending&&!!window.SI?.Editor?.Objects?.Language?.Draw','Editor after removal');
+      check(await evaluate('!Object.prototype.hasOwnProperty.call(SI.Editor.Objects.Language.Find('+JSON.stringify(id)+'),"_'+code+'")'),'confirmed removal persists across reload while preserving the text record');
+      await send('Page.navigate',{url:config.base+'/language-preview'},sessionId);
+      await wait('location.pathname==="/language-preview"&&!!window.SI?.Editor?.Objects?.Page?.Save&&!!document.getElementById("si_edit_main_advanced_mlselect")','Translated page editor');
+      await evaluate(`SI.Editor.UI.ToolsPanel.OpenToolWindow("Page",false);window.translationResponses=[];const complete=SI.Editor.Ajax.Complete;SI.Editor.Ajax.Complete=function(value,...args){translationResponses.push(value);return complete.call(this,value,...args);};SI.Editor.Objects.Page.Save();`);
+      await wait('translationResponses.some(value=>(Array.isArray(value)?value[0]:value).PAGESAVED)','Translated Page Save');
+      const tokenMarker='SI_MULTILANG_'+config.languageToken;
+      check(await evaluate(`(async()=>{const response=await fetch("/api.v1.php",{method:"POST",headers:{"Content-Type":"application/json","X-SI-CSRF":SI.CSRF.Token},body:JSON.stringify({Operation:"Retrieve",Entity:{Name:"pages",Id:${JSON.stringify(config.languagePage)},Attributes:{}},Columns:["dev-options"]})});const value=await response.json();const options=JSON.parse(value["0"]["dev-options"]);return options.head.title===${JSON.stringify(tokenMarker)}&&options.head.meta.name.description===${JSON.stringify(tokenMarker)}&&options.head.meta.property["og:title"]===${JSON.stringify(tokenMarker)};})()`),'normal Page Save persists translated title, description and OpenGraph markers');
+      await evaluate('SI.Editor.Objects.Blocks.Save(document.querySelector("[id^=si_bid_][data-guid][data-name]"),"html")');
+      await wait('translationResponses.some(value=>(Array.isArray(value)?value[0]:value).BLOCKSAVED)','Translated Block Save');
+      check(await evaluate(`(async()=>{const response=await fetch("/api.v1.php",{method:"POST",headers:{"Content-Type":"application/json","X-SI-CSRF":SI.CSRF.Token},body:JSON.stringify({Operation:"Retrieve",Entity:{Name:"blocks",Id:${JSON.stringify(config.languageBlock)},Attributes:{}},Columns:["dev-html"]})});const value=await response.json();return value["0"]["dev-html"]===${JSON.stringify(tokenMarker)};})()`),'normal Block Save persists the whole-block marker');
+      const source='<p id="save-description">Original program description</p>';
+      await evaluate(`(async()=>{const record=SI.Editor.Data.Objects.Language.Current.find(value=>value.name===${JSON.stringify(config.languageToken)});const response=await fetch("/delegate-admin.php",{method:"POST",headers:{"Content-Type":"application/json","X-SI-CSRF":SI.CSRF.Token},body:JSON.stringify({KEY:"UpdateLocaltext",id:record.id,language:"en",text:${JSON.stringify(source)}})});const reply=await response.json();if(!reply.LOCALTEXTUPDATED)throw Error(JSON.stringify(reply));})()`);
+      await evaluate('window.languageReloadPending=true');
+      await send('Page.reload',{},sessionId);
+      await wait('!window.languageReloadPending&&!!document.getElementById("save-description")&&!!document.getElementById("si_edit_main_advanced_mlselect")','Localized program fixture');
+      const otherLanguages=await evaluate(`Object.fromEntries(Object.entries(SI.Editor.Data.Objects.Language.Current.find(value=>value.name===${JSON.stringify(config.languageToken)})).filter(([key])=>key.startsWith("_")&&key!=="_en"))`);
+      await evaluate('SI.Editor.Objects.Elements.Select(null,"save-description");SI.Editor.UI.MainMenu.Element.style.display="block";const panel=document.getElementById("si_edit_edit_menuitem");panel.getAnimations().forEach(animation=>animation.cancel());panel.style.display="block";window.sourceField=document.querySelector(".si-edit-attribute-GLOBAL-innerHTML:not(:disabled)");sourceField.value="";sourceField.scrollIntoView();sourceField.focus()');
+      check(await evaluate('document.activeElement===sourceField'),'source HTML field receives actual keyboard input');
+      const link='<a href="https://automate.example.test/?one=1&two=2" target="_blank" rel="noopener">Try Automate</a>';
+      for(const character of link)await send('Input.insertText',{text:character},sessionId);
+      check(await evaluate('sourceField.value==='+JSON.stringify(link)+'&&document.getElementById("save-description").textContent==="Original program description"'),'typed incomplete markup does not replace the live DOM or alter the source');
+      await evaluate('window.programResponses=[];const programComplete=SI.Editor.Ajax.Complete;SI.Editor.Ajax.Complete=function(value,...args){programResponses.push(value);return programComplete.call(this,value,...args)};SI.Editor.UI.EditPanel.SaveSelected()');
+      await wait('programResponses.some(value=>(Array.isArray(value)?value[0]:value).BLOCKSAVED)','Translated program block save');
+      await evaluate('window.languageReloadPending=true');
+      await send('Page.reload',{},sessionId);
+      await wait('!window.languageReloadPending&&!!document.querySelector("#save-description a")&&!!window.SI?.Editor?.Data','Saved link after reload');
+      check(await evaluate('document.querySelector("#save-description a").getAttribute("href")==="https://automate.example.test/?one=1&two=2"&&document.querySelector("#save-description a").getAttribute("target")==="_blank"'),'complete link tags and attributes survive the actual packaged save and reload');
+      check(await evaluate(`document.getElementById("save-description").closest(".si-block").dataset.si_ml_token===${JSON.stringify(config.languageToken)}`),'saving a translated program preserves its language binding');
+      check(await evaluate(`JSON.stringify(Object.fromEntries(Object.entries(SI.Editor.Data.Objects.Language.Current.find(value=>value.name===${JSON.stringify(config.languageToken)})).filter(([key])=>key.startsWith("_")&&key!=="_en")))===${JSON.stringify(JSON.stringify(otherLanguages))}`),'saving English preserves every other translation');
+      check(exceptions.length===0,'packaged Language tool produces no browser exceptions');
+      console.log(config.backend+' packaged Language checks passed: '+checks);return;
+    }
     if(contextMenuOnly){
       let checks=0;
       const check=(value,message)=>{assert(value,message);checks++;console.log('PASS Context menu '+message);};
@@ -87,6 +320,11 @@ const {spawn} = require('node:child_process');
       };
       await attach();
       const child=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},childSession);assert(!r.exceptionDetails,JSON.stringify(r.exceptionDetails));return r.result.value;};
+      const localeCopy=code=>{
+        const copy=JSON.parse(fs.readFileSync(path.join(__dirname,'..','plugin-packages','editor-demo','locales',code+'.json'),'utf8'));
+        copy.texts={...JSON.parse(fs.readFileSync(path.join(__dirname,'..','editor','locales',code+'.json'),'utf8')).texts,...copy.texts};
+        return copy;
+      };
       if(config.expectCustom)check(await child('document.getElementById("cms_custom_demo_note")?.textContent==="Kept after CMS update"'),'CMS-edited published Blocks survive the CMS update');
       check(await evaluate('demoMessages.filter(m=>m.type==="ready").every(m=>m.origin==="null")'),'demo has an opaque browser origin');
       check(await child('SI.User.Name==="guest"&&SI.User.Roles.join()==="Guest"&&!SI.CSRF.Token'),'demo has no administrator identity or CSRF token');
@@ -94,10 +332,12 @@ const {spawn} = require('node:child_process');
       check(await child('(()=>{try{return !parent.document}catch(e){return e.name==="SecurityError"}})()'),'demo cannot read the parent document');
       check(await child('(()=>{try{return document.cookie===""}catch(e){return e.name==="SecurityError"}})()'),'demo cannot read site cookies');
       check(await child('Object.keys(SI.Editor.Data.Objects.Plugins.Current).length===0&&SI.Sample.records.media.length===0&&SI.Sample.records.pages.length===1&&SI.Editor.Data.Objects.Security.Roles.length===0'),'public model excludes private plugins, media, pages and account roles');
-      for(const tool of ['Page','Media','Site','Styler','Scripter','Widgets','Language','Entities','Plugins','Security','Users','Settings']){
+      const tools=['Page','Media','Site','Styler','Scripter','Widgets','Language','Entities','Plugins','Security','Users','Settings'];
+      for(const tool of tools){
         await evaluate('document.querySelector("[data-demo-frame]").contentWindow.postMessage({source:"si-sample-host",type:"tool",tool:'+JSON.stringify(tool)+'},"*")');
         const key=JSON.stringify('si_edit_'+tool.toLowerCase()+'_window');
-        await wait(()=>child('!!SI.Widgets.Window['+key+']?.Content?.childNodes.length&&SI.Widgets.Window['+key+'].IsVisible()'),'Demo tool '+tool);
+        try{await wait(()=>child('!!SI.Widgets.Window['+key+']?.Content?.childNodes.length&&SI.Widgets.Window['+key+'].IsVisible()'),'Demo tool '+tool);}
+        catch(error){throw Error(error.message+'; '+await child('JSON.stringify({body:SI.Widgets.Window['+key+']?.Content?.textContent?.slice(0,1000),language:{preference:SI.Editor.Data.Objects.Language.CurrentPreference,supported:SI.Editor.Data.Objects.Language.SupportedLanguages}})')+'; '+await evaluate('JSON.stringify(demoMessages.slice(-8))'));}
         check(true,'tool available: '+tool);await child('SI.Widgets.Window['+key+'].Hide(0)');
       }
       await child('SI.Editor.UI.ToolsPanel.OpenToolWindow("Styler")');
@@ -119,6 +359,45 @@ const {spawn} = require('node:child_process');
       await attach();
       check(await child('document.getElementById("si_demo_sample_title").textContent==="Make something yours."&&localStorage.getItem("demo-only")===null'),'reset restores published HTML and clears temporary storage');
       check(await child('SI.Editor.Data.Objects.Blocks[Object.keys(SI.Editor.Data.Objects.Blocks)[0]].style.includes("#83acd4")'),'reset restores published CSS');
+      for(const code of ['es','zh','tl']){
+        await new Promise(resolve=>setTimeout(resolve,5200));
+        const copy=localeCopy(code);
+        await send('Network.setExtraHTTPHeaders',{headers:{'Accept-Language':code}},sessionId);
+        await send('Network.enable',{},childSession);
+        await send('Network.setExtraHTTPHeaders',{headers:{'Accept-Language':code}},childSession);
+        const generation=await evaluate('demoMessages.filter(m=>m.type==="ready").length');
+        await evaluate('document.querySelector("[data-demo-reset]").click()');
+        await wait(()=>evaluate('demoMessages.filter(m=>m.type==="ready").length>'+generation),'Localized reset '+code);
+        await attach();
+        check(await child('document.documentElement.lang==='+JSON.stringify(code)),'document language '+code+' (received '+await child('document.documentElement.lang')+')');
+        check(await child('SI.Editor.Data.Objects.Language.CurrentPreference==='+JSON.stringify(code)),'editor model language '+code);
+        check(await child(config.expectCustom?'document.getElementById("si_demo_sample_title").textContent==="Make something yours."&&document.getElementById("cms_custom_demo_note").textContent==="Kept after CMS update"':'document.getElementById("si_demo_sample_title").textContent!== "Make something yours."'),(config.expectCustom?'custom administrator content preserved ':'published sample translated ')+code);
+        check(await child('document.querySelectorAll("#si_sample_ai_notice").length===1&&document.getElementById("si_sample_ai_notice").textContent==='+JSON.stringify(copy.texts['Translated by AI'])),'one translated AI notice '+code);
+        check(await child('SI.Sample.records.localtext.length===0'),'packaged sample exposes no website language catalog '+code);
+        for(const tool of tools){
+          const key=JSON.stringify('si_edit_'+tool.toLowerCase()+'_window');
+          await child('SI.Editor.UI.MainMenu.Element.style.display="block";document.getElementById("si_edit_'+tool.toLowerCase()+'_trigger").click()');
+          await wait(()=>child('!!SI.Widgets.Window['+key+']?.Content?.childNodes.length&&SI.Widgets.Window['+key+'].IsVisible()'),'Translated tool '+code+' '+tool);
+          check(await child('SI.Widgets.Window['+key+'].Title.textContent==='+JSON.stringify(copy.texts[tool])),'translated tool retains canonical click identity '+code+' '+tool);
+          await child('SI.Widgets.Window['+key+'].Hide(0)');
+        }
+        await child('document.getElementById("si_demo_sample_title").textContent="Temporary multilingual edit";SI.Editor.Objects.Blocks.Save(Object.keys(SI.Editor.Data.Objects.Blocks)[0],"html");SI.Tools.Api.Send({Data:{Operation:"Update",Entity:{Name:"blocks"}}});');
+        check(await child('document.getElementById("si_sample_notice").textContent==='+JSON.stringify(copy.texts['Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.'])),'localized blocked-save notice '+code);
+        const resetGeneration=await evaluate('demoMessages.filter(m=>m.type==="ready").length');
+        await evaluate('document.querySelector("[data-demo-reset]").click()');
+        await wait(()=>evaluate('demoMessages.filter(m=>m.type==="ready").length>'+resetGeneration),'Localized published reset '+code);
+        await attach();
+        check(await child('document.documentElement.lang==='+JSON.stringify(code)+'&&document.getElementById("si_demo_sample_title").textContent!=="Temporary multilingual edit"'),'reset retains selected language '+code);
+        check(await child('SI.User.Roles.join()==="Guest"&&!SI.CSRF.Token&&(()=>{try{return !parent.document}catch(e){return e.name==="SecurityError"}})()'),'isolation unchanged '+code);
+      }
+      await send('Network.setExtraHTTPHeaders',{headers:{'Accept-Language':'en'}},sessionId);
+      await send('Network.enable',{},childSession);
+      await send('Network.setExtraHTTPHeaders',{headers:{'Accept-Language':'en'}},childSession);
+      const englishGeneration=await evaluate('demoMessages.filter(m=>m.type==="ready").length');
+      await evaluate('document.querySelector("[data-demo-reset]").click()');
+      await wait(()=>evaluate('demoMessages.filter(m=>m.type==="ready").length>'+englishGeneration),'English cache reset');
+      await attach();
+      check(await child('document.documentElement.lang==="en"&&document.getElementById("si_demo_sample_title").textContent==="Make something yours."&&!document.getElementById("si_sample_ai_notice")'),'English remains exact after all language caches');
       console.log('Demo plugin browser checks passed: '+checks);return;
     }
     if(process.argv.includes('--widgets')){
@@ -203,6 +482,7 @@ const {spawn} = require('node:child_process');
       const wait=async(test,label)=>{const until=Date.now()+20000;while(Date.now()<until){if(await test())return;await pause();}throw Error(label+'; browser errors: '+JSON.stringify(exceptions));};
       await send('Page.navigate',{url:config.base+'/asset-a'},sessionId);
       await wait(()=>evaluate('window.frameworkAsset==="A"'),'Page A assets');
+      check(await evaluate('!document.querySelector(\'a[href^="/core_sipl/switch.html"]\')'),'public page has no development backend-switch control');
       const {targetId:tabB}=await send('Target.createTarget',{url:config.base+'/asset-b'});
       const {sessionId:sessionB}=await send('Target.attachToTarget',{targetId:tabB,flatten:true});
       await wait(async()=>{const r=await send('Runtime.evaluate',{expression:'window.frameworkAsset',returnByValue:true},sessionB);return r.result.value==='B';},'Page B assets');
@@ -213,6 +493,7 @@ const {spawn} = require('node:child_process');
       check(await evaluate('(async()=>{const r=await fetch("/delegate.php",{method:"POST",headers:{"Content-Type":"application/json","X-SI-CSRF":SI.CSRF.Token},body:JSON.stringify('+JSON.stringify({KEY:'LoginAttempt',email:config.email,password:config.password})+')});return r.ok&&(await r.json())[0]?.REFRESH})()'),'normal administrator signs in');
       await send('Page.navigate',{url:config.base+'/asset-a'},sessionId);
       await wait(()=>evaluate('!!document.getElementById("si_edit_styler_trigger")'),'Administrator editor');
+      check(await evaluate('!document.querySelector(\'a[href^="/core_sipl/switch.html"]\')'),'administrator page has no development backend-switch control');
       await click('si_edit_page_trigger');
       await wait(()=>evaluate('!!document.getElementById("si_bid_name_FrameworkA")'),'Administrator block controls');
       await evaluate('SI.Widgets.Window.si_edit_page_window.Hide(0)');
@@ -223,6 +504,28 @@ const {spawn} = require('node:child_process');
       await evaluate('SI.Widgets.Window.si_edit_styler_window.Hide(0);SI.Editor.Objects.Blocks.Save("FrameworkA","html")');
       await wait(async()=>replies.length>0&&finished.has(replies.at(-1).requestId),'Normal editor save');
       check(replies.at(-1).response.status===200,'normal administrator block save reaches the protected backend');
+      const tools=['Page','Media','Site','Styler','Scripter','Widgets','Language','Entities','Plugins','Security','Users','Settings'];
+      for(const code of ['es','zh','tl','en']){
+        const copy=code==='en'?{}:JSON.parse(fs.readFileSync(path.join(__dirname,'..','editor','locales',code+'.json'),'utf8')).texts;
+        await send('Network.setExtraHTTPHeaders',{headers:{'Accept-Language':code}},sessionId);
+        await send('Page.navigate',{url:config.base+'/asset-a'},sessionId);
+        await wait(()=>evaluate('!!document.getElementById("si_edit_settings_trigger")'),'Localized administrator editor '+code);
+        check(await evaluate('SI.EditorLanguage==='+JSON.stringify(code)),'backend selects editor language '+code);
+        check(await evaluate('Object.keys(SI.EditorText).length')===Object.keys(copy).length,'only selected editor catalog is supplied '+code);
+        check(await evaluate('!!SI.CSRF.Token&&SI.Editor.Data.DataLists.AdminData.domains.localhost.subdomains[""].user.roles.includes("Admin")&&!SI.Sample'),'real editor retains administrator permissions '+code);
+        check(await evaluate('document.getElementById("framework_title_A").textContent==="Administrator edit"'),'editor localization does not rewrite website content '+code);
+        await evaluate('window.editorNotices=[];const originalAlert=SI.Tools.SuperAlert;SI.Tools.SuperAlert=function(message,...args){editorNotices.push(message);return originalAlert.call(this,message,...args);};');
+        for(const tool of tools){
+          const id='si_edit_'+tool.toLowerCase();
+          check(await evaluate('document.getElementById('+JSON.stringify(id+'_trigger')+').textContent')===(copy[tool]||tool),'canonical tool label '+code+' '+tool);
+          await click(id+'_trigger');
+          check(await evaluate('SI.Widgets.Window['+JSON.stringify(id+'_window')+'].Title.textContent')===(copy[tool]||tool),'translated tool opens '+code+' '+tool);
+          check(await evaluate('SI.Widgets.Window['+JSON.stringify(id+'_window')+'].Content.childElementCount>0'),'tool body populated '+code+' '+tool+'; '+JSON.stringify(await evaluate('editorNotices')));
+          await evaluate('SI.Widgets.Window['+JSON.stringify(id+'_window')+'].Hide(0)');
+        }
+        check(await evaluate('SI.Tools.Text.Editor("Untranslated custom label")==="Untranslated custom label"'),'unknown labels retain their original text '+code);
+      }
+      assert.deepEqual(exceptions.map(e=>e.exceptionDetails.exception?.description||e.exceptionDetails.text),[],'localized real editor has no JavaScript exceptions');
       console.log('Framework browser checks passed: '+checks);
       return;
     }
@@ -641,7 +944,7 @@ body { margin: 0 !important; background-image: url("data:image/svg+xml;base64,PH
     await waitFor(async()=>await evaluate('getComputedStyle(document.getElementById("si_edit_edit_menuitem")).display') !== 'none','Edit properties animation');
     console.log('PASS Double-click selects an element and Edit opens its properties');
     const replacement='Edited through the right-click popup';
-    await evaluate('(()=>{const field=document.querySelector(".si-edit-attribute-GLOBAL-innerHTML:not(:disabled)");if(!field)throw Error("Missing HTML property input");field.value='+JSON.stringify(replacement)+';field.dispatchEvent(new KeyboardEvent("keyup",{key:"a",bubbles:true}));})()');
+    await evaluate('(()=>{const field=document.querySelector(".si-edit-attribute-GLOBAL-innerHTML:not(:disabled)");if(!field)throw Error("Missing HTML property input");field.value='+JSON.stringify(replacement)+';field.dispatchEvent(new InputEvent("input",{bubbles:true}));field.dispatchEvent(new Event("change"));})()');
     assert.equal(await evaluate('document.getElementById("si_home_title").textContent'),replacement);
     console.log('PASS Editing the HTML property updates the selected element');
     await click('si_tools_menu_item');
@@ -813,7 +1116,7 @@ body { margin: 0 !important; background-image: url("data:image/svg+xml;base64,PH
     }
     assert.equal(await evaluate(`!!document.getElementById(${JSON.stringify(tagId)})`),true);
     assert.equal(await evaluate('SI.Editor.Objects.Elements.Selected.style.left'),leftBefore);
-    await evaluate(`(()=>{const field=document.querySelector('.si-edit-attribute-GLOBAL-innerHTML:not(:disabled)');field.value='Pasted content';field.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+    await evaluate(`(()=>{const field=document.querySelector('.si-edit-attribute-GLOBAL-innerHTML:not(:disabled)');field.value='Pasted content';field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change'));})()`);
     assert.equal(await evaluate(`document.getElementById(${JSON.stringify(tagId)}).textContent`),'Pasted content');
     assert.equal(await evaluate(`document.getElementById('si_edit_selection_summary').textContent.includes('Unsaved changes')`),true);
     console.log('PASS Text editing handles paste and leaves page elements intact during Delete and arrow key input');

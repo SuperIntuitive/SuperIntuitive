@@ -5,7 +5,7 @@ SI.Editor.Objects.Entity = {
             id: 'si_edit_entities_container',
         });
 
-        let tabs = SI.Widget.Tab();
+        let tabs = SI.Widget.Tab({TranslateLabels: true});
         tabs.Items.Add("Existing", SI.Editor.Objects.Entity.DrawExistingTab())
         tabs.Items.Add("New",SI.Editor.Objects.Entity.DrawNewTab())
 
@@ -28,7 +28,7 @@ SI.Editor.Objects.Entity = {
 
         //Select Entity Text
         Ele('span', {
-            innerHTML: ' Select Entity:',
+            innerHTML: SI.Tools.Text.Editor(' Select Entity:'),
             appendTo: container,
         });
 
@@ -54,17 +54,17 @@ SI.Editor.Objects.Entity = {
         });
 
         let newEntity = Ele('button', {
-            innerHTML: "New Entity &#9746",
+            innerHTML: SI.Tools.Text.Editor("New Entity &#9746"),
             style: { marginLeft: '10px' },
             appendTo: container,
             onclick: function () {
 
                 let controls = document.getElementById("si_edit_entity_new_controls");
                 if (controls.style.display == 'block') {
-                    this.innerHTML = "New Entity &#9746",
+                    this.innerHTML = SI.Tools.Text.Editor("New Entity &#9746"),
                         controls.style.display = 'none';
                 } else {
-                    this.innerHTML = "New Entity &#9745",
+                    this.innerHTML = SI.Tools.Text.Editor("New Entity &#9745"),
                         controls.style.display = 'block';
                 }
             }
@@ -129,7 +129,7 @@ SI.Editor.Objects.Entity = {
             //UI Buttons
             let newBtn = Ele('button', {
                 id: 'si_edit_entities_new_' + e,
-                innerHTML: "new",
+                innerHTML: SI.Tools.Text.Editor("new"),
                 appendTo: tabView,
                 onclick: SI.Editor.Objects.Entity.New,
 
@@ -137,7 +137,7 @@ SI.Editor.Objects.Entity = {
             //SI.Editor.UI.Entities.Methods.New,
             let editBtn = Ele('button', {
                 id: 'si_edit_entities_edit_' + e,
-                innerHTML: "edit",
+                innerHTML: SI.Tools.Text.Editor("edit"),
                 appendTo: tabView,
                 onclick: SI.Editor.Objects.Entity.Edit,
             });
@@ -176,14 +176,14 @@ SI.Editor.Objects.Entity = {
 
             let closeBtn = Ele('button', {
                 id: 'si_edit_entities_close_' + e,
-                innerHTML: "Close",
+                innerHTML: SI.Tools.Text.Editor("Close"),
                 onclick: SI.Editor.Objects.Entity.Close,
                 appendTo: tabForm,
             });
             //SI.Editor.UI.Entities.Methods.Close,
             let saveBtn = Ele('button', {
                 id: 'si_edit_entities_save_' + e,
-                innerHTML: "Save",
+                innerHTML: SI.Tools.Text.Editor("Save"),
                 appendTo: tabForm,
                 onclick: SI.Editor.Objects.Entity.Save,
             });
@@ -407,7 +407,7 @@ SI.Editor.Objects.Entity = {
         let container = Ele('div', { style: { width: '95%', height: '95%', padding: '4px' } });
 
         //New Entity Singular Name label
-        Ele('span', { innerHTML: 'Singular Name:', appendTo: container });
+        Ele('span', { innerHTML: SI.Tools.Text.Editor('Singular Name:'), appendTo: container });
         //New Entity Name input
         let sname = Ele('input', {
             id: 'si_edit_entity_newSname',
@@ -418,7 +418,7 @@ SI.Editor.Objects.Entity = {
                 let lowname = this.value.toLowerCase();
                 if (lowname) {
                     if (SI.Editor.Objects.Entity.Lists.NotAllowedNames.indexOf(lowname) !== -1) {
-                        alert("An entity by that name already exists.");
+                        alert(SI.Tools.Text.Editor("An entity by that name already exists."));
                         this.value = "";
                         return;
                     } else { }
@@ -430,7 +430,7 @@ SI.Editor.Objects.Entity = {
         });
 
         //New Entity Plural Name label
-        Ele('span', { innerHTML: ' Plural Name:', appendTo: container });
+        Ele('span', { innerHTML: SI.Tools.Text.Editor(' Plural Name:'), appendTo: container });
         //New Entity Name input
         let pname = Ele('input', {
             id: 'si_edit_entity_newPname',
@@ -441,7 +441,7 @@ SI.Editor.Objects.Entity = {
                 let lowname = this.value.toLowerCase();
                 if (lowname) {
                     if (SI.Editor.Objects.Entity.Lists.NotAllowedNames.indexOf(lowname) !== -1) {
-                        alert("An entity by that name already exists.");
+                        alert(SI.Tools.Text.Editor("An entity by that name already exists."));
                         this.value = "";
                         return;
                     } else { }
@@ -452,7 +452,7 @@ SI.Editor.Objects.Entity = {
         });
 
         // Is Global Entity label
-        Ele('label', { innerHTML: " Global", for: "si_edit_entities_globalcb", style: { marginLeft: '10px' }, appendTo: container });
+        Ele('label', { innerHTML: SI.Tools.Text.Editor(" Global"), for: "si_edit_entities_globalcb", style: { marginLeft: '10px' }, appendTo: container });
 
         Ele('input', {
             id: "si_edit_entities_globalcb",
@@ -460,7 +460,7 @@ SI.Editor.Objects.Entity = {
             style: {
                 marginLeft: '10px'
             },
-            title: "Make the entity global to all domains",
+            title: SI.Tools.Text.Editor("Make the entity global to all domains"),
             appendTo: container,
             onchange: function () {
             },
@@ -468,7 +468,7 @@ SI.Editor.Objects.Entity = {
 
         //Attributes Box
         let lgndAttributes = Ele('legend', {
-            innerHTML: 'Attributes',
+            innerHTML: SI.Tools.Text.Editor('Attributes'),
         });
 
         let attributes = Ele('fieldset', {
@@ -479,7 +479,7 @@ SI.Editor.Objects.Entity = {
 
         //Add Attributes Box
         let lgndAddAttr = Ele('legend', {
-            innerHTML: 'Add',
+            innerHTML: SI.Tools.Text.Editor('Add'),
         });
 
         let addattr = Ele('fieldset', {
@@ -491,7 +491,7 @@ SI.Editor.Objects.Entity = {
         });
 
         Ele('span', {
-            innerHTML: 'Name:',
+            innerHTML: SI.Tools.Text.Editor('Name:'),
             appendTo: addattr,
         });
         let attrname = Ele('input', {
@@ -504,7 +504,7 @@ SI.Editor.Objects.Entity = {
         });
         Ele('br', { appendTo: addattr, });
         Ele('span', {
-            innerHTML: 'Type:',
+            innerHTML: SI.Tools.Text.Editor('Type:'),
             appendTo: addattr,
         });
         //Add a entity attribute
@@ -568,60 +568,60 @@ SI.Editor.Objects.Entity = {
         //Jacked from phpmyadmin for the most part
 
         Ele('option', { innerHTML: "", appendTo: datatypeTable });
-        Ele('option', { title: "A guid key for another entity", innerHTML: "LOOKUP", appendTo: datatypeTable });
-        Ele('option', { title: "A 4-byte integer, signed range is -2,147,483,648 to 2,147,483,647, unsigned range is 0 to 4,294,967,295", innerHTML: "INT", appendTo: datatypeTable });
-        Ele('option', { title: "A variable-length (0-65,535) string, the effective maximum length is subject to the maximum row size", innerHTML: "VARCHAR", appendTo: datatypeTable });
-        Ele('option', { title: "A TEXT column with a maximum length of 65,535 (2^16 - 1) characters, stored with a two-byte prefix indicating the length of the value in bytes", innerHTML: "TEXT", appendTo: datatypeTable });
-        Ele('option', { title: "A date, supported range is 1000-01-01 to 9999-12-31", innerHTML: "DATE", appendTo: datatypeTable });
+        Ele('option', { title: SI.Tools.Text.Editor("A guid key for another entity"), innerHTML: SI.Tools.Text.Editor("LOOKUP"), appendTo: datatypeTable });
+        Ele('option', { title: SI.Tools.Text.Editor("A 4-byte integer, signed range is -2,147,483,648 to 2,147,483,647, unsigned range is 0 to 4,294,967,295"), innerHTML: SI.Tools.Text.Editor("INT"), appendTo: datatypeTable });
+        Ele('option', { title: SI.Tools.Text.Editor("A variable-length (0-65,535) string, the effective maximum length is subject to the maximum row size"), innerHTML: SI.Tools.Text.Editor("VARCHAR"), appendTo: datatypeTable });
+        Ele('option', { title: SI.Tools.Text.Editor("A TEXT column with a maximum length of 65,535 (2^16 - 1) characters, stored with a two-byte prefix indicating the length of the value in bytes"), innerHTML: SI.Tools.Text.Editor("TEXT"), appendTo: datatypeTable });
+        Ele('option', { title: SI.Tools.Text.Editor("A date, supported range is 1000-01-01 to 9999-12-31"), innerHTML: SI.Tools.Text.Editor("DATE"), appendTo: datatypeTable });
         let numeric = Ele('optgroup', { label: "Numeric", appendTo: datatypeTable });
-        Ele('option', { title: "A 1-byte integer, signed range is -128 to 127, unsigned range is 0 to 255", innerHTML: "TINYINT", appendTo: numeric });
-        Ele('option', { title: "A 2-byte integer, signed range is -32,768 to 32,767, unsigned range is 0 to 65,535", innerHTML: "SMALLINT", appendTo: numeric });
-        Ele('option', { title: "A 3-byte integer, signed range is -8,388,608 to 8,388,607, unsigned range is 0 to 16,777,215", innerHTML: "MEDIUMINT", appendTo: numeric });
-        Ele('option', { title: "A 4-byte integer, signed range is -2,147,483,648 to 2,147,483,647, unsigned range is 0 to 4,294,967,295", innerHTML: "INT", appendTo: numeric });
-        Ele('option', { title: "An 8-byte integer, signed range is -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807, unsigned range is 0 to 18,446,744,073,709,551,615", innerHTML: "BIGINT", appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A 1-byte integer, signed range is -128 to 127, unsigned range is 0 to 255"), innerHTML: SI.Tools.Text.Editor("TINYINT"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A 2-byte integer, signed range is -32,768 to 32,767, unsigned range is 0 to 65,535"), innerHTML: SI.Tools.Text.Editor("SMALLINT"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A 3-byte integer, signed range is -8,388,608 to 8,388,607, unsigned range is 0 to 16,777,215"), innerHTML: SI.Tools.Text.Editor("MEDIUMINT"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A 4-byte integer, signed range is -2,147,483,648 to 2,147,483,647, unsigned range is 0 to 4,294,967,295"), innerHTML: SI.Tools.Text.Editor("INT"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("An 8-byte integer, signed range is -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807, unsigned range is 0 to 18,446,744,073,709,551,615"), innerHTML: SI.Tools.Text.Editor("BIGINT"), appendTo: numeric });
         Ele('option', { disabled: "disabled", innerHTML: "-", appendTo: numeric });
-        Ele('option', { title: "A fixed-point number (M, D) - the maximum number of digits (M) is 65 (default 10), the maximum number of decimals (D) is 30 (default 0)", innerHTML: "DECIMAL", appendTo: numeric });
-        Ele('option', { title: "A small floating-point number, allowable values are -3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to 3.402823466E+38", innerHTML: "FLOAT", appendTo: numeric });
-        Ele('option', { title: "A double-precision floating-point number, allowable values are -1.7976931348623157E+308 to -2.2250738585072014E-308, 0, and 2.2250738585072014E-308 to 1.7976931348623157E+308", innerHTML: "DOUBLE", appendTo: numeric });
-        Ele('option', { title: "Synonym for DOUBLE (exception: in REAL_AS_FLOAT SQL mode it is a synonym for FLOAT)", innerHTML: "REAL", appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A fixed-point number (M, D) - the maximum number of digits (M) is 65 (default 10), the maximum number of decimals (D) is 30 (default 0)"), innerHTML: SI.Tools.Text.Editor("DECIMAL"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A small floating-point number, allowable values are -3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to 3.402823466E+38"), innerHTML: SI.Tools.Text.Editor("FLOAT"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A double-precision floating-point number, allowable values are -1.7976931348623157E+308 to -2.2250738585072014E-308, 0, and 2.2250738585072014E-308 to 1.7976931348623157E+308"), innerHTML: SI.Tools.Text.Editor("DOUBLE"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("Synonym for DOUBLE (exception: in REAL_AS_FLOAT SQL mode it is a synonym for FLOAT)"), innerHTML: SI.Tools.Text.Editor("REAL"), appendTo: numeric });
         Ele('option', { disabled: "disabled", innerHTML: "-", appendTo: numeric });
-        Ele('option', { title: "A bit-field type (M), storing M of bits per value (default is 1, maximum is 64)", innerHTML: "BIT", appendTo: numeric });
-        Ele('option', { title: "A synonym for TINYINT(1), a value of zero is considered false, nonzero values are considered true", innerHTML: "BOOLEAN", appendTo: numeric });
-        Ele('option', { title: "An alias for BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE", innerHTML: "SERIAL", appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A bit-field type (M), storing M of bits per value (default is 1, maximum is 64)"), innerHTML: SI.Tools.Text.Editor("BIT"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("A synonym for TINYINT(1), a value of zero is considered false, nonzero values are considered true"), innerHTML: SI.Tools.Text.Editor("BOOLEAN"), appendTo: numeric });
+        Ele('option', { title: SI.Tools.Text.Editor("An alias for BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE"), innerHTML: SI.Tools.Text.Editor("SERIAL"), appendTo: numeric });
         let datatime = Ele('optgroup', { label: "Date and time", appendTo: datatypeTable });
-        Ele('option', { title: "A date, supported range is 1000-01-01 to 9999-12-31", innerHTML: "DATE", appendTo: datatime });
-        Ele('option', { title: "A date and time combination, supported range is 1000-01-01 00:00:00 to 9999-12-31 23:59:59", innerHTML: "DATETIME", appendTo: datatime });
-        Ele('option', { title: "A timestamp, range is 1970-01-01 00:00:01 UTC to 2038-01-09 03:14:07 UTC, stored as the number of seconds since the epoch (1970-01-01 00:00:00 UTC)", innerHTML: "TIMESTAMP", appendTo: datatime });
-        Ele('option', { title: "A time, range is -838:59:59 to 838:59:59", innerHTML: "TIME", appendTo: datatime });
-        Ele('option', { title: "A year in four-digit (4, default) or two-digit (2) format, the allowable values are 70 (1970) to 69 (2069) or 1901 to 2155 and 0000", innerHTML: "YEAR", appendTo: datatime });
+        Ele('option', { title: SI.Tools.Text.Editor("A date, supported range is 1000-01-01 to 9999-12-31"), innerHTML: SI.Tools.Text.Editor("DATE"), appendTo: datatime });
+        Ele('option', { title: SI.Tools.Text.Editor("A date and time combination, supported range is 1000-01-01 00:00:00 to 9999-12-31 23:59:59"), innerHTML: SI.Tools.Text.Editor("DATETIME"), appendTo: datatime });
+        Ele('option', { title: SI.Tools.Text.Editor("A timestamp, range is 1970-01-01 00:00:01 UTC to 2038-01-09 03:14:07 UTC, stored as the number of seconds since the epoch (1970-01-01 00:00:00 UTC)"), innerHTML: SI.Tools.Text.Editor("TIMESTAMP"), appendTo: datatime });
+        Ele('option', { title: SI.Tools.Text.Editor("A time, range is -838:59:59 to 838:59:59"), innerHTML: SI.Tools.Text.Editor("TIME"), appendTo: datatime });
+        Ele('option', { title: SI.Tools.Text.Editor("A year in four-digit (4, default) or two-digit (2) format, the allowable values are 70 (1970) to 69 (2069) or 1901 to 2155 and 0000"), innerHTML: SI.Tools.Text.Editor("YEAR"), appendTo: datatime });
         let string = Ele('optgroup', { label: "String", appendTo: datatypeTable });
-        Ele('option', { title: "A fixed-length (0-255, default 1) string that is always right-padded with spaces to the specified length when stored", innerHTML: "CHAR", appendTo: string });
-        Ele('option', { title: "A variable-length (0-65,535) string, the effective maximum length is subject to the maximum row size", innerHTML: "VARCHAR", appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A fixed-length (0-255, default 1) string that is always right-padded with spaces to the specified length when stored"), innerHTML: SI.Tools.Text.Editor("CHAR"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A variable-length (0-65,535) string, the effective maximum length is subject to the maximum row size"), innerHTML: SI.Tools.Text.Editor("VARCHAR"), appendTo: string });
         Ele('option', { disabled: "disabled", innerHTML: "-", appendTo: string });
-        Ele('option', { title: "A TEXT column with a maximum length of 255 (2^8 - 1) characters, stored with a one-byte prefix indicating the length of the value in bytes", innerHTML: "TINYTEXT", appendTo: string });
-        Ele('option', { title: "A TEXT column with a maximum length of 65,535 (2^16 - 1) characters, stored with a two-byte prefix indicating the length of the value in bytes", innerHTML: "TEXT", appendTo: string });
-        Ele('option', { title: "A TEXT column with a maximum length of 16,777,215 (2^24 - 1) characters, stored with a three-byte prefix indicating the length of the value in bytes", innerHTML: "MEDIUMTEXT", appendTo: string });
-        Ele('option', { title: "A TEXT column with a maximum length of 4,294,967,295 or 4GiB (2^32 - 1) characters, stored with a four-byte prefix indicating the length of the value in bytes", innerHTML: "LONGTEXT", appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A TEXT column with a maximum length of 255 (2^8 - 1) characters, stored with a one-byte prefix indicating the length of the value in bytes"), innerHTML: SI.Tools.Text.Editor("TINYTEXT"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A TEXT column with a maximum length of 65,535 (2^16 - 1) characters, stored with a two-byte prefix indicating the length of the value in bytes"), innerHTML: SI.Tools.Text.Editor("TEXT"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A TEXT column with a maximum length of 16,777,215 (2^24 - 1) characters, stored with a three-byte prefix indicating the length of the value in bytes"), innerHTML: SI.Tools.Text.Editor("MEDIUMTEXT"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A TEXT column with a maximum length of 4,294,967,295 or 4GiB (2^32 - 1) characters, stored with a four-byte prefix indicating the length of the value in bytes"), innerHTML: SI.Tools.Text.Editor("LONGTEXT"), appendTo: string });
         Ele('option', { disabled: "disabled", innerHTML: "-", appendTo: string });
-        Ele('option', { title: "Similar to the CHAR type, but stores binary byte strings rather than non-binary character strings", innerHTML: "BINARY", appendTo: string });
-        Ele('option', { title: "Similar to the VARCHAR type, but stores binary byte strings rather than non-binary character strings", innerHTML: "VARBINARY", appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("Similar to the CHAR type, but stores binary byte strings rather than non-binary character strings"), innerHTML: SI.Tools.Text.Editor("BINARY"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("Similar to the VARCHAR type, but stores binary byte strings rather than non-binary character strings"), innerHTML: SI.Tools.Text.Editor("VARBINARY"), appendTo: string });
         Ele('option', { disabled: "disabled", innerHTML: "-", appendTo: string });
-        Ele('option', { title: "A BLOB column with a maximum length of 255 (2^8 - 1) bytes, stored with a one-byte prefix indicating the length of the value", innerHTML: "TINYBLOB", appendTo: string });
-        Ele('option', { title: "A BLOB column with a maximum length of 16,777,215 (2^24 - 1) bytes, stored with a three-byte prefix indicating the length of the value", innerHTML: "MEDIUMBLOB", appendTo: string });
-        Ele('option', { title: "A BLOB column with a maximum length of 65,535 (2^16 - 1) bytes, stored with a two-byte prefix indicating the length of the value", innerHTML: "BLOB", appendTo: string });
-        Ele('option', { title: "A BLOB column with a maximum length of 4,294,967,295 or 4GiB (2^32 - 1) bytes, stored with a four-byte prefix indicating the length of the value", innerHTML: "LONGBLOB", appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A BLOB column with a maximum length of 255 (2^8 - 1) bytes, stored with a one-byte prefix indicating the length of the value"), innerHTML: SI.Tools.Text.Editor("TINYBLOB"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A BLOB column with a maximum length of 16,777,215 (2^24 - 1) bytes, stored with a three-byte prefix indicating the length of the value"), innerHTML: SI.Tools.Text.Editor("MEDIUMBLOB"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A BLOB column with a maximum length of 65,535 (2^16 - 1) bytes, stored with a two-byte prefix indicating the length of the value"), innerHTML: SI.Tools.Text.Editor("BLOB"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A BLOB column with a maximum length of 4,294,967,295 or 4GiB (2^32 - 1) bytes, stored with a four-byte prefix indicating the length of the value"), innerHTML: SI.Tools.Text.Editor("LONGBLOB"), appendTo: string });
         Ele('option', { disabled: "disabled", innerHTML: "-", appendTo: string });
-        Ele('option', { title: "An enumeration, chosen from the list of up to 65,535 values or the special '' error value", innerHTML: "ENUM", appendTo: string });
-        Ele('option', { title: "A single value chosen from a set of up to 64 members", innerHTML: "SET", appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("An enumeration, chosen from the list of up to 65,535 values or the special '' error value"), innerHTML: SI.Tools.Text.Editor("ENUM"), appendTo: string });
+        Ele('option', { title: SI.Tools.Text.Editor("A single value chosen from a set of up to 64 members"), innerHTML: SI.Tools.Text.Editor("SET"), appendTo: string });
         let spatial = Ele('optgroup', { label: "Spatial", appendTo: datatypeTable });
-        Ele('option', { title: "A type that can store a geometry of any type", innerHTML: "GEOMETRY", appendTo: spatial });
-        Ele('option', { title: "A point in 2-dimensional space", innerHTML: "POINT", appendTo: spatial });
-        Ele('option', { title: "A curve with linear interpolation between points", innerHTML: "LINESTRING", appendTo: spatial });
-        Ele('option', { title: "A polygon", innerHTML: "POLYGON", appendTo: spatial });
-        Ele('option', { title: "A collection of points", innerHTML: "MULTIPOINT", appendTo: spatial });
-        Ele('option', { title: "A collection of curves with linear interpolation between points", innerHTML: "MULTILINESTRING", appendTo: spatial });
-        Ele('option', { title: "A collection of polygons", innerHTML: "MULTIPOLYGON", appendTo: spatial });
-        Ele('option', { title: "A collection of geometry objects of any type", innerHTML: "GEOMETRYCOLLECTION", appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A type that can store a geometry of any type"), innerHTML: SI.Tools.Text.Editor("GEOMETRY"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A point in 2-dimensional space"), innerHTML: SI.Tools.Text.Editor("POINT"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A curve with linear interpolation between points"), innerHTML: SI.Tools.Text.Editor("LINESTRING"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A polygon"), innerHTML: SI.Tools.Text.Editor("POLYGON"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A collection of points"), innerHTML: SI.Tools.Text.Editor("MULTIPOINT"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A collection of curves with linear interpolation between points"), innerHTML: SI.Tools.Text.Editor("MULTILINESTRING"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A collection of polygons"), innerHTML: SI.Tools.Text.Editor("MULTIPOLYGON"), appendTo: spatial });
+        Ele('option', { title: SI.Tools.Text.Editor("A collection of geometry objects of any type"), innerHTML: SI.Tools.Text.Editor("GEOMETRYCOLLECTION"), appendTo: spatial });
         //debugger;
 
         //Entities List
@@ -652,7 +652,7 @@ SI.Editor.Objects.Entity = {
             });
         }
         Ele('br', { appendTo: addattr, });
-        Ele('span', { id: 'si_edit_entities_enum_label', innerHTML: "Comma seperated values:", style: { display: 'none' }, appendTo: addattr });
+        Ele('span', { id: 'si_edit_entities_enum_label', innerHTML: SI.Tools.Text.Editor("Comma seperated values:"), style: { display: 'none' }, appendTo: addattr });
         let enumvals = Ele('input', {
             id: 'si_edit_entities_enum_input',
             style: {
@@ -667,7 +667,7 @@ SI.Editor.Objects.Entity = {
             },
         });
 
-        Ele('span', { id: 'si_edit_entities_size_label', innerHTML: "Size:", style: { display: 'none' }, appendTo: addattr });
+        Ele('span', { id: 'si_edit_entities_size_label', innerHTML: SI.Tools.Text.Editor("Size:"), style: { display: 'none' }, appendTo: addattr });
         let datasize = Ele('input', {
             type: 'number',
             id: 'si_edit_entities_size_input',
@@ -682,19 +682,19 @@ SI.Editor.Objects.Entity = {
 
         Ele('br', { appendTo: addattr });
         //Deployable switch
-        Ele('span', { innerHTML: "Deployable:", appendTo: addattr });
+        Ele('span', { innerHTML: SI.Tools.Text.Editor("Deployable:"), appendTo: addattr });
         Ele('input', {
             id: 'si_edit_entities_newattrdeploy',
             type: 'checkbox',
             style: {
                 marginLeft: '10px'
             },
-            title: "Make the field deployable from dev to test to live",
+            title: SI.Tools.Text.Editor("Make the field deployable from dev to test to live"),
             appendTo: addattr
         });
         //Default value
         Ele('br', { appendTo: addattr, });
-        Ele('span', { innerHTML: "Default:", appendTo: addattr });
+        Ele('span', { innerHTML: SI.Tools.Text.Editor("Default:"), appendTo: addattr });
         let defaultval = Ele('input', {
             id: 'si_edit_entities_newattrdefault',
             style: {
@@ -706,7 +706,7 @@ SI.Editor.Objects.Entity = {
         Ele('br', { appendTo: addattr, });
 
         Ele('button', {
-            innerHTML: 'Add Attribute',
+            innerHTML: SI.Tools.Text.Editor('Add Attribute'),
             style: { marginLeft: '10px' },
             appendTo: addattr,
             onclick: function () {
@@ -743,7 +743,7 @@ SI.Editor.Objects.Entity = {
                     appendTo: attributes,
                 });
                 let close = Ele('div', {
-                    innerHTML: 'x',
+                    innerHTML: SI.Tools.Text.Editor('x'),
                     style: {
                         width: '16px',
                         height: '14px',
@@ -765,7 +765,7 @@ SI.Editor.Objects.Entity = {
 
                 let attrname = Ele('span', {
                     class: 'si-edit-entity-newattr-name',
-                    innerHTML: "Name: " + name,
+                    innerHTML: SI.Tools.Text.Editor("Name: ") + name,
                     style: {
                         color: 'white',
                         margin: '2px',
@@ -775,7 +775,7 @@ SI.Editor.Objects.Entity = {
                 Ele('br', { appendTo: attrBox });
                 let attrtype = Ele('span', {
                     class: 'si-edit-entity-newattr-type',
-                    innerHTML: "Type: " + type,
+                    innerHTML: SI.Tools.Text.Editor("Type: ") + type,
                     style: {
                         color: 'white',
                         margin: '5px',
@@ -788,7 +788,7 @@ SI.Editor.Objects.Entity = {
                     Ele('br', { appendTo: attrBox });
                     Ele('span', {
                         class: 'si-edit-entity-newattr-lookupentity',
-                        innerHTML: "Lookup Entity: " + lookup,
+                        innerHTML: SI.Tools.Text.Editor("Lookup Entity: ") + lookup,
                         style: {
                             color: 'white',
                             margin: '5px',
@@ -801,7 +801,7 @@ SI.Editor.Objects.Entity = {
                     Ele('br', { appendTo: attrBox });
                     Ele('span', {
                         class: 'si-edit-entity-newattr-enumchoices',
-                        innerHTML: "Enum Chioces: " + enumchoices,
+                        innerHTML: SI.Tools.Text.Editor("Enum Chioces: ") + enumchoices,
                         style: {
                             color: 'white',
                             margin: '5px',
@@ -814,7 +814,7 @@ SI.Editor.Objects.Entity = {
                     Ele('br', { appendTo: attrBox });
                     Ele('span', {
                         class: 'si-edit-entity-newattr-size',
-                        innerHTML: "Size: " + size,
+                        innerHTML: SI.Tools.Text.Editor("Size: ") + size,
                         style: {
                             color: 'white',
                             margin: '5px',
@@ -827,7 +827,7 @@ SI.Editor.Objects.Entity = {
                     Ele('br', { appendTo: attrBox });
                     Ele('span', {
                         class: 'si-edit-entity-newattr-deploy',
-                        innerHTML: "Deployable: " + deploy,
+                        innerHTML: SI.Tools.Text.Editor("Deployable: ") + deploy,
                         style: {
                             color: 'white',
                             margin: '5px',
@@ -840,7 +840,7 @@ SI.Editor.Objects.Entity = {
                     Ele('br', { appendTo: attrBox });
                     Ele('span', {
                         class: 'si-edit-entity-newattr-default',
-                        innerHTML: "Default: " + def,
+                        innerHTML: SI.Tools.Text.Editor("Default: ") + def,
                         style: {
                             color: 'white',
                             margin: '5px',
@@ -866,7 +866,7 @@ SI.Editor.Objects.Entity = {
         Ele('br', { appendTo: container });
 
         let save = Ele('button', {
-            innerHTML: 'Create',
+            innerHTML: SI.Tools.Text.Editor('Create'),
             style: { marginLeft: '10px' },
             appendTo: container,
             onclick: function () {
@@ -1018,7 +1018,7 @@ SI.Editor.Objects.Entity = {
                     console.error('Datarow does not have an id');
                 }
             } else {
-                alert("Please select a row to edit it");
+                alert(SI.Tools.Text.Editor("Please select a row to edit it"));
             }
         }
     },
@@ -1086,7 +1086,7 @@ SI.Editor.Objects.Entity = {
                     style: {
                         maxHeight: '20px',
                     },
-                    innerHTML: "select",
+                    innerHTML: SI.Tools.Text.Editor("select"),
                     appendTo: header,
                 });
                 for (let f in options[0]) {

@@ -1,0 +1,11 @@
+{
+  "language": "zh",
+  "texts": {
+    "Editor demo": "编辑器演示",
+    "Links stay inside the sample. Use the company navigation above to explore the site.": "链接仅在示例内跳转。请使用上方的公司导航浏览网站。",
+    "Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.": "示例模式：更改仅保留在此浏览器中。保存、上传和发布功能已禁用。",
+    "The canvas remains available for temporary editing.": "画布仍可用于临时编辑。",
+    "Translated by AI": "由 AI 翻译"
+  },
+  "sample": "<section class=\"si-demo-sample\">\n  <p>你的画布</p>\n  <h1 id=\"si_demo_sample_title\">打造属于你的作品。</h1>\n  <p>右键点击，打开“添加 / 编辑 / 工具”。修改文字，调整样式，或探索代码。“重新开始”会恢复此已发布的页面。</p>\n  <article><h2>从一个小创意开始。</h2><p>源内容是一个普通的 CMS 区块。管理员可以用你自己的已发布示例替换它。</p><button type=\"button\">试着给按钮设计样式</button></article>\n</section>"
+}

@@ -45,7 +45,7 @@ fn admin(context: Map, post: Map) -> Map {
         return {"PARAMETER": id}
     }
     if ["ChangePassword", "NewUser", "DeleteUser", "GetUserRoles", "AddUserRole", "RemoveUserRole", "DeleteRole"].contains(action) { return User.dispatch(context, action, post) }
-    if ["AddLanguage", "LocaltextNew", "UpdateLocaltext"].contains(action) { return Localtext.dispatch(context, action, post) }
+    if ["AddLanguage", "RemoveLanguage", "LocaltextNew", "UpdateLocaltext"].contains(action) { return Localtext.dispatch(context, action, post) }
     if ["GetLocalPlugins", "GetMorePlugins", "DownloadPlugin", "UploadPluginPackage", "InstallPlugin", "UpdatePlugin", "EnablePlugin", "DisablePlugin", "UninstallPlugin"].contains(action) { return Plugins.dispatch(context, action, post) }
     if ["NewSetting", "UpdateSetting", "DeleteSetting"].contains(action) { return Setting.dispatch(context, action, post) }
     if ["NewEntity", "BuildBackupFile", "BuildInstallerFile"].contains(action) { return Admin.dispatch(context, action, post) }

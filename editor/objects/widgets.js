@@ -4,7 +4,7 @@ SI.Editor.Objects.Widgets = {
     Draw: function () {
         let container = Ele('div', {
             class: 'si-tool-body',});
-        let tabs = new SI.Widget.Tab();
+        let tabs = new SI.Widget.Tab({TranslateLabels: true});
         tabs.Items.Add("Instances", SI.Editor.Objects.Widgets.Instances());
         tabs.Items.Add("Widget Editor", SI.Editor.Objects.Widgets.Editor());
         container.appendChild(tabs.Draw());
@@ -22,7 +22,7 @@ SI.Editor.Objects.Widgets = {
             appendTo: base
         });
         Ele('label', {
-            innerHTML: "Instance to edit:",
+            innerHTML: SI.Tools.Text.Editor("Instance to edit:"),
             for: "si_edit_widget_instance_selector",
             style: {
                 marginLeft:'2em'
@@ -72,7 +72,7 @@ SI.Editor.Objects.Widgets = {
             Accordian: {Sections: {'Section 1': 'Your content'}},
             Menu: {Items: {item: {Text: 'Menu item'}}},
             Tree: {Leaves: {'Item 1': 'Your content'}},
-            Window: {Title: 'Window'}
+            Window: {Title: SI.Tools.Text.Editor('Window')}
         };
         const input = Object.assign({}, starter[widget] || {}, options, {Id: id});
         if (preview) Object.assign(input, {SIWidgetPreview: true, SIWidgetRaw: true});
@@ -177,11 +177,11 @@ SI.Editor.Objects.Widgets = {
         SI.Editor.Objects.Elements.SelectNone(true);
         SI.Editor.Objects.Elements.Select(null, element.id);
         const description = document.createElement('p');
-        description.textContent = element.dataset.siWidget + ' #' + element.id + ' is selected. Edit its content, attributes, and styles on the page.';
+        description.textContent = element.dataset.siWidget + ' #' + element.id + SI.Tools.Text.Editor(' is selected. Edit its content, attributes, and styles on the page.');
         box.appendChild(description);
         const name = this.NameForType(element.dataset.siWidget);
-        if (name) for (const kind of ['script', 'style']) Ele('button', {type: 'button', innerText: kind === 'script' ? 'Edit JavaScript' : 'Edit CSS', onclick: () => this.OpenSource(name, kind), appendTo: box});
-        Ele('button', {id: 'si_edit_widget_instance_edit', type: 'button', innerText: 'Edit widget on page', onclick: function () {
+        if (name) for (const kind of ['script', 'style']) Ele('button', {type: 'button', innerText: kind === 'script' ? SI.Tools.Text.Editor('Edit JavaScript') : SI.Tools.Text.Editor('Edit CSS'), onclick: () => this.OpenSource(name, kind), appendTo: box});
+        Ele('button', {id: 'si_edit_widget_instance_edit', type: 'button', innerText: SI.Tools.Text.Editor('Edit widget on page'), onclick: function () {
             const menu = SI.Editor.UI.MainMenu.Element;
             menu.style.display = 'block';
             document.getElementById('si_edit_edit_menuitem').style.display = 'none';
@@ -222,7 +222,7 @@ SI.Editor.Objects.Widgets = {
         if (!result.saved) throw new Error('Widget was not saved.');
         this.Sources[name] = result.widget;
         SI.Tools.Widget.Designs[result.widget.type] = result.widget.design;
-        this.Status('Saved ' + name + ' in Dev. Promote to Test, then Live to publish.');
+        this.Status(SI.Tools.Text.Editor('Saved ') + name + SI.Tools.Text.Editor(' in Dev. Promote to Test, then Live to publish.'));
         if (kind === 'style') {
             const current = document.getElementById('si_widgets_style');
             if (current) { const address = new URL(current.href); address.searchParams.set('v', Date.now()); current.href = address.href; }
@@ -262,13 +262,13 @@ SI.Editor.Objects.Widgets = {
     Editor: function () {
         const base = Ele('div', {class: 'si-widget-editor si-tool-panel-body'});
         const menu = Ele('div', {class: 'si-tool-toolbar', appendTo: base});
-        Ele('label', {innerText: 'Widget to edit:', for: 'si_edit_widget_editor_selector', appendTo: menu});
+        Ele('label', {innerText: SI.Tools.Text.Editor('Widget to edit:'), for: 'si_edit_widget_editor_selector', appendTo: menu});
         this.WidgetSelector = Ele('select', {id: 'si_edit_widget_editor_selector', onchange: () => this.SelectWidget(this.WidgetSelector.value), appendTo: menu});
         for (const type of Object.keys(SI.Widget).sort()) if (typeof SI.Widget[type] === 'function') this.WidgetSelector.appendChild(new Option(type, type));
-        const newName = Ele('input', {id: 'si_edit_widget_new_name', type: 'text', placeholder: 'NewWidgetName', 'aria-label': 'New widget name', appendTo: menu});
-        Ele('button', {id: 'si_edit_widget_create', type: 'button', innerText: 'New widget', onclick: async () => {
+        const newName = Ele('input', {id: 'si_edit_widget_new_name', type: 'text', placeholder: SI.Tools.Text.Editor('NewWidgetName'), 'aria-label': SI.Tools.Text.Editor('New widget name'), appendTo: menu});
+        Ele('button', {id: 'si_edit_widget_create', type: 'button', innerText: SI.Tools.Text.Editor('New widget'), onclick: async () => {
             try {
-                if (this.CanvasDirty) { this.Status('Save the current design before creating another widget.'); return; }
+                if (this.CanvasDirty) { this.Status(SI.Tools.Text.Editor('Save the current design before creating another widget.')); return; }
                 const name = newName.value.trim();
                 if (!/^[A-Z][A-Za-z0-9_]{0,63}$/.test(name)) throw new Error('Use a widget name beginning with a capital letter, followed by letters, digits or underscores.');
                 const result = await this.Request({KEY: 'CreateWidget', name});
@@ -280,26 +280,26 @@ SI.Editor.Objects.Widgets = {
                 newName.value = ''; this.SelectWidget(name, true);
             } catch (error) { this.Status(error.message); }
         }, appendTo: menu});
-        for (const kind of ['script', 'style']) Ele('button', {type: 'button', innerText: kind === 'script' ? 'Edit JavaScript' : 'Edit CSS', onclick: () => this.OpenSource(this.NameForType(this.SelectedWidget), kind), appendTo: menu});
-        Ele('button', {id: 'si_edit_widget_edit_selected', type: 'button', innerText: 'Edit selected', onclick: () => {
+        for (const kind of ['script', 'style']) Ele('button', {type: 'button', innerText: kind === 'script' ? SI.Tools.Text.Editor('Edit JavaScript') : SI.Tools.Text.Editor('Edit CSS'), onclick: () => this.OpenSource(this.NameForType(this.SelectedWidget), kind), appendTo: menu});
+        Ele('button', {id: 'si_edit_widget_edit_selected', type: 'button', innerText: SI.Tools.Text.Editor('Edit selected'), onclick: () => {
             if (!this.Preview) return;
             if (!this.CanvasFor(SI.Editor.Objects.Elements.Selected)) SI.Editor.Objects.Elements.Select(null, this.Preview.id);
             SI.Editor.UI.MainMenu.Element.style.display = 'block';
             document.getElementById('si_edit_edit_menuitem').style.display = 'none';
             SI.Editor.UI.MainMenu.SelectMenu('si_edit_edit_menuitem');
         }, appendTo: menu});
-        Ele('button', {id: 'si_edit_widget_save_design', type: 'button', innerText: 'Save design', onclick: () => this.SaveDesign(), appendTo: menu});
-        Ele('button', {type: 'button', innerText: 'Place on page', onclick: event => {
+        Ele('button', {id: 'si_edit_widget_save_design', type: 'button', innerText: SI.Tools.Text.Editor('Save design'), onclick: () => this.SaveDesign(), appendTo: menu});
+        Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Place on page'), onclick: event => {
             if (this.SelectedWidget && this.Preview) SI.Editor.Objects.Placement.Begin(event, {kind: 'widget', name: this.SelectedWidget, options: this.OptionsFor(this.Preview), design: this.Design(this.Preview), size: {width: parseFloat(this.Preview.style.width) || this.Preview.offsetWidth, height: parseFloat(this.Preview.style.height) || this.Preview.offsetHeight}});
         }, appendTo: menu});
-        for (const target of ['test', 'live']) Ele('button', {type: 'button', innerText: 'To ' + (target === 'test' ? 'Test' : 'Live'), onclick: async () => {
+        for (const target of ['test', 'live']) Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('To ') + (target === 'test' ? SI.Tools.Text.Editor('Test') : SI.Tools.Text.Editor('Live')), onclick: async () => {
             try {
-                if (this.CanvasDirty) { this.Status('Save the canvas design before promoting.'); return; }
+                if (this.CanvasDirty) { this.Status(SI.Tools.Text.Editor('Save the canvas design before promoting.')); return; }
                 await this.Request({KEY: 'PromoteWidgetSource', name: this.NameForType(this.SelectedWidget), target});
-                this.Status('Promoted ' + (target === 'test' ? 'Dev → Test' : 'Test → Live') + '.');
+                this.Status(SI.Tools.Text.Editor('Promoted ') + (target === 'test' ? SI.Tools.Text.Editor('Dev → Test') : SI.Tools.Text.Editor('Test → Live')) + '.');
             } catch (error) { this.Status(error.message); }
         }, appendTo: menu});
-        Ele('p', {class: 'si-add-hint', innerText: 'Drag tags or widgets from Add into this canvas. Double-click an element to edit it with Edit. Canvas changes are separate from page instances.', appendTo: base});
+        Ele('p', {class: 'si-add-hint', innerText: SI.Tools.Text.Editor('Drag tags or widgets from Add into this canvas. Double-click an element to edit it with Edit. Canvas changes are separate from page instances.'), appendTo: base});
         Ele('p', {id: 'si_edit_widget_status', role: 'status', appendTo: base});
         this.Canvas = Ele('div', {id: 'si_edit_widget_canvas', class: 'si-widget-canvas', appendTo: base});
         this.Canvas.dataset.siWidgetCanvas = 'true';
@@ -310,7 +310,7 @@ SI.Editor.Objects.Widgets = {
             const selected = this.Sources[this.NameForType(this.SelectedWidget)];
             if (selected) this.PreviewStyle.textContent = selected.style;
         }).catch(error => {
-            this.Status(error.message + ' The canvas remains available for temporary editing.');
+            this.Status(error.message + SI.Tools.Text.Editor(' The canvas remains available for temporary editing.'));
         });
         return base;
     },
@@ -328,7 +328,7 @@ SI.Editor.Objects.Widgets = {
         this.Canvas.replaceChildren(); this.Preview = null;
     },
     SelectWidget: function (type, force = false) {
-        if (!force && this.CanvasDirty && !window.confirm('Discard the unsaved widget canvas changes?')) { this.WidgetSelector.value = this.SelectedWidget; return; }
+        if (!force && this.CanvasDirty && !window.confirm(SI.Tools.Text.Editor('Discard the unsaved widget canvas changes?'))) { this.WidgetSelector.value = this.SelectedWidget; return; }
         this.ReleasePreview(); this.SelectedWidget = type; this.WidgetSelector.value = type;
         try {
             const size = this.PlacementSize(type);
@@ -340,14 +340,14 @@ SI.Editor.Objects.Widgets = {
             SI.Tools.Widget.ApplyDesign(this.Preview, source ? source.design : SI.Tools.Widget.Designs[type]);
             this.MakeCanvasEditable(); this.CanvasDirty = false;
             this.PreviewStyle.textContent = source ? source.style : '';
-            this.Status(type + ' preview · changes affect this working copy until saved.');
-        } catch (error) { this.Status('Cannot preview ' + type + ': ' + error.message); }
+            this.Status(type + SI.Tools.Text.Editor(' preview · changes affect this working copy until saved.'));
+        } catch (error) { this.Status(SI.Tools.Text.Editor('Cannot preview ') + type + ': ' + error.message); }
     },
     MakeCanvasEditable: function () {
         if (!this.Preview) return;
         for (const element of [this.Preview, ...this.Preview.querySelectorAll('*')]) SI.Editor.Objects.Elements.Editable(element);
     },
-    MarkCanvasDirty: function () { this.CanvasDirty = true; this.Status('Unsaved widget design · Save design to keep it in Dev.'); },
+    MarkCanvasDirty: function () { this.CanvasDirty = true; this.Status(SI.Tools.Text.Editor('Unsaved widget design · Save design to keep it in Dev.')); },
     Clean: function (element) {
         const clone = element.cloneNode(true);
         for (const node of [clone, ...clone.querySelectorAll('*')]) {
@@ -461,7 +461,7 @@ SI.Editor.Objects.Widgets = {
                     borderRadius: '10px',
                     marginLeft:'3%',
                 },
-                append: Ele('legend', { innerHTML: 'Allowed File Types' }),
+                append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Allowed File Types') }),
                 appendTo: container,
             });
 

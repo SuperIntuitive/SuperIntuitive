@@ -4,6 +4,25 @@ use Tools
 fn namespace() -> String { return Config.get("domain", "localhost") + "." + Config.get("subdomain", "") }
 fn key(name: String) -> String { return namespace() + ":" + name }
 
+fn detectOS(headers: Map) -> String {
+    let platform = headers.get("sec-ch-ua-platform", "").replace("\"", "").trim().toLower()
+    let platforms = {"windows": "windows", "linux": "linux", "macos": "macos", "android": "android", "ios": "ios", "chrome os": "chromeos"}
+    if platforms.contains(platform) { return platforms[platform] }
+    let agent = headers.get("user-agent", "").toLower()
+    if agent.contains("android") { return "android" }
+    if agent.contains("iphone") or agent.contains("ipad") or agent.contains("ipod") or (agent.contains("macintosh") and agent.contains("mobile/")) { return "ios" }
+    if agent.contains("windows") { return "windows" }
+    if agent.contains("cros") { return "chromeos" }
+    if agent.contains("macintosh") or agent.contains("mac os x") { return "macos" }
+    if agent.contains("linux") { return "linux" }
+    return "unknown"
+}
+
+fn os(request: Map) -> String {
+    if not web.sessionHas(request, key("os")) { web.sessionSet(request, key("os"), detectOS(request.get("headers", {:}))) }
+    return web.sessionGet(request, key("os"))
+}
+
 fn csrf(request: Map) -> String {
     if not web.sessionHas(request, key("csrf")) { web.sessionSet(request, key("csrf"), auth.randomToken(32)) }
     return web.sessionGet(request, key("csrf"))

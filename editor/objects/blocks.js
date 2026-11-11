@@ -292,7 +292,7 @@ SI.Editor.Objects.Blocks = {
         let saveAll = SI.Editor.UI.IconButton({
             Icon: 'saveAll',
             class: 'si-block-action',
-            title: "Save ALL Html, Style, Script, and Options",
+            title: SI.Tools.Text.Editor("Save ALL Html, Style, Script, and Options"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -333,14 +333,14 @@ SI.Editor.Objects.Blocks = {
         let deleteBlock = SI.Editor.UI.IconButton({
             Icon: 'delete',
             class: 'si-block-action',
-            title: "Remove Block",
+            title: SI.Tools.Text.Editor("Remove Block"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
                 fkey: fixedkey,
             },
             onclick: function (e) {
-                var retVal = confirm("This block will be removed from the page and all custom block data will be lost. This will not affect the block itself. Proceed?");
+                var retVal = confirm(SI.Tools.Text.Editor("This block will be removed from the page and all custom block data will be lost. This will not affect the block itself. Proceed?"));
                 if (retVal === true) {
                     //SI.Editor.Objects.Blocks.SelectNone();
                     //debugger;
@@ -365,7 +365,7 @@ SI.Editor.Objects.Blocks = {
         let openScripter = SI.Editor.UI.IconButton({
             Icon: 'code',
             class: 'si-block-action',
-            title: "Open Scripter",
+            title: SI.Tools.Text.Editor("Open Scripter"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -383,7 +383,7 @@ SI.Editor.Objects.Blocks = {
         let openStyler = SI.Editor.UI.IconButton({
             Icon: 'style',
             class: 'si-block-action',
-            title: "Open Styler",
+            title: SI.Tools.Text.Editor("Open Styler"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -403,7 +403,7 @@ SI.Editor.Objects.Blocks = {
             Icon: 'deployment',
             id: 'si_block_deployment_button_' + fixedkey,
             class: 'si-block-action',
-            title: "Open Deployments",
+            title: SI.Tools.Text.Editor("Open Deployments"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -418,7 +418,7 @@ SI.Editor.Objects.Blocks = {
             Icon: 'settings',
             id: 'si_block_settings_button_' + fixedkey,
             class: 'si-block-action',
-            title: "Manage custom block settings",
+            title: SI.Tools.Text.Editor("Manage custom block settings"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -433,7 +433,7 @@ SI.Editor.Objects.Blocks = {
             Icon: 'widgets',
             id: 'si_block_widgets_button_' + fixedkey,
             class: 'si-block-action',
-            title: "Manage block widgets",
+            title: SI.Tools.Text.Editor("Manage block widgets"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -447,7 +447,7 @@ SI.Editor.Objects.Blocks = {
         let saveHtml = SI.Editor.UI.IconButton({
             Icon: 'save',
             class: 'si-block-action',
-            title: "Save the Block",
+            title: SI.Tools.Text.Editor("Save the Block"),
             data: {
                 block: 'si_block_' + fixedkey,
                 guid: options.Guid,
@@ -526,7 +526,7 @@ SI.Editor.Objects.Blocks = {
                 onchange: function () {
                     let oldval = this.value;
                     if (this.value.length === 0) {
-                        if (confirm("Do you want to delete this block setting?")) {
+                        if (confirm(SI.Tools.Text.Editor("Do you want to delete this block setting?"))) {
                             //input  -> td      ->   tr
                             let tr = this.parentElement.parentElement;
                             tr.parentElement.removeChild(tr);
@@ -557,7 +557,7 @@ SI.Editor.Objects.Blocks = {
             });
         };
         Ele("input", {
-            placeholder: 'Name',
+            placeholder: SI.Tools.Text.Editor('Name'),
             appendTo: settingsContainer,
             style: {
                 display: "inline",
@@ -565,7 +565,7 @@ SI.Editor.Objects.Blocks = {
             }
         });
         Ele("input", {
-            placeholder: 'Value',
+            placeholder: SI.Tools.Text.Editor('Value'),
             appendTo: settingsContainer,
             style: {
                 display: "inline",
@@ -686,7 +686,7 @@ SI.Editor.Objects.Blocks = {
             styletable.appendChild(stylebox);
         }
         let addBlockStyle = Ele("button", {
-            innerHTML: 'Add Style',
+            innerHTML: SI.Tools.Text.Editor('Add Style'),
             style: {
                 height: '20px',
                 marginLeft: '12px',
@@ -710,7 +710,7 @@ SI.Editor.Objects.Blocks = {
                     let stylebox = SI.Editor.Objects.Elements.Styles.Widget(styleobj);// "Group": style.group, "Index": style.index, "Effect": 'body' });
                     document.getElementById("si_edit_page_blocks_styles_" + fixedkey).appendChild(stylebox);
                 } else {
-                    alert('Select a style to add it to the block');
+                    alert(SI.Tools.Text.Editor('Select a style to add it to the block'));
                 }
                 this.nextSibling.selectedIndex = 0;
             },
@@ -830,7 +830,7 @@ SI.Editor.Objects.Blocks = {
             SI.Editor.Data.Objects.Blocks[newblock.NAME].name = newblock.NAME;
 
         } else {
-            alert("ERROR: That block already exists.");
+            alert(SI.Tools.Text.Editor("ERROR: That block already exists."));
             return false;
         }
 
@@ -851,6 +851,7 @@ SI.Editor.Objects.Blocks = {
         console.log(blockname + ' has been created');
     },
     Save: function (blockui, flag = 'flag') {
+        SI.Editor.Objects.Elements.CommitContent();
 
         //if not yet opened, the tool window is needed for some elements below.  
         if(document.getElementById("si_edit_page_window") === null){
@@ -860,7 +861,7 @@ SI.Editor.Objects.Blocks = {
         if (typeof blockui === 'string') {
             blockui = document.getElementById('si_bid_' + blockui);
             if (!blockui) {
-                alert('cant find block ' + blockui + " to save");
+                alert(SI.Tools.Text.Editor('cant find block ') + blockui + SI.Tools.Text.Editor(" to save"));
                 return;
             }
         }
@@ -900,7 +901,20 @@ SI.Editor.Objects.Blocks = {
             const snapshot = block.cloneNode(true);
             for (const control of snapshot.querySelectorAll('[data-si-editor-only]')) control.remove();
             for (const ignore of snapshot.querySelectorAll('.si-editable-ignoreinner')) ignore.innerHTML = '';
-            for (const text of snapshot.querySelectorAll('.si-multilingual')) text.textContent = 'SI_MULTILANG_' + text.dataset.si_ml_token;
+            for (const node of snapshot.querySelectorAll('.si-editable-element')) {
+                node.classList.remove('si-editable-element');
+                if (!node.className) node.removeAttribute('class');
+            }
+            const translations = [];
+            try {
+                SI.Tools.Text.RestoreMultilingual(snapshot, tmp.DirtyTranslations, translations);
+            } catch (error) {
+                console.error(error);
+                SI.Tools.SuperAlert(SI.Tools.Text.Editor(error.message), 4000);
+                if (selected) SI.Editor.Objects.Elements.Select.call(selected);
+                return;
+            }
+            if (translations.length) data.localtext = translations;
             data.html = snapshot.innerHTML;
             empty = false;
         }
@@ -976,7 +990,7 @@ SI.Editor.Objects.Blocks = {
 
         SI.Editor.Objects.Blocks.PendingSaves[bname] = SI.Editor.Data.Objects.Blocks[bname].EditRevision || 0;
         data.KEY = 'BlockSave';
-        let ajax = { Data: data, };
+        let ajax = { Data: data, Revision: SI.Editor.Objects.Blocks.PendingSaves[bname] };
         console.log(ajax);
         SI.Editor.Ajax.Run(ajax);
 
@@ -996,12 +1010,20 @@ SI.Editor.Objects.Blocks = {
 
     },
     PendingSaves: {},
-    Saved: function (name) {
+    Saved: function (name, options) {
         const block = SI.Editor.Data.Objects.Blocks[name];
-        if (block && (block.EditRevision || 0) === SI.Editor.Objects.Blocks.PendingSaves[name]) block.IsDirty = false;
+        for (const text of options?.Data.localtext || []) {
+            const record = SI.Editor.Objects.Language.Find(text.id);
+            if (record) record['_' + text.language] = text.text;
+        }
+        const htmlSaved = options?.Data.html !== undefined;
+        if (block && (block.EditRevision || 0) === (options?.Revision ?? SI.Editor.Objects.Blocks.PendingSaves[name]) && (htmlSaved || !Object.keys(block.DirtyTranslations || {}).length)) {
+            block.IsDirty = false;
+            block.DirtyTranslations = {};
+        }
         delete SI.Editor.Objects.Blocks.PendingSaves[name];
         SI.Editor.UI.EditPanel.SelectionSummary();
-        SI.Tools.SuperAlert(name + ' saved.', 1000);
+        SI.Tools.SuperAlert(name + SI.Tools.Text.Editor(' saved.'), 1000);
     },
     Promote: function (data) {
         data.KEY = 'BlockPromote';
@@ -1073,9 +1095,9 @@ SI.Editor.Objects.Blocks = {
 
         let indelete = SI.Editor.UI.IconButton({
             Icon: 'eraser',
-            title:"Delete",
+            title:SI.Tools.Text.Editor("Delete"),
             onclick: function () {
-                if (confirm("Do you want to delete this widget?")) {
+                if (confirm(SI.Tools.Text.Editor("Do you want to delete this widget?"))) {
                     const element = document.getElementById(options.Id);
                     if (element) SI.Editor.Objects.Elements.Remove(element);
                     else { SI.Editor.Objects.Widgets.Forget(block, options.Id); SI.Editor.Objects.Elements.MarkDirty(document.getElementById('si_block_' + block)); }
@@ -1085,7 +1107,7 @@ SI.Editor.Objects.Blocks = {
         });
         let inedit = SI.Editor.UI.IconButton({
             Icon: 'widgets',
-            title: "Edit this widget",
+            title: SI.Tools.Text.Editor("Edit this widget"),
             onclick: function () {
                 const element = document.getElementById(options.Id);
                 if (!element) return;

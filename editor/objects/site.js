@@ -6,7 +6,7 @@
         });
 
         let fldNewPage = Ele('fieldset', {
-            append: Ele('legend', { innerHTML: 'Create a new Page' }),
+            append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Create a new Page') }),
         });
         //   fldNewPage.style.width = "300px";
         //    
@@ -16,14 +16,14 @@
         let tblNewPage = document.createElement('table');
         let hgrNewPage = document.createElement('tr');
         let hBuNewPage = document.createElement('th');
-        hBuNewPage.innerHTML = "Business Unit";
-        hBuNewPage.title = 'sub-domain';
+        hBuNewPage.innerHTML = SI.Tools.Text.Editor("Business Unit");
+        hBuNewPage.title = SI.Tools.Text.Editor('sub-domain');
         hgrNewPage.appendChild(hBuNewPage);
         let hDoNewPage = document.createElement('th');
-        hDoNewPage.innerHTML = "Domain";
+        hDoNewPage.innerHTML = SI.Tools.Text.Editor("Domain");
         hgrNewPage.appendChild(hDoNewPage);
         let hPgNewPage = document.createElement('th');
-        hPgNewPage.innerHTML = "Page";
+        hPgNewPage.innerHTML = SI.Tools.Text.Editor("Page");
         hgrNewPage.appendChild(hPgNewPage);
         let blankNewPage = document.createElement('th');
         hgrNewPage.appendChild(blankNewPage);
@@ -77,7 +77,7 @@
         //Directory
 
         let directory = Ele('fieldset', {
-            append: Ele('legend', { innerHTML: 'Directory' }),
+            append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Directory') }),
             appendTo: base,
         });
 
@@ -93,7 +93,7 @@
                         backgroundColor: '#708090',
                     },
                     append: Ele('legend', {
-                        innerHTML: "Domain",
+                        innerHTML: SI.Tools.Text.Editor("Domain"),
                         style: {
 
 
@@ -127,7 +127,7 @@
                                 backgroundColor: '#778899',
                             },
                             append: Ele('legend', {
-                                innerHTML: "SubDomain",
+                                innerHTML: SI.Tools.Text.Editor("SubDomain"),
                                 style: {
 
 
@@ -181,7 +181,7 @@
 
                                 let removeredirect = Ele('button', {
                                     id: 'si_edit_site_rmredirect_' + pageid,
-                                    innerHTML: 'Remove Redirect',
+                                    innerHTML: SI.Tools.Text.Editor('Remove Redirect'),
                                     style: {
                                         margin: '15px',
                                         display: 'none',
@@ -209,7 +209,7 @@
 
                                     },
                                     append: Ele('legend', {
-                                        innerHTML: "Parent Entities",
+                                        innerHTML: SI.Tools.Text.Editor("Parent Entities"),
                                         style: {
 
 
@@ -228,7 +228,7 @@
 
                                     },
                                     append: Ele('legend', {
-                                        innerHTML: "Child Entities",
+                                        innerHTML: SI.Tools.Text.Editor("Child Entities"),
                                         style: {
 
 
@@ -372,14 +372,14 @@
 
 
         let fldNewInstance = Ele('fieldset', {
-            append: Ele('legend', { innerHTML: 'Create a new Instance' }),
+            append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Create a new Instance') }),
             appendTo: base,
         });
         let tblNewInstance = Ele('table', { appendTo: fldNewInstance });
         let tblHdrInstance = Ele('tr', { appendTo: tblNewInstance });
 
-        Ele('th', { innerHTML: 'Business Unit', appendTo: tblHdrInstance });
-        Ele('th', { innerHTML: 'Domain', appendTo: tblHdrInstance });
+        Ele('th', { innerHTML: SI.Tools.Text.Editor('Business Unit'), appendTo: tblHdrInstance });
+        Ele('th', { innerHTML: SI.Tools.Text.Editor('Domain'), appendTo: tblHdrInstance });
         Ele('th', { appendTo: tblHdrInstance });
 
         let tblDtaInstance = Ele('tr', { appendTo: tblNewInstance });

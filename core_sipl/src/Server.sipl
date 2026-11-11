@@ -188,7 +188,7 @@ fn handle(request: Map) {
     var length = 0
     if payload.type == "String" { length = bytes.encodeUtf8(payload).length }
     if payload.type == "Bytes" { length = payload.length }
-    if length > 1048576 { response = operationReply(Tools.gap("CONFIGURABLE_DYNAMIC_RESPONSE_LIMIT"), false) }
+    if length > Config.get("maxResponseBody", 1048576) { response = jsonReply(Tools.error("The response exceeds the configured size limit.", "RESPONSE_TOO_LARGE"), 500) }
     let headers = response.get("headers", {:})
     headers["X-Content-Type-Options"] = "nosniff"
     headers["X-Frame-Options"] = "SAMEORIGIN"
@@ -210,6 +210,7 @@ fn run() {
     if not fs.isDirectory(root) { root = Config.root("core_sipl/public") }
     else { Assets.mediaRoot(settings["domain"]) }
     let options: Map = {"host": settings["host"]}
+    if settings.contains("maxResponseBody") { options["maxResponseBody"] = settings["maxResponseBody"] }
     if settings.contains("certFile") { options["certFile"] = settings["certFile"]
         options["keyFile"] = settings["keyFile"] }
     web.serve(root, settings["port"], handle, options)

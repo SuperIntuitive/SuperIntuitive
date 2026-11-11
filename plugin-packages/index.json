@@ -23,7 +23,7 @@
     "name": "Editor Demo",
     "type": "UI",
     "shortdesc": "An isolated public editor demo for PHP and SIPL.",
-    "longdesc": "All twelve CMS editor tools with temporary editing and reset. Runs as a separate plugin-owned service and survives CMS upgrades.",
+    "longdesc": "All twelve CMS editor tools in English, Spanish, Chinese or Tagalog with temporary editing and reset. Runs as a separate plugin-owned service and survives CMS upgrades.",
     "author": "Robert Allen",
     "download": "editor-demo.zip",
     "downloads": 0,

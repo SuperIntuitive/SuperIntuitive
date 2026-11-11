@@ -3,6 +3,7 @@ use Entity
 use Relations
 use Tools
 use Security
+use Localtext
 
 fn defaults() -> Map { return {"tag": "div", "style": {"position": "relative", "width": "100%", "height": "500px"}} }
 
@@ -23,11 +24,17 @@ fn save(context: Map, post: Map) -> Map {
     }
     if post.contains("options") { layout["dev-options"] = Tools.options(post["options"]) }
     if post.contains("order") { layout["dev-order"] = Tools.number(post["order"], 0, 2147483647) }
+    let translations = post.get("localtext", [])
+    if translations.type != "List" { fail("INVALID_BLOCK_TRANSLATIONS") }
     return Database.transaction(fn() {
         let row = Database.one("SELECT b.name FROM blocks b INNER JOIN relations r ON r.child_id=b.id AND r.childentity_id=b.entity_id WHERE b.id=UNHEX(:block) AND b.entity_id=UNHEX(:blocks) AND r.id=UNHEX(:relation) AND r.entity_id=UNHEX(:relations) FOR UPDATE", {"block": id, "blocks": Security.scope(context, "blocks"), "relation": relation, "relations": Security.scope(context, "relations")})
         if row == none { fail("INVALID_BLOCK_RELATION") }
         if not content.isEmpty { if not Entity.update(context, "blocks", id, content) { fail("BLOCK_SAVE_FAILED") } }
         if not layout.isEmpty { if not Entity.update(context, "relations", relation, layout) { fail("LAYOUT_SAVE_FAILED") } }
+        for translation in translations {
+            if translation.type != "Map" { fail("INVALID_BLOCK_TRANSLATION") }
+            Localtext.dispatch(context, "UpdateLocaltext", translation)
+        }
         return {"BLOCKSAVED": post.get("name", row["name"])}
     })
 }

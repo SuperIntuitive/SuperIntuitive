@@ -49,7 +49,7 @@ SI.Widget.Lookup.prototype = {
             control.className = 'si-lookup-control'; input.parentNode.insertBefore(control, input); control.appendChild(input);
         } else for (const child of Array.from(control.children)) if (child !== input) child.remove();
         const chips = Ele('div', {class: 'si-lookup-chips', appendTo: control}); control.insertBefore(chips, input);
-        const browse = Ele('button', {type: 'button', class: 'si-lookup-browse', innerText: '⌕', title: 'Search records', appendTo: control});
+        const browse = Ele('button', {type: 'button', class: 'si-lookup-browse', innerText: '⌕', title: SI.Tools.Text.Editor('Search records'), appendTo: control});
         browse.setAttribute('aria-label', 'Search records');
         const state = {manager: this, input, control, chips, browse, options, currentEntity: options.EntityName, preSearch: new Set(), required: input.required, selection: [], records: [], active: -1, requests: {}, view: options.View, destroyed: false, entities: options.Entities || [options.EntityName]};
         const initial = input.dataset.guid;
@@ -145,8 +145,8 @@ SI.Widget.Lookup.prototype = {
         state.chips.replaceChildren();
         for (const record of selection) {
             const chip = Ele('span', {class: 'si-lookup-chip', appendTo: state.chips});
-            Ele('button', {type: 'button', class: 'si-lookup-record', innerText: record.name || record.id, title: 'Open record', onclick: () => this.OpenRecord(state, record), appendTo: chip});
-            Ele('button', {type: 'button', class: 'si-lookup-clear', innerText: '×', title: 'Remove ' + (record.name || 'record'), disabled: input.disabled || input.readOnly, onclick: () => {
+            Ele('button', {type: 'button', class: 'si-lookup-record', innerText: record.name || record.id, title: SI.Tools.Text.Editor('Open record'), onclick: () => this.OpenRecord(state, record), appendTo: chip});
+            Ele('button', {type: 'button', class: 'si-lookup-clear', innerText: '×', title: SI.Tools.Text.Editor('Remove ') + (record.name || 'record'), disabled: input.disabled || input.readOnly, onclick: () => {
                 this.Commit(state, selection.filter(item => item !== record)); input.focus();
             }, appendTo: chip}).setAttribute('aria-label', 'Remove ' + (record.name || 'record'));
         }
@@ -198,7 +198,7 @@ SI.Widget.Lookup.prototype = {
     },
     Search: async function (state, browse = false) {
         if (state.input.disabled || state.input.readOnly || state.destroyed) return;
-        this.Popup(state).replaceChildren(Ele('p', {class: 'si-lookup-message', innerText: 'Searching…', role: 'status'}));
+        this.Popup(state).replaceChildren(Ele('p', {class: 'si-lookup-message', innerText: SI.Tools.Text.Editor('Searching…'), role: 'status'}));
         try {
             let value, recent = false;
             const ids = SI.Widget.Lookup.Recent.get(this.RecentKey(state)) || [];
@@ -207,9 +207,9 @@ SI.Widget.Lookup.prototype = {
             if (state.input.getAttribute('aria-expanded') !== 'true' || state.destroyed) return;
             state.records = value.Records; state.active = -1;
             const popup = this.Popup(state); popup.replaceChildren();
-            Ele('p', {class: 'si-lookup-heading', innerText: recent ? 'Recent records' : 'Matching records', appendTo: popup});
+            Ele('p', {class: 'si-lookup-heading', innerText: recent ? SI.Tools.Text.Editor('Recent records') : SI.Tools.Text.Editor('Matching records'), appendTo: popup});
             if (state.entities.length > 1) {
-                const types = Ele('select', {'aria-label': 'Record type', class: 'si-lookup-types', appendTo: popup});
+                const types = Ele('select', {'aria-label': SI.Tools.Text.Editor('Record type'), class: 'si-lookup-types', appendTo: popup});
                 for (const entity of state.entities) types.appendChild(new Option(entity, entity));
                 types.value = state.currentEntity;
                 types.onchange = () => { state.currentEntity = types.value; state.focusTypes = true; this.Search(state, true); };
@@ -226,8 +226,8 @@ SI.Widget.Lookup.prototype = {
                 row.addEventListener('pointerdown', event => event.preventDefault());
                 row.addEventListener('click', () => this.Choose(state, record));
             }
-            if (!value.Records.length) Ele('p', {class: 'si-lookup-message', role: 'status', innerText: 'No records found. Try another search.', appendTo: list});
-            Ele('button', {type: 'button', class: 'si-lookup-advanced-button', innerText: 'Advanced lookup' + (value.More ? ' · More records' : ''), onclick: () => this.OpenAdvanced(state), appendTo: popup});
+            if (!value.Records.length) Ele('p', {class: 'si-lookup-message', role: 'status', innerText: SI.Tools.Text.Editor('No records found. Try another search.'), appendTo: list});
+            Ele('button', {type: 'button', class: 'si-lookup-advanced-button', innerText: SI.Tools.Text.Editor('Advanced lookup') + (value.More ? SI.Tools.Text.Editor(' · More records') : ''), onclick: () => this.OpenAdvanced(state), appendTo: popup});
         } catch (error) {
             if (error.name !== 'AbortError' && state.input.getAttribute('aria-expanded') === 'true' && !state.destroyed) this.Popup(state).replaceChildren(Ele('p', {class: 'si-lookup-message si-widget-error', role: 'alert', innerText: error.message}));
         }
@@ -253,28 +253,28 @@ SI.Widget.Lookup.prototype = {
         if (state.options.OnOpen) { state.options.OnOpen(record, state.input); return; }
         const window = this.WindowFor(state, 'Record details');
         const content = Ele('div', {class: 'si-lookup-advanced'});
-        const status = Ele('p', {class: 'si-lookup-message', role: 'status', innerText: 'Loading record…', appendTo: content});
+        const status = Ele('p', {class: 'si-lookup-message', role: 'status', innerText: SI.Tools.Text.Editor('Loading record…'), appendTo: content});
         window.Content.replaceChildren(content); window.Show();
         try {
             const result = await this.Request(state, {Entity: {Name: record.entityType}, Search: '', Ids: [record.id]}, 'details');
             if (this.DialogState !== state || !content.isConnected) return;
             const record = result.Records[0];
-            if (!record) { status.textContent = 'This record is no longer available.'; return; }
+            if (!record) { status.textContent = SI.Tools.Text.Editor('This record is no longer available.'); return; }
             status.textContent = record.name;
             const table = Ele('table', {class: 'si-widget-table', appendTo: content});
             for (const [name, value] of Object.entries(record.fields)) {
                 const row = table.insertRow(); Ele('th', {scope: 'row', innerText: name.replaceAll('_', ' '), appendTo: row}); row.insertCell().textContent = String(value ?? '');
             }
             const footer = Ele('div', {class: 'si-lookup-footer', appendTo: content});
-            Ele('button', {type: 'button', innerText: 'Change record', onclick: () => this.OpenAdvanced(state, record), appendTo: footer});
-            Ele('button', {type: 'button', innerText: 'Close', onclick: () => window.Hide(), appendTo: footer});
+            Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Change record'), onclick: () => this.OpenAdvanced(state, record), appendTo: footer});
+            Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Close'), onclick: () => window.Hide(), appendTo: footer});
         } catch (error) { if (error.name !== 'AbortError') status.textContent = error.message; }
     },
     WindowFor: function (state, title) {
         this.Close(state);
         const manager = this;
         if (!this.LookupWindow) {
-            this.LookupWindow = new SI.Widget.Window({Id: SI.Tools.Element.SafeId('si_lookup_window'), Title: 'Look up records', WindowControls: 'CLOSE', Width: '740px', Height: '540px', OpenPosition: 'CENTER', Modal: true});
+            this.LookupWindow = new SI.Widget.Window({Id: SI.Tools.Element.SafeId('si_lookup_window'), Title: SI.Tools.Text.Editor('Look up records'), WindowControls: 'CLOSE', Width: '740px', Height: '540px', OpenPosition: 'CENTER', Modal: true});
             const hide = this.LookupWindow.Hide;
             this.LookupWindow.Hide = function (...args) { const result = hide.apply(this,args); const state = manager.DialogState; if (state) (state.input.hidden ? state.browse : state.input).focus(); return result; };
         }
@@ -294,23 +294,23 @@ SI.Widget.Lookup.prototype = {
     DrawLookupWindow: function (state = this.DialogState, initial) {
         const box = Ele('div', {class: 'si-lookup-advanced'});
         const toolbar = Ele('div', {class: 'si-lookup-toolbar', appendTo: box});
-        const entities = Ele('select', {'aria-label': 'Record type', appendTo: toolbar});
+        const entities = Ele('select', {'aria-label': SI.Tools.Text.Editor('Record type'), appendTo: toolbar});
         for (const entity of state.entities) entities.appendChild(new Option(entity,entity)); entities.value = state.currentEntity;
-        const view = Ele('select', {'aria-label': 'View', appendTo: toolbar}); view.append(new Option('Active records','active'),new Option('All records','all')); view.value = state.view;
-        const search = Ele('input', {type: 'search', placeholder: 'Search records…', 'aria-label': 'Search records', value: state.input.hidden ? '' : state.input.value, appendTo: toolbar});
+        const view = Ele('select', {'aria-label': SI.Tools.Text.Editor('View'), appendTo: toolbar}); view.append(new Option('Active records','active'),new Option('All records','all')); view.value = state.view;
+        const search = Ele('input', {type: 'search', placeholder: SI.Tools.Text.Editor('Search records…'), 'aria-label': SI.Tools.Text.Editor('Search records'), value: state.input.hidden ? '' : state.input.value, appendTo: toolbar});
         const scroller = Ele('div', {class: 'si-lookup-grid', appendTo: box});
         const status = Ele('p', {class: 'si-lookup-message', role: 'status', appendTo: box});
         const footer = Ele('div', {class: 'si-lookup-footer', appendTo: box});
-        const previous = Ele('button', {type: 'button', innerText: 'Previous', appendTo: footer});
-        const next = Ele('button', {type: 'button', innerText: 'Next', appendTo: footer});
+        const previous = Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Previous'), appendTo: footer});
+        const next = Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Next'), appendTo: footer});
         const chosen = Ele('span', {class: 'si-lookup-selection-summary', appendTo: footer});
-        const cancel = Ele('button', {type: 'button', innerText: 'Cancel', appendTo: footer});
-        const done = Ele('button', {type: 'button', innerText: 'Done', class: 'si-widget-primary', appendTo: footer});
+        const cancel = Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Cancel'), appendTo: footer});
+        const done = Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('Done'), class: 'si-widget-primary', appendTo: footer});
         let page = 0, sorting = null, direction = 'asc', selected = initial ? [initial] : state.selection.slice(), timer;
-        const create = state.options.OnCreate ? Ele('button', {type: 'button', innerText: 'New record', hidden: true, appendTo: toolbar}) : null;
-        const summary = () => { chosen.textContent = selected.length ? selected.map(record=>record.name).join(', ') : 'No record selected'; done.disabled = !selected.length; }; summary();
+        const create = state.options.OnCreate ? Ele('button', {type: 'button', innerText: SI.Tools.Text.Editor('New record'), hidden: true, appendTo: toolbar}) : null;
+        const summary = () => { chosen.textContent = selected.length ? selected.map(record=>record.name).join(', ') : SI.Tools.Text.Editor('No record selected'); done.disabled = !selected.length; }; summary();
         const load = async () => {
-            status.textContent = 'Searching…'; previous.disabled = next.disabled = true;
+            status.textContent = SI.Tools.Text.Editor('Searching…'); previous.disabled = next.disabled = true;
             try {
                 const extra = {Entity: {Name: entities.value}, Search: search.value, View: view.value, Page: page, PageSize: 20};
                 if (sorting) Object.assign(extra,{SortColumn: sorting,SortDirection: direction});
@@ -318,7 +318,7 @@ SI.Widget.Lookup.prototype = {
                 if (!box.isConnected || this.DialogState !== state) return;
                 scroller.replaceChildren();
                 const table = Ele('table', {class: 'si-widget-table si-lookup-table', appendTo: scroller});
-                const head = table.createTHead().insertRow(); Ele('th',{innerText:'Select',appendTo:head});
+                const head = table.createTHead().insertRow(); Ele('th',{innerText:SI.Tools.Text.Editor('Select'),appendTo:head});
                 for (const column of result.Columns) {
                     const cell = Ele('th', {appendTo: head}); cell.setAttribute('aria-sort',sorting===column?(direction==='asc'?'ascending':'descending'):'none');
                     Ele('button',{type:'button',innerText:column.replaceAll('_',' '),onclick:()=>{direction=sorting===column&&direction==='asc'?'desc':'asc';sorting=column;page=0;load();},appendTo:cell});
@@ -333,7 +333,7 @@ SI.Widget.Lookup.prototype = {
                     row.addEventListener('dblclick',()=>{this.Commit(state,[record]);this.LookupWindow.Hide();});
                     for(const column of result.Columns) row.insertCell().textContent = String(record.fields[column] ?? '');
                 }
-                status.textContent = result.Records.length ? 'Page '+(page+1)+' · '+result.Records.length+' records' : 'No records found.';
+                status.textContent = result.Records.length ? SI.Tools.Text.Editor('Page ')+(page+1)+' · '+result.Records.length+SI.Tools.Text.Editor(' records') : SI.Tools.Text.Editor('No records found.');
                 previous.disabled = page===0; next.disabled = !result.More;
                 if (create) create.hidden = !result.CanCreate;
             } catch(error) { if(error.name!=='AbortError')status.textContent=error.message; }

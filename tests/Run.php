@@ -84,8 +84,8 @@ function main(array $arguments): int {
     if (!$quick) $http[]='--browser';
     $steps[]=['Native HTTP/session'.($quick?'':'/browser'),$http];
     if (!$quick) {
-        foreach (['--scripter','--styler'] as $mode) $steps[]=['Isolated editor '.$mode,['node','tests\\editor_browser.cjs',$mode]];
-        foreach (['--apache','--passwords','--framework','--widgets','--demo'] as $mode) {
+        foreach (['--scripter','--styler','--language','--save'] as $mode) $steps[]=['Isolated editor '.$mode,['node','tests\\editor_browser.cjs',$mode]];
+        foreach (['--apache','--passwords','--framework','--widgets','--language','--demo'] as $mode) {
             $steps[]=['Packaged fixture '.$mode,array_merge($php,['tests\\Fixture.php',$mode,'--runtime',$runtime])];
         }
         $steps[]=['Cross-edition plugins/Contact/browser',array_merge($php,['tests\\Fixture.php','--both','--browser','--runtime',$runtime])];

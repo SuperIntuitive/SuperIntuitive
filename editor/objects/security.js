@@ -10,7 +10,7 @@ SI.Editor.Objects.Security = {
             id: 'si_edit_security_new_role',
             type: 'button',
             class: 'si-tool-action',
-            innerText: 'New Role',
+            innerText: SI.Tools.Text.Editor('New Role'),
             onclick: SI.Editor.Objects.Security.New,
             appendTo: navigation,
         });
@@ -100,7 +100,7 @@ SI.Editor.Objects.Security = {
         if (roleent.name != 'Admin') {
             let ruleSave = Ele('input', {
                 id: "si_edit_security_rule_update_" + rolenameid,
-                value: 'Save',
+                value: SI.Tools.Text.Editor('Save'),
                 type: 'button',
                 data: {
                     roleid: roleentid,
@@ -115,7 +115,7 @@ SI.Editor.Objects.Security = {
         if (roleent.name != 'Admin' && roleent.name != 'Guest') {
             let ruleDelete = Ele('input', {
                 id: "si_edit_security_rule_delete_" + rolenameid,
-                value: 'Delete',
+                value: SI.Tools.Text.Editor('Delete'),
                 type: 'button',
                 data: {
                     roleid: roleentid,
@@ -173,7 +173,7 @@ SI.Editor.Objects.Security = {
         return roleFs;
     },
     New: function () {
-        var result = window.prompt('Enter a new role name:');
+        var result = window.prompt(SI.Tools.Text.Editor('Enter a new role name:'));
         if (result && result.trim()) {
             result = result.trim();
             let entities = SI.Editor.Data.Objects.Entities.Definitions;
@@ -255,7 +255,7 @@ SI.Editor.Objects.Security = {
 
     },
     Delete: function (ev) {
-        if (confirm("This will delete this role and any references to it. Are you sure?")) {
+        if (confirm(SI.Tools.Text.Editor("This will delete this role and any references to it. Are you sure?"))) {
             //debugger;
             if (this.dataset.roleid == 'NEW') {
                 SI.Editor.Objects.Security.Deleted(SI.Tools.Element.SafeId(this.dataset.rolename))

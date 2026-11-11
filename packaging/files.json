@@ -9,6 +9,7 @@
     {"source": "editor/editor.css"},
     {"source": "editor/vendor/acorn.js"},
     {"source": "editor/objects", "extensions": [".js"]},
+    {"source": "editor/locales", "extensions": [".json"]},
     {"source": "editor/media", "extensions": [".json", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".ttf", ".woff", ".woff2", ".pdf", ".mp4"]},
     {"source": "scripts/tools.js"},
     {"source": "scripts/EntityTemplate.json"},

@@ -509,7 +509,7 @@ SI.Widget.Window = function  (options) {
         for (const action of ['minimize', 'maximize', 'close']) {
             const control = this.Statebox.querySelector('.si-window-control-' + action);
             if (!control) continue;
-            control.title = action[0].toUpperCase() + action.slice(1) + ' ' + this.Options.Title;
+            control.title = SI.Tools.Text.Editor(action[0].toUpperCase() + action.slice(1)) + ' ' + this.Options.Title;
             control.setAttribute('role', 'button');
             control.setAttribute('aria-label', control.title);
             control.tabIndex = 0;
@@ -891,4 +891,3 @@ SI.Widget.Window = function  (options) {
     return this;
 
 };
-

@@ -146,7 +146,7 @@ else{
 }
 
 //we need to pass this the list of languages, 
-$lang = Tools::GetBrowserLanguage();
+$lang = Tools::LanguagePreferences()[0] ?? 'en';
 
 
 //build the html doc

@@ -1,0 +1,11 @@
+{
+  "language": "es",
+  "texts": {
+    "Editor demo": "Demostración del editor",
+    "Links stay inside the sample. Use the company navigation above to explore the site.": "Los enlaces permanecen dentro de la muestra. Usa la navegación de la empresa de arriba para explorar el sitio.",
+    "Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.": "Modo de muestra: tus cambios permanecen en este navegador. Las funciones de guardar, cargar archivos y publicar están desactivadas.",
+    "The canvas remains available for temporary editing.": "El lienzo sigue disponible para realizar cambios temporales.",
+    "Translated by AI": "Traducido por IA"
+  },
+  "sample": "<section class=\"si-demo-sample\">\n  <p>TU LIENZO</p>\n  <h1 id=\"si_demo_sample_title\">Crea algo a tu manera.</h1>\n  <p>Haz clic derecho para abrir Añadir / Editar / Herramientas. Cambia el texto, ajusta un estilo o explora el código. Empezar de nuevo restaura esta página publicada.</p>\n  <article><h2>Empieza con una pequeña idea.</h2><p>El origen es un bloque normal del CMS. Un administrador puede reemplazarlo con tu propio ejemplo publicado.</p><button type=\"button\">Un botón para darle estilo</button></article>\n</section>"
+}

@@ -18,6 +18,7 @@ SI.Editor.Objects.Plugins = {
         });
 
         let tabs = new SI.Widget.Tab({
+            TranslateLabels: true,
             OnChange: function (self) {
                 let tab = self.dataset.tabname;
                 let pis = SI.Editor.Objects.Plugins.Repo.Plugins;
@@ -87,7 +88,7 @@ SI.Editor.Objects.Plugins = {
             //Tools.StopOverscroll(content);
 
             let title = Ele('span', {
-                innerHTML: 'Super Intuitive Plugins',
+                innerHTML: SI.Tools.Text.Editor('Super Intuitive Plugins'),
                 style: {
                     position: 'absolute',
                     top: '15px',
@@ -187,7 +188,7 @@ SI.Editor.Objects.Plugins = {
                     appendTo: container,
                 });
                 Ele('span', {
-                    innerHTML: 'Name: ' + name,
+                    innerHTML: SI.Tools.Text.Editor('Name: ') + name,
                     style: {
                         width: '150px',
                         color: style.textcolor,
@@ -208,7 +209,7 @@ SI.Editor.Objects.Plugins = {
                 });
 
                 Ele('button', {
-                    innerHTML: 'Download',
+                    innerHTML: SI.Tools.Text.Editor('Download'),
                     style: {
                         borderRadius: '7px',
                         padding: '4px',
@@ -247,7 +248,7 @@ SI.Editor.Objects.Plugins = {
                 });
                 Ele('br', { appendTo: infobox, });
                 Ele('span', {
-                    innerHTML: 'by: ' + author,
+                    innerHTML: SI.Tools.Text.Editor('by: ') + author,
                     appendTo: infobox,
                 });
                 SI.Editor.Objects.Plugins.Repo.Plugins.push(name);
@@ -278,7 +279,7 @@ SI.Editor.Objects.Plugins = {
             //debugger;
             plugin = plugin.replace('.zip', '');
             document.getElementById('si_edit_plugins_local_content').appendChild(SI.Editor.Objects.Plugins.Local.AddPlugin(plugin, false));
-            alert(plugin + " has been downloaded and is ready to be installed.");
+            alert(plugin + SI.Tools.Text.Editor(" has been downloaded and is ready to be installed."));
 
         },
     },
@@ -312,7 +313,7 @@ SI.Editor.Objects.Plugins = {
                 appendTo: container,
             });
             let title = Ele('span', {
-                innerHTML: 'Local Plugins',
+                innerHTML: SI.Tools.Text.Editor('Local Plugins'),
                 style: {
                     position: 'absolute',
                     top: '15px',
@@ -336,7 +337,7 @@ SI.Editor.Objects.Plugins = {
             });
 
             Ele('button', {
-                innerHTML: 'Upload Zip',
+                innerHTML: SI.Tools.Text.Editor('Upload Zip'),
                 style: {
                     position: 'absolute',
                     right: '15px',
@@ -418,9 +419,9 @@ SI.Editor.Objects.Plugins = {
             if (vals !== false) {
                 for (const page of vals.pages || []) Ele('a', {textContent: page.title, href: page.path, style: {display: 'block'}, appendTo: box});
                 for (const action of ['UpdatePlugin', 'UninstallPlugin']) Ele('button', {
-                    textContent: action === 'UpdatePlugin' ? 'Update from downloaded ZIP' : 'Uninstall (keep data)', appendTo: box,
+                    textContent: action === 'UpdatePlugin' ? SI.Tools.Text.Editor('Update from downloaded ZIP') : SI.Tools.Text.Editor('Uninstall (keep data)'), appendTo: box,
                     onclick: function () {
-                        if (confirm(action === 'UninstallPlugin' ? 'Uninstall ' + name + '? Data and CMS edits are preserved.' : 'Update ' + name + ' from its downloaded ZIP?')) {
+                        if (confirm(action === 'UninstallPlugin' ? SI.Tools.Text.Editor('Uninstall ') + name + SI.Tools.Text.Editor('? Data and CMS edits are preserved.') : SI.Tools.Text.Editor('Update ') + name + SI.Tools.Text.Editor(' from its downloaded ZIP?'))) {
                             SI.Editor.Objects.Plugins.Local.Manage({KEY: action, plugin: name}).catch(error => SI.Tools.SuperAlert(error.message, 6000));
                         }
                     }
@@ -433,14 +434,14 @@ SI.Editor.Objects.Plugins = {
                 headers: {'Content-Type': 'application/json', 'X-SI-CSRF': SI.CSRF.Token}, body: JSON.stringify(data)});
             const result = await response.json();
             if (!response.ok || result.ERROR) throw new Error(result.ERROR || 'Plugin operation failed.');
-            if (result.PLUGINCONFLICTS && result.PLUGINCONFLICTS.length) alert('CMS edits preserved in: ' + result.PLUGINCONFLICTS.join(', '));
+            if (result.PLUGINCONFLICTS && result.PLUGINCONFLICTS.length) alert(SI.Tools.Text.Editor('CMS edits preserved in: ') + result.PLUGINCONFLICTS.join(', '));
             location.reload();
         },
         ToggleEnabled: async function () {
             const desired = this.checked;
             const installed = this.dataset.installed === 'true';
             const action = desired ? (installed ? 'EnablePlugin' : 'InstallPlugin') : 'DisablePlugin';
-            if (!confirm(action.replace('Plugin', '') + ' ' + this.dataset.plugin + '? Data and CMS edits are preserved.')) { this.checked = !desired; return; }
+            if (!confirm(action.replace('Plugin', '') + ' ' + this.dataset.plugin + SI.Tools.Text.Editor('? Data and CMS edits are preserved.'))) { this.checked = !desired; return; }
             this.disabled = true;
             try { await SI.Editor.Objects.Plugins.Local.Manage({KEY: action, plugin: this.dataset.plugin}); }
             catch (error) { this.checked = !desired; SI.Tools.SuperAlert(error.message, 6000); }
@@ -453,13 +454,13 @@ SI.Editor.Objects.Plugins = {
 
             let file = input.files[0];
             if (!file.name || !file.name.toLowerCase().endsWith('.zip')) {
-                SI.Tools.SuperAlert('Select a plugin .zip file to upload.', 4000);
+                SI.Tools.SuperAlert(SI.Tools.Text.Editor('Select a plugin .zip file to upload.'), 4000);
                 input.value = '';
                 return;
             }
 
             if (window.SI && SI.BackendConfig && SI.BackendConfig.current === 'sipl') {
-                if (file.size > 750000) { SI.Tools.SuperAlert('SIPL browser uploads are limited to 750 KB. Place larger ZIPs in plugins/downloaded on the server.', 6000); return; }
+                if (file.size > 750000) { SI.Tools.SuperAlert(SI.Tools.Text.Editor('SIPL browser uploads are limited to 750 KB. Place larger ZIPs in plugins/downloaded on the server.'), 6000); return; }
                 const reader = new FileReader();
                 reader.onload = function () {
                     SI.Editor.Ajax.Run({Data: {KEY: 'UploadPluginPackage', plugin: file.name.replace(/\.zip$/i, ''), archive: reader.result.split(',')[1]}});
@@ -482,7 +483,7 @@ SI.Editor.Objects.Plugins = {
 
                 input.value = '';
                 if (ajax.status !== 200) {
-                    SI.Tools.SuperAlert('Plugin upload failed.', 4000);
+                    SI.Tools.SuperAlert(SI.Tools.Text.Editor('Plugin upload failed.'), 4000);
                     return;
                 }
 
@@ -494,13 +495,13 @@ SI.Editor.Objects.Plugins = {
                 } catch (ex) {
                     console.error(ajax.responseText);
                     console.error(ex);
-                    SI.Tools.SuperAlert('Plugin upload failed.', 4000);
+                    SI.Tools.SuperAlert(SI.Tools.Text.Editor('Plugin upload failed.'), 4000);
                 }
             };
             ajax.send(formData);
         },
         Installed: function (plugin) {
-            SI.Tools.SuperAlert(plugin+' plugin has been enabled');
+            SI.Tools.SuperAlert(plugin+SI.Tools.Text.Editor(' plugin has been enabled'));
             //add data to plugin UI and move it above the top uninstalled plugin
             //add the plugin to Current
             SI.Tools.Element.Reload.Script("si_plugin_script");
@@ -508,7 +509,7 @@ SI.Editor.Objects.Plugins = {
             location.reload();
         },
         Uninstalled: function (plugin) {
-            SI.Tools.SuperAlert(plugin+' plugin has been disabled');
+            SI.Tools.SuperAlert(plugin+SI.Tools.Text.Editor(' plugin has been disabled'));
             //add data to plugin UI and move it above the top uninstalled plugin
             //add the plugin to Current
             SI.Tools.Element.Reload.Script("si_plugin_script");
@@ -545,7 +546,7 @@ SI.Editor.Objects.Plugins = {
             SI.Editor.Objects.Plugins.Editor.Content = content;
 
             let title = Ele('span', {
-                innerHTML: 'Edit Plugins',
+                innerHTML: SI.Tools.Text.Editor('Edit Plugins'),
                 style: {
                     position: 'absolute',
                     top: '15px',

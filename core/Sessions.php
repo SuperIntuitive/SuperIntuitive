@@ -6,6 +6,27 @@ class Sessions {
 	private $sessionEntId = null;
 	private $sessionTimeout = 2326000;
 
+    public static function DetectOS($headers) {
+        $platform = strtolower(trim(str_replace('"', '', $headers['sec-ch-ua-platform'] ?? '')));
+        $platforms = array('windows'=>'windows', 'linux'=>'linux', 'macos'=>'macos', 'android'=>'android', 'ios'=>'ios', 'chrome os'=>'chromeos');
+        if (isset($platforms[$platform])) { return $platforms[$platform]; }
+        $agent = strtolower($headers['user-agent'] ?? '');
+        if (strpos($agent, 'android') !== false) { return 'android'; }
+        if (strpos($agent, 'iphone') !== false || strpos($agent, 'ipad') !== false || strpos($agent, 'ipod') !== false || (strpos($agent, 'macintosh') !== false && strpos($agent, 'mobile/') !== false)) { return 'ios'; }
+        if (strpos($agent, 'windows') !== false) { return 'windows'; }
+        if (strpos($agent, 'cros') !== false) { return 'chromeos'; }
+        if (strpos($agent, 'macintosh') !== false || strpos($agent, 'mac os x') !== false) { return 'macos'; }
+        if (strpos($agent, 'linux') !== false) { return 'linux'; }
+        return 'unknown';
+    }
+
+    public static function GetOS() {
+        if (!isset($_SESSION['SI']['client']['os'])) {
+            $_SESSION['SI']['client']['os'] = self::DetectOS(array('sec-ch-ua-platform'=>$_SERVER['HTTP_SEC_CH_UA_PLATFORM'] ?? '', 'user-agent'=>$_SERVER['HTTP_USER_AGENT'] ?? ''));
+        }
+        return $_SESSION['SI']['client']['os'];
+    }
+
 	public function __construct(){
 	   
 	    /*
@@ -190,4 +211,4 @@ class Sessions {
 			$sql = null;
 		}
 	}
-} 
+}

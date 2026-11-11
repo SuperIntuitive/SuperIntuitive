@@ -74,8 +74,8 @@ class Entity{
 			return $this->EntityAction($this,'select', $columns);
 		}
 	}
-	public function Update(){
-		return $this->EntityAction($this,'update');
+	public function Update($connection = null){
+		return $this->EntityAction($this,'update', '_ALL_', $connection);
 	}
 	public function Delete(){
 		return $this->EntityAction($this,'delete');
@@ -186,7 +186,7 @@ class Entity{
 	}
 
 
-	private function EntityAction($entity, $action, $columns = '_ALL_'){
+	private function EntityAction($entity, $action, $columns = '_ALL_', $connection = null){
 		/*
 			EntityAction can complete any entity database transaction. 
 			It preforms the work for Entity create,update,select so far.
@@ -574,8 +574,8 @@ class Entity{
 			//Tools::Log($params);
 	        //Prepare the SQL transaction
 			try{
-				$db = new Database();
-				$data = $db->DBC()->prepare($sql);
+				$connection ??= (new Database())->DBC();
+				$data = $connection->prepare($sql);
 			}
 			catch(\PDOException $ex)
 			{
@@ -611,6 +611,11 @@ class Entity{
 				//Tools::Log($mydata );
 				return $mydata;
 			}else if($action =='update'){
+                if($data->rowCount() === 0){
+                    $found = $connection->prepare("SELECT 1 FROM `$name` WHERE `id`=UNHEX(:id) AND `entity_id`=UNHEX(:scope)");
+                    $found->execute(array(':id' => substr($entity->Id, 2), ':scope' => substr($entityId, 2)));
+                    return (bool)$found->fetchColumn();
+                }
 				return true;
 			}
 		}
@@ -743,5 +748,3 @@ class Condition{
 		$this->Operator = $op;
 	}
 }
-
-

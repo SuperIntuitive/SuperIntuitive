@@ -46,7 +46,7 @@ The default SIPL listener is `http://localhost:8092`. PHP stays at `http://local
 - [Switch backends](http://localhost:8090/core_sipl/switch.html), also served by SIPL at the same path.
 - [SIPL runtime status](http://localhost:8092/__sipl/status).
 
-Click **Check runtime** to see prerequisites, then choose PHP or SIPL. Switching navigates between origins and keeps separate sign-in sessions. Save edits first. SIPL pages include a switch link; switching does not rewrite PHP source. An unconfigured root opens first-time setup; configured sites with missing prerequisites show an explanation and link back to the launcher.
+Click **Check runtime** to see prerequisites, then choose PHP or SIPL. Switching navigates between origins and keeps separate sign-in sessions. Save edits first. The launcher is opened explicitly for development testing; website pages do not display a backend-switch control. Switching does not rewrite PHP source. An unconfigured root opens first-time setup; configured sites with missing prerequisites show an explanation and link back to the launcher.
 
 Configuration precedence: defaults → private local JSON (or explicitly supplied JSON) → allowlisted environment variables. SIPL does **not** implicitly read the project's `.env` or PHP's `DbCreds.php`. Available environment overrides:
 

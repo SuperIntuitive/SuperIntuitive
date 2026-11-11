@@ -5,7 +5,7 @@
         send('blocked');
         let notice = document.getElementById('si_sample_notice');
         if(!notice){notice=document.createElement('div');notice.id='si_sample_notice';notice.setAttribute('role','status');notice.style.cssText='position:fixed;bottom:18px;left:18px;right:18px;z-index:2147483647;padding:14px 20px;background:#14243d;color:#f3f7ff;border:1px solid #6b9ded;border-radius:6px;font:13px/1.7 Roboto,Arial,sans-serif;pointer-events:none';document.body.appendChild(notice);}
-        notice.textContent='Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.';
+        notice.textContent=SI.Tools.Text.Editor('Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.');
         clearTimeout(window.siSampleNoticeTimer);window.siSampleNoticeTimer=setTimeout(()=>notice.remove(),6000);
         return {status:403,code:'SAMPLE_READ_ONLY',abort(){}};
     };
@@ -41,7 +41,7 @@
         const menu = () => {
             const element=SI.Editor.UI.MainMenu.Element;
             if(!element)return;
-            element.style.display='block';element.style.left=Math.max(12,innerWidth-115)+'px';element.style.top='20px';
+            element.style.display='block';element.style.left=Math.max(12,innerWidth-element.offsetWidth-12)+'px';element.style.top='20px';
         };
         window.addEventListener('message',event=>{
             if(event.source!==parent || event.data?.source!=='si-sample-host')return;
@@ -51,7 +51,7 @@
             }
         });
         document.addEventListener('submit',event=>{event.preventDefault();blocked();},true);
-        document.addEventListener('click',event=>{if(event.target.closest('a')){event.preventDefault();send('notice','Links stay inside the sample. Use the company navigation above to explore the site.');}},true);
+        document.addEventListener('click',event=>{if(event.target.closest('a')){event.preventDefault();send('notice',SI.Tools.Text.Editor('Links stay inside the sample. Use the company navigation above to explore the site.'));}},true);
         SI.Editor.Run();
         const timer=setInterval(()=>{
             if(!SI.Editor.UI.MainMenu.Element)return;

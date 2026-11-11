@@ -89,6 +89,45 @@ fn reply(status: Int, body: String, kind: String) -> Map {
 }
 fn published() -> Map { return Page.load(_current, "/" + _settings["page"]) }
 
+fn language(header: String) -> String {
+    return Editor.language(header)
+}
+fn copy(language: String) -> Map {
+    if language == "en" { return {"language": "en", "texts": {:}} }
+    let value = json.parse(fs.readText(path.join(_package, "locales/" + language + ".json")))
+    assert(value["language"] == language and value["texts"].type == "Map", "INVALID_DEMO_TRANSLATION")
+    let texts = Editor.locale(language)["texts"]
+    for key, text in value["texts"] { texts[key] = text }
+    value["texts"] = texts
+    return value
+}
+fn sampleTexts(context: Map, page: Map) -> List {
+    let names = []
+    for block in page["blocks"] {
+        for occurrence in regex.compile("SI_MULTILANG_[A-Z]\{20\}").findAll(Tools.text(block.get("html"), "")) {
+            let name = occurrence["text"].slice(13)
+            if not names.contains(name) { names.push(name) }
+        }
+    }
+    if names.isEmpty { return [] }
+    let columns = ["en", "es", "zh", "tl"].filter(fn(code) => context["schema"]["localtext"]["columns"].contains("_" + code)).map(fn(code) => "`_" + code + "`")
+    let parameters: Map = {"scope": Security.scope(context, "localtext")}
+    let markers = []
+    for index, name in names { let key = "n" + "{index}"
+        parameters[key] = name
+        markers.push(":" + key) }
+    return Database.query("SELECT LOWER(HEX(id)) AS id,name," + columns.join(",") + " FROM localtext WHERE entity_id=UNHEX(:scope) AND status='active' AND name IN (" + markers.join(",") + ") ORDER BY id", parameters)
+}
+fn supported(context: Map, data: Map) -> String {
+    var result = ""
+    for code in ["en", "es", "zh", "tl"] {
+        if context["schema"]["localtext"]["columns"].contains("_" + code) {
+            let name = data["Languages"][code]
+            result += "<option value='" + code + "'>" + Tools.escapeHtml(context["copy"]["texts"].get(name, name)) + "</option>"
+        }
+    }
+    return result
+}
 fn model(current: Map, sample: Map) -> Map {
     let context = current
     let data = Editor.lookups()
@@ -102,23 +141,34 @@ fn model(current: Map, sample: Map) -> Map {
     let pages = [{"id": "0x" + sample["id"], "name": sample["name"], "path": sample["path"], "page": sample["path"], "domain": context["domain"], "subdomain": context["subdomain"], "domainName": context["domain"], "subdomainName": context["subdomain"], "pageName": sample["name"], "pageId": sample["id"]}]
     let settings = []
     for name, value in sample.get("settings", {:}) { settings.push({"settingname": name, "settingvalue": value}) }
-    var colors = "<option value=''>Color Names</option>"
+    var colors = "<option value=''>" + Tools.escapeHtml(context["copy"]["texts"].get("Color Names", "Color Names")) + "</option>"
     for color in data["ColorNames"] { colors += "<option value='" + Tools.escapeHtml(color) + "'>" + Tools.escapeHtml(color) + "</option>" }
     var languages = "<option value=''></option>"
     for code, name in data["Languages"] { languages += "<option value='" + Tools.escapeHtml(code) + "'>" + Tools.escapeHtml(name) + "</option>" }
     let session = {"domains": {context["domain"]: {"subdomains": {context["subdomain"]: {"deployment": "dev", "user": {"loggedin": false, "name": "guest", "roles": ["Guest"], "preferences": {:}}, "entities": definitions}}}}}
-    // No site-wide user, role, setting, language, media, plugin or inbox reads.
+    // Only published sample language tokens are exposed; no site-wide catalogs.
     return {"$dataage": data["DataAge"], "runtime_info": "<p>Public sample editor. Changes are temporary.</p>", "$entityDefinitions": definitions, "$recordCount": definitions.length, "$blockObjects": blockObjects, "$pageObjects": pages, "$mediaObjects": [], "$rolesdata": [], "$relationsjson": [], "$settings2": settings, "$localtexts": [], "$myLangs": ["en"], "$currentPlugins": {:}, "$downloadedplugs": [], "$PasswordStrength": "^[\\s\\S]\{10,72\}$", "$helplinks": ["mdn", "w3"], "$quickmenuitems": data["QuickMenu"], "$allmimetypes": data["MimeTypes"], "$mimes": {"Images": ["image/png", "image/jpeg", "image/gif", "image/webp"], "Audio": ["audio/mpeg", "audio/ogg", "audio/wav"], "Video": ["video/mp4", "video/webm"], "Docs": ["application/pdf"], "Data": ["application/json", "text/csv"], "Fonts": ["font/woff2"]}, "json_encode($coloroptions)": colors, "json_encode($langoptions)": languages, "json_encode($supportedLanguages)": "<option value='en'>English</option>", "json_encode($usertable)": "<table id='si_editor_users_table'><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody></tbody></table>", "json_encode(SI_LANGS)": "en", "SI_DOMAIN_NAME": context["domain"], "SI_SUBDOMAIN_NAME": context["subdomain"], "$sessionPageData": session}
 }
 
-fn editorScript(page: Map) -> String {
-    let values = model(_current, page)
+fn editorScript(current: Map, page: Map) -> String {
+    let values = model(current, page)
+    values["json_encode($defaultLanguages)"] = ["en"]
+    values["$myLangs"] = [current["language"]]
+    if current["language"] != "en" { values["$myLangs"].push("en") }
+    values["json_encode(SI_LANGS)"] = current["language"]
+    values["json_encode($supportedLanguages)"] = supported(current, Editor.lookups())
+    values["$localtexts"] = current["localtexts"]
+    let notice = "Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled."
+    values["runtime_info"] = "<p>" + Tools.escapeHtml(current["copy"]["texts"].get(notice, notice)) + "</p>"
+    var usertable = "<table id='si_editor_users_table'><thead><tr>"
+    for label in ["Name", "Email", "Status"] { usertable += "<th>" + Tools.escapeHtml(current["copy"]["texts"].get(label, label)) + "</th>" }
+    values["json_encode($usertable)"] = usertable + "</tr></thead><tbody></tbody></table>"
     let lookups: Map = {:}
     for name in ["html_elements", "html_attributes", "css_properties", "js_methods", "php_methods", "sql_methods"] { lookups[name] = json.parse(fs.readText(Config.root("editor/media/data/" + name + ".json"))) }
     let blockRows = []
     for name, block in values["$blockObjects"] { blockRows.push(block) }
-    let records = {"pages": values["$pageObjects"], "blocks": blockRows, "settings": values["$settings2"], "media": [], "localtext": []}
-    var result = "SI.Sample = " + Tools.scriptJson({"lookups": lookups, "records": records}) + ";\n" + Editor.renderModel(values).replace("SI.Editor.Run();", "")
+    let records = {"pages": values["$pageObjects"], "blocks": blockRows, "settings": values["$settings2"], "media": [], "localtext": current["localtexts"]}
+    var result = "SI.EditorText = " + Tools.scriptJson(current["copy"]["texts"]) + ";\nSI.Sample = " + Tools.scriptJson({"lookups": lookups, "records": records}) + ";\n" + Editor.renderModel(values).replace("SI.Editor.Run();", "")
     let widgets = {:}
     for file in fs.list(Config.root("scripts/widgets")).sort() {
         if not file.endsWith(".js") { continue }
@@ -135,7 +185,7 @@ fn editorScript(page: Map) -> String {
     for block in page["blocks"] { if block.get("script").type == "String" { result += block["script"] + "\n" } }
     return result + "\n\};\n"
 }
-fn renderCanvas(page: Map) -> String {
+fn renderCanvas(current: Map, page: Map) -> String {
     let data: Map = {:}
     for block in page["blocks"] {
         var options: Map = {:}
@@ -143,7 +193,8 @@ fn renderCanvas(page: Map) -> String {
         data[block["name"]] = {"Settings": options.get("settings", {:}), "Widgets": options.get("widgets", {:})}
     }
     let bootstrap = {"Page": {"Settings": {:}, "Blocks": data}, "CSRF": {"Token": ""}, "User": {"Name": "guest", "Roles": ["Guest"], "Preferences": {:}}, "Widget": {:}, "Widgets": {:}}
-    var result = "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Editor demo</title><script src='/demo/prelude.js'></script><script>window.SI=" + Tools.scriptJson(bootstrap) + ";</script><style id='si_page_style'>"
+    let title = current["copy"]["texts"].get("Editor demo", "Editor demo")
+    var result = "<!doctype html><html lang='" + current["language"] + "'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>" + Tools.escapeHtml(title) + "</title><script src='/demo/prelude.js'></script><script>window.SI=" + Tools.scriptJson(bootstrap) + ";</script><style id='si_page_style'>"
     for block in page["blocks"] { result += "/*-!" + block["name"].replace("*/", "") + "!-*/\n" + Tools.text(block.get("style"), "").replace("</style", "<\\/style") + "\n" }
     result += "</style><link rel='stylesheet' href='/style/widgets.css'><link rel='stylesheet' href='/editor/editor.css'><script defer src='/scripts/tools.js'></script>"
     for file in assets() {
@@ -161,10 +212,19 @@ fn renderCanvas(page: Map) -> String {
         if not ["div", "section", "article", "header", "footer", "nav", "main", "aside", "span"].contains(tag) { fail("INVALID_BLOCK_TAG") }
         var style = ""
         for name, value in options.get("style", {:}) { if regex.compile("^[A-Za-z-]+$").isMatch(name) { style += name + ":" + "{value}" + ";" } }
-        let content = Content.expand(_current, Tools.text(block.get("html"), ""))
+        let source = Tools.text(block.get("html"), "")
+        let content = Content.expand(current, source)
+        let token = Content.blockToken(source)
+        var classes = "si-block"
+        var binding = ""
+        if not token.isEmpty {
+            classes += " si-multilingual si-multilingual-" + token
+            binding = " data-si_ml_token='" + token + "'"
+        }
         let order = block["relationsOrder"]
-        result += "<" + tag + " id='si_block_" + Tools.safeId(block["name"]) + "' class='si-block' data-order='" + "{order}" + "' style='" + Tools.escapeHtml(style) + "'>" + content + "</" + tag + ">"
+        result += "<" + tag + " id='si_block_" + Tools.safeId(block["name"]) + "' class='" + classes + "'" + binding + " data-order='" + "{order}" + "' style='" + Tools.escapeHtml(style) + "'>" + content + "</" + tag + ">"
     }
+    if current["language"] != "en" { result += "<small id='si_sample_ai_notice' style='display:block;margin:24px;text-align:center;opacity:.7;font:11px Arial,sans-serif'>" + Tools.escapeHtml(current["copy"]["texts"]["Translated by AI"]) + "</small>" }
     return result + "</body></html>"
 }
 fn request(request: Map) -> Map {
@@ -183,12 +243,27 @@ fn request(request: Map) -> Map {
         if not Plugins.enabled(_current, "editor-demo") { return reply(403, "Demo plugin disabled.", "text/plain") }
         if ["/cms/sample/canvas", "/editor.js"].contains(file) {
             let now = Tools.now()
-            if _cached.isEmpty or now - _cached["at"] >= 30 {
+            let code = language(request.get("headers", {:}).get("accept-language", "en"))
+            var cached = _cached.get(code, {:})
+            if cached.isEmpty or now - cached["at"] >= 30 {
+                let current = _current.copy()
+                current["language"] = code
+                current["request"] = {"headers": {"accept-language": code}}
+                current["copy"] = copy(code)
                 let page = published()
-                _cached = {"at": now, "html": renderCanvas(page), "script": editorScript(page)}
+                if code != "en" {
+                    let preset = fs.readText(path.join(_package, "html/source.html")).trim()
+                    for block in page["blocks"] { if Tools.text(block.get("html"), "").trim() == preset { block["html"] = current["copy"]["sample"] } }
+                }
+                current["localtexts"] = sampleTexts(current, page)
+                cached = {"at": now, "html": renderCanvas(current, page), "script": editorScript(current, page)}
+                _cached[code] = cached
             }
-            if file == "/editor.js" { return reply(200, _cached["script"], "application/javascript; charset=utf-8") }
-            let response = reply(200, _cached["html"], "text/html; charset=utf-8")
+            if file == "/editor.js" { let response = reply(200, cached["script"], "application/javascript; charset=utf-8")
+                response["headers"]["Content-Language"] = code
+                return response }
+            let response = reply(200, cached["html"], "text/html; charset=utf-8")
+            response["headers"]["Content-Language"] = code
             response["headers"]["Content-Security-Policy"] = policy()
             return response
         }
@@ -203,7 +278,8 @@ fn request(request: Map) -> Map {
         response["headers"]["X-Content-Type-Options"] = "nosniff"
         if file.endsWith(".ttf") { response["headers"]["Access-Control-Allow-Origin"] = "*" }
         return response
-    } fail { return reply(403, "The published demo is unavailable. Check plugin configuration and Guest page access.", "text/plain") }
+    } fail { print("Editor demo: " + "{fail}")
+        return reply(403, "The published demo is unavailable. Check plugin configuration and Guest page access.", "text/plain") }
 }
 fn start() {
     if system.args.length != 1 { fail("Run the installed demo.sipl with a private service configuration path.") }
@@ -225,6 +301,5 @@ fn start() {
     if row == none { fail("CONFIGURE_DEMO_PLUGIN_FIRST") }
     _settings = configuration(row["value"])
     _package = Plugins.package(_current, "editor-demo")
-    web.serve(_package, Config.get("port", 8096), request, {"host": "127.0.0.1"})
+    web.serve(_package, Config.get("port", 8096), request, {"host": "127.0.0.1", "maxConnectionsPerIp": 128})
 }
-

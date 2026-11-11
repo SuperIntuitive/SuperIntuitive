@@ -12,10 +12,21 @@ fn languages(context: Map) -> List {
             if available.contains("_" + option) and not candidates.contains(option) { candidates.push(option) }
         }
     }
-    let default = context.get("settings", {:}).get("DefaultLanguage", "en")
+    let default = context.get("settings", {:}).get("DefaultLanguage", "en").trim().toLower()
     if available.contains("_" + default) and not candidates.contains(default) { candidates.push(default) }
     if available.contains("_en") and not candidates.contains("en") { candidates.push("en") }
     return candidates
+}
+
+fn binding(source: String, rendered: String) -> String {
+    if not regex.compile("SI_MULTILANG_[A-Z]\{20\}").isMatch(source) { return "" }
+    return " data-si_ml_source='" + Tools.escapeHtml(source) + "' data-si_ml_rendered='" + Tools.escapeHtml(rendered) + "'"
+}
+
+fn blockToken(source: String) -> String {
+    let value = source.trim()
+    if not regex.compile("^SI_MULTILANG_[A-Z]\{20\}$").isMatch(value) { return "" }
+    return value.slice(13)
 }
 
 fn constants(settings: Map, instant: Instant) -> Map {
@@ -48,7 +59,8 @@ fn substitute(source: String, values: Map) -> String {
 }
 
 fn expand(context: Map, source: String) -> String {
-    let replacements = constants(context.get("settings", {:}), time.now())
+    let constantValues = constants(context.get("settings", {:}), time.now())
+    let replacements = constantValues.copy()
     let languages = languages(context)
     if source.contains("SI_MULTILANG_") and not languages.isEmpty {
         let columns = languages.map(fn(code) => "`_" + code + "`")
@@ -67,7 +79,7 @@ fn expand(context: Map, source: String) -> String {
                 var value = ""
                 for code in languages { if row.get("_" + code).type == "String" and not row["_" + code].isEmpty { value = row["_" + code]
                     break } }
-                replacements["SI_MULTILANG_" + row["name"]] = value
+                replacements["SI_MULTILANG_" + row["name"]] = substitute(value, constantValues)
             }
         }
     }

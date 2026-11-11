@@ -7,7 +7,7 @@ SI.Editor.Objects.User = {
         });
 
         let newuser = Ele('button', {
-            innerHTML: "New",
+            innerHTML: SI.Tools.Text.Editor("New"),
             style: {
             },
             onclick: function () {
@@ -71,7 +71,7 @@ SI.Editor.Objects.User = {
         if (user.PasswordRequest) return;
         const id = (self.dataset.id || self.closest('tr').cells[1].textContent).trim();
         if (!/^(?:0x)?[a-f0-9]{32}$/i.test(id)) {
-            SI.Tools.SuperAlert('User not found. Refresh the Users tool and try again.', 4000);
+            SI.Tools.SuperAlert(SI.Tools.Text.Editor('User not found. Refresh the Users tool and try again.'), 4000);
             return;
         }
         if (!user.PasswordWindow) {
@@ -84,7 +84,7 @@ SI.Editor.Objects.User = {
                     }
                 }
             });
-            Ele('p', {textContent: 'Enter a new password of 10 to 72 bytes.', appendTo: form});
+            Ele('p', {textContent: SI.Tools.Text.Editor('Enter a new password of 10 to 72 bytes.'), appendTo: form});
             const field = new SI.Widget.Field({
                 Id: 'si_edit_users_password', Type: 'password', Label: 'New password',
                 Name: 'newpassword', Value: '', Parent: form, BackgroundColor: 'transparent'
@@ -94,10 +94,10 @@ SI.Editor.Objects.User = {
             input.setAttribute('aria-describedby', 'si_edit_users_password_status');
             Ele('p', {id: 'si_edit_users_password_status', role: 'status', 'aria-live': 'polite', appendTo: form});
             const actions = Ele('div', {class: 'si-users-password-actions', appendTo: form});
-            Ele('button', {type: 'submit', textContent: 'Save password', appendTo: actions});
-            Ele('button', {type: 'button', textContent: 'Cancel', onclick: function () { user.PasswordWindow.Hide(0); }, appendTo: actions});
+            Ele('button', {type: 'submit', textContent: SI.Tools.Text.Editor('Save password'), appendTo: actions});
+            Ele('button', {type: 'button', textContent: SI.Tools.Text.Editor('Cancel'), onclick: function () { user.PasswordWindow.Hide(0); }, appendTo: actions});
             user.PasswordWindow = new SI.Widget.Window({
-                Id: 'si_edit_users_password_window', Title: 'Change password', Width: '420px', Height: '240px',
+                Id: 'si_edit_users_password_window', Title: SI.Tools.Text.Editor('Change password'), Width: '420px', Height: '240px',
                 WindowControls: 'CLOSE', Dockable: false, Resizable: false, Modal: true,
                 Populate: function () { return form; },
                 OnClose: function () { form.reset(); if (user.PasswordTrigger?.isConnected) user.PasswordTrigger.focus(); }
@@ -118,12 +118,12 @@ SI.Editor.Objects.User = {
         const pw = form.elements.newpassword.value;
         const length = new TextEncoder().encode(pw).length;
         if (length < 10 || length > 72 || pw.includes('\0')) {
-            status.textContent = 'Use a password of 10 to 72 bytes.';
+            status.textContent = SI.Tools.Text.Editor('Use a password of 10 to 72 bytes.');
             status.setAttribute('role', 'alert');
             form.elements.newpassword.focus();
             return;
         }
-        status.textContent = 'Saving password…'; status.setAttribute('role', 'status');
+        status.textContent = SI.Tools.Text.Editor('Saving password…'); status.setAttribute('role', 'status');
         const buttons = form.querySelectorAll('button');
         buttons.forEach(function (button) { button.disabled = true; });
         form.elements.newpassword.disabled = true;
@@ -136,13 +136,13 @@ SI.Editor.Objects.User = {
         request.addEventListener('load', function () {
             finished();
             if (this.status !== 200) {
-                status.textContent = 'Password change failed (HTTP ' + this.status + '). Refresh the page and sign in again if needed.';
+                status.textContent = SI.Tools.Text.Editor('Password change failed (HTTP ') + this.status + SI.Tools.Text.Editor('). Refresh the page and sign in again if needed.');
                 status.setAttribute('role', 'alert');
             }
         });
         request.addEventListener('error', function () {
             finished();
-            status.textContent = 'Could not reach the server. The password change was not confirmed.';
+            status.textContent = SI.Tools.Text.Editor('Could not reach the server. The password change was not confirmed.');
             status.setAttribute('role', 'alert');
         });
     },
@@ -159,11 +159,11 @@ SI.Editor.Objects.User = {
     },
     New: function (self) {
         //debugger;
-        var email = prompt("Enter the new user's email", "");
+        var email = prompt(SI.Tools.Text.Editor("Enter the new user's email"), "");
         if (email !== null && email.match(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g)) {
-            var user = prompt("Enter the new user's username", "");
+            var user = prompt(SI.Tools.Text.Editor("Enter the new user's username"), "");
             if (user !== null && user.match(/[A-Za-z0-9_]{3,16}/)) {
-                var password = prompt("Enter the new user's password", "");
+                var password = prompt(SI.Tools.Text.Editor("Enter the new user's password"), "");
                 if (password === null || password.match(SI.Editor.Data.User.PasswordStrength)) {
                     //we have what we need
                     let options = {};

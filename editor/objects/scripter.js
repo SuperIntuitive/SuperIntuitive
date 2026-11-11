@@ -99,15 +99,15 @@
             this.History = []; this.Future = []; this.Selected = null; this.ActiveLane = 'program';
             this.Container = this.Element('div', {id: 'si_scripter_container', class: 'si-tool-body si-tool-editor-body'});
             const toolbar = this.Element('div', {id: 'si_scripter_mainmenu', class: 'si-tool-toolbar'}, this.Container);
-            const codeLabel = this.Element('label', {text: 'Code'}, toolbar);
+            const codeLabel = this.Element('label', {text: SI.Tools.Text.Editor('Code')}, toolbar);
             this.CodeSwitch = this.Element('input', {id: 'si_scripter_codeorguidcb', type: 'checkbox', checked: false,
-                'aria-label': 'Show JavaScript code', onclick: () => this.SwitchMode(this.CodeSwitch.checked ? 'code' : 'blocks')}, codeLabel);
-            this.ScriptSelect = this.Element('select', {id: 'si_scripter_scriptselect', 'aria-label': 'Script',
+                'aria-label': SI.Tools.Text.Editor('Show JavaScript code'), onclick: () => this.SwitchMode(this.CodeSwitch.checked ? 'code' : 'blocks')}, codeLabel);
+            this.ScriptSelect = this.Element('select', {id: 'si_scripter_scriptselect', 'aria-label': SI.Tools.Text.Editor('Script'),
                 onchange: () => {
                     const option = this.ScriptSelect.selectedOptions[0];
                     this.OpenScript(option.value, option.dataset.sourcetype, option.dataset.parent || null);
                 }}, toolbar);
-            const blocks = this.Element('optgroup', {label: 'Blocks'}, this.ScriptSelect);
+            const blocks = this.Element('optgroup', {label: SI.Tools.Text.Editor('Blocks')}, this.ScriptSelect);
             for (const name of Object.keys(SI.Editor.Data.Objects.Blocks || {})) {
                 this.Element('option', {value: name, text: name, data: {sourcetype: 'Block'}}, blocks);
             }
@@ -117,16 +117,16 @@
                     {value: name, text: name, data: {sourcetype: 'Plugin', parent}}, group);
             }
             if (SI.Editor.Objects.Widgets?.AddSourceOptions) SI.Editor.Objects.Widgets.AddSourceOptions(this.ScriptSelect);
-            this.Button('Update', 'Validate and update the other view', () => this.BuildScript(), toolbar);
-            this.Button('Save', 'Save this script through the CMS', () => this.SaveScript(), toolbar);
-            this.UndoButton = this.Button('↶', 'Undo block edit', () => this.Undo(), toolbar);
-            this.RedoButton = this.Button('↷', 'Redo block edit', () => this.Redo(), toolbar);
+            this.Button(SI.Tools.Text.Editor('Update'), SI.Tools.Text.Editor('Validate and update the other view'), () => this.BuildScript(), toolbar);
+            this.Button(SI.Tools.Text.Editor('Save'), SI.Tools.Text.Editor('Save this script through the CMS'), () => this.SaveScript(), toolbar);
+            this.UndoButton = this.Button('↶', SI.Tools.Text.Editor('Undo block edit'), () => this.Undo(), toolbar);
+            this.RedoButton = this.Button('↷', SI.Tools.Text.Editor('Redo block edit'), () => this.Redo(), toolbar);
             this.StatusBox = this.Element('div', {class: 'si-script-status', role: 'status', 'aria-live': 'polite'}, this.Container);
             this.Workspace = this.Element('div', {id: 'si_scripter_workspace', class: 'si-tool-workspace si-script-workspace'}, this.Container);
             const layout = this.Element('div', {class: 'si-script-layout'}, this.Workspace);
-            this.Palette = this.Element('aside', {class: 'si-script-palette', 'aria-label': 'Block library'}, layout);
-            this.Element('h3', {text: 'Build'}, this.Palette);
-            const search = this.Element('input', {type: 'search', placeholder: 'Find a block…', 'aria-label': 'Find a block',
+            this.Palette = this.Element('aside', {class: 'si-script-palette', 'aria-label': SI.Tools.Text.Editor('Block library')}, layout);
+            this.Element('h3', {text: SI.Tools.Text.Editor('Build')}, this.Palette);
+            const search = this.Element('input', {type: 'search', placeholder: SI.Tools.Text.Editor('Find a block…'), 'aria-label': SI.Tools.Text.Editor('Find a block'),
                 oninput: () => {
                     for (const button of this.Palette.querySelectorAll('[data-template]'))
                         button.hidden = !button.textContent.toLowerCase().includes(search.value.toLowerCase());
@@ -135,9 +135,9 @@
                 }}, this.Palette);
             for (const groupName of new Set(this.Templates.map(template => template.group))) {
                 const group = this.Element('div', {class: 'si-script-palette-group'}, this.Palette);
-                this.Element('h4', {text: groupName}, group);
+                this.Element('h4', {text: SI.Tools.Text.Editor(groupName)}, group);
                 for (const template of this.Templates.filter(template => template.group === groupName)) {
-                const button = this.Button(template.name, 'Insert ' + template.name, () => this.InsertTemplate(template.name), group, 'si-script-template');
+                const button = this.Button(SI.Tools.Text.Editor(template.name), SI.Tools.Text.Editor('Insert ') + SI.Tools.Text.Editor(template.name), () => this.InsertTemplate(template.name), group, 'si-script-template');
                 button.dataset.template = template.name; button.draggable = true;
                 button.ondragstart = event => {
                     this.Drag = {template: template.name, revision: this.Revision};
@@ -147,18 +147,18 @@
                 button.ondragend = () => this.ClearDrag();
                 }
             }
-            this.Element('p', {class: 'si-script-hint', text: 'Choose a body with + to insert inside it. Use JavaScript for any construct.'}, this.Palette);
-            const center = this.Element('main', {class: 'si-script-canvas', 'aria-label': 'JavaScript blocks'}, layout);
+            this.Element('p', {class: 'si-script-hint', text: SI.Tools.Text.Editor('Choose a body with + to insert inside it. Use JavaScript for any construct.')}, this.Palette);
+            const center = this.Element('main', {class: 'si-script-canvas', 'aria-label': SI.Tools.Text.Editor('JavaScript blocks')}, layout);
             const heading = this.Element('div', {class: 'si-script-canvas-heading'}, center);
-            this.Element('h3', {text: 'Flow'}, heading);
+            this.Element('h3', {text: SI.Tools.Text.Editor('Flow')}, heading);
             this.Stats = this.Element('span', {class: 'si-script-stats'}, heading);
             this.Tree = this.Element('div', {class: 'si-script-tree'}, center);
-            this.Inspector = this.Element('aside', {class: 'si-script-inspector', 'aria-label': 'Selected block'}, layout);
+            this.Inspector = this.Element('aside', {class: 'si-script-inspector', 'aria-label': SI.Tools.Text.Editor('Selected block')}, layout);
             this.Codeview = this.Element('div', {id: 'si_scripter_codeview', class: 'si-tool-code-view si-script-codeview', hidden: true}, this.Container);
             this.LineNumbers = this.Element('pre', {id: 'si_scripter_linenums', class: 'si-tool-code-gutter', 'aria-hidden': 'true'}, this.Codeview);
             this.Codepad = this.Element('pre', {id: 'si_scripter_codepad', class: 'si-scripter-codepad', contentEditable: 'true',
-                spellcheck: false, role: 'textbox', 'aria-label': 'JavaScript source', 'aria-multiline': 'true',
-                oninput: () => { this.CodeEdited = true; this.Dirty = true; this.ComputeLineNumbers(); this.Status('Code changed · Update or open Blocks to validate.'); },
+                spellcheck: false, role: 'textbox', 'aria-label': SI.Tools.Text.Editor('JavaScript source'), 'aria-multiline': 'true',
+                oninput: () => { this.CodeEdited = true; this.Dirty = true; this.ComputeLineNumbers(); this.Status(SI.Tools.Text.Editor('Code changed · Update or open Blocks to validate.')); },
                 onkeydown: event => { if (event.key === 'Tab') { event.preventDefault(); this.InsertText('    '); } },
                 onpaste: event => { event.preventDefault(); this.InsertText(event.clipboardData.getData('text/plain')); }}, this.Codeview);
             this.Container.addEventListener('keydown', event => {
@@ -183,7 +183,7 @@
             this.Codepad.dispatchEvent(new Event('input', {bubbles: true}));
         },
         OpenScript: async function (name, type, parent) {
-            if ((this.Dirty || this.HasInspectorDraft()) && this.LoadedScript !== null && !window.confirm('Discard the unsaved Scripter edits and open another script?')) {
+            if ((this.Dirty || this.HasInspectorDraft()) && this.LoadedScript !== null && !window.confirm(SI.Tools.Text.Editor('Discard the unsaved Scripter edits and open another script?'))) {
                 for (const option of this.ScriptSelect.options) option.selected = option.value === this.LoadedScript
                     && option.dataset.sourcetype === this.LoadedType && (option.dataset.parent || null) === this.LoadedParent;
                 return false;
@@ -201,7 +201,7 @@
             this.Source = source; this.Dirty = false;
             this.History = []; this.Future = []; this.Selected = null; this.ActiveLane = 'program'; this.Parsed = null;
             this.InspectorDraft = null;
-            this.WriteCode(source); this.Status('Reading JavaScript…');
+            this.WriteCode(source); this.Status(SI.Tools.Text.Editor('Reading JavaScript…'));
             try {
                 await this.EnsureParser();
                 if (request !== this.LoadRequest) return false;
@@ -244,7 +244,7 @@
                 await S.EnsureParser();
                 if (S.Mode === 'code') return S.Accept(S.ReadCode());
                 if (!S.FlushInspector()) return false;
-                S.WriteCode(S.Source); S.Status('JavaScript updated · ' + S.Parsed.sourceType); return true;
+                S.WriteCode(S.Source); S.Status(SI.Tools.Text.Editor('JavaScript updated · ') + S.Parsed.sourceType); return true;
             } catch (error) { return S.Error(error); }
         },
         SaveScript: async function () {
@@ -252,16 +252,16 @@
             if (S.LoadedType === 'Widget') {
                 try {
                     await SI.Editor.Objects.Widgets.SaveSource(S.LoadedScript, 'script', S.Source);
-                    S.Dirty = false; S.Status('Widget JavaScript saved in Dev · reload to run the new constructor.'); return true;
+                    S.Dirty = false; S.Status(SI.Tools.Text.Editor('Widget JavaScript saved in Dev · reload to run the new constructor.')); return true;
                 } catch (error) { return S.Error(error); }
             }
             if (S.LoadedType !== 'Block' || !SI.Editor.Data.Objects.Blocks[S.LoadedScript]) {
-                S.Status('Select a CMS block to save. Plugin source can be copied from Code.'); return false;
+                S.Status(SI.Tools.Text.Editor('Select a CMS block to save. Plugin source can be copied from Code.')); return false;
             }
             const block = SI.Editor.Data.Objects.Blocks[S.LoadedScript];
             block.script = S.Source; block.IsDirty = true; block.EditRevision = (block.EditRevision || 0) + 1;
             SI.Editor.Objects.Blocks.Save(S.LoadedScript, 'script');
-            S.Dirty = false; S.Status('Save requested · ' + S.LoadedScript);
+            S.Dirty = false; S.Status(SI.Tools.Text.Editor('Save requested · ') + S.LoadedScript);
             // Preserve the existing explicit Save preview behavior.
             const current = document.getElementById('si_page_script');
             if (current) {
@@ -302,7 +302,7 @@
             if (node.type === 'BlockStatement' || node.type === 'StaticBlock') {
                 return [{id: 'body:' + node.start, owner: node,
                     start: node.start + this.Source.slice(node.start, node.end).indexOf('{') + 1,
-                    end: node.end - 1, nodes: node.body, label: 'Body', single: false}];
+                    end: node.end - 1, nodes: node.body, label: SI.Tools.Text.Editor('Body'), single: false}];
             }
             const visit = (current, parent, key) => {
                 const labels = {consequent: 'Then', alternate: 'Else', finalizer: 'Finally', block: 'Try'};
@@ -319,7 +319,7 @@
                         && token.end <= (current.consequent[0]?.start || current.end) && token.type.label === ':');
                     regions.push({id: 'case:' + current.start, owner: current, start: colon ? colon.end : current.end,
                         end: current.end, nodes: current.consequent,
-                        label: current.test ? 'case ' + this.Slice(current.test) : 'default', single: false});
+                        label: current.test ? SI.Tools.Text.Editor('case ') + this.Slice(current.test) : SI.Tools.Text.Editor('default'), single: false});
                     return;
                 }
                 if (current !== node && /Statement$/.test(current.type) && ['body', 'consequent', 'alternate'].includes(key)) {
@@ -355,25 +355,25 @@
             const scroll = this.Tree.parentElement.scrollTop;
             this.Nodes = new Map(); this.Lanes = new Map(); this.Tree.replaceChildren();
             this.DrawLane({id: 'program', owner: this.Parsed.ast, start: 0, end: this.Source.length,
-                nodes: this.Parsed.ast.body, label: 'Program', single: false}, this.Tree, 0);
+                nodes: this.Parsed.ast.body, label: SI.Tools.Text.Editor('Program'), single: false}, this.Tree, 0);
             if (!this.Lanes.has(this.ActiveLane)) this.ActiveLane = 'program';
             for (const [id, value] of this.Lanes) value.element.classList.toggle('is-active', id === this.ActiveLane);
-            this.Stats.textContent = this.Parsed.ast.body.length + ' top-level blocks · ' + this.Parsed.sourceType;
+            this.Stats.textContent = this.Parsed.ast.body.length + SI.Tools.Text.Editor(' top-level blocks · ') + this.Parsed.sourceType;
             this.DrawInspector(); this.Tree.parentElement.scrollTop = scroll;
-            this.Status((this.Dirty ? 'Unsaved edits · ' : '') + 'JavaScript · ' + this.Parsed.sourceType + ' · parsing does not run code.');
+            this.Status((this.Dirty ? SI.Tools.Text.Editor('Unsaved edits · ') : '') + SI.Tools.Text.Editor('JavaScript · ') + this.Parsed.sourceType + SI.Tools.Text.Editor(' · parsing does not run code.'));
         },
         DrawLane: function (region, parent, depth) {
             const lane = this.Element('section', {class: 'si-script-lane', data: {lane: region.id}}, parent);
             this.Lanes.set(region.id, {region, element: lane});
             const heading = this.Element('div', {class: 'si-script-lane-heading'}, lane);
             this.Element('span', {text: region.label}, heading);
-            this.Button('+', 'Insert into ' + region.label, () => {
+            this.Button('+', SI.Tools.Text.Editor('Insert into ') + region.label, () => {
                 this.ActiveLane = region.id;
                 for (const [id, value] of this.Lanes) value.element.classList.toggle('is-active', id === region.id);
-                this.Status('Insert into ' + region.label + ' · choose a block from Build.');
+                this.Status(SI.Tools.Text.Editor('Insert into ') + region.label + SI.Tools.Text.Editor(' · choose a block from Build.'));
                 this.Palette.querySelector('input').focus();
             }, heading);
-            if (!region.nodes.length) this.Element('div', {class: 'si-script-empty', text: 'Drop or add a block here'}, lane);
+            if (!region.nodes.length) this.Element('div', {class: 'si-script-empty', text: SI.Tools.Text.Editor('Drop or add a block here')}, lane);
             for (const node of region.nodes) this.DrawNode(node, region, lane, depth);
             lane.ondragover = event => {
                 if (!this.Drag) return;
@@ -391,7 +391,7 @@
                     if (event.clientY < rect.top + rect.height / 2) { index = i; break; }
                 }
                 const drag = this.Drag; this.ClearDrag();
-                if (drag.revision !== this.Revision) return this.Status('The script changed; drag the block again.', true);
+                if (drag.revision !== this.Revision) return this.Status(SI.Tools.Text.Editor('The script changed; drag the block again.'), true);
                 if (drag.template) this.InsertTemplate(drag.template, region, index);
                 else this.MoveNode(drag.start, region, index);
             };
@@ -410,7 +410,7 @@
             this.Nodes.set(node.start, {node, region, card});
             if (this.Selected === node.start) card.classList.add('is-selected');
             const head = this.Element('div', {class: 'si-script-block-heading'}, card);
-            const handle = this.Button('⋮⋮', 'Drag ' + category.name + ' block', () => this.Select(node.start), head, 'si-script-drag');
+            const handle = this.Button('⋮⋮', SI.Tools.Text.Editor('Drag ') + category.name + SI.Tools.Text.Editor(' block'), () => this.Select(node.start), head, 'si-script-drag');
             handle.draggable = true;
             handle.ondragstart = event => {
                 this.Drag = {start: node.start, revision: this.Revision};
@@ -421,7 +421,7 @@
             this.Element('span', {class: 'si-script-kind', text: category.name}, head);
             this.Element('code', {class: 'si-script-summary', text: this.Summary(node, regions), title: this.Slice(node)}, head);
             this.Element('span', {class: 'si-script-line', text: String(node.loc.start.line)}, head);
-            this.Button('Edit', 'Edit ' + category.name + ' block', () => this.Select(node.start), head);
+            this.Button(SI.Tools.Text.Editor('Edit'), SI.Tools.Text.Editor('Edit ') + category.name + SI.Tools.Text.Editor(' block'), () => this.Select(node.start), head);
             if (regions.length) {
                 const key = node.type + ':' + node.start;
                 const closed = this.Collapsed.has(key) || (depth > 1 && !this.Expanded?.has(key));
@@ -429,7 +429,7 @@
                 let drawn = false;
                 const draw = () => { if (!drawn) { for (const child of regions) this.DrawLane(child, body, depth + 1); drawn = true; } };
                 if (!closed) draw();
-                const fold = this.Button(closed ? '▸' : '▾', 'Collapse or expand nested blocks', () => {
+                const fold = this.Button(closed ? '▸' : '▾', SI.Tools.Text.Editor('Collapse or expand nested blocks'), () => {
                     body.hidden = !body.hidden; fold.textContent = body.hidden ? '▸' : '▾';
                     if (body.hidden) this.Collapsed.add(key);
                     else { this.Collapsed.delete(key); if (!this.Expanded) this.Expanded = new Set(); this.Expanded.add(key); draw(); }
@@ -454,17 +454,17 @@
                     const first = fn.params[0], last = fn.params[fn.params.length - 1];
                     const unwrapped = fn.type === 'ArrowFunctionExpression' && fn.params.length === 1
                         && !this.Source.slice(fn.start, first.start).includes('(');
-                    fields.push({label: 'Parameters', start: first.start, end: last.end,
+                    fields.push({label: SI.Tools.Text.Editor('Parameters'), start: first.start, end: last.end,
                         value: this.Source.slice(first.start, last.end),
                         transform: value => unwrapped && !/^[A-Za-z_$][\w$]*$/.test(value.trim()) ? '(' + value + ')' : value});
                 } else {
                     const open = this.Parsed.tokens.find(token => token.start >= fn.start && token.end <= fn.body.start && token.type.label === '(');
-                    if (open) fields.push({label: 'Parameters', start: open.end, end: open.end, value: ''});
+                    if (open) fields.push({label: SI.Tools.Text.Editor('Parameters'), start: open.end, end: open.end, value: ''});
                 }
             };
             if (node.type === 'VariableDeclaration') {
                 const prefix = this.Parsed.tokens.filter(token => token.start >= node.start && token.end <= node.declarations[0].id.start);
-                fields.push({label: 'Declaration', start: node.start, end: prefix.at(-1)?.end || node.start + node.kind.length,
+                fields.push({label: SI.Tools.Text.Editor('Declaration'), start: node.start, end: prefix.at(-1)?.end || node.start + node.kind.length,
                     value: node.kind, choices: [...new Set(['const', 'let', 'var', node.kind])]});
                 for (const declaration of node.declarations) {
                     add('Binding', declaration.id);
@@ -506,13 +506,13 @@
             this.InspectorDraft = null;
             this.Inspector.replaceChildren();
             const selected = this.Nodes.get(this.Selected);
-            this.Element('h3', {text: selected ? this.Category(selected.node).name : 'Inspector'}, this.Inspector);
+            this.Element('h3', {text: selected ? this.Category(selected.node).name : SI.Tools.Text.Editor('Inspector')}, this.Inspector);
             if (!selected) {
-                this.Element('p', {class: 'si-script-hint', text: 'Select a block to edit its values. Every block also exposes its full JavaScript.'}, this.Inspector);
+                this.Element('p', {class: 'si-script-hint', text: SI.Tools.Text.Editor('Select a block to edit its values. Every block also exposes its full JavaScript.')}, this.Inspector);
                 return;
             }
             const node = selected.node, fields = this.Fields(node), controls = [];
-            this.Element('p', {class: 'si-script-hint', text: node.type + ' · line ' + node.loc.start.line}, this.Inspector);
+            this.Element('p', {class: 'si-script-hint', text: node.type + SI.Tools.Text.Editor(' · line ') + node.loc.start.line}, this.Inspector);
             const form = this.Element('form', {class: 'si-script-fields', onsubmit: event => {
                 event.preventDefault();
                 this.FlushInspector();
@@ -527,18 +527,18 @@
                 }
                 controls.push({field, input, initialValue: input.value});
             }
-            if (fields.length) this.Element('button', {type: 'submit', text: 'Apply changes', class: 'si-script-primary'}, form);
+            if (fields.length) this.Element('button', {type: 'submit', text: SI.Tools.Text.Editor('Apply changes'), class: 'si-script-primary'}, form);
             const actions = this.Element('div', {class: 'si-script-block-actions'}, this.Inspector);
-            this.Button('↑', 'Move block up', () => this.MoveRelative(node.start, -1), actions);
-            this.Button('↓', 'Move block down', () => this.MoveRelative(node.start, 1), actions);
-            this.Button('Duplicate', 'Duplicate this block', () => this.Duplicate(node.start), actions);
-            this.Button('Delete', 'Delete this block', () => this.DeleteNode(node.start), actions, 'si-script-danger');
+            this.Button('↑', SI.Tools.Text.Editor('Move block up'), () => this.MoveRelative(node.start, -1), actions);
+            this.Button('↓', SI.Tools.Text.Editor('Move block down'), () => this.MoveRelative(node.start, 1), actions);
+            this.Button(SI.Tools.Text.Editor('Duplicate'), SI.Tools.Text.Editor('Duplicate this block'), () => this.Duplicate(node.start), actions);
+            this.Button(SI.Tools.Text.Editor('Delete'), SI.Tools.Text.Editor('Delete this block'), () => this.DeleteNode(node.start), actions, 'si-script-danger');
             const raw = this.Element('details', {class: 'si-script-source'}, this.Inspector);
-            this.Element('summary', {text: 'Full JavaScript'}, raw);
-            const editor = this.Element('textarea', {value: this.Slice(node), rows: 10, spellcheck: false, 'aria-label': 'Full block JavaScript'}, raw);
+            this.Element('summary', {text: SI.Tools.Text.Editor('Full JavaScript')}, raw);
+            const editor = this.Element('textarea', {value: this.Slice(node), rows: 10, spellcheck: false, 'aria-label': SI.Tools.Text.Editor('Full block JavaScript')}, raw);
             this.InspectorDraft = {node, controls, editor, source: editor.value};
-            this.Button('Apply JavaScript', 'Replace this block with JavaScript', () => this.FlushInspector(), raw);
-            this.Element('p', {class: 'si-script-hint', text: 'Changes are parsed in the surrounding program. Invalid edits leave the last valid version intact.'}, raw);
+            this.Button(SI.Tools.Text.Editor('Apply JavaScript'), SI.Tools.Text.Editor('Replace this block with JavaScript'), () => this.FlushInspector(), raw);
+            this.Element('p', {class: 'si-script-hint', text: SI.Tools.Text.Editor('Changes are parsed in the surrounding program. Invalid edits leave the last valid version intact.')}, raw);
         },
         InspectorPatches: function () {
             const draft = this.InspectorDraft;

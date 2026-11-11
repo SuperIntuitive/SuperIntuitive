@@ -61,6 +61,8 @@ class Block {
             }
             $relationFields['dev-order'] = $order;
         }
+        $translations = $post['localtext'] ?? [];
+        if(!is_array($translations) || !array_is_list($translations)) return $fail('Block translations must be a list.');
         $db = new Database();
         $pdo = $db->DBC();
         try{
@@ -85,6 +87,12 @@ class Block {
                 $params[':scope'] = substr($scopes[$record[0]], 2);
                 $update = $pdo->prepare('UPDATE `'.$record[0].'` SET '.implode(',', $sets).' WHERE id=UNHEX(:id) AND entity_id=UNHEX(:scope)');
                 $update->execute($params);
+            }
+            foreach($translations as $translation){
+                if(!is_array($translation) || !(new Localtext())->Update($translation, $pdo)){
+                    $pdo->rollBack();
+                    return $fail($bu['AJAXRETURN']['ERROR'] ?? 'The block translation could not be saved.');
+                }
             }
             $pdo->commit();
             $bu['AJAXRETURN']['BLOCKSAVED'] = $post['name'] ?? $row['name'];

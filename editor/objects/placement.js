@@ -113,7 +113,7 @@ SI.Editor.Objects.Placement = {
         }
         const element = Ele(name, JSON.parse(JSON.stringify(item.defaults || {})));
         if (!SI.Tools.Is.EmptyElement(name) && !element.innerHTML.trim()) element.textContent = name === 'div' ? '' : name;
-        if (name === 'script') element.textContent = "// Your script starts here\n";
+        if (name === 'script') element.textContent = SI.Tools.Text.Editor("// Your script starts here\n");
         element.style.position = preview ? 'relative' : 'absolute';
         element.style.margin = '0';
         element.style.boxSizing = 'border-box';
@@ -177,7 +177,7 @@ SI.Editor.Objects.Placement = {
             state.ghost.style.font = style.font;
             state.ghost.style.color = style.color;
         }
-        state.label.textContent = state.parent ? (state.kind === 'move' ? 'Move' : 'Add') + ' ' + (state.name || state.element.tagName.toLowerCase()) + ' into ' + state.parent.tagName.toLowerCase() + (state.parent.id ? ' #' + state.parent.id : '') + ' · Esc to cancel' : 'Choose a position inside a page block · Esc to cancel';
+        state.label.textContent = state.parent ? (state.kind === 'move' ? SI.Tools.Text.Editor('Move') : SI.Tools.Text.Editor('Add')) + ' ' + (state.name || state.element.tagName.toLowerCase()) + SI.Tools.Text.Editor(' into ') + state.parent.tagName.toLowerCase() + (state.parent.id ? ' #' + state.parent.id : '') + SI.Tools.Text.Editor(' · Esc to cancel') : SI.Tools.Text.Editor('Choose a position inside a page block · Esc to cancel');
         state.label.style.left = Math.max(4, Math.min(x, innerWidth - 330)) + 'px';
         state.label.style.top = Math.max(4, Math.min(y - 30, innerHeight - 35)) + 'px';
     },
@@ -222,7 +222,7 @@ SI.Editor.Objects.Placement = {
             SI.Editor.UI.MainMenu.Element.style.display = 'none';
         } catch (error) {
             console.error('Unable to place item', error);
-            SI.Tools.SuperAlert('Unable to add this item. Your page has not been saved.', 3000);
+            SI.Tools.SuperAlert(SI.Tools.Text.Editor('Unable to add this item. Your page has not been saved.'), 3000);
         } finally {
             this.Cancel();
         }

@@ -57,10 +57,6 @@
         const values = stored(); values.sipl = location.origin;
         if (SI.BackendConfig.phpOrigin) values.php = SI.BackendConfig.phpOrigin;
         save(values);
-        const link = document.createElement('a'); link.textContent = 'Backend: SIPL · switch';
-        link.href = '/core_sipl/switch.html?page='+encodeURIComponent(location.pathname+location.search);
-        Object.assign(link.style,{position:'fixed',bottom:'16px',left:'16px',zIndex:'10900',padding:'8px 12px',background:'#14243a',border:'1px solid #385577',borderRadius:'5px',color:'#b4c7df',font:'12px monospace',textDecoration:'none'});
-        document.body.appendChild(link);
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function () {
             this.addEventListener('loadend', function () {

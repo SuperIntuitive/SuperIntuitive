@@ -867,65 +867,58 @@ class Tools{
 	/// </summary>
 	/// <param name="$key">The initial key that you want to check or use.</param>
 	/// <param name="$array">The array in which you want to ensure the key is unique.</param>
-	static function ReplaceMultilangs($text){
-		//Gets all of the multilingual tags that appear in the text,
-		$matches = array();
-		//Tools::Log($text);
-		if (defined('SI_LANGS') && ( strpos ($text,'SI_MULTILANG_')> - 1 ) )
-		{
-		    $localtextattr = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'];
-			$langs = strtolower(SI_LANGS);
-			$lanarr = explode(',',$langs);
-			$lanarr = preg_filter('/^/', '_', $lanarr);
-			$filtLanArr = array();
-			foreach($lanarr as $lan){
-				if(isset($localtextattr[$lan])){
-				   $filtLanArr[] = $lan;
-				}
-			}
-			//Tools::Log($localtextattr);
-			//Tools::Log($lanarr);
-			//Tools::Log($filtLanArr);
-
-			$cols = implode("`,`",$filtLanArr);
-
-			preg_match_all('/SI_MULTILANG_([A-Z]){20}/', $text, $matches);
-			if(count($matches)>0){
-				$inset = str_replace('SI_MULTILANG_','',$matches[0]);
-				
-				//Tools::Log("sql: ".$sql);
-
-				$db = new Database();
-				$placeholders = str_repeat ('?, ',  count ($inset) - 1) . '?';
-				$pdo = $db->DBC();
-				$sql = "SELECT `$cols`,`name` FROM `localtext` WHERE `name` IN($placeholders);";
-				//Tools::Log($sql);
-				$query = $pdo->prepare($sql);
-				if ($query->execute($inset)) {
-					$data = $query->fetchAll();
-					foreach($data as $v){
-						$tmp=$v;
-						if(isset($tmp['name'])){
-							$token = "SI_MULTILANG_".$tmp['name'];
-							$value = '';
-							unset($tmp['name']);
-							//Tools::Log($tmp);
-							foreach($tmp as $v){
-								if(strlen($v)>0){
-									$value = $v;
-									break;
-								}
-							}
-							$text = str_replace($token,$value,$text);
-						}
-					}
-					//we have data!!!
-					//Tools::Log($data);
-				}
-			}
-		}
-		return $text;
-	}
+    static function LanguagePreferences(){
+        $bu = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME];
+        $attributes = $bu['entities']['localtext']['attributes'];
+        $languages = array();
+        $add = function($code) use (&$languages, $attributes){
+            if(isset($attributes['_'.$code]) && !in_array($code, $languages, true)) $languages[] = $code;
+        };
+        foreach(explode(',', strtolower($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'en')) as $value){
+            $code = trim(explode(';', $value)[0]);
+            $add($code);
+            $add(explode('-', $code)[0]);
+        }
+        $default = $bu['settings']['DefaultLanguage'] ?? null;
+        if($default === null){
+            // Guest metadata can omit settings; read only this site's public language default.
+            $query = (new Database())->DBC()->prepare("SELECT COALESCE(NULLIF(s.settingvalue,''),'en') FROM settings s INNER JOIN entities e ON e.id=s.entity_id INNER JOIN domains d ON d.id=e.domain_id INNER JOIN subdomains sd ON sd.id=e.subdomain_id AND sd.domain_id=d.id WHERE e.name='settings' AND e.status='active' AND s.settingname='DefaultLanguage' AND s.status='active' AND d.name=:domain AND sd.name=:subdomain LIMIT 1");
+            $query->execute(array(':domain' => SI_DOMAIN_NAME, ':subdomain' => SI_SUBDOMAIN_NAME));
+            $default = $query->fetchColumn();
+            if($default === false) $default = 'en';
+        }
+        $add(strtolower(trim($default)));
+        $add('en');
+        return $languages;
+    }
+    static function MultilingualBinding(string $source, string $rendered): string {
+        if(!preg_match('/SI_MULTILANG_[A-Z]{20}/', $source)) return '';
+        return " data-si_ml_source='".htmlspecialchars($source, ENT_QUOTES, 'UTF-8')."' data-si_ml_rendered='".htmlspecialchars($rendered, ENT_QUOTES, 'UTF-8')."'";
+    }
+    static function MultilingualBlockToken(string $source): string {
+        if(!preg_match('/^SI_MULTILANG_([A-Z]{20})$/D', trim($source), $match)) return '';
+        return $match[1];
+    }
+    static function ReplaceMultilangs($text){
+        preg_match_all('/SI_MULTILANG_[A-Z]{20}/', $text, $matches);
+        if(!$matches[0]) return $text;
+        $languages = self::LanguagePreferences();
+        if(!$languages) return $text;
+        $tokens = array_values(array_unique(array_map(fn($token) => substr($token, 13), $matches[0])));
+        $columns = implode(',', array_map(fn($code) => '`_'.$code.'`', $languages));
+        $scope = self::FixGuid($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['instanceguid']);
+        $query = (new Database())->DBC()->prepare("SELECT $columns,`name` FROM localtext WHERE entity_id=UNHEX(?) AND status='active' AND name IN(".implode(',', array_fill(0, count($tokens), '?')).')');
+        $query->execute(array_merge(array(substr($scope, 2)), $tokens));
+        $replacements = array();
+        foreach($query->fetchAll(\PDO::FETCH_ASSOC) as $record){
+            $value = '';
+            foreach($languages as $code){
+                if(isset($record['_'.$code]) && $record['_'.$code] !== ''){ $value = $record['_'.$code]; break; }
+            }
+            $replacements['SI_MULTILANG_'.$record['name']] = $value;
+        }
+        return preg_replace_callback('/SI_MULTILANG_[A-Z]{20}/', fn($match) => $replacements[$match[0]] ?? $match[0], $text);
+    }
 	static function IsJson($string){
 		return is_string($string) && substr(ltrim($string), 0, 1) === '{';
 	}

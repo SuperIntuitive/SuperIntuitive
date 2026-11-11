@@ -15,7 +15,7 @@ SI.Editor.Objects.Settings = {
                 marginLeft:'3%',
                 borderRadius: '10px',
             },
-            append: Ele('legend', { innerHTML: 'Tools' }),
+            append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Tools') }),
             appendTo: container,
         });
 
@@ -31,7 +31,7 @@ SI.Editor.Objects.Settings = {
                     var hudwin = {
                         Id: "si_edit_hud_window",
                         Trigger: '#si_edit_hud_trigger',
-                        Title: "HUD",
+                        Title: SI.Tools.Text.Editor("HUD"),
                         Width: '200px',
                         Height: '150px',
                         Top: '30%',
@@ -52,7 +52,7 @@ SI.Editor.Objects.Settings = {
             }
         });
         let hudcblabel = Ele('label', {
-            innerHTML: "HUD",
+            innerHTML: SI.Tools.Text.Editor("HUD"),
             append: hudcb,
             appendTo: toolsbox,
         });
@@ -60,9 +60,9 @@ SI.Editor.Objects.Settings = {
         //PhpInfo
         let openScenegraph = Ele('button', {
             id: 'si_edit_settings_scenegraph',
-            innerHTML: "Scenegraph",
+            innerHTML: SI.Tools.Text.Editor("Scenegraph"),
             appendTo: toolsbox,
-            title: "View Scenegraph",
+            title: SI.Tools.Text.Editor("View Scenegraph"),
             style: {
                 marginRight: '10px',
             },
@@ -71,7 +71,7 @@ SI.Editor.Objects.Settings = {
                     var scenegraph = {
                         Id: "si_edit_scenegraph_window",
                         Trigger:"#si_edit_settings_scenegraph",
-                        Title: "Scenegraph",
+                        Title: SI.Tools.Text.Editor("Scenegraph"),
                         IconImg: '/editor/media/icons/scenegraph.png',
                         Populate: SI.Editor.Objects.Settings.DrawScenegraph
                     };
@@ -84,9 +84,9 @@ SI.Editor.Objects.Settings = {
         //PhpInfo
         let openPhpInfo = Ele('button', {
             id: 'si_edit_settings_phpinfo',
-            innerHTML: "PHP Info",
+            innerHTML: SI.Tools.Text.Editor("PHP Info"),
             appendTo: toolsbox,
-            title: "View php info",
+            title: SI.Tools.Text.Editor("View php info"),
             style: {
                 marginRight: '10px',
             },
@@ -95,7 +95,7 @@ SI.Editor.Objects.Settings = {
                     var phpwin = {
                         Id: "si_edit_phpinfo_window",
                         Trigger:"#si_edit_settings_phpinfo",
-                        Title: "PhpInfo",
+                        Title: SI.Tools.Text.Editor("PhpInfo"),
                         Width: '990px',
                         IconImg: '/editor/media/icons/php.png',
                         Populate:SI.Editor.Objects.Settings.DrawPhpInfo
@@ -110,12 +110,12 @@ SI.Editor.Objects.Settings = {
 
         let checkBadImages = Ele('button', {
             id: 'si_edit_settings_checkbadimages',
-            innerHTML: "Look for Image problems",
+            innerHTML: SI.Tools.Text.Editor("Look for Image problems"),
             style: {
                 marginRight: '10px',
             },
             appendTo: toolsbox,
-            title: 'Some browsers can try to load a page twice+ if there is a missing image. \nMake sure you have images at the end of all your image urls!\nThis will search the document for all invalid images and return their ids.',
+            title: SI.Tools.Text.Editor('Some browsers can try to load a page twice+ if there is a missing image. \nMake sure you have images at the end of all your image urls!\nThis will search the document for all invalid images and return their ids.'),
             onclick: function () {
                 let error = [];
                 images = document.querySelectorAll('img');
@@ -128,9 +128,9 @@ SI.Editor.Objects.Settings = {
                     }
                 }
                 if (error.length > 0) {
-                    alert("These images did not load correctly: " + error.join(','));
+                    alert(SI.Tools.Text.Editor("These images did not load correctly: ") + error.join(','));
                 } else {
-                    alert("All images seem OK :-) ");
+                    alert(SI.Tools.Text.Editor("All images seem OK :-) "));
                 }
 
             }
@@ -138,15 +138,15 @@ SI.Editor.Objects.Settings = {
 
         let createInstallerFile = Ele('button', {
             id: 'si_edit_settings_createinstaller',
-            innerHTML: "Create Installer",
+            innerHTML: SI.Tools.Text.Editor("Create Installer"),
             appendTo: toolsbox,
-            title: "Build a installer file from the existing database",
+            title: SI.Tools.Text.Editor("Build a installer file from the existing database"),
             style: {
                 marginRight: '10px',
             },
             onclick: function (e) {
 
-                let filename = prompt("Please name the installer file or leave blank for default", "");
+                let filename = prompt(SI.Tools.Text.Editor("Please name the installer file or leave blank for default"), "");
 
                 let options = {
                     Data: {
@@ -158,7 +158,7 @@ SI.Editor.Objects.Settings = {
                         options.Data.Name = filename;
                     }
                     else{
-                        alert("Illegal filename, please provide a legal filename");
+                        alert(SI.Tools.Text.Editor("Illegal filename, please provide a legal filename"));
                         return false;
                     }
                 }
@@ -169,9 +169,9 @@ SI.Editor.Objects.Settings = {
         });
         let createBackupFile = Ele('button', {
             id: 'si_edit_settings_createbackup',
-            innerHTML: "Backup Database",
+            innerHTML: SI.Tools.Text.Editor("Backup Database"),
             appendTo: toolsbox,
-            title: "Make a backup file from the existing database",
+            title: SI.Tools.Text.Editor("Make a backup file from the existing database"),
             style: {
                 marginRight: '10px',
             },
@@ -195,10 +195,10 @@ SI.Editor.Objects.Settings = {
                 borderRadius: '10px',
                 marginLeft:'3%',
             },
-            append: Ele('legend', { innerHTML: 'Custom Settings' }),
+            append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Custom Settings') }),
             appendTo: container,
         });
-        Ele("span", { innerHTML: 'New Setting: Name ', appendTo: newbox });
+        Ele("span", { innerHTML: SI.Tools.Text.Editor('New Setting: Name '), appendTo: newbox });
         let newsettingname = Ele("input", {
             id: 'si_edit_settings_newname',
             onchange: function () {
@@ -206,10 +206,10 @@ SI.Editor.Objects.Settings = {
             },
             appendTo: newbox
         });
-        Ele("span", { innerHTML: ' Value ', appendTo: newbox });
+        Ele("span", { innerHTML: SI.Tools.Text.Editor(' Value '), appendTo: newbox });
         let newsettingvalue = Ele("input", { id: 'si_edit_settings_newvalue', appendTo: newbox });
         Ele("button", {
-            innerHTML: 'Create',
+            innerHTML: SI.Tools.Text.Editor('Create'),
             appendTo: newbox,
             onclick: function () {
                 let name = document.getElementById('si_edit_settings_newname').value;
@@ -223,7 +223,7 @@ SI.Editor.Objects.Settings = {
                 width: '90%',
                 borderRadius: '10px',
             },
-            append: Ele('legend', { innerHTML: 'Current Settings' }),
+            append: Ele('legend', { innerHTML: SI.Tools.Text.Editor('Current Settings') }),
             appendTo: newbox,
         });
         let settingstable = Ele('table', {
@@ -248,7 +248,7 @@ SI.Editor.Objects.Settings = {
     //Creates a new Setting in the table settings
         name = name.replace(/\W/g, '');
         if (SI.Editor.Data.Objects.Settings.hasOwnProperty(name)) {
-            alert("This setting already exists");
+            alert(SI.Tools.Text.Editor("This setting already exists"));
         }
         else {
             let options = {
@@ -388,12 +388,12 @@ SI.Editor.Objects.Settings = {
                         let company = obj.company;
                         let domain = obj.domain;
                         let path = domain + codeobj[site];
-                        let icon = new SI.Widget.IconLink({ "Parent": appendTo, "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": "Look up " + codeobj.n + " on " + company })
+                        let icon = new SI.Widget.IconLink({ "Parent": appendTo, "IconUrl": '/editor/media/icons/' + company + '.png', "Link": path, "Type": 'td', "Title": SI.Tools.Text.Editor("Look up ") + codeobj.n + SI.Tools.Text.Editor(" on ") + company })
                         icon.Container.classList.add('si-edit-doc-cell');
                         const link = icon.Container.querySelector('a');
                         if (link) {
                             link.classList.add('si-edit-doc-link');
-                            link.title = 'Look up ' + codeobj.n + ' on ' + company;
+                            link.title = SI.Tools.Text.Editor('Look up ') + codeobj.n + SI.Tools.Text.Editor(' on ') + company;
                             link.setAttribute('aria-label', link.title);
                         }
                         //  appendTo.appendChild(icon.Container);
@@ -416,7 +416,7 @@ SI.Editor.Objects.Settings = {
         });
 
         Ele('span', {
-            innerHTML: "Mouse X:",
+            innerHTML: SI.Tools.Text.Editor("Mouse X:"),
             appendTo: container,
         });
         Ele('span', {
@@ -425,7 +425,7 @@ SI.Editor.Objects.Settings = {
         });
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Mouse Y:",
+            innerHTML: SI.Tools.Text.Editor("Mouse Y:"),
             appendTo: container,
         });
         Ele('span', {
@@ -434,7 +434,7 @@ SI.Editor.Objects.Settings = {
         });
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Selected Element:",
+            innerHTML: SI.Tools.Text.Editor("Selected Element:"),
             appendTo: container,
         });
         Ele('span', {
@@ -444,7 +444,7 @@ SI.Editor.Objects.Settings = {
 
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Dragging Element:",
+            innerHTML: SI.Tools.Text.Editor("Dragging Element:"),
             appendTo: container,
 
         });
@@ -455,7 +455,7 @@ SI.Editor.Objects.Settings = {
         //offparent
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Offset Parent:",
+            innerHTML: SI.Tools.Text.Editor("Offset Parent:"),
             appendTo: container,
 
         });
@@ -466,7 +466,7 @@ SI.Editor.Objects.Settings = {
         //parent elementid
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Parent Id:",
+            innerHTML: SI.Tools.Text.Editor("Parent Id:"),
             appendTo: container,
 
         });
@@ -477,7 +477,7 @@ SI.Editor.Objects.Settings = {
         //offsetX
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Offest X:",
+            innerHTML: SI.Tools.Text.Editor("Offest X:"),
             appendTo: container,
 
         });
@@ -488,7 +488,7 @@ SI.Editor.Objects.Settings = {
         //offsetY
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Offset Y:",
+            innerHTML: SI.Tools.Text.Editor("Offset Y:"),
             appendTo: container,
 
         });
@@ -500,7 +500,7 @@ SI.Editor.Objects.Settings = {
         //DropParent
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Drop Parent:",
+            innerHTML: SI.Tools.Text.Editor("Drop Parent:"),
             appendTo: container,
 
         });
@@ -511,7 +511,7 @@ SI.Editor.Objects.Settings = {
         //DropParent
         Ele('br', { appendTo: container });
         Ele('span', {
-            innerHTML: "Editor Is Dragging:",
+            innerHTML: SI.Tools.Text.Editor("Editor Is Dragging:"),
             appendTo: container,
 
         });

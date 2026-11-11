@@ -5,11 +5,51 @@ use Security
 use Tools
 use Plugins
 use Content
+use Localtext
+use MiscData
 
-var _lookups = none
 fn lookups() -> Map {
-    if _lookups == none { _lookups = json.parse(fs.readText(Config.root("core_sipl/generated/lookups.json"))) }
-    return _lookups
+    return MiscData.lookups()
+}
+
+fn language(header: String) -> String {
+    var language = "en"
+    var best = 0
+    for value in header.toLower().split(",") {
+        let parts = value.split(";")
+        let range = parts[0].trim()
+        if not regex.compile("^[a-z]\{2,3\}(-[a-z0-9]+)*$").isMatch(range) { continue }
+        let code = range.split("-")[0]
+        if not ["en", "es", "zh", "tl"].contains(code) { continue }
+        var quality = 1000
+        for index, parameter in parts {
+            if index == 0 { continue }
+            let option = parameter.trim()
+            if not option.startsWith("q=") { continue }
+            let weight = option.slice(2)
+            quality = 0
+            if regex.compile("^(0(\\.[0-9]\{0,3\})?|1(\\.0\{0,3\})?)$").isMatch(weight) {
+                let digits = weight.split(".")
+                quality = digits[0].toInt() * 1000
+                if digits.length > 1 { quality += (digits[1] + "000").slice(0, 3).toInt() }
+            }
+        }
+        if quality > best { language = code
+            best = quality }
+    }
+    return language
+}
+
+fn locale(header: String) -> Map {
+    let code = language(header)
+    if code == "en" { return {"language": "en", "texts": {:}} }
+    let value = json.parse(fs.readText(Config.root("editor/locales/" + code + ".json")))
+    assert(value["language"] == code and value["texts"].type == "Map", "INVALID_EDITOR_TRANSLATION")
+    return value
+}
+
+fn bootstrap(locale: Map) -> String {
+    return "\"use strict\";\nif(!SI)\{var SI=\{\};\}\nSI.EditorLanguage=" + Tools.scriptJson(locale["language"]) + ";\nSI.EditorText=" + Tools.scriptJson(locale["texts"]) + ";\n"
 }
 
 fn blockData(page: Map) -> Map {
@@ -32,20 +72,26 @@ fn blockData(page: Map) -> Map {
 }
 
 fn userTable(context: Map) -> String {
+    let texts = context.get("editorTexts", {:})
     let rows = Entity.retrieve(context, "users", none, {:}, ["id", "name", "email", "status"])
-    var output = "<table id='si_editor_users_table'><thead><tr><th>#</th><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>"
+    var output = "<table id='si_editor_users_table'><thead><tr>"
+    for label in ["#", "ID", "Name", "Email", "Status", "Actions"] { output += "<th>" + Tools.escapeHtml(texts.get(label, label)) + "</th>" }
+    output += "</tr></thead><tbody>"
     var number = 0
     for row in rows {
         number += 1
         let id = "0x" + row["id"]
-        output += "<tr><td>" + "{number}" + "</td><td>" + Tools.guid(row["id"]) + "</td><td>" + Tools.escapeHtml(row["name"]) + "</td><td>" + Tools.escapeHtml(row["email"]) + "</td><td>" + Tools.escapeHtml(row["status"]) + "</td><td id='si_users_config_" + id + "'><button type='button' data-id='" + id + "' onclick='SI.Editor.Objects.User.ChangePassword(this)'>Password</button><button type='button' data-id='" + id + "' onclick='SI.Editor.Objects.User.GetRoles(this)'>Roles</button></td></tr>"
+        output += "<tr><td>" + "{number}" + "</td><td>" + Tools.guid(row["id"]) + "</td><td>" + Tools.escapeHtml(row["name"]) + "</td><td>" + Tools.escapeHtml(row["email"]) + "</td><td>" + Tools.escapeHtml(row["status"]) + "</td><td id='si_users_config_" + id + "'><button type='button' data-id='" + id + "' onclick='SI.Editor.Objects.User.ChangePassword(this)'>" + Tools.escapeHtml(texts.get("Password", "Password")) + "</button><button type='button' data-id='" + id + "' onclick='SI.Editor.Objects.User.GetRoles(this)'>" + Tools.escapeHtml(texts.get("Roles", "Roles")) + "</button></td></tr>"
     }
     return output + "</tbody></table>"
 }
 
-fn model(context: Map, page: Map) -> Map {
+fn model(current: Map, page: Map) -> Map {
+    let context = current.copy()
     Security.requireAdmin(context)
     if context["deployment"] != "dev" { fail("DEV_REQUIRED") }
+    let copy = locale(context.get("request", {:}).get("headers", {:}).get("accept-language", "en"))
+    context["editorTexts"] = copy["texts"]
     let data = lookups()
     let settings = Entity.retrieve(context, "settings", none, {:}, ["id", "settingname", "settingvalue"])
     let roles = Entity.retrieve(context, "securityroles", none, {:}, ["id", "name", "rules"])
@@ -53,9 +99,11 @@ fn model(context: Map, page: Map) -> Map {
         if role["rules"].type == "String" and json.isValid(role["rules"]) { role["rules"] = json.parse(role["rules"]) }
     }
     let pages = Entity.retrieve(context, "pages", none, {:}, ["id", "name", "path", "options"])
-    let pageObjects: Map = {:}
-    for row in pages { pageObjects[row["name"]] = {"id": "0x" + row["id"], "page": row["path"], "domain": context["domain"], "subdomain": context["subdomain"], "name": row["name"], "path": row["path"]} }
-    var colorOptions = "<option value=''>Color Names</option>"
+    let pageObjects = []
+    for row in pages {
+        pageObjects.push({"id": "0x" + row["id"], "page": row["path"], "domain": context["domain"], "subdomain": context["subdomain"], "name": row["name"], "path": row["path"], "domainName": context["domain"], "subdomainName": context["subdomain"], "pageName": row["name"], "pageId": row["id"]})
+    }
+    var colorOptions = "<option value=''>" + Tools.escapeHtml(copy["texts"].get("Color Names", "Color Names")) + "</option>"
     for color in data["ColorNames"] { colorOptions += "<option value='" + Tools.escapeHtml(color) + "'>" + Tools.escapeHtml(color) + "</option>" }
     var languageOptions = "<option value=''></option>"
     for code, name in data["Languages"] { languageOptions += "<option value='" + Tools.escapeHtml(code) + "'>" + Tools.escapeHtml(name) + "</option>" }
@@ -66,6 +114,8 @@ fn model(context: Map, page: Map) -> Map {
     let localtexts = Entity.retrieve(context, "localtext", none, {:}, "_ALL_")
     let values: Map = {"$dataage": data["DataAge"], "runtime_info": "<p>SIPL native backend; PHP is not executed by this server.</p>", "$entityDefinitions": context["schema"], "$recordCount": context["schema"].length, "$blockObjects": blockData(page), "$pageObjects": pageObjects, "$mediaObjects": Entity.retrieve(context, "media", none, {:}, ["id", "name", "path", "hash", "mime"]), "$rolesdata": roles, "$relationsjson": Entity.retrieve(context, "relations", none, {:}, "_ALL_"), "$settings2": settings, "$localtexts": localtexts, "$myLangs": preferred, "$currentPlugins": Plugins.editorData(context), "$downloadedplugs": Plugins.local("downloaded"), "$PasswordStrength": "^[\\s\\S]\{10,72\}$", "$helplinks": ["mdn", "w3"], "$quickmenuitems": data["QuickMenu"], "$allmimetypes": data["MimeTypes"], "$mimes": {"Images": ["image/png", "image/jpeg", "image/gif", "image/webp"], "Audio": ["audio/mpeg", "audio/ogg", "audio/wav"], "Video": ["video/mp4", "video/webm"], "Docs": ["application/pdf"], "Data": ["application/json", "text/csv"], "Fonts": ["font/woff2"]}, "json_encode($coloroptions)": colorOptions, "json_encode($langoptions)": languageOptions, "json_encode($supportedLanguages)": supportedOptions, "json_encode($usertable)": userTable(context), "json_encode(SI_LANGS)": preferred.join(","), "SI_DOMAIN_NAME": context["domain"], "SI_SUBDOMAIN_NAME": context["subdomain"]}
     let adminUser = {"loggedin": true, "name": context["user"]["name"], "roles": context["user"]["roles"], "preferences": context["user"].get("preferences", {:})}
+    values["json_encode($defaultLanguages)"] = Localtext.defaultLanguages()
+    values["editorLocale"] = copy
     values["$sessionPageData"] = {"domains": {context["domain"]: {"subdomains": {context["subdomain"]: {"deployment": "dev", "user": adminUser, "entities": context["schema"]}}}}}
     return values
 }
@@ -81,4 +131,7 @@ fn renderModel(values: Map) -> String {
     return Tools.fillTemplate(source, replacements)
 }
 
-fn render(context: Map, page: Map) -> String { return renderModel(model(context, page)) }
+fn render(context: Map, page: Map) -> String {
+    let values = model(context, page)
+    return bootstrap(values["editorLocale"]) + renderModel(values)
+}

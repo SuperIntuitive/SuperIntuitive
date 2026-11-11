@@ -1,0 +1,11 @@
+{
+  "language": "tl",
+  "texts": {
+    "Editor demo": "Demo ng editor",
+    "Links stay inside the sample. Use the company navigation above to explore the site.": "Mananatili sa loob ng halimbawa ang mga link. Gamitin ang nabigasyon ng kumpanya sa itaas upang tuklasin ang website.",
+    "Sample mode: your changes stay in this browser. Saving, uploads and publishing are disabled.": "Mode ng halimbawa: mananatili sa browser na ito ang iyong mga pagbabago. Hindi pinagana ang pag-save, pag-upload at paglalathala.",
+    "The canvas remains available for temporary editing.": "Magagamit pa rin ang canvas para sa pansamantalang pag-edit.",
+    "Translated by AI": "Isinalin ng AI"
+  },
+  "sample": "<section class=\"si-demo-sample\">\n  <p>IYONG CANVAS</p>\n  <h1 id=\"si_demo_sample_title\">Gawing iyo ang isang bagay.</h1>\n  <p>I-right-click upang buksan ang Magdagdag / I-edit / Mga Kasangkapan. Palitan ang teksto, baguhin ang isang istilo, o tuklasin ang code. Ibinabalik ng Magsimula muli ang inilathalang pahinang ito.</p>\n  <article><h2>Magsimula sa isang munting ideya.</h2><p>Ang source ay isang karaniwang Bloke ng CMS. Maaaring palitan ito ng isang administrator ng sarili mong inilathalang halimbawa.</p><button type=\"button\">Isang button na lalagyan ng istilo</button></article>\n</section>"
+}

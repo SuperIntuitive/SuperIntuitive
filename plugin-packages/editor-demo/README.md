@@ -3,6 +3,27 @@
 This is a separate PHP/SIPL plugin, not part of either CMS installer. It owns its HTTP listener, sandbox policy, public editor model, request limits and temporary editing behavior. The CMS uses its existing plugin installer, pages, actions, authentication, authorization and CSRF protection. No demo-specific core dispatcher, renderer or configuration changes are required.
 
 The demo reads the current installation's editor assets and published Blocks. It does not create another CMS copy. All twelve tools work in an opaque-origin iframe. Saving, publishing, uploads, external connections, forms and private resources are blocked. Reset reloads the published source and discards in-memory edits.
+ 
+## Languages
+
+Version 1.1.1 selects English, Spanish (`es`), Simplified Chinese (`zh`) or Tagalog
+(`tl`) from `Accept-Language`, including regional preferences such as `tl-PH`.
+Only the chosen editor dictionary is sent. The neutral packaged sample is also
+translated, with one small AI-translation notice in non-English languages.
+Custom published samples use the CMS's normal database multilingual bindings.
+Only local-text records referenced by that sample are exposed to the editor;
+the site's full language catalog remains private. Reset retains the selected
+language, and the native listener partitions its short-lived cache by language.
+
+This does not install languages or change CMS defaults. The shared editor's
+optional `SI.EditorText` dictionary translates display text at its source, not by
+rewriting the canvas DOM. Technical identifiers, tool keys, tab identities,
+user-entered text, CSS and JavaScript stay unchanged. Version 1.1.1 shares the
+CMS-owned dictionaries in `editor/locales/` with the real editor. Its own locale
+files contain only sample HTML and demo-specific notices. Update the CMS to a
+release containing these catalogs and editor locale helpers before installing
+this plugin revision. Older installed demo revisions remain compatible with
+the unchanged editor-template slot contract.
 
 ## Install and configure
 
@@ -31,6 +52,13 @@ Its response policy should restrict frame-src to that demo origin. The plugin's 
 
 The four limits in the private service configuration are global across visitors, independent of cookies or forwarded IP headers. They are checked before request database work. The PHP listener stores only rate counters in private core/plugin-requests; browser edits are never stored there. Normal CMS session audit records may still be written when opening the parent page.
 
+The SIPL listener allows up to 128 connections from the loopback proxy, matching
+the runtime's global connection cap. The default 32-per-IP limit is insufficient
+when an HTTPS proxy fans out an HTTP/2 page load into separate asset connections.
+Loopback binding, request limits, SELECT-only database grants and the opaque-origin
+sandbox remain unchanged. This setting belongs to this private plugin, not the CMS
+installer.
+
 Restart only the plugin listener after changing its settings or plugin code. Disabling/uninstalling through the CMS immediately closes the service to new requests, even while the listener process is still running. Settings and published Blocks remain intact on uninstall.
 
 ## Updating the CMS independently
@@ -52,4 +80,4 @@ Run packaged installation, browser isolation and CMS-update tests against dispos
 
     php -d extension=zip tests/Fixture.php --demo --runtime /path/to/sipl
 
-The fixture uses temporary PHP/SIPL listeners, a SELECT-only database account, and disposable MariaDB. It verifies all twelve tools, temporary editing/reset, cookie and private-data isolation, denied writes, disable/uninstall, and unchanged plugin/configuration/content across a CMS update. It does not deploy or restart an existing website.
+The fixture uses temporary PHP/SIPL listeners, a SELECT-only database account, and disposable MariaDB. It verifies all twelve tools in all four languages, canonical tool-click identities, translated notices, language-preserving resets, temporary editing, cookie and private-data isolation, denied writes, disable/uninstall, and unchanged plugin/configuration/content across a CMS update. It does not deploy or restart an existing website.

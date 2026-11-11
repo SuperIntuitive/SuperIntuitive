@@ -105,11 +105,12 @@ class Page {
 					{		
 						if(!empty($options['head']['title']))
 						{
-							$title = $options['head']['title'];
+							$titleSource = $options['head']['title'];
+							$title = Tools::ReplaceMultilangs($titleSource);
 							if($deployment !="live"){
 								$title = $deployment." - ".$title;
 							}
-							$title = "<title id='si_pagetitle'>$title</title>\n";
+							$title = "<title id='si_pagetitle'".Tools::MultilingualBinding($titleSource, $title).">".htmlspecialchars($title, ENT_QUOTES, 'UTF-8')."</title>\n";
 						}else{
 						    $title = "<title id='si_pagetitle'></title>\n";
 						}
@@ -133,7 +134,8 @@ class Page {
 								}
 								if(is_array ($metas)){
 									foreach($metas as $name=>$content){
-										$meta.= "\t\t<meta $type='$name' content='$content'>\n";
+										$rendered = Tools::ReplaceMultilangs($content);
+										$meta.= "\t\t<meta $type='".htmlspecialchars($name, ENT_QUOTES, 'UTF-8')."' content='".htmlspecialchars($rendered, ENT_QUOTES, 'UTF-8')."'".Tools::MultilingualBinding($content, $rendered).">\n";
 									}
 								}else{
 									if($type ==="charset"){
@@ -236,6 +238,7 @@ class Page {
 			}
 			$blocksjson = json_encode($pageblocks);
 			$csrfToken = json_encode(Tools::GetCsrfToken());
+            $publicSession = json_encode(array('OS'=>Sessions::GetOS()));
 
 
 				$head.= 
@@ -246,6 +249,7 @@ if (!SI) { var SI = {}; }
 	SI.Page.Blocks = $blocksjson;
 	SI.CSRF = {};
 	SI.CSRF.Token = $csrfToken;
+    SI.Session = $publicSession;
 	SI.Widget = {};
 	SI.Widgets = {};
 	SI.User = {};
@@ -356,7 +360,14 @@ if (!SI) { var SI = {}; }
 							if(isset($options['tag'])){
 							    $html = "";
 								$tag = $options['tag'];
-								$block = "<$tag id='si_block_$id' class='si-block' $order ";
+								$token = Tools::MultilingualBlockToken($v['html'] ?? '');
+								$classes = 'si-block';
+								$binding = '';
+								if($token !== ''){
+									$classes .= ' si-multilingual si-multilingual-'.$token;
+									$binding = " data-si_ml_token='$token'";
+								}
+								$block = "<$tag id='si_block_$id' class='$classes'$binding $order ";
 								Tools::Log($options);
 								foreach($options as $attr=>$value){
 								

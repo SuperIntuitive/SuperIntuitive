@@ -1,7 +1,7 @@
 {
   "id": "editor-demo",
   "name": "Editor Demo",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "backend": {"required": true, "php": "php/demo.php", "sipl": "sipl/demo.sipl"},
   "permissions": {"preview": ["Guest"], "manage": ["Admin"]},
   "actions": {

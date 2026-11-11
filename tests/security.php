@@ -30,6 +30,14 @@ define('SI_DOMAIN_NAME', 'localhost');
 define('SI_SUBDOMAIN_NAME', '');
 Tools::ConfigureSessionCookieParams();
 session_start();
+$clientCases = array('Mozilla/5.0 (Windows NT 10.0; Win64; x64)'=>'windows', 'Mozilla/5.0 (X11; Linux x86_64)'=>'linux', 'Mozilla/5.0 (Linux; Android 15)'=>'android', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)'=>'macos', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'=>'ios', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) Mobile/15E148'=>'ios', 'Mozilla/5.0 (X11; CrOS x86_64)'=>'chromeos', ''=>'unknown');
+foreach ($clientCases as $agent=>$expected) { check(SuperIntuitive\Sessions::DetectOS(array('user-agent'=>$agent)) === $expected, 'Visitor OS classification: '.$agent); }
+check(SuperIntuitive\Sessions::DetectOS(array('sec-ch-ua-platform'=>'"Android"', 'user-agent'=>'Linux')) === 'android', 'Client platform hint takes priority');
+$_SERVER['HTTP_USER_AGENT'] = 'Windows NT 10.0';
+check(SuperIntuitive\Sessions::GetOS() === 'windows', 'Visitor OS is saved in the session');
+$_SERVER['HTTP_USER_AGENT'] = 'Linux';
+check(SuperIntuitive\Sessions::GetOS() === 'windows', 'Session OS remains consistent between requests');
+unset($_SESSION['SI']['client'], $_SERVER['HTTP_USER_AGENT']);
 check(!Tools::ValidateCsrfToken(''), 'Empty CSRF token accepted');
 $csrf = Tools::EnsureCsrfToken();
 check(Tools::ValidateCsrfToken($csrf), 'Valid CSRF token rejected');

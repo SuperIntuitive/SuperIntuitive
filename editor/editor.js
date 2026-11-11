@@ -18,6 +18,9 @@ if(!Tools::UserHasRole('Admin')){
    // echo $siobj;
 if (Tools::UserHasRole('Admin')) 
 {
+    $editorLocale = Editor::Locale($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'en');
+    $editorTexts = $editorLocale['texts'];
+    $editorLabel = fn($text) => htmlspecialchars($editorTexts[$text] ?? $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 
     $notsuperadmin = "true";
@@ -89,7 +92,7 @@ if (Tools::UserHasRole('Admin'))
 */
     //colornames
     $colors = $miscdata->ColorNames;
-    $coloroptions = "<option value=''>Color Names</option>";
+    $coloroptions = "<option value=''>".$editorLabel('Color Names')."</option>";
     foreach($colors as $col){
         $coloroptions.= "<option style='background-color:$col;' value='$col' >$col</option>";
     }
@@ -114,9 +117,10 @@ if (Tools::UserHasRole('Admin'))
     }
     //$defaultLanguage = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['defaultlanguage'];
 
-    $myLangs = json_encode(explode(',',explode(';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0]));
+    $myLangs = json_encode(Tools::LanguagePreferences());
 
     $supportedLanguages = null;
+    $defaultLanguages = (new Localtext())->DefaultLanguages();
     //Tools::Log($defaultLanguage);
     if (isset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'])) {
         $langfields = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities']['localtext']['attributes'];
@@ -155,12 +159,15 @@ if (Tools::UserHasRole('Admin'))
     $dt->LoadArray($users);
 
     $configbts = [
-        "<button type='button' class='si-tool-action' title='Change Password' onclick='SI.Editor.Objects.User.ChangePassword(this)'>Password</button>",
-        "<button type='button' class='si-tool-action' title='Manage Roles' onclick='SI.Editor.Objects.User.GetRoles(this)'>Roles</button>",
+        "<button type='button' class='si-tool-action' title='".$editorLabel('Change Password')."' onclick='SI.Editor.Objects.User.ChangePassword(this)'>".$editorLabel('Password')."</button>",
+        "<button type='button' class='si-tool-action' title='".$editorLabel('Manage Roles')."' onclick='SI.Editor.Objects.User.GetRoles(this)'>".$editorLabel('Roles')."</button>",
     ];
     $confbtn = new DataColumn("Configure");
     $confbtn->Default = implode($configbts);
     $dt->AddColumn($confbtn);
+    foreach ($dt->Columns as $column) {
+        $column->Caption = htmlspecialchars($editorTexts[ucfirst($column->Name)] ?? $column->Name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
     $options = ["ID"=> "si_editor_users_table"];
     $usertable = $dt->Draw($options);
     //Tools::Log($usertable, true);
@@ -220,6 +227,9 @@ if (Tools::UserHasRole('Admin'))
     $entityData = array();
     $recordCount = count($entities);
     $entityJson = "";
+
+    header('Cache-Control: no-store, private');
+    echo Editor::Bootstrap($editorLocale);
 
 ?> 
 "use strict";
@@ -399,6 +409,7 @@ SI.Editor = {
                 CurrentPreference: <?= json_encode(SI_LANGS) ?>,
                 Installed: <?= $myLangs ?>,
                 SupportedLanguages: <?= json_encode($supportedLanguages) ?>,
+                DefaultLanguages: <?= json_encode($defaultLanguages) ?>,
                 Options: <?= json_encode($langoptions) ?>
             },
             Deployment: {
@@ -457,7 +468,7 @@ SI.Editor = {
                                 class: 'si-deployment-promote',
                                 type: 'button',
                                 disabled: unavailable,
-                                title: unavailable ? 'This field has no ' + deployment + ' storage in the current database schema.' : props.ToolTip,
+                                title: unavailable ? SI.Tools.Text.Editor('This field has no ') + deployment + SI.Tools.Text.Editor(' storage in the current database schema.') : props.ToolTip,
                                 style: {
                                     boxShadow: props.Shadow,
                                     backgroundColor: props.BackgroundColor,
@@ -484,7 +495,7 @@ SI.Editor = {
                                     request.timeout = 20000;
                                     request.addEventListener('loadend', function () {
                                         button.disabled = false;
-                                        if (request.status !== 200) SI.Tools.SuperAlert('Deployment failed. Refresh the page and try again.', 4000);
+                                        if (request.status !== 200) SI.Tools.SuperAlert(SI.Tools.Text.Editor('Deployment failed. Refresh the page and try again.'), 4000);
                                     });
 
                                     e.stopPropagation();
@@ -836,7 +847,7 @@ SI.Editor = {
                 }
                 if (event.key === 'Delete' && !event.repeat) {
                     event.preventDefault();
-                    if (confirm('Delete ' + selected.tagName.toLowerCase() + ' #' + selected.id + '?')) SI.Editor.Objects.Elements.Remove(selected);
+                    if (confirm(SI.Tools.Text.Editor('Delete ') + selected.tagName.toLowerCase() + ' #' + selected.id + '?')) SI.Editor.Objects.Elements.Remove(selected);
                 }
             });
         },
@@ -922,7 +933,7 @@ SI.Editor = {
                         return letter.toUpperCase();
                     });
                     let menuitem = Ele('td', {
-                        innerHTML: txt,
+                        innerHTML: SI.Tools.Text.Editor(txt),
                         id: 'si_' + val + '_menu_item',
                         class: 'si-editor-nav-item',
                         onclick: function (e) { SI.Editor.UI.MainMenu.SelectMenu('si_edit_' + val + '_menuitem') },
@@ -942,8 +953,8 @@ SI.Editor = {
                 //Close Editor x button	
                 mainMenu.appendChild(Ele('button', {
                     id: 'close-editor',
-                    title: 'Close editor menu',
-                    innerHTML: 'X',
+                    title: SI.Tools.Text.Editor('Close editor menu'),
+                    innerHTML: SI.Tools.Text.Editor('X'),
                     onclick: function () { SI.Editor.UI.MainMenu.Close(); },
                 }));
                 SI.Editor.UI.Container.appendChild(mainMenu);
@@ -960,7 +971,7 @@ SI.Editor = {
                 const panel = document.getElementById(menu);
                 if (!panel) return;
                 if (menu === 'si_edit_edit_menuitem' && !SI.Editor.Objects.Elements.Selected) {
-                    SI.Tools.SuperAlert('Right-click an element to select it, then choose Edit.', 2500);
+                    SI.Tools.SuperAlert(SI.Tools.Text.Editor('Right-click an element to select it, then choose Edit.'), 2500);
                     return;
                 }
                 const opening = getComputedStyle(panel).display === 'none';
@@ -986,15 +997,15 @@ SI.Editor = {
             Init: function () {
                 const panel = Ele('div', {id: 'si_edit_add_menuitem', class: 'si-add-palette', style: {display: 'none'}});
                 const heading = Ele('div', {class: 'si-add-heading', appendTo: panel});
-                heading.textContent = 'Add to your page';
+                heading.textContent = SI.Tools.Text.Editor('Add to your page');
                 const hint = Ele('p', {class: 'si-add-hint', appendTo: panel});
-                hint.textContent = 'Drag an item onto the page to preview it. Or click an item, then click where it belongs. Esc cancels.';
-                const search = Ele('input', {id: 'si_edit_add_search', type: 'search', placeholder: 'Find a tag or widget…', appendTo: panel});
+                hint.textContent = SI.Tools.Text.Editor('Drag an item onto the page to preview it. Or click an item, then click where it belongs. Esc cancels.');
+                const search = Ele('input', {id: 'si_edit_add_search', type: 'search', placeholder: SI.Tools.Text.Editor('Find a tag or widget…'), appendTo: panel});
                 search.setAttribute('aria-label', 'Find a tag or widget');
                 const tabs = Ele('div', {class: 'si-add-tabs', appendTo: panel});
                 tabs.setAttribute('role', 'tablist');
                 for (const kind of ['tag', 'widget']) {
-                    const button = Ele('button', {id: 'si_edit_add_' + kind + '_tab', type: 'button', innerText: kind === 'tag' ? 'Tags' : 'Widgets', appendTo: tabs});
+                    const button = Ele('button', {id: 'si_edit_add_' + kind + '_tab', type: 'button', innerText: kind === 'tag' ? SI.Tools.Text.Editor('Tags') : SI.Tools.Text.Editor('Widgets'), appendTo: tabs});
                     button.setAttribute('role', 'tab');
                     button.setAttribute('aria-controls', 'si_edit_add_' + kind);
                     button.onclick = function () { SI.Editor.UI.AddPanel.Show(kind); };
@@ -1025,7 +1036,7 @@ SI.Editor = {
                         }
                     }
                 }
-                const empty = Ele('p', {id: 'si_edit_add_empty', class: 'si-add-hint', innerText: 'No matching items. Try another name.', style: {display: 'none'}, appendTo: panel});
+                const empty = Ele('p', {id: 'si_edit_add_empty', class: 'si-add-hint', innerText: SI.Tools.Text.Editor('No matching items. Try another name.'), style: {display: 'none'}, appendTo: panel});
                 empty.setAttribute('role', 'status');
                 search.oninput = function () { SI.Editor.UI.AddPanel.Filter(); };
                 SI.Editor.UI.MainMenu.Element.appendChild(panel);
@@ -1034,7 +1045,7 @@ SI.Editor = {
             Item: function (list, item, label, description) {
                 const button = Ele('button', {id: item.kind === 'tag' ? 'dragger_' + item.name : 'si_edit_widgetdragger' + item.name, type: 'button', class: 'si-add-item', draggable: true, appendTo: list});
                 button.textContent = label;
-                button.title = description + ' — drag to preview, or click to choose a position';
+                button.title = description + SI.Tools.Text.Editor(' — drag to preview, or click to choose a position');
                 button.dataset.search = (label + ' ' + description).toLowerCase();
                 button.ondragstart = function (event) { SI.Editor.Objects.Placement.Begin(event, item); };
                 button.ondragend = function (event) { event.stopPropagation(); SI.Editor.Objects.Placement.Cancel(); };
@@ -1074,7 +1085,7 @@ SI.Editor = {
                     },
 
                 });
-                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab', OnChange: function (selected) {
+                var tabs = new SI.Widget.Tab({Id:'si_edit_edit_tab', TranslateLabels: true, OnChange: function (selected) {
                     for (const tab of editMenu.querySelectorAll('[role="tab"]')) {
                         tab.setAttribute('aria-selected', String(tab === selected));
                         tab.tabIndex = tab === selected ? 0 : -1;
@@ -1086,9 +1097,9 @@ SI.Editor = {
                // tabs.Items.Add('Styles2', SI.Editor.UI.EditPanel.DrawStyles2());
                 const toolbar = Ele('div', {class: 'si-edit-selection-toolbar', appendTo: editMenu});
                 const selection = Ele('div', {class: 'si-edit-selection-copy', appendTo: toolbar});
-                Ele('span', {class: 'si-edit-selection-label', innerText: 'Selected element', appendTo: selection});
-                Ele('span', {id: 'si_edit_selection_summary', innerText: 'Right-click an element to edit it.', appendTo: selection});
-                Ele('button', {id: 'si_edit_save_selected', type: 'button', innerText: 'Save block', disabled: true, onclick: SI.Editor.UI.EditPanel.SaveSelected, appendTo: toolbar});
+                Ele('span', {class: 'si-edit-selection-label', innerText: SI.Tools.Text.Editor('Selected element'), appendTo: selection});
+                Ele('span', {id: 'si_edit_selection_summary', innerText: SI.Tools.Text.Editor('Right-click an element to edit it.'), appendTo: selection});
+                Ele('button', {id: 'si_edit_save_selected', type: 'button', innerText: SI.Tools.Text.Editor('Save block'), disabled: true, onclick: SI.Editor.UI.EditPanel.SaveSelected, appendTo: toolbar});
                 editMenu.appendChild(tabs.Draw());
                 editMenu.setAttribute('role', 'region');
                 editMenu.setAttribute('aria-label', 'Edit selected element');
@@ -1137,10 +1148,10 @@ SI.Editor = {
                 const name = block && block.id.replace('si_block_', '');
                 const data = name && SI.Editor.Data.Objects.Blocks[name];
                 const summary = document.getElementById('si_edit_selection_summary');
-                if (summary) summary.textContent = selected ? selected.tagName.toLowerCase() + ' #' + selected.id + (data && data.IsDirty ? ' · Unsaved changes' : '') : 'Right-click an element to edit it.';
+                if (summary) summary.textContent = selected ? selected.tagName.toLowerCase() + ' #' + selected.id + (data && data.IsDirty ? SI.Tools.Text.Editor(' · Unsaved changes') : '') : SI.Tools.Text.Editor('Right-click an element to edit it.');
                 const save = document.getElementById('si_edit_save_selected');
                 const canvas = SI.Editor.Objects.Widgets.CanvasFor(selected);
-                if (summary && canvas) summary.textContent = selected.tagName.toLowerCase() + ' #' + selected.id + ' · Widget design' + (SI.Editor.Objects.Widgets.CanvasDirty ? ' · Unsaved changes' : '');
+                if (summary && canvas) summary.textContent = selected.tagName.toLowerCase() + ' #' + selected.id + SI.Tools.Text.Editor(' · Widget design') + (SI.Editor.Objects.Widgets.CanvasDirty ? SI.Tools.Text.Editor(' · Unsaved changes') : '');
                 if (save) save.disabled = !block && !canvas;
             },
             //Draw the Main tab 
@@ -1162,7 +1173,7 @@ SI.Editor = {
                 });
                 //Select Button
                 let select = Ele('button', {
-                    innerHTML: "Select",
+                    innerHTML: SI.Tools.Text.Editor("Select"),
                     onclick: function (e) {
                         let panel = document.getElementById("si_edit_main_selectpanel");
                         handlePanels(panel);
@@ -1180,7 +1191,7 @@ SI.Editor = {
                 });
 
                 let blkBtn = Ele('button', {
-                    innerHTML: "Block",
+                    innerHTML: SI.Tools.Text.Editor("Block"),
                     onclick: function (e) {
                         //debugger;
                         let sel = SI.Editor.Objects.Elements.Selected
@@ -1194,14 +1205,14 @@ SI.Editor = {
 
                 
                 let parBtn = Ele('button', {
-                    innerHTML: "Parent",
+                    innerHTML: SI.Tools.Text.Editor("Parent"),
                     onclick: function (e) {
                         let sel = SI.Editor.Objects.Elements.Selected;
                         if (sel) {
                             let par = sel.parentElement;
                             if (par.classList.contains('si-block')) {
                                 // do some stuff
-                                alert("Can't select parent block");
+                                alert(SI.Tools.Text.Editor("Can't select parent block"));
                                 return;
                             }
                             if (par.id != null) {
@@ -1213,7 +1224,7 @@ SI.Editor = {
                     appendTo: selectpanel,
                 });
 
-                Ele('span', { innerHTML: "By id", appendTo: selectpanel});
+                Ele('span', { innerHTML: SI.Tools.Text.Editor("By id"), appendTo: selectpanel});
                 let selectbyid = Ele('select', {
                     class: 'si-edit-control',
                     onmouseenter: function (e) { refreshSelects(); },
@@ -1316,7 +1327,7 @@ SI.Editor = {
 
                 //Parent Button
                 let parent = Ele('button', {
-                    innerHTML: "Parent",
+                    innerHTML: SI.Tools.Text.Editor("Parent"),
                     onclick: function (e) {
                         let panel = document.getElementById("si_edit_main_parentpanel");
                         handlePanels(panel);
@@ -1332,18 +1343,18 @@ SI.Editor = {
                     appendTo: menu,
                 });
                 let selectedParentLabel = Ele('span', {
-                    innerHTML: "Parent:",
+                    innerHTML: SI.Tools.Text.Editor("Parent:"),
                     class: 'si-edit-panel-label',
                     appendTo: parentpanel,
                 });
                 let selectedParentValue = Ele('span', {
-                    innerHTML: "NothingSelected",
+                    innerHTML: SI.Tools.Text.Editor("NothingSelected"),
                     class: 'si-edit-panel-value',
                     appendTo: parentpanel,
                 });
                 Ele('hr', { appendTo: parentpanel,});
                 let changeParentLabel = Ele('span', {
-                    innerHTML: "Change Parent",
+                    innerHTML: SI.Tools.Text.Editor("Change Parent"),
                     class: 'si-edit-panel-label',
                     appendTo: parentpanel,
                 });
@@ -1433,9 +1444,9 @@ SI.Editor = {
                 //Delete Button
                 let remove = Ele('button', {
                     class: "si-edit-delete",
-                    innerHTML: "Delete",
+                    innerHTML: SI.Tools.Text.Editor("Delete"),
                     onclick: function (e) {
-                        if (confirm("Delete Element " + SI.Editor.Objects.Elements.Selected.id+"???")) {
+                        if (confirm(SI.Tools.Text.Editor("Delete Element ") + SI.Editor.Objects.Elements.Selected.id+"???")) {
                             SI.Editor.Objects.Elements.Remove(SI.Editor.Objects.Elements.Selected);
                         } 
                     },
@@ -1445,7 +1456,7 @@ SI.Editor = {
 
                 //Advanced Button
                 let advanced = Ele('button', {
-                    innerHTML: "Advanced",
+                    innerHTML: SI.Tools.Text.Editor("Advanced"),
                     onclick: function (e) {
                         let panel = document.getElementById("si_edit_main_advancedpanel");
                         handlePanels(panel);
@@ -1461,90 +1472,40 @@ SI.Editor = {
                     appendTo: menu,
                 });
                 let multilinguallbl = Ele('span', {
-                    innerHTML: 'Multilingual ',
-                    title: "translate the text into other languages",
+                    innerHTML: SI.Tools.Text.Editor('Multilingual '),
+                    title: SI.Tools.Text.Editor("translate the text into other languages"),
                     class: 'si-edit-panel-label',
                     appendTo: advancedpanel,
                 });
                 //MULTILINGUAL SELECT
-                let mylang = SI.Editor.Data.User.Languages;
                 let multilingualselect = Ele('select', {
                     id:'si_edit_main_advanced_mlselect',
                     append: Ele('option', {}),
                     onchange: function (ev) {
-                        //debugger;
-                        if (this.selectedIndex) {
-
-                            if (confirm("This will replace the innerHTML of this element with the contents of the multilingual text!\nThiscan't be undone. The current innerHTML will be foever lost")) {
-                                //debugger;
-                                let index = this.selectedIndex - 1;
-                                    let localtext = SI.Editor.Objects.Language.Current[index];
-                                    //let opt = this.options[this.selectedIndex];
-                                    for (let lang of mylang) {
-                                        let col = '_' + lang.toLowerCase();
-                                        if (localtext[col] && localtext[col].length > 0) {
-                                            let text = localtext[col];
-                                            SI.Editor.Objects.Elements.Selected.innerHTML = text;
-                                            SI.Editor.Objects.Elements.Selected.classList.add("si-multilingual-" + localtext.name);
-                                            SI.Editor.Objects.Elements.Selected.classList.add("si-multilingual");
-                                            SI.Editor.Objects.Elements.Selected.dataset.si_ml_index = index;
-                                            SI.Editor.Objects.Elements.Selected.dataset.si_ml_token = localtext.name;
-                                            break;
-                                        }
-                                    }
-                            } else {
-                                this.selectedIndex = 0;
+                        const element = SI.Editor.Objects.Elements.Selected;
+                        if (this.value) {
+                            if (confirm(SI.Tools.Text.Editor("This will replace the innerHTML of this element with multilingual text. The current innerHTML will be lost."))) {
+                                SI.Editor.Objects.Language.Bind(element, this.value);
+                            } else if (element) {
+                                SI.Editor.UI.EditPanel.SetSelectedElementValues(element);
                             }
-                        } else {
-                            if (SI.Editor.Objects.Elements.Selected.classList.contains("si-multilingual-")) {
-                                if (confirm("This will remove the multilingual nature of this element.\nThe innerHTML will remain intact but will not be tracked multilingually.\nThis will not affect the item in the Language tool or other elements it is assigned to.")) {
-                                    var classes = SI.Editor.Objects.Elements.Selected.classList;
-                                    
-
-                                    SI.Editor.Objects.Elements.Selected.classList.Remove("si-multilingual");
-                                    SI.Editor.Objects.Elements.Selected.removeAttribute('data-si_ml_index');
-                                    SI.Editor.Objects.Elements.Selected.removeAttribute('data-si_ml_token');
-                                }
+                        } else if (element && Array.from(element.classList).some(name => name === "si-multilingual" || name.startsWith("si-multilingual-"))) {
+                            if (confirm(SI.Tools.Text.Editor("Remove multilingual tracking? The current text, the Language tool record, and other elements will remain unchanged."))) {
+                                SI.Editor.Objects.Language.Bind(element, "");
+                            } else {
+                                SI.Editor.UI.EditPanel.SetSelectedElementValues(element);
                             }
                         }
                     },
                     appendTo: advancedpanel,
                 });
-                let current = SI.Editor.Data.Objects.Language.Current;
-               
-                //debugger;
-                
-                for (let texts of current) {
-                    //debugger;
-                    for (let lang of mylang) {
-                        let col = '_' + lang.toLowerCase();
-                        if (texts[col] && texts[col].length > 0) {
-                            let text = texts[col]
-                            if (texts[col].length > 32) {
-                                text = texts[col].substr(0, 32) + "\u2026";
-                            }
-                            
-                            Ele('option', {
-                                innerHTML: text,
-                                data: {
-                                    id: '0x' + texts.id,
-                                    token: texts.name,
-                                    column: col,
-                                },
-                                appendTo: multilingualselect,
-                            })
-                            break;
-                        }
-                    }
-
-
-                }
+                SI.Editor.Objects.Language.Populate(multilingualselect);
 
 
                 Ele("br", { appendTo: advancedpanel});
                 let ignoreInnerlbl = Ele('span', {
-                    innerHTML: 'Ignore innerHTML on Save ',
-                    title:"This is useful when personal data may be present in an element and should not be saved to the block database. eg: Logged In: MyUserName",
+                    innerHTML: SI.Tools.Text.Editor('Ignore innerHTML on Save '),
+                    title:SI.Tools.Text.Editor("This is useful when personal data may be present in an element and should not be saved to the block database. eg: Logged In: MyUserName"),
                     class: 'si-edit-panel-label',
                     appendTo: advancedpanel,
                 });
@@ -1780,11 +1741,11 @@ SI.Editor = {
                 //debugger;
                 let mlsel = document.getElementById('si_edit_main_advanced_mlselect');
                 if (element.classList.contains('si-multilingual')) {
-                    let mlIn = parseInt(element.dataset.si_ml_index)+1;
-                    mlsel.selectedIndex = mlIn;//  selectedIndex = mlIn + 1;//minus 1 for the first blank row
+                    const option = Array.from(mlsel.options).find(value => value.dataset.token === element.dataset.si_ml_token);
+                    mlsel.value = option ? option.value : "";
                     for (let i = 0; i < innerHtmls.length; i++) {
                         innerHtmls[i].disabled = true;
-                        innerHtmls[i].title = "You will need to edit multilingual text from the language tool.";
+                        innerHtmls[i].title = SI.Tools.Text.Editor("You will need to edit multilingual text from the language tool.");
                     }  
                 } else {
                     for (let i = 0; i < innerHtmls.length; i++) {
@@ -1839,7 +1800,8 @@ SI.Editor = {
                     var menuRow = toolsMenuTable.insertRow(i);
                     var menuItem = menuRow.insertCell(0);
                     menuItem.className = 'si-editor-menu-action';
-                    menuItem.innerHTML = title;
+                    menuItem.innerHTML = SI.Tools.Text.Editor(title);
+                    menuItem.dataset.tool = title;
                     menuItem.id = 'si_edit_'+title.toLowerCase()+"_trigger";
                     menuItem.onclick = SI.Editor.UI.ToolsPanel.OpenToolWindow;
                 }
@@ -1849,7 +1811,7 @@ SI.Editor = {
             OpenToolWindow:function(title = null, show = true){     
                 //if called from the event, title will be the event.   
                 if(title.target){
-                    title = this.innerHTML;
+                    title = this.dataset.tool;
                 }
                 let winid = "si_edit_"+title.toLowerCase()+"_window";   //"si_edit_media_window"
                 if(!SI.Widgets.Window[winid]){
@@ -1858,7 +1820,7 @@ SI.Editor = {
                         case "Page":
                             options = {
                             Id: "si_edit_page_window",
-                            Title: "Page",
+                            Title: SI.Tools.Text.Editor("Page"),
                             Populate: SI.Editor.Objects.Page.Draw,
                             Trigger: '#si_edit_page_trigger',
                             IconImg: '/editor/media/icons/page.png'
@@ -1868,7 +1830,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_media_window",
                                 Trigger: '#si_edit_tools_media',
-                                Title: "Media",
+                                Title: SI.Tools.Text.Editor("Media"),
                                 Trigger: '#si_edit_media_trigger',
                                 IconImg: '/editor/media/icons/window-media.png',
                                 Populate: SI.Editor.Objects.Media.Draw,
@@ -1879,7 +1841,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_site_window",
                                 Trigger: '#si_edit_site_trigger',
-                                Title: "Site",
+                                Title: SI.Tools.Text.Editor("Site"),
                                 IconImg: '/editor/media/icons/site.png',
                                 Populate: SI.Editor.Objects.Site.Draw
                             };
@@ -1888,7 +1850,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_styler_window",
                                 Trigger: '#si_edit_styler_trigger',
-                                Title: "Styler",
+                                Title: SI.Tools.Text.Editor("Styler"),
                                 IconImg: '/editor/media/icons/stylebutton.png',
                                 Overflow: "hidden",
                                 Populate:SI.Editor.Objects.Styler.Draw
@@ -1899,7 +1861,7 @@ SI.Editor = {
                                 Id: "si_edit_scripter_window",
                                 Trigger: '#si_edit_scripter_trigger',
                                 IconImg: '/editor/media/icons/scripter-code.png',
-                                Title: "Scripter",
+                                Title: SI.Tools.Text.Editor("Scripter"),
                                 Populate: SI.Editor.Objects.Scripter.Draw.bind(SI.Editor.Objects.Scripter)
                             };
                             break;
@@ -1908,7 +1870,7 @@ SI.Editor = {
                                 Id: "si_edit_widgets_window",
                                 Trigger: '#si_edit_widgets_trigger',
                                 IconImg: '/editor/media/icons/widgets.png',
-                                Title: "Widgets",
+                                Title: SI.Tools.Text.Editor("Widgets"),
                                 Populate:SI.Editor.Objects.Widgets.Draw
                             };
                             break;
@@ -1917,15 +1879,15 @@ SI.Editor = {
                                 Id: "si_edit_language_window",
                                 Trigger: '#si_edit_language_trigger',
                                 IconImg: '/editor/media/icons/language.png',
-                                Title: "Language",
-                                Populate:SI.Editor.Objects.Language.Draw
+                                Title: SI.Tools.Text.Editor("Language"),
+                                Populate: () => SI.Editor.Objects.Language.Draw()
                             };
                             break;
                         case "Entities":
                             options = {
                                 Id: "si_edit_entities_window",
                                 Trigger: '#si_edit_entities_trigger',
-                                Title: "Entities",
+                                Title: SI.Tools.Text.Editor("Entities"),
                                 Overflow: "scroll",
                                 Resize: SI.Editor.Objects.Entity.Resize,
                                 Populate:SI.Editor.Objects.Entity.Draw
@@ -1935,7 +1897,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_plugins_window",
                                 Trigger: '#si_edit_plugins_trigger',
-                                Title: "Plugins",
+                                Title: SI.Tools.Text.Editor("Plugins"),
                                 IconImg: '/editor/media/icons/plugins.png',
                                 ResizeThickness: 5,
                                 Resize:  SI.Editor.Objects.Plugins.Resize,
@@ -1946,7 +1908,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_security_window",
                                 Trigger: '#si_edit_security_trigger',
-                                Title: "Security",
+                                Title: SI.Tools.Text.Editor("Security"),
                                 IconImg: '/editor/media/icons/securityroles.png',
                                 Populate: SI.Editor.Objects.Security.Draw
                             };
@@ -1955,7 +1917,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_users_window",
                                 Trigger: '#si_edit_users_trigger',
-                                Title: "Users",
+                                Title: SI.Tools.Text.Editor("Users"),
                                 Width: '900px',
                                 Populate: SI.Editor.Objects.User.Draw
                             };
@@ -1964,7 +1926,7 @@ SI.Editor = {
                             options = {
                                 Id: "si_edit_settings_window",
                                 Trigger: '#si_edit_settings_trigger',
-                                Title: "Settings",
+                                Title: SI.Tools.Text.Editor("Settings"),
                                 Populate: SI.Editor.Objects.Settings.Draw
                             };
                             break;
@@ -1973,7 +1935,7 @@ SI.Editor = {
                         try{
                             new SI.Widget.Window(options);
                         }catch(er){
-                            SI.Tools.SuperAlert("Error loading "+title+": "+er.message, 4000);
+                            SI.Tools.SuperAlert(SI.Tools.Text.Editor("Error loading ")+title+": "+er.message, 4000);
                             if(options.Error){
                                 setTimeout(function(){
                                     SI.Tools.SuperAlert(options.Error, 4000);
@@ -2013,29 +1975,38 @@ SI.Editor = {
                 ajax.setRequestHeader("X-SI-CSRF", SI.CSRF.Token);
             }
             ajax.onreadystatechange = function () {
-                if (ajax.readyState === 4 && ajax.status === 200) {
-                      //debugger;
+                if (ajax.readyState === 4) {
                     try {
-                        if (ajax.responseText != null && ajax.responseText.length > 0) {
-                           // console.log(ajax.responseText);
-                            let json = JSON.parse(ajax.responseText.trim());
-                            SI.Editor.Ajax.Complete(json,options);
+                        const json = ajax.responseText.trim() ? JSON.parse(ajax.responseText.trim()) : null;
+                        if (ajax.status !== 200) {
+                            SI.Tools.SuperAlert(json && json.ERROR ? json.ERROR : SI.Tools.Text.Editor("Request failed (HTTP ") + ajax.status + ").", 4000);
+                        } else if (json) {
+                            SI.Editor.Ajax.Complete(json, options);
                         }
                     } catch (ex) {
-                        console.error(ajax.responseText);
                         console.error(ex);
-                        //  document.body.appendText(xhr.responseText);
+                        SI.Tools.SuperAlert(SI.Tools.Text.Editor("The editor request could not be completed."), 4000);
+                    } finally {
+                        if (options.Finally) options.Finally();
                     }
-
                 }
             };
             let stringdata = JSON.stringify(options.Data);
             //debugger;
-            ajax.send(stringdata);
+            try {
+                ajax.send(stringdata);
+            } catch (ex) {
+                console.error(ex);
+                SI.Tools.SuperAlert(SI.Tools.Text.Editor("The editor request could not be sent."), 4000);
+                if (options.Finally) options.Finally();
+            }
             return ajax;
         },
         Complete: function (json,options) {
-            //debugger;
+            if (Object.prototype.hasOwnProperty.call(json, "ERROR") || Object.prototype.hasOwnProperty.call(json, "EXCEPTION")) {
+                SI.Tools.SuperAlert(json.ERROR || json.EXCEPTION, 4000);
+                return;
+            }
             if(options.Callback){
                     if(json.hasOwnProperty("PARAMETER")){
                         let param = json['PARAMETER'];
@@ -2050,7 +2021,7 @@ SI.Editor = {
                     if (json.hasOwnProperty(prop)) {
                         let value = json[prop];
                         switch (prop) {
-                            case "CREATEELEMENT": alert(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); ");
+                            case "CREATEELEMENT": alert(SI.Tools.Text.Editor(" just hit: SI.Editor.Data.Tools.CreateEditorElement(prop); "));
                             case "EXCEPTION": alert(JSON.stringify(value)); break;
                             case "REFRESH": location.reload(); break;
                             case "CONSOLELOG": console.log(value); break;
@@ -2059,7 +2030,7 @@ SI.Editor = {
                             case "PAGESAVED": SI.Editor.Objects.Page.Saved(value); break;
                             //Blocks
                             case "BLOCKRELATED": SI.Editor.Objects.Blocks.Created(value); break;
-                            case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value); break; 
+                            case "BLOCKSAVED": SI.Editor.Objects.Blocks.Saved(value, options); break;
                             case "BLOCKREMOVED": console.log(value); break; 
 
                             //Common
@@ -2069,7 +2040,9 @@ SI.Editor = {
                             case "FILEPROMOTED": let media = new SI.Editor.Objects.Media(); media.Promoted(value); break;
                             //Language
                             case 'ADDEDLANGUAGE': SI.Editor.Objects.Language.Added(value); break;
+                            case 'REMOVEDLANGUAGE': SI.Editor.Objects.Language.Removed(value); break;
                             case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
+                            case 'LOCALTEXTUPDATED': SI.Editor.Objects.Language.Updated(value); break;
                             //User
                             case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
                             case 'PASSWORDCHANGED': SI.Editor.Objects.User.PasswordChanged(value); break;
@@ -2080,14 +2053,14 @@ SI.Editor = {
                             case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
                             case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;
                             //Plugins
-                            case 'PLUGINCONFLICTS': if (value.length) alert('CMS edits preserved in: ' + value.join(', ')); break;
+                            case 'PLUGINCONFLICTS': if (value.length) alert(SI.Tools.Text.Editor('CMS edits preserved in: ') + value.join(', ')); break;
                             case 'PLUGINSTATE': location.reload(); break;
                             case 'MOREPLUGINS': SI.Editor.Objects.Plugins.Repo.StockFetchedPlugins(value); break;
                             case 'DOWNLOADEDPLUGIN': SI.Editor.Objects.Plugins.Repo.DownloadedPlugin(value); break;
                             case 'INSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Installed(value); break;
                             case 'INSTALLPLUGINFAILED': alert(value); break;
                             case 'UNINSTALLPLUGIN': SI.Editor.Objects.Plugins.Local.Uninstalled(value); break;
-                            case 'UNINSTALLPLUGINFAILED': alert('Plugin removal has failed'); break;
+                            case 'UNINSTALLPLUGINFAILED': alert(SI.Tools.Text.Editor('Plugin removal has failed')); break;
                             //Settings
                             case 'SETTINGCREATED': SI.Editor.Objects.Settings.Created(value); break;
                             case 'SETTINGDELETED': SI.Editor.Objects.Settings.Deleted(value); break;

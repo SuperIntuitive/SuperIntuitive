@@ -1,5 +1,16 @@
 
 SI.Editor.Objects.Elements = {
+    PendingContent: new Map(),
+    CommitContent: function () {
+        for (const [input, draft] of SI.Editor.Objects.Elements.PendingContent) {
+            SI.Editor.Objects.Elements.PendingContent.delete(input);
+            const {element, property, value} = draft;
+            if (element[property] === value) continue;
+            element[property] = value;
+            element.querySelectorAll('*').forEach(child => SI.Editor.Objects.Elements.Editable(child));
+            SI.Editor.Objects.Elements.MarkDirty(element);
+        }
+    },
     //Loops through all elements and makes them editable 
     EditableNodes: new WeakSet(),
     Init: function () {
@@ -40,6 +51,12 @@ SI.Editor.Objects.Elements = {
         if (data) {
             data.IsDirty = true;
             data.EditRevision = (data.EditRevision || 0) + 1;
+            if (!data.DirtyTranslations) data.DirtyTranslations = {};
+            for (let text = element.closest('.si-multilingual'); text; text = text.parentElement?.closest('.si-multilingual')) {
+                const token = text.dataset.si_ml_token;
+                if (!data.DirtyTranslations[token]) data.DirtyTranslations[token] = new Set();
+                data.DirtyTranslations[token].add(text.id);
+            }
         }
         SI.Editor.UI.EditPanel.SelectionSummary();
     },
@@ -52,6 +69,7 @@ SI.Editor.Objects.Elements = {
     Selected: null,
     //Removes selection from all elements.
     SelectNone: function (keepEditPanel = false) {
+        SI.Editor.Objects.Elements.CommitContent();
         for (const element of document.querySelectorAll('.si-editor-selected')) {
             element.classList.remove('si-editor-selected');
             for (const attribute of Array.from(element.attributes)) {
@@ -372,7 +390,7 @@ SI.Editor.Objects.Elements = {
             else if (attrobj.dt === 'SCRIPT') {
                 attrInput = document.createElement('textarea');
                 attrInput.classList.add('si-edit-code');
-                attrInput.placeholder = 'Javascript';
+                attrInput.placeholder = SI.Tools.Text.Editor('Javascript');
                 // if (effectid) { attrInput.setAttribute("data-effectid", effectid); }
                 attrInput.onchange = function (e) {
                     let ele = getAffected();
@@ -389,17 +407,13 @@ SI.Editor.Objects.Elements = {
             }
             else if (attrobj.dt === 'INNERHTML' || attrobj.dt === 'INNERTEXT') {
                 attrInput = Ele('textarea', {class: 'si-edit-code'});
-                const updateContent = function () {
+                attrInput.oninput = function () {
                     const element = getAffected();
                     if (!element || SI.Tools.Is.EmptyElement(element.tagName.toLowerCase())) return;
                     const property = attrobj.dt === 'INNERHTML' ? 'innerHTML' : 'innerText';
-                    if (element[property] === this.value) return;
-                    element[property] = this.value;
-                    element.querySelectorAll('*').forEach(child => SI.Editor.Objects.Elements.Editable(child));
-                    SI.Editor.Objects.Elements.MarkDirty(element);
+                    SI.Editor.Objects.Elements.PendingContent.set(this, {element, property, value: this.value});
                 };
-                attrInput.oninput = updateContent;
-                attrInput.onkeyup = updateContent;
+                attrInput.onchange = SI.Editor.Objects.Elements.CommitContent;
             }
             else if (attrobj.dt === 'TEXT') {
                 attrInput = document.createElement('input');
@@ -516,7 +530,7 @@ SI.Editor.Objects.Elements = {
                                     SI.Editor.Objects.Elements.Ids[index] = this.value;
                                 }
                             } else {
-                                alert("That id is already in use");
+                                alert(SI.Tools.Text.Editor("That id is already in use"));
                                 this.value = ele.tagName.toLowerCase() + "_" + SI.Tools.String.RandomString(7);
                             }
                         }
@@ -578,7 +592,7 @@ SI.Editor.Objects.Elements = {
                 attrobj.n = attrobj.n.replace('-*', '');
                 //Container
                 attrInput = Ele("div", {
-                    innerText: "data-",
+                    innerText: SI.Tools.Text.Editor("data-"),
                     style: {
                         display: 'inline-block',
                         position: 'relative',
@@ -663,7 +677,7 @@ SI.Editor.Objects.Elements = {
             }
             else if (attrobj.dt === 'CHAR') {
                 attrInput = Ele('input', {
-                    placeholder: 'char',
+                    placeholder: SI.Tools.Text.Editor('char'),
                     maxLength: "1",
                     style: {
                         width: '26px',
@@ -683,13 +697,13 @@ SI.Editor.Objects.Elements = {
             else if (attrobj.dt === 'TRUE|FALSE') {
                 attrInput = document.createElement('select');
                 attrInput.setAttribute('data-attr', attrobj.n);
-                attrInput.placeholder = 'True or False';
+                attrInput.placeholder = SI.Tools.Text.Editor('True or False');
                 let optN = document.createElement('option');
                 optN.innerText = '';
                 let optT = document.createElement('option');
-                optT.innerText = 'True';
+                optT.innerText = SI.Tools.Text.Editor('True');
                 let optF = document.createElement('option');
-                optF.innerText = 'False';
+                optF.innerText = SI.Tools.Text.Editor('False');
 
                 attrInput.appendChild(optN);
                 attrInput.appendChild(optT);
@@ -712,13 +726,13 @@ SI.Editor.Objects.Elements = {
 
                 attrInput = document.createElement('select');
                 attrInput.setAttribute('data-attr', attrobj.n);
-                attrInput.placeholder = 'On or Off';
+                attrInput.placeholder = SI.Tools.Text.Editor('On or Off');
                let optN = document.createElement('option');
                 optN.innerText = '';
                let optT = document.createElement('option');
-                optT.innerText = 'on';
+                optT.innerText = SI.Tools.Text.Editor('on');
                let optF = document.createElement('option');
-                optF.innerText = 'off';
+                optF.innerText = SI.Tools.Text.Editor('off');
 
                 attrInput.appendChild(optN);
                 attrInput.appendChild(optT);
@@ -739,7 +753,7 @@ SI.Editor.Objects.Elements = {
             }
             else if (attrobj.dt === 'LANGUAGE') {
                 attrInput = document.createElement('select');
-                attrInput.placeholder = 'Language';
+                attrInput.placeholder = SI.Tools.Text.Editor('Language');
                 let blank = document.createElement('option');
                 blank.innerText = '';
                 attrInput.appendChild(blank);
@@ -925,7 +939,7 @@ SI.Editor.Objects.Elements = {
                 id: "si_edit_style_" + styleobj.n + "_" + RandId,
                 class: "si-edit-style-propertyvalue si-edit-control",
                 readOnly: false,
-                title: styleobj.t === 'RAW' ? styleobj.d : 'Type a CSS value, or click to choose one.',
+                title: styleobj.t === 'RAW' ? styleobj.d : SI.Tools.Text.Editor('Type a CSS value, or click to choose one.'),
                 oninput: function () {
                     const value = this.value.replace(/\s*!important\s*$/i, '').trim();
                     if (styleobj.t !== 'RAW' && value && !CSS.supports(styleobj.n, value)) {
@@ -968,7 +982,7 @@ SI.Editor.Objects.Elements = {
                 id: "si_edit_style_clear_" + styleobj.n + "_" + RandId,
                 class: 'si-edit-clear-style',
                 innerText: '×',
-                title: 'Clear ' + styleobj.n,
+                title: SI.Tools.Text.Editor('Clear ') + styleobj.n,
                 onclick: function () {
                     DeleteStyle();
                 },
@@ -1104,15 +1118,15 @@ SI.Editor.Objects.Elements = {
                     appendTo: box,
                 });
                 let s = Ele('option', {
-                    innerText: 's',
+                    innerText: SI.Tools.Text.Editor('s'),
                     value: 's',
-                    title: 'seconds',
+                    title: SI.Tools.Text.Editor('seconds'),
                     appendTo: select,
                 });
                 let ms = Ele('option', {
-                    innerText: 'ms',
+                    innerText: SI.Tools.Text.Editor('ms'),
                     value: 'ms',
-                    title: 'milli seconds',
+                    title: SI.Tools.Text.Editor('milli seconds'),
                     appendTo: select,
                 });
                 input.onmouseup = input.onkeyup = select.onchange = function () {
@@ -1163,42 +1177,42 @@ SI.Editor.Objects.Elements = {
                 //Common Group 
                 let commonGroup = Ele('optgroup', { label: "Common" });
                 //px
-                Ele('option', { innerText: 'px', value: 'px', title: 'pixels', appendTo: commonGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('px'), value: 'px', title: SI.Tools.Text.Editor('pixels'), appendTo: commonGroup });
                 //%
-                Ele('option', { innerText: '%', value: '%', title: 'percent', appendTo: commonGroup });
+                Ele('option', { innerText: '%', value: '%', title: SI.Tools.Text.Editor('percent'), appendTo: commonGroup });
                 select.add(commonGroup);
                 //Absolute Group
                 let absoluteGroup = Ele('optgroup', { label: 'Absolute' });
                 //cm
-                Ele('option', { innerText: 'cm', value: 'cm', title: 'centimeters', appendTo: absoluteGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('cm'), value: 'cm', title: SI.Tools.Text.Editor('centimeters'), appendTo: absoluteGroup });
                 //mm
-                Ele('option', { innerText: 'mm', value: 'mm', title: 'millimeters', appendTo: absoluteGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('mm'), value: 'mm', title: SI.Tools.Text.Editor('millimeters'), appendTo: absoluteGroup });
                 //inches
-                Ele('option', { innerText: 'in', value: 'in', title: 'inches', appendTo: absoluteGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('in'), value: 'in', title: SI.Tools.Text.Editor('inches'), appendTo: absoluteGroup });
                 //pixels
-                Ele('option', { innerText: 'px', value: 'px', title: 'pixels', appendTo: absoluteGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('px'), value: 'px', title: SI.Tools.Text.Editor('pixels'), appendTo: absoluteGroup });
                 //points
-                Ele('option', { innerText: 'pt', value: 'pt', title: 'points', appendTo: absoluteGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('pt'), value: 'pt', title: SI.Tools.Text.Editor('points'), appendTo: absoluteGroup });
                 //picas
-                Ele('option', { innerText: 'pc', value: 'pc', title: 'picas', appendTo: absoluteGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('pc'), value: 'pc', title: SI.Tools.Text.Editor('picas'), appendTo: absoluteGroup });
                 select.add(absoluteGroup);
                 let relativeGroup = Ele('optgroup', { label: 'Relative' });
                 //calculated font size
-                Ele('option', { innerText: 'em', value: 'em', title: 'calculated font size', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('em'), value: 'em', title: SI.Tools.Text.Editor('calculated font size'), appendTo: relativeGroup });
                 //x-height of the current font
-                Ele('option', { innerText: 'ex', value: 'ex', title: 'x-height of the current font', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('ex'), value: 'ex', title: SI.Tools.Text.Editor('x-height of the current font'), appendTo: relativeGroup });
                 //relative to the width of a zero
-                Ele('option', { innerText: 'ch', value: 'ch', title: 'relative to the width of a zero', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('ch'), value: 'ch', title: SI.Tools.Text.Editor('relative to the width of a zero'), appendTo: relativeGroup });
                 //oot element calculated font size
-                Ele('option', { innerText: 'rem', value: 'rem', title: 'root element calculated font size', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('rem'), value: 'rem', title: SI.Tools.Text.Editor('root element calculated font size'), appendTo: relativeGroup });
                 //percentage of viewport width
-                Ele('option', { innerText: 'vw', value: 'vw', title: 'percentage of viewport width', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('vw'), value: 'vw', title: SI.Tools.Text.Editor('percentage of viewport width'), appendTo: relativeGroup });
                 //percentage of viewport height
-                Ele('option', { innerText: 'vh', value: 'vh', title: 'ppercentage of viewport height', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('vh'), value: 'vh', title: SI.Tools.Text.Editor('ppercentage of viewport height'), appendTo: relativeGroup });
                 //1% ot the viewports small demension
-                Ele('option', { innerText: 'vmin', value: 'vmin', title: '1% ot the viewports small demension', appendTo: relativeGroup });
+                Ele('option', { innerText: SI.Tools.Text.Editor('vmin'), value: 'vmin', title: SI.Tools.Text.Editor('1% ot the viewports small demension'), appendTo: relativeGroup });
                 //1% ot the viewports larger demension
-                Ele('option', { innerText: 'vmax', value: 'vmax', title: '1% ot the viewports larger demension', appendTo: relativeGroup, });
+                Ele('option', { innerText: SI.Tools.Text.Editor('vmax'), value: 'vmax', title: SI.Tools.Text.Editor('1% ot the viewports larger demension'), appendTo: relativeGroup, });
                 select.add(relativeGroup);
                 return box;
             }
@@ -1319,7 +1333,7 @@ SI.Editor.Objects.Elements = {
                     data: {
                         type: "media"
                     },
-                    placeholder: 'url',
+                    placeholder: SI.Tools.Text.Editor('url'),
                     style: {
                         color: 'blue',
                         width: '150px',
@@ -1343,21 +1357,21 @@ SI.Editor.Objects.Elements = {
                     appendTo: box,
                 });
                 let serif = Ele("optgroup", { label: "Serif Fonts", appendTo: fontfamilies });
-                Ele("option", { innerHTML: "Georgia, serif", appendTo: serif });
-                Ele("option", { innerHTML: "Palatino Linotype, Book Antiqua,Palatino,serif", appendTo: serif });
-                Ele("option", { innerHTML: "Times New Roman, Times, serif", appendTo: serif });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Georgia, serif"), appendTo: serif });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Palatino Linotype, Book Antiqua,Palatino,serif"), appendTo: serif });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Times New Roman, Times, serif"), appendTo: serif });
                 let sans = Ele("optgroup", { label: "Sans-Serif Fonts", appendTo: fontfamilies });
-                Ele("option", { innerHTML: "Arial, Helvetica, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Arial Black, Gadget, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Comic Sans MS, cursive, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Impact, Charcoal, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Lucida Sans Unicode, Lucida Grande, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Tahoma, Geneva, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Trebuchet MS, Helvetica, sans-serif", appendTo: sans });
-                Ele("option", { innerHTML: "Verdana, Geneva, sans-serif", appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Arial, Helvetica, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Arial Black, Gadget, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Comic Sans MS, cursive, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Impact, Charcoal, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Lucida Sans Unicode, Lucida Grande, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Tahoma, Geneva, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Trebuchet MS, Helvetica, sans-serif"), appendTo: sans });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Verdana, Geneva, sans-serif"), appendTo: sans });
                 let mono = Ele("optgroup", { label: "Monospace Fonts", appendTo: fontfamilies });
-                Ele("option", { innerHTML: "Courier New, Courier, monospace", appendTo: mono });
-                Ele("option", { innerHTML: "Lucida Console, Monaco, monospace", appendTo: mono });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Courier New, Courier, monospace"), appendTo: mono });
+                Ele("option", { innerHTML: SI.Tools.Text.Editor("Lucida Console, Monaco, monospace"), appendTo: mono });
 
                 return box;
             }
@@ -1514,7 +1528,7 @@ SI.Editor.Objects.Elements = {
             var inheritRow = Ele('tr', {
                 appendTo: this.css_table,
                 append: Ele('td', {
-                    innerText: 'inherit',
+                    innerText: SI.Tools.Text.Editor('inherit'),
                     onclick: function () {
                         AssignStyle('inherit');
                     }
@@ -1523,7 +1537,7 @@ SI.Editor.Objects.Elements = {
             var initialRow = Ele('tr', {
                 appendTo: this.css_table,
                 append: Ele('td', {
-                    innerText: 'initial',
+                    innerText: SI.Tools.Text.Editor('initial'),
                     onclick: function () {
                         AssignStyle('initial');
                     }

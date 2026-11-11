@@ -1,6 +1,7 @@
-.si-contact { --si-text:#e8effa; --si-muted:#a4b5cc; --si-accent:#9cc4ff; --si-mint:#a7e7c3; --si-line:#2a3e59; box-sizing:border-box; background:#0b1120; color:var(--si-text); font:15px/1.7 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; padding-inline:clamp(20px,5vw,70px); }
+.si-contact { --si-text:#e8effa; --si-muted:#a4b5cc; --si-accent:#9cc4ff; --si-mint:#a7e7c3; --si-line:#2a3e59; box-sizing:border-box; background:#0b1120; color:var(--si-text); font:15px/1.7 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 .si-contact *, .si-contact *::before, .si-contact *::after { box-sizing:border-box; }
-.si-contact .si-content { max-width:1020px; margin-inline:auto; }
+/* Standalone defaults yield to the site's content layout, including sidebar offsets. */
+:where(.si-contact .si-content) { max-width:1020px; margin-inline:auto; padding-inline:clamp(20px,5vw,70px); }
 .si-contact h1 { margin:0 0 16px; line-height:1.15; letter-spacing:-.04em; }
 .si-contact .si-eyebrow { margin:0 0 16px; color:var(--si-accent); font:11px/1.5 ui-monospace,monospace; letter-spacing:.12em; }
 .si-contact .si-contact-lead { color:var(--si-muted); }

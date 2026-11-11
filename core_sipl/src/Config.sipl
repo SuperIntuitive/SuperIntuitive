@@ -16,6 +16,11 @@ fn load() -> Map {
     if values.get("SI_SIPL_PORT") != none { settings["port"] = values["SI_SIPL_PORT"].toInt() }
     if settings["port"].type != "Int" { fail("INVALID_PORT") }
     if settings["port"] < 0 or settings["port"] > 65535 { fail("INVALID_PORT") }
+    if settings.contains("maxResponseBody") {
+        let limit = settings["maxResponseBody"]
+        if limit.type != "Int" { fail("INVALID_HTTP_RESPONSE_LIMIT") }
+        if limit < 1 or limit > 16777216 { fail("INVALID_HTTP_RESPONSE_LIMIT") }
+    }
     if not settings["dsn"].isEmpty and not settings["dsn"].startsWith("mysql:") and not settings["dsn"].startsWith("mariadb:") { fail("MYSQL_REQUIRED_NO_SCHEMA_CONVERSION") }
     if not Tools.domainValid(settings["domain"]) { fail("INVALID_DOMAIN") }
     _settings = settings
