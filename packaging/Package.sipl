@@ -515,7 +515,7 @@ fn sqlStatements(source: String) -> List {
     if not parts.join("").trim().isEmpty { result.push(parts.join("").trim()) }
     return result
 }
-fn installer() {
+fn generateInstaller() {
     let source = text("core/setup/super_intuitive_install.sql")
     let schema = []
     let data = []
@@ -713,7 +713,7 @@ fn start() {
     }
     else if command == "theme" { theme() }
     else if command == "assets" { templates()
-        installer() }
+        generateInstaller() }
     else if command == "templates" { templates() }
     else if command == "preservation" { preservation() }
     else if command == "extract" {

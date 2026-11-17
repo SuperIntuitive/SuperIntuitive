@@ -88,6 +88,10 @@ fn start() {
     check(Sessions.detectOS({"sec-ch-ua-platform": "\"Android\"", "user-agent": "Linux"}) == "android", "Client platform hint takes priority")
     check(Sessions.detectOS({"sec-ch-ua-platform": "\"Unknown\"", "user-agent": "Windows NT 10.0"}) == "windows", "Unknown hints use the user agent")
     check(Assets.safeMedia("/media/downloads/sipl/windows.zip") and Assets.safeMedia("/media/downloads/sipl/sources.tar.gz"), "Public download archives use confined static serving")
+    for extension in ["msi", "deb", "rpm", "apk", "dmg", "pkg"] {
+        check(Assets.safeMedia("/media/downloads/sipl/installer." + extension), "Direct native installer: " + extension)
+        check(not Assets.safeMedia("/media/installer." + extension), "Native installer remains confined to downloads: " + extension)
+    }
     check(not Assets.safeMedia("/media/archive.zip") and not Assets.safeMedia("/media/downloads/config.json") and not Assets.safeMedia("/media/downloads/../private.zip"), "Download support stays inside the public archive directory")
     check(RateLimit.allowAt("long-window-test", 1, 60, 100), "Long rate window admits its first request")
     check(RateLimit.allowAt("short-window-test", 1, 5, 111), "Short rate window admits its first request")
