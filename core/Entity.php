@@ -489,12 +489,15 @@ class Entity{
 
 		if($action == 'update'){
 		    if($entity->Id != null){
-				$entid = $entity->Id;
-			   	if(!Tools::StartsWith($entity->Id,"0x")){
-					$entity->Id = '0x'.$entity->Id;
+				$fixedEntityId = Tools::FixGuid($entity->Id);
+				if($fixedEntityId === false){
+					Tools::Log("Trying to update with an invalid ID???", true);
+					return false;
 				}
+				$entity->Id = $fixedEntityId;
 				if(strlen($set)>2){
-					$sql = "UPDATE `$name` $set WHERE `id` = ".$entity->Id;
+					$sql = "UPDATE `$name` $set WHERE `id` = UNHEX(:_entity_id)";
+					$params[':_entity_id'] = substr($entity->Id, 2);
 					Tools::Log($sql);
 				}
 

@@ -7,14 +7,26 @@ namespace SuperIntuitive;
  *            See https://github.com/SuperIntuitive/SuperIntuitive/blob/master/LICENSE
  * @version   v0.8
  */
-session_start();
 require_once dirname(__DIR__).DIRECTORY_SEPARATOR."SuperIntuitive".DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+Tools::ConfigureSessionCookieParams();
+session_start();
 Tools::Autoload('root');
 Tools::DefineServer();
+Tools::SendSecurityHeaders();
 define("SI_ENTRY","API");
+if($_SERVER['REQUEST_METHOD'] !== 'POST'){
+	http_response_code(405);
+	echo json_encode(array('ERROR' => 'Method not allowed.'));
+	exit();
+}
 //Tools::Log("IN API",true);
 //for now make it open to admins. after at an entity operation level we will deal with the roles. 
 if(Tools::UserHasRole('Admin')){ //ToBe removed when Roles is integrated into entities opps. 
+	if(!Tools::ValidateCsrfToken()){
+		http_response_code(403);
+		echo json_encode(array('ERROR' => 'Invalid request token. Refresh the page and try again.'));
+		exit();
+	}
     //Tools::Log("IN API as Admin",true);
     $post = json_decode( file_get_contents("php://input"), true);
 	if(isset($_POST)){unset($_POST);}
@@ -57,6 +69,10 @@ if(Tools::UserHasRole('Admin')){ //ToBe removed when Roles is integrated into en
 		//Tools::Log($data);
 		echo json_encode($data);
 	}
+}
+else{
+	http_response_code(403);
+	echo json_encode(array('ERROR' => 'Forbidden'));
 }
 
 

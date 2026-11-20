@@ -1086,6 +1086,9 @@ SI.Tools = {
         var xhr = new XMLHttpRequest();
         xhr.open(this.method, this.url, this.async);
         xhr.setRequestHeader("Content-Type", this.contentType);
+        if (window.SI && SI.CSRF && SI.CSRF.Token) {
+            xhr.setRequestHeader("X-SI-CSRF", SI.CSRF.Token);
+        }
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 try {
@@ -1108,10 +1111,14 @@ SI.Tools = {
         json = json[0];
         for (let prop in json) {
             if (json.hasOwnProperty(prop)) {
+                let value = json[prop];
                 switch (prop) {
                     case "EXCEPTION": alert(response); break;
+                    case "ERROR": alert(value); break;
                     case "REFRESH": setTimeout(function () { location.reload(); }, 500); break; //jus give it a second
                     case "LOGINFAIL": alert("Username or password is incorrect"); break;
+                    case "PASSWORDCHANGED": if (value === true) { alert("Password changed."); } break;
+                    case "FORGOTPASSWORD": if (value === true) { alert("If that email exists, the reset request was received."); } break;
                     case "PLUGIN": SI.Tools.ProcessPlugin(json);
                 }
             }

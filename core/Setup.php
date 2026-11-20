@@ -93,7 +93,7 @@ class Setup {
 			$dboptions.="<option>$v</option>";
 		}
 		$year = date('Y');
-		$host = $_SERVER['HTTP_HOST'];
+		$host = SI_DOMAIN_NAME;
 					
             return "<div>
 					<header>

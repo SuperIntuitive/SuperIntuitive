@@ -8,16 +8,39 @@ namespace SuperIntuitive;
  * @version   v0.8
  */
 
-session_start();
 require_once dirname(__DIR__).DIRECTORY_SEPARATOR."SuperIntuitive".DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+Tools::ConfigureSessionCookieParams();
+session_start();
+
+$multipartPost = $_POST;
 
 Tools::Autoload('root');
 Tools::DefineServer();
+Tools::SendSecurityHeaders();
 
 define("SI_ENTRY","DELEGATEADMIN");
+if($_SERVER['REQUEST_METHOD'] !== 'POST'){
+	http_response_code(405);
+	echo json_encode(array('ERROR' => 'Method not allowed.'));
+	exit();
+}
 if(Tools::UserHasRole('Admin')){
 	//Get post from here
-	$post = json_decode( file_get_contents("php://input"), true);
+	$post = $multipartPost;
+	if(empty($post)){
+		$post = json_decode(file_get_contents("php://input"), true);
+	}
+	if(!is_array($post)){
+		$post = array();
+	}
+	if(empty($post['KEY']) && !empty($_FILES['pluginzip'])){
+		$post['KEY'] = 'UploadPluginPackage';
+	}
+	if(!Tools::ValidateCsrfToken()){
+		http_response_code(403);
+		echo json_encode(array('ERROR' => 'Invalid request token. Refresh the page and try again.'));
+		exit();
+	}
 	//Tools::Log($post);
 	unset($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN']); //Make sure any old return data is gone
 	$_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] = array(); //Reinit a new return.
@@ -144,20 +167,27 @@ if(Tools::UserHasRole('Admin')){
 
 				//Plugins
 				case "GetMorePlugins":
-					$pi = new Plugins();
-					$pi->GetMorePlugins();
-					break;
 				case "DownloadPlugin":
-					$pi = new Plugins();
-					$pi->DownloadPlugin($post);
-					 break;
+				case "UploadPluginPackage":
 				case "InstallPlugin":
-					$pi = new Plugins();
-					$pi->InstallPlugin($post);
-					 break;
 				case "UninstallPlugin":
+					if(!Tools::CanAccessPluginStore()){
+						http_response_code(403);
+						echo json_encode(array('ERROR' => 'Plugin management is only available to logged-in admins while the site is in dev deployment.'));
+						exit();
+					}
 					$pi = new Plugins();
-					$pi->UninstallPlugin($post);
+					if($post['KEY'] === "GetMorePlugins"){
+						$pi->GetMorePlugins();
+					}else if($post['KEY'] === "DownloadPlugin"){
+						$pi->DownloadPlugin($post);
+					}else if($post['KEY'] === "UploadPluginPackage"){
+						$pi->UploadPluginPackage($post);
+					}else if($post['KEY'] === "InstallPlugin"){
+						$pi->InstallPlugin($post);
+					}else{
+						$pi->UninstallPlugin($post);
+					}
 					 break;
 
 
@@ -207,6 +237,8 @@ if(Tools::UserHasRole('Admin')){
 }else{
 	//not an admin
 	//find out whos trying and report it
+	http_response_code(403);
+	echo json_encode(array('ERROR' => 'Forbidden'));
 	exit();
 }
 

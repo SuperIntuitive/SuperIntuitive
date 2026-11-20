@@ -218,6 +218,16 @@ _pkginfo.txt
 !?*.[Cc]ache/
 
 # Others
+
+# SuperIntuitive local runtime state
+/core/DbCreds.php
+/domains/
+/logs/
+/plugins/downloaded/
+/plugins/installed/
+/sql/backups/
+/sql/installer/
+/.env
 ClientBin/
 ~$*
 *~
@@ -357,3 +367,5 @@ web.config
 /logs/*
 /sql/backups/*
 /sql/installer/*
+
+/plugins.superintuitive.net/

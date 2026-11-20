@@ -20,9 +20,10 @@ class Sessions {
 		*/
 
 		if (session_status() == PHP_SESSION_NONE) {
+			Tools::ConfigureSessionCookieParams();
 		    
 			session_start();
-		    $this->sessionid = session_id();
+		    $this->sessionId = session_id();
 			//$this->Open('foo', 'bar');
 			//$this->Read($this->sessionid);
 		}

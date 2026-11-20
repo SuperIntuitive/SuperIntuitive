@@ -7,13 +7,21 @@ namespace SuperIntuitive;
  *            See https://github.com/disscombobilated/SuperIntuitive/blob/master/LICENSE
  * @version   v0.8
  */
-session_start();
 require_once dirname(__DIR__).DIRECTORY_SEPARATOR."SuperIntuitive".DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+Tools::ConfigureSessionCookieParams();
+session_start();
 
 Tools::Autoload('root');
 Tools::DefineServer();
+Tools::SendSecurityHeaders();
 
 define("SI_ENTRY","DELEGATE");
+
+if($_SERVER['REQUEST_METHOD'] !== 'POST'){
+	http_response_code(405);
+	echo json_encode(array(array('ERROR' => 'Method not allowed.')));
+	exit();
+}
 
 $post = json_decode( file_get_contents("php://input"), true);
 $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['AJAXRETURN'] = array();
@@ -22,6 +30,13 @@ $_SESSION['AJAXRETURN'] = array();
 
 Tools::Log("IN DELEGATE.");
 Tools::Log($post);
+
+$csrfExemptKeys = array('SetupSuperIntuitive', 'TestDatabase', 'TestDomain');
+if(isset($post['KEY']) && !in_array($post['KEY'], $csrfExemptKeys, true) && !Tools::ValidateCsrfToken()){
+	http_response_code(403);
+	echo json_encode(array(array('ERROR' => 'Invalid request token. Refresh the page and try again.')));
+	exit();
+}
 
 if(isset($post['KEY'])){
 	$key = $post['KEY'];
@@ -43,7 +58,9 @@ if(isset($post['KEY'])){
 				$deploy->ChangeDeployment($post);
 				break;
 		case "UpdatePassword":
-				$user = new User();
+		case "ChangePassword":
+				$login = new Login();
+				$login->ChangePassword($post);
 				break;
 		case "ForgotPassword":
 				$user = new User();

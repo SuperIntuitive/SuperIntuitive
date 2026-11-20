@@ -2,9 +2,11 @@
 namespace SuperIntuitive;
 header("Content-Type: application/javascript; charset: UTF-8");
 
-session_start();
 require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'Tools.php';
+Tools::ConfigureSessionCookieParams();
+session_start();
 Tools::DefineServer();
+Tools::SendSecurityHeaders();
 
 error_reporting(E_ALL ^ E_WARNING); 
 
@@ -2313,6 +2315,9 @@ SI.Editor = {
             //debugger;
             ajax.open(options.Method, options.Url, options.Async);
             ajax.setRequestHeader("Content-Type", options.ContentType);
+            if (window.SI && SI.CSRF && SI.CSRF.Token) {
+                ajax.setRequestHeader("X-SI-CSRF", SI.CSRF.Token);
+            }
             ajax.onreadystatechange = function () {
                 if (ajax.readyState === 4 && ajax.status === 200) {
                       //debugger;
@@ -2372,8 +2377,10 @@ SI.Editor = {
                             case 'NEWLOCALTEXT': SI.Editor.Objects.Language.Created(value); break;
                             //User
                             case 'USERCREATED': SI.Editor.Objects.User.Created(value); break;
+                            case 'PASSWORDCHANGED': if (value === true) { SI.Tools.SuperAlert('Password changed.', 2000); } break;
                             case 'RETRIEVEDROLES': SI.Editor.Objects.User.SetRoles(value); break;
                             case 'UPDATEDROLES': SI.Editor.Objects.User.UpdatedRoles(value); break;
+                            case 'ERROR': SI.Tools.SuperAlert(value, 4000); break;
                             //Security
                             case 'ROLEDELETED': SI.Editor.Objects.Security.Deleted(value); break;
                             case 'ROLEDELETED': SI.Editor.Objects.Security.Created(value); break;

@@ -68,7 +68,7 @@ class Tools{
 		$query = parse_url($url, PHP_URL_QUERY); //anything after the ? 
 		$fragment = parse_url($url, PHP_URL_FRAGMENT); //anything after the #
 		//Tools::Log("scheme:$scheme,user:$user,pass:$pass,host:$host,port:$port,path:$path,query:$query,fragment:$fragment", true);
-		$languages = ['en'];
+		$languages = 'en';
 		if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])){
 			$languages = explode( ';',$_SERVER['HTTP_ACCEPT_LANGUAGE'])[0];
 		}
@@ -121,8 +121,72 @@ class Tools{
 			file_put_contents($_SERVER["DOCUMENT_ROOT"]."/core/DbCreds.php", $dbcreds);     // Save our content to the file.
 		}
 	}
+	static function IsSecureRequest(){
+		if((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+			|| (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)
+			|| (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')){
+			return true;
+		}
+
+		return false;
+	}
+	static function ConfigureSessionCookieParams(){
+		if(headers_sent()){
+			return;
+		}
+
+		$secure = Tools::IsSecureRequest();
+		ini_set('session.use_only_cookies', '1');
+		ini_set('session.use_strict_mode', '1');
+		ini_set('session.cookie_httponly', '1');
+		ini_set('session.cookie_secure', $secure ? '1' : '0');
+		if(PHP_VERSION_ID >= 70300){
+			session_set_cookie_params(array(
+				'lifetime' => 0,
+				'path' => '/',
+				'domain' => '',
+				'secure' => $secure,
+				'httponly' => true,
+				'samesite' => 'Lax'
+			));
+		}else{
+			session_set_cookie_params(0, '/; samesite=Lax', '', $secure, true);
+		}
+	}
+	static function GetCookieOptions($expires = 0){
+		return array(
+			'expires' => $expires,
+			'path' => '/',
+			'domain' => '',
+			'secure' => Tools::IsSecureRequest(),
+			'httponly' => true,
+			'samesite' => 'Lax',
+		);
+	}
+	static function SendSecurityHeaders(){
+		if(headers_sent()){
+			return;
+		}
+
+		header('X-Frame-Options: SAMEORIGIN');
+		header('X-Content-Type-Options: nosniff');
+		header('Referrer-Policy: strict-origin-when-cross-origin');
+		header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+	}
 	static function IsLocalhost($whitelist = ['127.0.0.1', '::1']) {
-		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
+		if(isset($_SERVER['REMOTE_ADDR']) && in_array($_SERVER['REMOTE_ADDR'], $whitelist, true)){
+			return true;
+		}
+
+		if(isset($_SERVER['HTTP_HOST'])){
+			$scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+			$host = parse_url($scheme.'://'.$_SERVER['HTTP_HOST'], PHP_URL_HOST);
+			if($host !== null && in_array(strtolower($host), ['127.0.0.1', '::1', 'localhost'], true)){
+				return true;
+			}
+		}
+
+		return false;
 	}
 	static function Log($data,$filetype='log'){
 		$log = $_SERVER["DOCUMENT_ROOT"].'/logs/dev.'.$filetype;
@@ -270,6 +334,65 @@ class Tools{
 		}
 		return $ip;
 	}
+	static function GetRequestHeader($headerName){
+		$serverKey = 'HTTP_'.strtoupper(str_replace('-', '_', $headerName));
+		if(isset($_SERVER[$serverKey])){
+			return $_SERVER[$serverKey];
+		}
+
+		return null;
+	}
+	static function EnsureCsrfToken(){
+		if(session_status() !== PHP_SESSION_ACTIVE){
+			return null;
+		}
+
+		if(empty($_SESSION['SI']['security']['csrf']) || !is_string($_SESSION['SI']['security']['csrf'])){
+			$_SESSION['SI']['security']['csrf'] = bin2hex(random_bytes(32));
+		}
+
+		return $_SESSION['SI']['security']['csrf'];
+	}
+	static function GetCsrfToken(){
+		return Tools::EnsureCsrfToken();
+	}
+	static function ValidateCsrfToken($token = null){
+		if(session_status() !== PHP_SESSION_ACTIVE){
+			return false;
+		}
+
+		$storedToken = Tools::EnsureCsrfToken();
+		if($token === null){
+			$token = Tools::GetRequestHeader('X-SI-CSRF');
+			if($token === null && isset($_POST['SI_CSRF'])){
+				$token = $_POST['SI_CSRF'];
+			}
+		}
+
+		if(!is_string($token) || !is_string($storedToken)){
+			return false;
+		}
+
+		return hash_equals($storedToken, $token);
+	}
+	static function SafeUploadedFilename($filename){
+		$filename = basename((string)$filename);
+		$filename = preg_replace('/[^A-Za-z0-9._ -]/', '_', $filename);
+		$filename = trim($filename, ". \t\n\r\0\x0B");
+		if($filename === ''){
+			return 'file';
+		}
+
+		return $filename;
+	}
+	static function StorageFilename($extension = ''){
+		$extension = strtolower((string)$extension);
+		if($extension !== '' && !Tools::StartsWith($extension, '.')){
+			$extension = '.'.ltrim($extension, '.');
+		}
+
+		return bin2hex(random_bytes(16)).$extension;
+	}
 	static function SetDefaults($options,$defaults){
 		if($options == null){
 			$options = $defaults;
@@ -295,7 +418,7 @@ class Tools{
 		$charactersLength = strlen($characters);
 		$randomString = '';
 		for ($i = 0; $i < $length; $i++) {
-			$randomString .= $characters[mt_rand(0, $charactersLength - 1)];
+			$randomString .= $characters[random_int(0, $charactersLength - 1)];
 		}
 		return $randomString;
 	}
@@ -447,6 +570,30 @@ class Tools{
 		//Tools::Log("Role NOT found. Returning false");
 		//Tools::Log("");
 		return FALSE;
+	}
+	static function UserIsLoggedIn(){
+		if(!defined('SI_DOMAIN_NAME') || !defined('SI_SUBDOMAIN_NAME')){
+			return false;
+		}
+
+		return !empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['user']['loggedin']);
+	}
+	static function GetCurrentDeployment(){
+		if(defined('SI_DOMAIN_NAME') && defined('SI_SUBDOMAIN_NAME')
+			&& !empty($_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'])){
+			return $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['deployment'];
+		}
+
+		if(defined('SI_DEPLOYMENT')){
+			return SI_DEPLOYMENT;
+		}
+
+		return 'live';
+	}
+	static function CanAccessPluginStore(){
+		return Tools::UserIsLoggedIn()
+			&& Tools::UserHasRole('Admin')
+			&& Tools::GetCurrentDeployment() === 'dev';
 	}
 	static function GetEntityNameFromGuid($guid){
 		$entities = $_SESSION['SI']['domains'][SI_DOMAIN_NAME]['subdomains'][SI_SUBDOMAIN_NAME]['entities'];

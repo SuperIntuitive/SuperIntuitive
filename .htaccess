@@ -2,13 +2,10 @@ ErrorDocument 403 /si403.php
 
 RewriteEngine On
 RewriteBase /
-RewriteRule ^(media/images/.*) domains/%{HTTP_HOST}/$1 [L]
-RewriteRule ^(media/audio/.*) domains/%{HTTP_HOST}/$1 [L]
-RewriteRule ^(media/data/.*) domains/%{HTTP_HOST}/$1 [L]
-RewriteRule ^(media/documents/.*) domains/%{HTTP_HOST}/$1 [L]
-RewriteRule ^(media/fonts/.*) domains/%{HTTP_HOST}/$1 [L]
-RewriteRule ^(media/icons/.*) domains/%{HTTP_HOST}/$1 [L]
-RewriteRule ^(media/videos/.*) domains/%{HTTP_HOST}/$1 [L]
+RewriteCond %{HTTP_HOST} ^127\.0\.0\.1(?::\d+)?$ [NC]
+RewriteRule ^(media/(images|audio|data|documents|fonts|icons|videos)/.*)$ domains/localhost/$1 [L]
+RewriteCond %{HTTP_HOST} ^([^:]+)(?::\d+)?$ [NC]
+RewriteRule ^(media/(images|audio|data|documents|fonts|icons|videos)/.*)$ domains/%1/$1 [L]
 
 
 RewriteRule ^index.php$ - [L]

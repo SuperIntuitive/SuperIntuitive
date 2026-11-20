@@ -329,6 +329,34 @@ SI.Editor.Objects.Plugins = {
                 appendTo: menu,
             });
 
+            let uploadInput = Ele('input', {
+                type: 'file',
+                accept: '.zip,application/zip,application/x-zip-compressed',
+                style: {
+                    display: 'none',
+                },
+                onchange: function () {
+                    SI.Editor.Objects.Plugins.Local.UploadSelected(this);
+                },
+                appendTo: menu,
+            });
+
+            Ele('button', {
+                innerHTML: 'Upload Zip',
+                style: {
+                    position: 'absolute',
+                    right: '15px',
+                    top: '12px',
+                    borderRadius: '7px',
+                    padding: '4px 10px',
+                    color: '#000',
+                },
+                onclick: function () {
+                    uploadInput.click();
+                },
+                appendTo: menu,
+            });
+
             let installed = SI.Editor.Data.Objects.Plugins.Current;
             let setup = [];
             for (let plugin in installed) {
@@ -428,6 +456,51 @@ SI.Editor.Objects.Plugins = {
                     return false;
                 }
             }
+        },
+        UploadSelected: function (input) {
+            if (!input || !input.files || input.files.length === 0) {
+                return;
+            }
+
+            let file = input.files[0];
+            if (!file.name || !file.name.toLowerCase().endsWith('.zip')) {
+                SI.Tools.SuperAlert('Select a plugin .zip file to upload.', 4000);
+                input.value = '';
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('KEY', 'UploadPluginPackage');
+            formData.append('pluginzip', file);
+
+            let ajax = new XMLHttpRequest();
+            ajax.open('POST', '/delegate-admin.php', true);
+            if (window.SI && SI.CSRF && SI.CSRF.Token) {
+                ajax.setRequestHeader('X-SI-CSRF', SI.CSRF.Token);
+            }
+            ajax.onreadystatechange = function () {
+                if (ajax.readyState !== 4) {
+                    return;
+                }
+
+                input.value = '';
+                if (ajax.status !== 200) {
+                    SI.Tools.SuperAlert('Plugin upload failed.', 4000);
+                    return;
+                }
+
+                try {
+                    if (ajax.responseText !== null && ajax.responseText.length > 0) {
+                        let json = JSON.parse(ajax.responseText.trim());
+                        SI.Editor.Ajax.Complete(json, { Data: { KEY: 'UploadPluginPackage' } });
+                    }
+                } catch (ex) {
+                    console.error(ajax.responseText);
+                    console.error(ex);
+                    SI.Tools.SuperAlert('Plugin upload failed.', 4000);
+                }
+            };
+            ajax.send(formData);
         },
         Installed: function (plugin) {
             SI.Tools.SuperAlert(plugin+' plugin has been enabled');
