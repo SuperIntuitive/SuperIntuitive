@@ -14,7 +14,7 @@ SI.Editor.Objects.Media = {
         container.appendChild(tabs.Draw());
 
         //want the uploader to be fixed to the lower left on all tabs.
-        uploaderOptions = {
+        const uploaderOptions = {
             Id:'si_edit_media_uploader',
             Bottom: '20px', 
             Left: '20px', 
@@ -31,7 +31,7 @@ SI.Editor.Objects.Media = {
         return container;
     },
     MediaTab : function (tabname) {
-        this.CurrentMediaPath = "",
+        this.CurrentMediaPath = "";
         tabname = tabname.replace(/ /g, '');
         let container = Ele('div', {
             style: {
@@ -330,38 +330,39 @@ SI.Editor.Objects.Media = {
         // console.log(input);
     },
     OnComplete : function (files, responseText) {
-        let response = JSON.parse(responseText);
-        for (let file in files) {
-            if (files.hasOwnProperty(file)) {
-                let filedata = files[file];
-                let moredata = response[file];
-                let tabname = SI.Tools.String.CapFirst(moredata['category']);
-                let name = SI.Tools.String.CapFirst(moredata['name']).split('.')[0];
-                let scroller = document.getElementById('si_edit_mediascroller_' + tabname );
-                if (scroller) {
-                    //debugger;
-                    let options = {
-                        Type: tabname,
-                        Data: { "path": moredata['name'], "mime": moredata['mime'], "name": name, "tabname": tabname, "url": moredata['path'], "id": moredata['id'] },
-                        Group: 'si_media_' + tabname,
-                        Url: moredata['name'],
-                        BackgroundColor: 'silver',
-                        Text: name,
-                        Mime: moredata['mime'],
-                        OnChange: SI.Editor.Objects.Media.OnChange,
-                    };
-                    let tile = new SI.Widget.Tile(options);
+        try{
+            let response = JSON.parse(responseText);
+            for (let file in files) {
+                if (files.hasOwnProperty(file)) {
+                    let filedata = files[file];
+                    let moredata = response[file];
+                    let tabname = SI.Tools.String.CapFirst(moredata['category']);
+                    let name = SI.Tools.String.CapFirst(moredata['name']).split('.')[0];
+                    let scroller = document.getElementById('si_edit_mediascroller_' + tabname );
+                    if (scroller) {
+                        //debugger;
+                        let options = {
+                            Type: tabname,
+                            Data: { "path": moredata['name'], "mime": moredata['mime'], "name": name, "tabname": tabname, "url": moredata['path'], "id": moredata['id'] },
+                            Group: 'si_media_' + tabname,
+                            Url: moredata['name'],
+                            BackgroundColor: 'silver',
+                            Text: name,
+                            Mime: moredata['mime'],
+                            OnChange: SI.Editor.Objects.Media.OnChange,
+                        };
+                        let tile = new SI.Widget.Tile(options);
 
-                    scroller.appendChild(tile.Container);
+                        scroller.appendChild(tile.Container);
+                    }
                 }
-                
-
-       
             }
+        }catch (error) {
+            console.error('Failed to parse response:', error);
+            return;
         }
-
-        
-    },
+            
+        },
     OnChange : function (ev,self) {
         let deploys = ["dev", "test", "live"];
         let filename = self.getAttribute('data-path');
